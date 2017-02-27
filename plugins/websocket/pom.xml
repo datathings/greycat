@@ -1,0 +1,76 @@
+<!--
+
+    Copyright 2017 The GreyCat Authors. All rights reserved.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.datathings.ent</groupId>
+        <artifactId>greycat-parent</artifactId>
+        <version>4-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>greycat-websocket</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Greycat EnT. - WebSocket</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.datathings</groupId>
+            <artifactId>greycat-websocket</artifactId>
+            <version>${greycat.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.github.wvengen</groupId>
+                <artifactId>proguard-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>proguard</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <obfuscate>true</obfuscate>
+                    <!--
+                    <injar>${project.build.finalName}.jar</injar>
+                    -->
+                    <outjar>${project.build.finalName}.jar</outjar>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <proguardInclude>${basedir}/proguard.conf</proguardInclude>
+                    <assembly>
+                        <inclusions>
+                            <inclusion>
+                                <groupId>com.datathings</groupId>
+                                <artifactId>greycat-websocket</artifactId>
+                            </inclusion>
+                        </inclusions>
+                    </assembly>
+                    <options>
+                        <option>-keepattributes Signature</option>
+                        <option>-allowaccessmodification</option>
+                        <option>-keep public class * { *; }</option>
+                    </options>
+                    <libs>
+                        <lib>${java.home}/lib/rt.jar</lib>
+                        <!--
+                        <lib>${java.home}/lib/jsse.jar</lib>
+                        -->
+                    </libs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
