@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.common.matrix;
+package greycat.blas;
 
-import greycat.ml.common.matrix.blassolver.BlasMatrixEngine;
-import greycat.ml.common.matrix.jamasolver.JamaMatrixEngine;
-import greycat.ml.common.matrix.operation.PInvSVD;
 import greycat.struct.DMatrix;
+import greycat.struct.matrix.*;
 
 public class HybridMatrixEngine implements MatrixEngine {
 
@@ -27,7 +25,7 @@ public class HybridMatrixEngine implements MatrixEngine {
 
     public HybridMatrixEngine() {
         blas = new BlasMatrixEngine();
-        jama = new JamaMatrixEngine();
+        jama = new PlainMatrixEngine();
     }
 
     /**
