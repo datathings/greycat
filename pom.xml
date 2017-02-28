@@ -14,6 +14,7 @@
     <description>greycat-enterprise-parent</description>
     <properties>
         <greycat.version>4-SNAPSHOT</greycat.version>
+        <java2typescript.plugin.version>85</java2typescript.plugin.version>
     </properties>
 
     <modules>
@@ -120,6 +121,5 @@
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
-
 
 </project>

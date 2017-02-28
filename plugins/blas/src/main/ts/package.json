@@ -1,0 +1,27 @@
+{
+  "name": "greycat-blas",
+  "homepage": "https://github.com/datathings/greycat",
+  "version": "GREYCAT_VERSION.0.0",
+  "main": "greycat.blas.js",
+  "typings": "greycat.blas.d.ts",
+  "dependencies": {
+    "greycat": "^GREYCAT_VERSION.0.0",
+    "j2ts-jre":"^J2TS_VERSION.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/datathings/greycat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/datathings/greycat/issues"
+  },
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
+  "devDependencies": {
+    "typescript": "^2.1.5"
+  }
+}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.blasTest;
+package greycatBlasTest;
 
 import greycat.blas.BlasMatrixEngine;
 import greycat.struct.DMatrix;
@@ -26,9 +26,6 @@ import org.junit.Test;
 
 public class MultiplyTest {
 
-    /**
-     * @native ts
-     */
     @Test
     public void MatrixMultBlas() {
         InternalManualMult(new BlasMatrixEngine());
@@ -48,7 +45,6 @@ public class MultiplyTest {
                 }
             }
         }
-
         return matC;
     }
 

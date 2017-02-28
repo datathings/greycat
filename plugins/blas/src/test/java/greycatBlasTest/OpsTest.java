@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.blasTest;
+package greycatBlasTest;
 
 import greycat.blas.BlasMatrixEngine;
 import greycat.blas.HybridMatrixEngine;
@@ -28,9 +28,6 @@ public class OpsTest {
     boolean enablebench = false;
     int dimMax = 50;
 
-    /**
-     * @native ts
-     */
     @Test
     public void optimize() {
         if (!enablebench) {
@@ -180,9 +177,6 @@ public class OpsTest {
         }
     }
 
-    /**
-     * @native ts
-     */
     @Test
     public void decompose_blas() {
         MatrixEngine engine = new BlasMatrixEngine();
@@ -194,9 +188,6 @@ public class OpsTest {
         MatrixPseudoInv(engine, dim);
     }
 
-    /**
-     * @native ts
-     */
     @Test
     public void decompose_jama() {
         MatrixEngine engine = new PlainMatrixEngine();
@@ -208,9 +199,6 @@ public class OpsTest {
         MatrixPseudoInv(engine, dim);
     }
 
-    /**
-     * @native ts
-     */
     @Test
     public void decompose_Hybrid() {
         MatrixEngine engine = new HybridMatrixEngine();
