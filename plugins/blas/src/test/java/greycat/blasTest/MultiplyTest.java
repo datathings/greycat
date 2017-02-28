@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycatMLTest.common;
+package greycat.blasTest;
 
+import greycat.blas.BlasMatrixEngine;
+import greycat.struct.DMatrix;
 import greycat.struct.matrix.MatrixEngine;
+import greycat.struct.matrix.PlainMatrixEngine;
 import greycat.struct.matrix.TransposeType;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.struct.DMatrix;
 
 public class MultiplyTest {
 
@@ -34,7 +36,7 @@ public class MultiplyTest {
 
     @Test
     public void MatrixMultJama() {
-        InternalManualMult(new JamaMatrixEngine());
+        InternalManualMult(new PlainMatrixEngine());
     }
 
     public DMatrix manualMultpily(DMatrix matA, DMatrix matB) {

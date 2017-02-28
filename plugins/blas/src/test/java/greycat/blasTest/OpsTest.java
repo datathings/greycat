@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycatMLTest.common;
+package greycat.blasTest;
 
+import greycat.blas.BlasMatrixEngine;
+import greycat.blas.HybridMatrixEngine;
+import greycat.struct.DMatrix;
 import greycat.struct.matrix.*;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.struct.DMatrix;
 
 public class OpsTest {
 
@@ -35,7 +37,7 @@ public class OpsTest {
             return;
         }
         MatrixEngine blas = new BlasMatrixEngine();
-        MatrixEngine jama = new JamaMatrixEngine();
+        MatrixEngine jama = new PlainMatrixEngine();
 
         MatrixSVD(blas);
         MatrixSVD(jama);
@@ -195,7 +197,7 @@ public class OpsTest {
      */
     @Test
     public void decompose_jama() {
-        MatrixEngine engine = new JamaMatrixEngine();
+        MatrixEngine engine = new PlainMatrixEngine();
         MatrixSVD(engine);
         MatrixInvert(engine);
         MatrixLU(engine);
