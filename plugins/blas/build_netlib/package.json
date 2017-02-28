@@ -1,0 +1,29 @@
+{
+  "name": "emlapack",
+  "version": "0.0.1",
+  "description": "BLAS/LAPACK for JavaScript",
+  "main": "emlapack.js",
+  "files": [
+    "emlapack.js"
+  ],
+  "devDependencies": {
+    "babel": "^5.3.0",
+    "expect.js": "^0.3.1",
+    "gulp": "^3.8.11",
+    "gulp-shell": "^0.4.1",
+    "mocha": "^2.2.4"
+  },
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/likr/emlapack.git"
+  },
+  "author": "Yosuke ONOUE <onoue@likr-lab.com>",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/likr/emlapack/issues"
+  },
+  "homepage": "https://github.com/likr/emlapack"
+}

@@ -6,24 +6,25 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.datathings.ent</groupId>
+    <groupId>com.datathings.enterprise</groupId>
     <artifactId>greycat-parent</artifactId>
     <packaging>pom</packaging>
     <version>4-SNAPSHOT</version>
-    <name>Greycat Ent. - Parent</name>
-
-    <description>The GreyCat Enterprise</description>
-
+    <name>greycat-enterprise-parent</name>
+    <description>greycat-enterprise-parent</description>
     <properties>
-        <greycat.version>3</greycat.version>
+        <greycat.version>4-SNAPSHOT</greycat.version>
     </properties>
 
     <modules>
+        <!--
         <module>greycat</module>
         <module>plugins/leveldb</module>
         <module>plugins/websocket</module>
-    </modules>
+        -->
 
+        <module>plugins/blas</module>
+    </modules>
 
     <developers>
         <developer>
