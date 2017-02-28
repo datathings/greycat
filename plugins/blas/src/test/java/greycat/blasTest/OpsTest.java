@@ -26,7 +26,7 @@ public class OpsTest {
 
     int exec = 1000;
     boolean enablebench = false;
-    int dim = 10;
+    int dimMax = 50;
 
     /**
      * @native ts
@@ -39,29 +39,30 @@ public class OpsTest {
         MatrixEngine blas = new BlasMatrixEngine();
         MatrixEngine jama = new PlainMatrixEngine();
 
-        MatrixSVD(blas);
-        MatrixSVD(jama);
+        MatrixSVD(blas, dimMax);
+        MatrixSVD(jama, dimMax);
 
         long start;
         long blastime, jamatime;
         double ratio;
 
+        int dim;
 
-        for (dim = 5; dim < 30; dim++) {
+        for (dim = 5; dim < dimMax; dim++) {
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixMult(blas);
+                MatrixMult(blas, dim);
             }
             blastime = System.currentTimeMillis() - start;
 
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixMult(jama);
+                MatrixMult(jama, dim);
             }
             jamatime = System.currentTimeMillis() - start;
             ratio = jamatime * 1.0 / blastime;
             if (jamatime < blastime) {
-                //    System.out.println("DIM " + dim + " Blas MULT " + blastime + " JAMA MULT " + jamatime +" ratio " + ratio );
+                //System.out.println("DIM " + dim + " Blas MULT " + blastime + " JAMA MULT " + jamatime + " ratio " + ratio);
             } else {
                 System.out.println("DIM " + dim + " Blas MULT " + blastime + " JAMA MULT " + jamatime + " ratio " + ratio + " WIN FOR BLAS: " + dim);
             }
@@ -70,21 +71,21 @@ public class OpsTest {
         System.out.println("");
 
 
-        for (dim = 5; dim < 30; dim++) {
+        for (dim = 5; dim < dimMax; dim++) {
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixSVD(blas);
+                MatrixSVD(blas, dim);
             }
             blastime = System.currentTimeMillis() - start;
 
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixSVD(jama);
+                MatrixSVD(jama, dim);
             }
             jamatime = System.currentTimeMillis() - start;
             ratio = jamatime * 1.0 / blastime;
             if (jamatime < blastime) {
-                //    System.out.println("DIM " + dim + " Blas SVD " + blastime + " JAMA SVD " + jamatime +" ratio " + ratio );
+                //System.out.println("DIM " + dim + " Blas SVD " + blastime + " JAMA SVD " + jamatime + " ratio " + ratio);
             } else {
                 System.out.println("DIM " + dim + " Blas SVD " + blastime + " JAMA SVD " + jamatime + " ratio " + ratio + " WIN FOR BLAS: " + dim);
             }
@@ -92,21 +93,21 @@ public class OpsTest {
 
         System.out.println("");
 
-        for (dim = 5; dim < 30; dim++) {
+        for (dim = 5; dim < dimMax; dim++) {
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixQR(blas);
+                MatrixQR(blas, dim);
             }
             blastime = System.currentTimeMillis() - start;
 
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixQR(jama);
+                MatrixQR(jama, dim);
             }
             jamatime = System.currentTimeMillis() - start;
             ratio = jamatime * 1.0 / blastime;
             if (jamatime < blastime) {
-                //    System.out.println("DIM " + dim + " Blas QR " + blastime + " JAMA QR " + jamatime +" ratio " + ratio );
+               // System.out.println("DIM " + dim + " Blas QR " + blastime + " JAMA QR " + jamatime + " ratio " + ratio);
             } else {
                 System.out.println("DIM " + dim + " Blas QR " + blastime + " JAMA QR " + jamatime + " ratio " + ratio + " WIN FOR BLAS: " + dim);
             }
@@ -114,16 +115,16 @@ public class OpsTest {
 
         System.out.println("");
 
-        for (dim = 5; dim < 30; dim++) {
+        for (dim = 5; dim < dimMax; dim++) {
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixLU(blas);
+                MatrixLU(blas, dim);
             }
             blastime = System.currentTimeMillis() - start;
 
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixLU(jama);
+                MatrixLU(jama, dim);
             }
             jamatime = System.currentTimeMillis() - start;
             ratio = jamatime * 1.0 / blastime;
@@ -136,16 +137,16 @@ public class OpsTest {
 
         System.out.println("");
 
-        for (dim = 5; dim < 30; dim++) {
+        for (dim = 5; dim < dimMax; dim++) {
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixPseudoInv(blas);
+                MatrixPseudoInv(blas, dim);
             }
             blastime = System.currentTimeMillis() - start;
 
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixPseudoInv(jama);
+                MatrixPseudoInv(jama, dim);
             }
             jamatime = System.currentTimeMillis() - start;
             ratio = jamatime * 1.0 / blastime;
@@ -158,16 +159,16 @@ public class OpsTest {
         System.out.println("");
 
 
-        for (dim = 5; dim < 30; dim++) {
+        for (dim = 5; dim < dimMax; dim++) {
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixInvert(blas);
+                MatrixInvert(blas, dim);
             }
             blastime = System.currentTimeMillis() - start;
 
             start = System.currentTimeMillis();
             for (int z = 0; z < exec; z++) {
-                MatrixInvert(jama);
+                MatrixInvert(jama, dim);
             }
             jamatime = System.currentTimeMillis() - start;
             ratio = jamatime * 1.0 / blastime;
@@ -185,11 +186,12 @@ public class OpsTest {
     @Test
     public void decompose_blas() {
         MatrixEngine engine = new BlasMatrixEngine();
-        MatrixSVD(engine);
-        MatrixInvert(engine);
-        MatrixLU(engine);
-        MatrixQR(engine);
-        MatrixPseudoInv(engine);
+        int dim = dimMax;
+        MatrixSVD(engine, dim);
+        MatrixInvert(engine, dim);
+        MatrixLU(engine, dim);
+        MatrixQR(engine, dim);
+        MatrixPseudoInv(engine, dim);
     }
 
     /**
@@ -198,11 +200,12 @@ public class OpsTest {
     @Test
     public void decompose_jama() {
         MatrixEngine engine = new PlainMatrixEngine();
-        MatrixSVD(engine);
-        MatrixInvert(engine);
-        MatrixLU(engine);
-        MatrixQR(engine);
-        MatrixPseudoInv(engine);
+        int dim = dimMax;
+        MatrixSVD(engine, dim);
+        MatrixInvert(engine, dim);
+        MatrixLU(engine, dim);
+        MatrixQR(engine, dim);
+        MatrixPseudoInv(engine, dim);
     }
 
     /**
@@ -211,21 +214,22 @@ public class OpsTest {
     @Test
     public void decompose_Hybrid() {
         MatrixEngine engine = new HybridMatrixEngine();
-        MatrixSVD(engine);
-        MatrixInvert(engine);
-        MatrixLU(engine);
-        MatrixQR(engine);
-        MatrixPseudoInv(engine);
+        int dim = dimMax;
+        MatrixSVD(engine, dim);
+        MatrixInvert(engine, dim);
+        MatrixLU(engine, dim);
+        MatrixQR(engine, dim);
+        MatrixPseudoInv(engine, dim);
     }
 
-    public void MatrixMult(MatrixEngine engine) {
+    public void MatrixMult(MatrixEngine engine, int dim) {
         double eps = 1e-7;
         DMatrix matA = VolatileDMatrix.random(dim, dim, 0, 0, 100);
         DMatrix matB = VolatileDMatrix.random(dim, dim, 0, 0, 100);
         DMatrix res = engine.multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1.0, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
     }
 
-    public void MatrixInvert(MatrixEngine engine) {
+    public void MatrixInvert(MatrixEngine engine, int dim) {
         double eps = 1e-7;
 
         DMatrix matA = VolatileDMatrix.random(dim, dim, 0, 0, 100);
@@ -247,7 +251,7 @@ public class OpsTest {
         }
     }
 
-    public void MatrixLU(MatrixEngine engine) {
+    public void MatrixLU(MatrixEngine engine, int dim) {
         int m = dim;
         int n = dim;
         int p = dim;
@@ -267,7 +271,7 @@ public class OpsTest {
     }
 
 
-    public void MatrixQR(MatrixEngine engine) {
+    public void MatrixQR(MatrixEngine engine, int dim) {
         int m = dim;
         int n = dim;
         int p = dim;
@@ -288,7 +292,7 @@ public class OpsTest {
     }
 
 
-    public void MatrixPseudoInv(MatrixEngine engine) {
+    public void MatrixPseudoInv(MatrixEngine engine, int dim) {
         int m = dim;
         int n = dim;
         double eps = 1e-6;
@@ -312,7 +316,7 @@ public class OpsTest {
     }
 
 
-    public void MatrixSVD(MatrixEngine engine) {
+    public void MatrixSVD(MatrixEngine engine, int dim) {
         int m = dim;
         int n = dim;
         double eps = 1e-7;

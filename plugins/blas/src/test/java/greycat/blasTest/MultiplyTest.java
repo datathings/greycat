@@ -74,7 +74,5 @@ public class MultiplyTest {
             }
         }
 
-        //  System.out.println(System.currentTimeMillis() - current);
-
     }
 }
