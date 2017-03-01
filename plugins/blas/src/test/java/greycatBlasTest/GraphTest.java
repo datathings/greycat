@@ -1,4 +1,4 @@
-package greycat.blasTest;
+package greycatBlasTest;
 
 import greycat.Callback;
 import greycat.Graph;
