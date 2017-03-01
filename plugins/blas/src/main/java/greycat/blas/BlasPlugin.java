@@ -1,3 +1,6 @@
+/**
+ * Copyright 2017 DataThings - All rights reserved.
+ */
 package greycat.blas;
 
 import greycat.Graph;

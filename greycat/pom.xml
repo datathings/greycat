@@ -1,6 +1,6 @@
 <!--
 
-    Copyright 2017 The GreyCat Authors. All rights reserved.
+    Copyright 2017 DataThings - All rights reserved.
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.datathings.ent</groupId>
+        <groupId>com.datathings.enterprise</groupId>
         <artifactId>greycat-parent</artifactId>
         <version>4-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -17,9 +17,13 @@
     <artifactId>greycat</artifactId>
     <packaging>jar</packaging>
 
-    <name>Greycat Ent.</name>
+    <name>greycat-enterprise</name>
 
-    <description>The GreyCat Enterprise</description>
+    <description>greycat-enterprise</description>
+
+    <properties>
+        <header.path>${basedir}/../LICENSE</header.path>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -35,6 +39,7 @@
             <plugin>
                 <groupId>com.github.wvengen</groupId>
                 <artifactId>proguard-maven-plugin</artifactId>
+                <version>2.0.11</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

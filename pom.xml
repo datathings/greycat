@@ -1,6 +1,6 @@
 <!--
 
-    Copyright 2017 The GreyCat Authors. All rights reserved.
+    Copyright 2017 DataThings - All rights reserved.
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -12,19 +12,22 @@
     <version>4-SNAPSHOT</version>
     <name>greycat-enterprise-parent</name>
     <description>greycat-enterprise-parent</description>
+
+
     <properties>
         <greycat.version>4-SNAPSHOT</greycat.version>
         <java2typescript.plugin.version>85</java2typescript.plugin.version>
+        <header.path>${project.basedir}/LICENSE</header.path>
     </properties>
 
     <modules>
         <!--
-        <module>greycat</module>
         <module>plugins/leveldb</module>
         <module>plugins/websocket</module>
         -->
-        <module>plugins/excel</module>
+        <module>greycat</module>
 
+        <module>plugins/excel</module>
         <module>plugins/blas</module>
     </modules>
 
@@ -93,6 +96,54 @@
                         <profile>compact1</profile>
                     </compilerArguments>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <header>${header.path}</header>
+                    <excludes>
+                        <exclude>**/README</exclude>
+                        <exclude>**/README.md</exclude>
+                        <exclude>src/test/resources/**</exclude>
+                        <exclude>src/main/resources/**</exclude>
+                        <exclude>**/build/**</exclude>
+                        <exclude>share/**</exclude>
+                        <exclude>**/*.woff2</exclude>
+                        <exclude>**/*.otf</exclude>
+                        <exclude>**/*.graffle</exclude>
+                        <exclude>**/*.jpeg</exclude>
+                        <exclude>**/*.key</exclude>
+                        <exclude>**/*.g4</exclude>
+                        <exclude>**/*.mm</exclude>
+                        <exclude>**/*.sh</exclude>
+                        <exclude>**/*.dylib</exclude>
+                        <exclude>doc/**</exclude>
+                        <exclude>AUTHORS</exclude>
+                        <exclude>CONTRIBUTORS</exclude>
+                        <exclude>HEADER</exclude>
+                        <exclude>LICENSE</exclude>
+                        <exclude>NOTICE</exclude>
+                        <exclude>**/visualizer/**</exclude>
+                        <exclude>**/node_modules/**</exclude>
+                        <exclude>**/public/*.ts</exclude>
+                        <exclude>**/public/*.js</exclude>
+                        <exclude>**/greycat.d.ts</exclude>
+                        <exclude>**/build/**</exclude>
+                        <exclude>**/c3.*</exclude>
+                        <exclude>**/d3.*</exclude>
+                        <exclude>**/moment.js</exclude>
+                        <exclude>**/build_netlib/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
