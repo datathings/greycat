@@ -11,9 +11,6 @@ import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * Created by assaad on 28/02/2017.
- */
 public class GraphTest {
     @Test
     public void testLoading() {
