@@ -93,7 +93,7 @@ public class Validator {
             }
             System.out.println(sb.toString());
         } else {
-            System.err.println("No license file is found!");
+            System.err.println("No license file was found!");
         }
 
         System.err.println("Please send a request to " + EntrepriseConstants.EMAIL + ", to receive a valid license file");
