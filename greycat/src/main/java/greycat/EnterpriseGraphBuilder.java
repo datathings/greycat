@@ -8,6 +8,13 @@ package greycat;
  */
 public class EnterpriseGraphBuilder extends GraphBuilder {
 
-
-
+    @Override
+    public Graph build() {
+        if (Validator.validate()) {
+            return super.build();
+        } else {
+            System.exit(-1);
+            return null;
+        }
+    }
 }
