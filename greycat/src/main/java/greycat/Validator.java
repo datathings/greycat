@@ -30,14 +30,17 @@ public class Validator {
             DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
             Date expirydate = df.parse(date);
             Date now = new Date();
-            return (expirydate.compareTo(now) > 0);
+            if (expirydate.compareTo(now) > 0) {
+                return true;
+            } else {
+                return false;
+            }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            return false;
         }
-        return false;
     }
 
-    private static String getMacAddress() {
+  /*  private static String getMacAddress() {
         try {
             Base64.Encoder encoder = Base64.getEncoder();
             InetAddress ip;
@@ -50,7 +53,7 @@ public class Validator {
             ex.printStackTrace();
         }
         return null;
-    }
+    }*/
 
 
     public static boolean validate() {
@@ -74,7 +77,7 @@ public class Validator {
             for (int i = 0; i < files.length; i++) {
                 try {
                     licenseFile = files[i];
-                    sb.append("Loading: " + licenseFile.getName() + ":\n");
+                    sb.append("Loading " + licenseFile.getName() + ":\n");
                     reader = new FileReader(licenseFile);
                     br = new BufferedReader(reader);
                     request = br.readLine();
@@ -88,26 +91,11 @@ public class Validator {
                 }
             }
             System.out.println(sb.toString());
+        } else {
+            System.err.println("No license file is found!");
         }
 
-        try {
-            System.out.println("Please enter your name, or company name:");
-            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-            String username = in.readLine();
-            String expiration;
-            do {
-                System.out.println("Please enter your requested Expiration date (dd/MM/yyyy):");
-                expiration = in.readLine();
-            }
-            while (!validateDate(expiration));
-            String data = getMacAddress();
-            request = username + delimitter + expiration + delimitter + data;
-            System.out.println("Please send the following request to " + EntrepriseConstants.EMAIL + ", to receive a valid license file\n" + request);
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
+        System.err.println("Please send a request to " + EntrepriseConstants.EMAIL + ", to receive a valid license file");
         return false;
     }
 
@@ -127,7 +115,7 @@ public class Validator {
             String[] splitted = decrypted.split(delimitter);
             String user = splitted[1];
             String date = splitted[2];
-            String mac = splitted[3];
+            //String mac = splitted[3];
 
             //validate date:
             if (!validateDate(date)) {
@@ -136,11 +124,11 @@ public class Validator {
             }
 
             //validate Mac Address
-            String newmac = getMacAddress();
+           /* String newmac = getMacAddress();
             if (!mac.equals(newmac)) {
                 stringBuilder.append("Your hardware has changed, please contact us again to change your licence! Request: " + newmac);
                 return false;
-            }
+            }*/
 
             //Most important: validate the license itself
             x509KeySpec = new X509EncodedKeySpec(decoder.decode(publicKey));
@@ -159,7 +147,7 @@ public class Validator {
             if (!result) {
                 stringBuilder.append("The licence is invalid!");
             } else {
-                stringBuilder.append(EntrepriseConstants.PRODUCT_NAME + " License for: " + user + ", your licence is activated and valid till " + date + "!");
+                stringBuilder.append(EntrepriseConstants.PRODUCT_NAME + " Licensed for: " + user + ", your licence is activated and valid till " + date + "!");
             }
             return result;
         } catch (Exception ex) {

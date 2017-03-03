@@ -4,8 +4,8 @@
 package greycatBlasTest;
 
 import greycat.Callback;
-import greycat.EnterpriseGraphBuilder;
 import greycat.Graph;
+import greycat.GraphBuilder;
 import greycat.blas.BlasPlugin;
 import greycat.struct.DMatrix;
 import greycat.struct.matrix.MatrixOps;
@@ -18,7 +18,7 @@ import org.junit.Test;
 public class GraphTest {
     @Test
     public void testLoading() {
-        Graph g = EnterpriseGraphBuilder
+        Graph g = GraphBuilder
                 .newBuilder()
                 .withPlugin(new BlasPlugin())
                 .build();
