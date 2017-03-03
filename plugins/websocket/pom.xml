@@ -27,52 +27,65 @@
             <groupId>com.datathings</groupId>
             <artifactId>greycat-websocket</artifactId>
             <version>${greycat.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.github.wvengen</groupId>
-                <artifactId>proguard-maven-plugin</artifactId>
-                <version>2.0.11</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>proguard</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <obfuscate>true</obfuscate>
-                    <outjar>${project.build.finalName}.jar</outjar>
-                    <outputDirectory>${project.build.directory}</outputDirectory>
-                    <proguardInclude>${basedir}/proguard.conf</proguardInclude>
-                    <assembly>
-                        <inclusions>
-                            <inclusion>
-                                <groupId>com.datathings</groupId>
-                                <artifactId>greycat-websocket</artifactId>
-                            </inclusion>
-                        </inclusions>
-                    </assembly>
-                    <options>
-                        <option>-keepattributes Signature</option>
-                        <option>-allowaccessmodification</option>
-                        <option>-keep public class greycat.websocket.* {public *;}</option>
-                    </options>
-                    <libs>
-                        <lib>${java.home}/lib/rt.jar</lib>
-                        <!--
-                        <lib>${java.home}/lib/jsse.jar</lib>
-                        -->
-                    </libs>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <profiles>
+        <profile>
+            <id>prod</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.datathings</groupId>
+                    <artifactId>greycat-websocket</artifactId>
+                    <version>${greycat.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.wvengen</groupId>
+                        <artifactId>proguard-maven-plugin</artifactId>
+                        <version>2.0.11</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>proguard</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <obfuscate>true</obfuscate>
+                            <outjar>${project.build.finalName}.jar</outjar>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <proguardInclude>${basedir}/proguard.conf</proguardInclude>
+                            <assembly>
+                                <inclusions>
+                                    <inclusion>
+                                        <groupId>com.datathings</groupId>
+                                        <artifactId>greycat-websocket</artifactId>
+                                    </inclusion>
+                                </inclusions>
+                            </assembly>
+                            <options>
+                                <option>-keepattributes Signature</option>
+                                <option>-allowaccessmodification</option>
+                                <option>-keep public class greycat.websocket.* {public *;}</option>
+                            </options>
+                            <libs>
+                                <lib>${java.home}/lib/rt.jar</lib>
+                            </libs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 
 </project>
