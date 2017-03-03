@@ -4,9 +4,10 @@
 package greycat;
 
 import javax.crypto.Cipher;
-import java.io.*;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.Signature;
