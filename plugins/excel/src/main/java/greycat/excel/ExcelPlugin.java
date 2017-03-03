@@ -3,7 +3,6 @@
  */
 package greycat.excel;
 
-
 import greycat.Action;
 import greycat.Graph;
 import greycat.Type;

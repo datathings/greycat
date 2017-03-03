@@ -21,14 +21,12 @@
     </properties>
 
     <modules>
-        <!--
-        <module>plugins/leveldb</module>
-        <module>plugins/websocket</module>
-        -->
         <module>greycat</module>
 
         <module>plugins/excel</module>
         <module>plugins/blas</module>
+        <module>plugins/leveldb</module>
+        <module>plugins/websocket</module>
     </modules>
 
     <developers>

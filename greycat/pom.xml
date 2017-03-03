@@ -50,9 +50,6 @@
                 </executions>
                 <configuration>
                     <obfuscate>true</obfuscate>
-                    <!--
-                    <injar>${project.build.finalName}.jar</injar>
-                    -->
                     <outjar>${project.build.finalName}.jar</outjar>
                     <outputDirectory>${project.build.directory}</outputDirectory>
                     <proguardInclude>${basedir}/proguard.conf</proguardInclude>
@@ -65,16 +62,15 @@
                         </inclusions>
                     </assembly>
                     <options>
+                        <option>-optimizations !code/allocation/variable</option>
                         <option>-allowaccessmodification</option>
                         <option>-keepattributes Signature</option>
-                        <option>-keep interface greycat.**{*;}</option>
-                        <option>-keep public class greycat.* { *; }</option>
+                        <option>-keep interface greycat.** { *; }</option>
+                        <option>-keep public class !greycat.GraphBuilder,greycat.* { public *; }</option>
+                        <option>-keep public enum greycat.** { *; }</option>
                     </options>
                     <libs>
                         <lib>${java.home}/lib/rt.jar</lib>
-                        <!--
-                        <lib>${java.home}/lib/jsse.jar</lib>
-                        -->
                     </libs>
                 </configuration>
             </plugin>

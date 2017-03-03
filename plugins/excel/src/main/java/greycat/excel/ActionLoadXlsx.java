@@ -26,7 +26,7 @@ import java.util.HashMap;
 /**
  * Created by gnain on 27/02/17.
  */
-public class ActionLoadXlsx implements Action {
+class ActionLoadXlsx implements Action {
 
     private String _uri;
     private ZoneId _loaderZoneId = ZoneId.systemDefault();

@@ -7,7 +7,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.datathings.ent</groupId>
+        <groupId>com.datathings.enterprise</groupId>
         <artifactId>greycat-parent</artifactId>
         <version>4-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
@@ -16,7 +16,7 @@
     <artifactId>greycat-websocket</artifactId>
     <packaging>jar</packaging>
 
-    <name>Greycat EnT. - WebSocket</name>
+    <name>greycat-websocket</name>
 
     <properties>
         <header.path>${basedir}/../../LICENSE</header.path>
@@ -48,9 +48,6 @@
                 </executions>
                 <configuration>
                     <obfuscate>true</obfuscate>
-                    <!--
-                    <injar>${project.build.finalName}.jar</injar>
-                    -->
                     <outjar>${project.build.finalName}.jar</outjar>
                     <outputDirectory>${project.build.directory}</outputDirectory>
                     <proguardInclude>${basedir}/proguard.conf</proguardInclude>
@@ -65,7 +62,7 @@
                     <options>
                         <option>-keepattributes Signature</option>
                         <option>-allowaccessmodification</option>
-                        <option>-keep public class * { *; }</option>
+                        <option>-keep public class greycat.websocket.* {public *;}</option>
                     </options>
                     <libs>
                         <lib>${java.home}/lib/rt.jar</lib>
