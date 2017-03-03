@@ -10,6 +10,7 @@ import greycat.blas.BlasPlugin;
 import greycat.struct.DMatrix;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.PlainMatrixEngine;
+import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,8 +26,10 @@ public class GraphTest {
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                DMatrix vm = VolatileDMatrix.random(200, 1000, 1234, 1, 2);
-                DMatrix vm2 = VolatileDMatrix.random(1000, 300, 2536, -1, 1);
+                RandomGenerator generator=new RandomGenerator();
+                generator.setSeed(1234);
+                DMatrix vm = VolatileDMatrix.random(200, 1000, generator, 1, 2);
+                DMatrix vm2 = VolatileDMatrix.random(1000, 300, generator, -1, 1);
 
                 long start = System.currentTimeMillis();
                 DMatrix mult = MatrixOps.multiply(vm, vm2);

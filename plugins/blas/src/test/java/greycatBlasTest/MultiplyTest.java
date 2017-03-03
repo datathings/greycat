@@ -5,10 +5,7 @@ package greycatBlasTest;
 
 import greycat.blas.BlasMatrixEngine;
 import greycat.struct.DMatrix;
-import greycat.struct.matrix.MatrixEngine;
-import greycat.struct.matrix.PlainMatrixEngine;
-import greycat.struct.matrix.TransposeType;
-import greycat.struct.matrix.VolatileDMatrix;
+import greycat.struct.matrix.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,8 +41,10 @@ public class MultiplyTest {
         int r = 30;
         int o = 30;
         int p = 30;
-        DMatrix matA = VolatileDMatrix.random(r, o, 0, 0, 100);
-        DMatrix matB = VolatileDMatrix.random(o, p, 0, 0, 100);
+        RandomGenerator generator=new RandomGenerator();
+        generator.setSeed(1234);
+        DMatrix matA = VolatileDMatrix.random(r, o, generator, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(o, p, generator, 0, 100);
 
         DMatrix result = engine.multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
         DMatrix matD = manualMultpily(matA, matB);
