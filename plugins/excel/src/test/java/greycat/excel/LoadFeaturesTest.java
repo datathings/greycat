@@ -25,7 +25,7 @@ public class LoadFeaturesTest {
     }
 
     private void loadFeatues(String file) {
-        Graph graph = EnterpriseGraphBuilder.newBuilder().withMemorySize(1000000).withPlugin(new ExcelPlugin()).build();
+        Graph graph = GraphBuilder.newBuilder().withMemorySize(1000000).withPlugin(new ExcelPlugin()).build();
         graph.connect(connected->{
 
             URL fileUrl = getClass().getClassLoader().getResource(file);
