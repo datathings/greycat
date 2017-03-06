@@ -11,6 +11,11 @@ import greycat.struct.matrix.PlainMatrixEngine;
 
 public class BlasPlugin implements Plugin {
 
+    /**
+     * {@native ts
+     * greycat.struct.matrix.MatrixOps.setDefaultEngine(new greycatBlas.blas.HybridMatrixEngine());
+     * }
+     */
     @Override
     public void start(Graph graph) {
         if (Validator.validate()) {
