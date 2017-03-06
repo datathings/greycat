@@ -44,6 +44,7 @@
                     <groupId>com.datathings</groupId>
                     <artifactId>greycat</artifactId>
                     <version>${greycat.version}</version>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
             <build>
@@ -78,7 +79,7 @@
                                 <option>-allowaccessmodification</option>
                                 <option>-keepattributes Signature</option>
                                 <option>-keep interface greycat.** { *; }</option>
-                                <option>-keep public class !greycat.GraphBuilder,greycat.** { public *; }</option>
+                                <option>-keep public class greycat.** { public *; }</option>
                                 <option>-keep public enum greycat.** { *; }</option>
                             </options>
                             <libs>
