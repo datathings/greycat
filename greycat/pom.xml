@@ -30,6 +30,7 @@
             <groupId>com.datathings</groupId>
             <artifactId>greycat</artifactId>
             <version>${greycat.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -39,14 +40,6 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.datathings</groupId>
-                    <artifactId>greycat</artifactId>
-                    <version>${greycat.version}</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
             <build>
                 <plugins>
                     <plugin>
@@ -66,6 +59,7 @@
                             <outjar>${project.build.finalName}.jar</outjar>
                             <outputDirectory>${project.build.directory}</outputDirectory>
                             <proguardInclude>${basedir}/proguard.conf</proguardInclude>
+                            <addMavenDescriptor>true</addMavenDescriptor>
                             <assembly>
                                 <inclusions>
                                     <inclusion>

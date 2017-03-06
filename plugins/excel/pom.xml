@@ -48,14 +48,6 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.datathings.enterprise</groupId>
-                    <artifactId>greycat</artifactId>
-                    <version>${project.parent.version}</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
             <build>
                 <plugins>
                     <plugin>
@@ -83,6 +75,10 @@
                                 <exclusion>
                                     <groupId>stax</groupId>
                                     <artifactId>stax-api</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                    <groupId>com.datathings</groupId>
+                                    <artifactId>greycat</artifactId>
                                 </exclusion>
                             </exclusions>
                             <options>
