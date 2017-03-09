@@ -33,7 +33,7 @@ public class ExcelPlugin implements Plugin {
             public Action create(Object[] params) {
                 Path resolved = _basePath.resolve(String.valueOf(params[0]));
                 if(resolved.toFile().exists()) {
-                    return new ActionLoadXlsx(resolved.toString());
+                    return new ActionLoadXlsx(resolved.toFile().toURI().toString());
                 } else {
                     return new ActionLoadXlsx(String.valueOf(params[0]));
                 }
