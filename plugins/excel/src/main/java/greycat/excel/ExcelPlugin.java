@@ -28,7 +28,7 @@ public class ExcelPlugin implements Plugin {
 
     @Override
     public void start(Graph graph) {
-        graph.actionRegistry().declaration(ExcelActions.LOAD_XSLX).setParams(Type.STRING).setFactory(new ActionFactory() {
+        graph.actionRegistry().getOrCreateDeclaration(ExcelActions.LOAD_XSLX).setParams(Type.STRING).setFactory(new ActionFactory() {
             @Override
             public Action create(Object[] params) {
                 Path resolved = _basePath.resolve(String.valueOf(params[0]));
