@@ -112,6 +112,17 @@
             <artifactId>greycat</artifactId>
             <version>${greycat.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.datathings</groupId>
+            <artifactId>greycat</artifactId>
+            <version>${greycat.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.datathings</groupId>
+            <artifactId>greycat-ml</artifactId>
+            <version>${greycat.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
