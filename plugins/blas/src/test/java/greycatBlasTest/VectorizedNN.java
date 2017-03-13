@@ -17,6 +17,7 @@ import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Test;
+
 /**
  * @ignore ts
  */
