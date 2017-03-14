@@ -22,6 +22,9 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gnain on 27/02/17.
@@ -33,6 +36,8 @@ class ActionLoadXlsx implements Action {
 
     private HashMap<String, Node> featuresMap = new HashMap<>();
     //private Node[] valuesArray;
+
+    private ExecutorService es = Executors.newFixedThreadPool(3);
 
     public ActionLoadXlsx(String uri) {
         this._uri = uri;
@@ -46,8 +51,9 @@ class ActionLoadXlsx implements Action {
                 FileInputStream file = new FileInputStream(parsedUri.getPath());
                 XSSFWorkbook workbook = new XSSFWorkbook(file);
 
+
                 Node fileNode = taskContext.resultAsNodes().get(0);
-                System.out.println("ZoneId:" + _loaderZoneId);
+                //System.out.println("ZoneId:" + _loaderZoneId);
 
                 Sheet metaSheet = workbook.getSheet("META");
                 if (metaSheet != null) {
@@ -56,9 +62,14 @@ class ActionLoadXlsx implements Action {
                 } else {
                     loadSheets(taskContext, workbook);
                 }
-
+                es.shutdown();
+                while (!es.isTerminated()) {
+                    es.awaitTermination(2, TimeUnit.SECONDS);
+                }
 
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
@@ -86,12 +97,17 @@ class ActionLoadXlsx implements Action {
             }
 
             int firstCol = currentRow.getFirstCellNum();
-            String featureName = "" + Math.round(currentRow.getCell(firstCol).getNumericCellValue());
+            String featureId = "" + Math.round(currentRow.getCell(firstCol).getNumericCellValue());
+            String featureName = currentRow.getCell(firstCol + 1).getStringCellValue();
+
+            if (featuresMap.get(featureName) != null) {
+                taskContext.append("Duplicate TAG name in META: " + featureName + "\n");
+            }
 
             Node newFeature = taskContext.graph().newNode(taskContext.world(), taskContext.time());
-            newFeature.set("tag_id", Type.STRING, featureName);
+            newFeature.set("tag_id", Type.STRING, featureId);
             newFeature.set("tag_from_meta", Type.BOOL, true);
-            newFeature.set("tag_name", Type.STRING, currentRow.getCell(firstCol + 1).getStringCellValue());
+            newFeature.set("tag_name", Type.STRING, featureName);
             if (currentRow.getCell(firstCol + 2) != null) {
                 newFeature.set("tag_description", Type.STRING, currentRow.getCell(firstCol + 2).getStringCellValue());
             }
@@ -156,8 +172,8 @@ class ActionLoadXlsx implements Action {
     }
 
     private String getUpperBound(String valueRange) {
-        String bound = valueRange.split(",")[1].trim();
-        return bound.substring(0, bound.length() - 1);
+        String bound = valueRange.split(";")[1].trim();
+        return bound.substring(0, bound.length() - 1).replace(",", ".");
     }
 
     private int getIntLowerBound(String range) {
@@ -169,8 +185,8 @@ class ActionLoadXlsx implements Action {
     }
 
     private String getLowerBound(String valueRange) {
-        String bound = valueRange.split(",")[0].trim();
-        return bound.substring(1);
+        String bound = valueRange.split(";")[0].trim();
+        return bound.substring(1).replace(",", ".");
     }
 
 
@@ -180,9 +196,10 @@ class ActionLoadXlsx implements Action {
         for (int i = 0; i < sheetNum; i++) {
             XSSFSheet currentSheet = workbook.getSheetAt(i);
 
-            if (currentSheet.getSheetName().toLowerCase().trim().equals("META")) {
+            if (currentSheet.getSheetName().toLowerCase().trim().equals("meta")) {
                 continue;
             }
+            //System.out.println("Loading Sheet:" + currentSheet.getSheetName());
 
             Row headerRow = currentSheet.getRow(currentSheet.getFirstRowNum());
             if (headerRow == null) {
@@ -190,15 +207,20 @@ class ActionLoadXlsx implements Action {
                 continue;
             }
             int lastCell = headerRow.getLastCellNum();
-            //valuesArray = new Node[lastCell];
+
             for (int c = headerRow.getFirstCellNum() + 1; c <= lastCell; c++) {
 
+                final int cellNum = c;
                 Cell currentCell = headerRow.getCell(c);
                 if (currentCell == null) {
                     continue;
                 }
+                if (CellType.forInt(currentCell.getCellType()) == CellType.BLANK) {
+                    continue;
+                }
                 String featureName;
-                if (currentCell != null && CellType.forInt(currentCell.getCellType()) == CellType.STRING) {
+
+                if (CellType.forInt(currentCell.getCellType()) == CellType.STRING) {
                     featureName = currentCell.getStringCellValue();
                 } else {
                     featureName = currentSheet.getSheetName() + "_GEN_TAG_" + c;
@@ -206,8 +228,13 @@ class ActionLoadXlsx implements Action {
                 }
                 Node feature = featuresMap.get(featureName);
                 if (feature != null) {
-
+                    feature.relation("value", nodes -> {
+                        loadColumn(taskContext, currentSheet, cellNum, feature, nodes[0]);
+                    });
                 } else {
+
+                    taskContext.append("Tag not listed in META: " + featureName + " from sheet " + currentSheet.getSheetName() + "\n");
+
                     Node newFeature = taskContext.graph().newNode(taskContext.world(), taskContext.time());
                     newFeature.set("tag_id", Type.INT, featuresMap.size());
                     newFeature.set("tag_name", Type.STRING, featureName);
@@ -230,6 +257,7 @@ class ActionLoadXlsx implements Action {
         int sheetNum = workbook.getNumberOfSheets();
         for (int i = 0; i < sheetNum; i++) {
             XSSFSheet currentSheet = workbook.getSheetAt(i);
+            //System.out.println("Loading Sheet:" + currentSheet.getSheetName());
 
             Row headerRow = currentSheet.getRow(currentSheet.getFirstRowNum());
             if (headerRow == null) {
@@ -269,6 +297,8 @@ class ActionLoadXlsx implements Action {
 
 
     private void loadColumn(TaskContext taskContext, XSSFSheet currentSheet, int colId, Node feature, final Node valueNode) {
+
+        //System.out.println("Loading Column:" + colId + " from sheet " + currentSheet.getSheetName());
 
         //Guess type
         byte colType = -1;
@@ -395,19 +425,23 @@ class ActionLoadXlsx implements Action {
                 });
             }
         }
-        if (min[0] != Double.MAX_VALUE) {
-            if (finalType == Type.LONG) {
-                feature.set("value_min", Type.LONG, min[0] / 1);
-            } else {
-                feature.set("value_min", Type.DOUBLE, min[0]);
+        try {
+            if (min[0] != Double.MAX_VALUE) {
+                if (finalType == Type.LONG) {
+                    feature.set("value_min", Type.LONG, Math.round(min[0]));
+                } else {
+                    feature.set("value_min", Type.DOUBLE, min[0]);
+                }
             }
-        }
-        if (max[0] != Double.MIN_VALUE) {
-            if (finalType == Type.LONG) {
-                feature.set("value_max", Type.LONG, max[0] / 1);
-            } else {
-                feature.set("value_max", Type.DOUBLE, max[0]);
+            if (max[0] != Double.MIN_VALUE) {
+                if (finalType == Type.LONG) {
+                    feature.set("value_max", Type.LONG, Math.round(max[0]));
+                } else {
+                    feature.set("value_max", Type.DOUBLE, max[0]);
+                }
             }
+        } catch (ClassCastException e) {
+            System.out.println("");
         }
     }
 
