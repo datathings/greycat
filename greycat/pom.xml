@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.datathings.enterprise</groupId>
         <artifactId>greycat-parent</artifactId>
-        <version>4-SNAPSHOT</version>
+        <version>4.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -30,7 +30,6 @@
             <groupId>com.datathings</groupId>
             <artifactId>greycat</artifactId>
             <version>${greycat.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 

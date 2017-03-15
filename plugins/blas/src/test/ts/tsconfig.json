@@ -6,7 +6,11 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "target": "es5",
-    "declaration": true
+    "declaration": true,
+    "baseUrl": "",
+    "paths": {
+      "greycat": ["node_modules/greycat"]
+    }
   },
   "files": [
     "test.ts"

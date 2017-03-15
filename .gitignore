@@ -4,3 +4,5 @@
 **/*.iml
 **.DS_Store
 node_modules/
+
+**/pom.xml.versionsBackup

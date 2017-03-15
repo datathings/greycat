@@ -8,7 +8,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-blas</artifactId>
-    <version>4-SNAPSHOT</version>
+    <version>4.1-SNAPSHOT</version>
     <name>greycat-blas</name>
 
     <properties>
@@ -19,7 +19,7 @@
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings.enterprise</groupId>
-        <version>4-SNAPSHOT</version>
+        <version>4.1-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
 
@@ -174,119 +174,131 @@
                 </executions>
             </plugin>
 
+
+
+
+
+
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <version>2.0</version>
                 <executions>
                     <execution>
-                        <id>compile</id>
+                        <id>main.ts.compile</id>
                         <phase>compile</phase>
                         <goals>
-                            <goal>run</goal>
+                            <goal>execute</goal>
                         </goals>
                         <configuration>
-                            <target>
-                                <copy file="${basedir}/src/main/ts/tsconfig.json"
-                                      todir="${basedir}/target/classes-npm"/>
-                                <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target/classes-npm"/>
-                                <copy file="${basedir}/src/main/ts/readme.md" todir="${basedir}/target/classes-npm"/>
-                                <copy file="${basedir}/target/generated-sources/greycat.blas.ts"
-                                      todir="${basedir}/target/classes-npm"/>
-                                <replace file="${basedir}/target/classes-npm/greycat.blas.ts" token="namespace greycat"
-                                         value="export namespace greycatBlas"/>
-                                <replace file="${basedir}/target/classes-npm/greycat.blas.ts" token="greycat.blas"
-                                         value="greycatBlas.blas"/>
-                                <replace file="${basedir}/target/classes-npm/package.json" token="GREYCAT_VERSION"
-                                         value="${project.version}"/>
-                                <replace file="${basedir}/target/classes-npm/package.json" token="J2TS_VERSION"
-                                         value="${java2typescript.plugin.version}"/>
-                                <replace file="${basedir}/target/classes-npm/package.json" token="-SNAPSHOT" value=""/>
-                                <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="link"/>
-                                    <arg value="greycat"/>
-                                </exec>
-                                <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="install"/>
-                                </exec>
-                                <copy file="${basedir}/build_netlib/netlib.js"
-                                      todir="${basedir}/target/classes-npm"/>
-                                <exec executable="${basedir}/target/classes-npm/node_modules/typescript/bin/tsc"
-                                      dir="${basedir}/target/classes-npm/" failonerror="true"/>
-                                <delete file="${basedir}/target/classes-npm/greycat.blas.ts"/>
-                                <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="link"/>
-                                </exec>
-                            </target>
+                            <source>
+                                def ant = new AntBuilder()
+                                ant.copy(file: "${basedir}/src/main/ts/tsconfig.json", todir: "${basedir}/target/classes-npm")
+                                ant.copy(file: "${basedir}/src/main/ts/package.json", todir: "${basedir}/target/classes-npm")
+                                ant.copy(file: "${basedir}/src/main/ts/readme.md", todir: "${basedir}/target/classes-npm")
+                                ant.copy(file: "${basedir}/target/generated-sources/greycat.blas.ts", todir: "${basedir}/target/classes-npm")
+                                ant.replace(file: "${basedir}/target/classes-npm/greycat.blas.ts", token: "namespace greycat", value:"export namespace greycatBlas")
+                                ant.replace(file: "${basedir}/target/classes-npm/greycat.blas.ts", token: "greycat.blas", value:"greycatBlas.blas")
+                                def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
+                                while (project_version.split('\\.').length != 3) {
+                                    project_version += '.0'
+                                }
+                                def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
+                                while (j2ts_version.split('\\.').length != 3) {
+                                    j2ts_version += '.0'
+                                }
+                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
+                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
+
+                                def npmLinkGreycat = "npm install ${greycat.path}/greycat/target/classes-npm".execute(null, new File("${basedir}/target/classes-npm"))
+                                npmLinkGreycat.waitForProcessOutput(System.out, System.err)
+                                if (npmLinkGreycat.exitValue() != 0) {
+                                    exit
+                                }
+
+                                ant.echo("NPM Install")
+                                def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/classes-npm"))
+                                npmInstallProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmInstallProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                ant.copy(file: "${basedir}/build_netlib/netlib.js", todir: "${basedir}/target/classes-npm")
+                                ant.echo("TypeScript Compiler")
+                                def tscProcess = "node ${basedir}/target/classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/classes-npm"))
+                                tscProcess.waitForProcessOutput(System.out, System.err)
+                                if (tscProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                ant.delete(file: "${basedir}/target/classes-npm/greycat.blas.ts")
+                                def npmLink = "npm link".execute(null, new File("${basedir}/target/classes-npm"))
+                                npmLink.waitForProcessOutput(System.out, System.err)
+                                if (npmLink.exitValue() != 0) {
+                                    exit
+                                }
+
+                            </source>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>compile-test</id>
+                        <id>test.ts.compile</id>
                         <phase>test-compile</phase>
                         <goals>
-                            <goal>run</goal>
+                            <goal>execute</goal>
                         </goals>
                         <configuration>
-                            <target>
-                                <copy file="${basedir}/src/test/ts/package.json"
-                                      todir="${basedir}/target/test-classes-npm"/>
-                                <copy file="${basedir}/src/test/ts/tsconfig.json"
-                                      todir="${basedir}/target/test-classes-npm"/>
-                                <replace file="${basedir}/target/test-classes-npm/package.json" token="GREYCAT_VERSION"
-                                         value="${project.version}"/>
-                                <replace file="${basedir}/target/test-classes-npm/package.json" token="J2TS_VERSION"
-                                         value="${java2typescript.plugin.version}"/>
-                                <replace file="${basedir}/target/test-classes-npm/package.json" token="-SNAPSHOT"
-                                         value=""/>
-                                <copy file="${basedir}/target/generated-test-sources/test.ts"
-                                      todir="${basedir}/target/test-classes-npm"/>
-                                <concat append="true" destfile="${basedir}/target/test-classes-npm/test.ts">
-                                    export = greycatBlasTest;
-                                </concat>
-                                <replace file="${basedir}/target/test-classes-npm/test.ts" token="greycat.blas"
-                                         value="greycatBlas.blas"/>
-                                <!--
-                                <exec executable="npm" dir="${basedir}/target/test-classes-npm" failonerror="true">
-                                    <arg value="link" />
-                                    <arg value="j2ts-jre" />
-                                </exec>
-                                <exec executable="npm" dir="${basedir}/target/test-classes-npm" failonerror="true">
-                                    <arg value="link" />
-                                    <arg value="j2ts-junit" />
-                                </exec>
-                                -->
-                                <exec executable="npm" dir="${basedir}/target/test-classes-npm" failonerror="true">
-                                    <arg value="link"/>
-                                    <arg value="greycat"/>
-                                </exec>
-                                <exec executable="npm" dir="${basedir}/target/test-classes-npm" failonerror="true">
-                                    <arg value="install"/>
-                                </exec>
-                                <exec executable="${basedir}/target/test-classes-npm/node_modules/typescript/bin/tsc"
-                                      dir="${basedir}/target/test-classes-npm" failonerror="true"/>
-                                <copy file="${basedir}/target/generated-test-sources/testsRunner.js"
-                                      todir="${basedir}/target/test-classes-npm"/>
-                                <concat append="false" destfile="${basedir}/target/test-classes-npm/jasmine.js">
-                                    var Jasmine = require('jasmine');
-                                    var jasmine = new Jasmine();
-                                    jasmine.execute(['testsRunner.js']);
-                                </concat>
-                            </target>
+                            <source>
+                                def ant = new AntBuilder()
+                                ant.copy(file: "${basedir}/src/test/ts/tsconfig.json", todir: "${basedir}/target/test-classes-npm")
+                                ant.copy(file: "${basedir}/src/test/ts/package.json", todir: "${basedir}/target/test-classes-npm")
+                                def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
+                                while (project_version.split('\\.').length != 3) {
+                                    project_version += '.0'
+                                }
+                                def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
+                                while (j2ts_version.split('\\.').length != 3) {
+                                    j2ts_version += '.0'
+                                }
+                                ant.replace(file: "${basedir}/target/test-classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
+                                ant.replace(file: "${basedir}/target/test-classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
+                                ant.copy(file: "${basedir}/target/generated-test-sources/test.ts", todir: "${basedir}/target/test-classes-npm")
+                                ant.concat(append: "true", destfile: "${basedir}/target/test-classes-npm/test.ts", "export = greycatBlasTest;")
+                                ant.replace(file: "${basedir}/target/test-classes-npm/test.ts", token: "greycat.blas", value: "greycatBlas.blas")
+
+                                def npmLinkGreycat = "npm install ${greycat.path}/greycat/target/classes-npm".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                npmLinkGreycat.waitForProcessOutput(System.out, System.err)
+                                if (npmLinkGreycat.exitValue() != 0) {
+                                    exit
+                                }
+                                def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                npmInstallProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmInstallProcess.exitValue() != 0) {
+                                    exit
+                                }
+
+                                def tscProcess = "node ${basedir}/target/test-classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                tscProcess.waitForProcessOutput(System.out, System.err)
+                                if (tscProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                ant.copy(file: "${basedir}/target/generated-test-sources/testsRunner.js", todir: "${basedir}/target/test-classes-npm")
+                                ant.concat(append: "false", destfile: "${basedir}/target/test-classes-npm/jasmine.js", "var Jasmine = require('jasmine');var jasmine = new Jasmine();jasmine.execute(['testsRunner.js']);")
+                            </source>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>run-test</id>
+                        <id>test.ts.run</id>
                         <phase>test</phase>
                         <goals>
-                            <goal>run</goal>
+                            <goal>execute</goal>
                         </goals>
                         <configuration>
-                            <target>
-                                <echo message="Execute JS tests"/>
-                                <exec executable="node" dir="${basedir}/target/test-classes-npm" failonerror="true">
-                                    <arg value="jasmine.js"/>
-                                </exec>
-                            </target>
+                            <source>
+                                def jasmineProcess = "node jasmine.js".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                jasmineProcess.waitForProcessOutput(System.out, System.err)
+                                if (jasmineProcess.exitValue() != 0) {
+                                    exit
+                                }
+                            </source>
                         </configuration>
                     </execution>
                 </executions>

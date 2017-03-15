@@ -1,15 +1,16 @@
 {
   "name": "greycat.blas-test",
   "homepage": "https://github.com/datathings/greycat",
-  "version": "GREYCAT_VERSION.0.0",
+  "description": "Blas plugin for GreyCat Enterprise",
+  "version": "GREYCAT_VERSION",
   "main": "test.js",
   "typings": "test.d.ts",
   "devDependencies": {
     "typescript": "^2.1.5"
   },
   "dependencies": {
-    "j2ts-jre": "^J2TS_VERSION.0.0",
-    "j2ts-junit": "^J2TS_VERSION.0.0",
+    "j2ts-jre": "^J2TS_VERSION",
+    "j2ts-junit": "^J2TS_VERSION",
     "jasmine": "2.5.3"
   }
 }
