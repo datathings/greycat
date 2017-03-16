@@ -78,7 +78,7 @@ class SVD implements SVDDecompose {
         // CoreQuery optimal workspace
         double[] worksize = new double[1];
         int[] info = new int[1];
-        _blas.dgesdd(job.netlib(), m, n, new double[0],
+        _blas.dgesdd(svdToNetlib(job), m, n, new double[0],
                 Math.max(1, m), new double[0], new double[0], Math.max(1, m),
                 new double[0], Math.max(1, n), worksize, -1, iwork, info);
 
@@ -125,7 +125,7 @@ class SVD implements SVDDecompose {
         int[] info = new int[1];
         info[0] = 0;
         if (workInPlace) {
-            _blas.dgesdd(job.netlib(), m, n, A.data(),
+            _blas.dgesdd(svdToNetlib(job), m, n, A.data(),
                     Math.max(1, m), S, vectors ? U.data() : new double[0],
                     Math.max(1, m), vectors ? Vt.data() : new double[0],
                     Math.max(1, n), work, work.length, iwork, info);
@@ -133,7 +133,7 @@ class SVD implements SVDDecompose {
             double[] Adata = A.data();
             double[] cloned = new double[Adata.length];
             System.arraycopy(Adata, 0, cloned, 0, Adata.length);
-            _blas.dgesdd(job.netlib(), m, n, cloned,
+            _blas.dgesdd(svdToNetlib(job), m, n, cloned,
                     Math.max(1, m), S, vectors ? U.data() : new double[0],
                     Math.max(1, m), vectors ? Vt.data() : new double[0],
                     Math.max(1, n), work, work.length, iwork, info);
@@ -193,5 +193,22 @@ class SVD implements SVDDecompose {
             matS.set(i, i, S[i]);
         }
         return matS;
+    }
+
+    /**
+     * @return the netlib character version of this designation, for use with
+     * F2J.
+     */
+    private String svdToNetlib(JobSVD value) {
+        switch (value) {
+            case All:
+                return "A";
+            case Part:
+                return "S";
+            case Overwrite:
+                return "O";
+            default:
+                return "N";
+        }
     }
 }

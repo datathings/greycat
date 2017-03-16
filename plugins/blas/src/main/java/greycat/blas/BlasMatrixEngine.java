@@ -34,9 +34,9 @@ public class BlasMatrixEngine implements MatrixEngine {
         if (MatrixOps.testDimensionsAB(transA, transB, matA, matB)) {
             int k = 0;
             int[] dimC = new int[2];
-            if (transA.equals(TransposeType.NOTRANSPOSE)) {
+            if (transA == TransposeType.NOTRANSPOSE) {
                 k = matA.columns();
-                if (transB.equals(TransposeType.NOTRANSPOSE)) {
+                if (transB == TransposeType.NOTRANSPOSE) {
                     dimC[0] = matA.rows();
                     dimC[1] = matB.columns();
                 } else {
@@ -45,7 +45,7 @@ public class BlasMatrixEngine implements MatrixEngine {
                 }
             } else {
                 k = matA.rows();
-                if (transB.equals(TransposeType.NOTRANSPOSE)) {
+                if (transB == TransposeType.NOTRANSPOSE) {
                     dimC[0] = matA.columns();
                     dimC[1] = matB.columns();
                 } else {

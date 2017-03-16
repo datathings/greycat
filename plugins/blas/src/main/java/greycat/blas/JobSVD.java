@@ -31,21 +31,4 @@ enum JobSVD {
      * this computes <code>getMin(M,N)</code> singular vectors
      */
     Part;
-
-    /**
-     * @return the netlib character version of this designation, for use with
-     * F2J.
-     */
-    public String netlib() {
-        switch (this) {
-            case All:
-                return "A";
-            case Part:
-                return "S";
-            case Overwrite:
-                return "O";
-            default:
-                return "N";
-        }
-    }
 }

@@ -14,9 +14,9 @@ public class BlasHelper {
     private static final String TRANSPOSE_TYPE_TRANSPOSE = "t";
 
     public static String transTypeToChar(TransposeType type) {
-        if (type.equals(TransposeType.NOTRANSPOSE)) {
+        if (type == TransposeType.NOTRANSPOSE) {
             return TRANSPOSE_TYPE_NOTRANSPOSE;
-        } else if (type.equals(TransposeType.TRANSPOSE)) {
+        } else if (type == TransposeType.TRANSPOSE) {
             return TRANSPOSE_TYPE_TRANSPOSE;
         }
         return null;
