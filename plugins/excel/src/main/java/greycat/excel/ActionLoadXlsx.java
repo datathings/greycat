@@ -3,10 +3,8 @@
  */
 package greycat.excel;
 
-import greycat.Action;
-import greycat.Node;
-import greycat.TaskContext;
-import greycat.Type;
+import greycat.*;
+import greycat.internal.task.TaskHelper;
 import greycat.struct.Buffer;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -16,12 +14,13 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -45,36 +44,27 @@ class ActionLoadXlsx implements Action {
 
     @Override
     public void eval(TaskContext taskContext) {
-        URI parsedUri = URI.create(taskContext.template(_uri));
-        if (parsedUri.getScheme().equals("file")) {
-            try {
+        try {
+            URI parsedUri = URI.create(taskContext.template(_uri));
+            if (parsedUri.getScheme().equals("file")) {
                 FileInputStream file = new FileInputStream(parsedUri.getPath());
                 XSSFWorkbook workbook = new XSSFWorkbook(file);
-
-
-                Node fileNode = taskContext.resultAsNodes().get(0);
-                //System.out.println("ZoneId:" + _loaderZoneId);
 
                 Sheet metaSheet = workbook.getSheet("META");
                 if (metaSheet != null) {
                     loadMeta(taskContext, metaSheet);
-                    loadSheetsWithMeta(taskContext, workbook);
-                } else {
-                    loadSheets(taskContext, workbook);
                 }
+                loadSheets(taskContext, workbook);
                 es.shutdown();
                 while (!es.isTerminated()) {
                     es.awaitTermination(2, TimeUnit.SECONDS);
                 }
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } else {
+                throw new UnsupportedOperationException("Schema: " + parsedUri.getScheme() + " not yet supported. Tried to open file from: " + _uri);
             }
-
-        } else {
-            throw new UnsupportedOperationException("Schema: " + parsedUri.getScheme() + " not yet supported. Tried to open file from: " + _uri);
+        } catch (Exception e) {
+            taskContext.endTask(null, e);
         }
         taskContext.continueWith(taskContext.wrap(featuresMap.values().toArray()));
 
@@ -82,7 +72,10 @@ class ActionLoadXlsx implements Action {
 
     @Override
     public void serialize(Buffer buffer) {
-
+        buffer.writeString(ExcelActions.LOAD_XSLX);
+        buffer.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_uri, buffer, true);
+        buffer.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
     private void loadMeta(TaskContext taskContext, Sheet metaSheet) {
@@ -153,14 +146,8 @@ class ActionLoadXlsx implements Action {
                 newFeature.set("interpolation", Type.BOOL, false);
             }
 
-            Node newValuesNode = taskContext.graph().newNode(taskContext.world(), taskContext.time());
-            newFeature.addToRelation("value", newValuesNode);
-
             featuresMap.put("" + featureName, newFeature);
-
         }
-
-
     }
 
     private int getIntUpperBound(String range) {
@@ -189,8 +176,94 @@ class ActionLoadXlsx implements Action {
         return bound.substring(1).replace(",", ".");
     }
 
+    private Map<String, TreeMap<Long, Object>> sheetPreload(TaskContext taskContext, XSSFSheet sheet) {
+        HashMap<String, TreeMap<Long, Object>> sheetPreload = new HashMap<String, TreeMap<Long, Object>>();
 
-    private void loadSheetsWithMeta(TaskContext taskContext, XSSFWorkbook workbook) {
+        Row headerRow = sheet.getRow(sheet.getFirstRowNum());
+        if (headerRow == null) {
+            return sheetPreload;
+        }
+
+        //Load headers == features
+        int lastCell = headerRow.getLastCellNum() - 1;
+        TreeMap<Long, Object>[] featuresTrees = new TreeMap[lastCell - headerRow.getFirstCellNum()];
+        for (int c = headerRow.getFirstCellNum() + 1; c <= lastCell; c++) {
+
+            Cell currentCell = headerRow.getCell(c);
+            if (currentCell == null) {
+                continue;
+            }
+            if (CellType.forInt(currentCell.getCellType()) == CellType.BLANK) {
+                continue;
+            }
+            String featureName;
+
+            if (CellType.forInt(currentCell.getCellType()) == CellType.STRING) {
+                featureName = currentCell.getStringCellValue();
+            } else {
+                featureName = sheet.getSheetName() + "_GEN_TAG_" + c;
+            }
+            featuresTrees[c - 1] = new TreeMap<Long, Object>();
+            sheetPreload.put(featureName, featuresTrees[c - 1]);
+        }
+
+        //Load Values
+        int lastRowNum = sheet.getLastRowNum();
+        for (int r = sheet.getFirstRowNum() + 1; r <= lastRowNum; r++) {
+
+            final Row currentRow = sheet.getRow(r);
+            if (currentRow == null) {
+                continue;
+            }
+            final Cell timeCell = currentRow.getCell(currentRow.getFirstCellNum());
+            if (timeCell == null) {
+                continue;
+            }
+            final Date timeCellValue = timeCell.getDateCellValue();
+            if (timeCellValue == null) {
+                continue;
+            }
+
+            ZonedDateTime rowTime = timeCellValue.toInstant().atZone(_loaderZoneId);
+            long epochMillis = rowTime.toInstant().toEpochMilli();
+
+            for (int c = currentRow.getFirstCellNum() + 1; c <= (currentRow.getLastCellNum() - 1); c++) {
+                final Cell currentCell = currentRow.getCell(c);
+                if (currentCell == null) {
+                    if ((c - 1) < featuresTrees.length) {
+                        featuresTrees[c - 1].put(epochMillis, null);
+                    }
+                } else {
+                    CellType ct = CellType.forInt(currentCell.getCellType());
+                    if (ct == CellType.NUMERIC) {
+                        featuresTrees[c - 1].put(epochMillis, currentCell.getNumericCellValue());
+                    } else if (ct == CellType.STRING) {
+                        if (currentCell.getStringCellValue().trim().toLowerCase().equals("null")) {
+                            featuresTrees[c - 1].put(epochMillis, null);
+                        } else {
+                            featuresTrees[c - 1].put(epochMillis, currentCell.getStringCellValue());
+                        }
+                    } else if (ct == CellType.BOOLEAN) {
+                        if (currentCell.getStringCellValue().trim().toLowerCase().equals("null")) {
+                            featuresTrees[c - 1].put(epochMillis, currentCell.getBooleanCellValue());
+                        } else {
+                            featuresTrees[c - 1].put(epochMillis, currentCell.getStringCellValue());
+                        }
+                    } else if (ct == CellType.BLANK || ct == CellType._NONE) {
+                        if ((c - 1) < featuresTrees.length) {
+                            featuresTrees[c - 1].put(epochMillis, null);
+                        }
+                    } else {
+                        System.err.println("Unknown CellType:" + ct.name());
+                    }
+                }
+            }
+        }
+        return sheetPreload;
+    }
+
+
+    private void loadSheets(TaskContext taskContext, XSSFWorkbook workbook) {
 
         int sheetNum = workbook.getNumberOfSheets();
         for (int i = 0; i < sheetNum; i++) {
@@ -199,13 +272,38 @@ class ActionLoadXlsx implements Action {
             if (currentSheet.getSheetName().toLowerCase().trim().equals("meta")) {
                 continue;
             }
-            //System.out.println("Loading Sheet:" + currentSheet.getSheetName());
+            System.out.println("Loading Sheet:" + currentSheet.getSheetName());
 
             Row headerRow = currentSheet.getRow(currentSheet.getFirstRowNum());
             if (headerRow == null) {
                 taskContext.append("First row of sheet '" + currentSheet.getSheetName() + "' is empty. Sheet ignored.\n");
                 continue;
             }
+
+            Map<String, TreeMap<Long, Object>> content = sheetPreload(taskContext, currentSheet);
+
+            content.forEach((featureName, featureValues) -> {
+
+                Node feature = featuresMap.get(featureName);
+                if (feature == null) { // META nor loaded. Create feature, guess type while loading
+
+                    feature = taskContext.graph().newNode(taskContext.world(), taskContext.time());
+                    feature.set("tag_id", Type.INT, featuresMap.size());
+                    feature.set("tag_name", Type.STRING, featureName);
+                    feature.set("tag_from_meta", Type.BOOL, false);
+                    featuresMap.put(featureName, feature);
+
+                    insertValues(taskContext, feature, featureValues, true);
+
+                } else {
+                    insertValues(taskContext, feature, featureValues, false);
+                }
+
+            });
+
+
+
+            /*
             int lastCell = headerRow.getLastCellNum();
 
             for (int c = headerRow.getFirstCellNum() + 1; c <= lastCell; c++) {
@@ -228,9 +326,13 @@ class ActionLoadXlsx implements Action {
                 }
                 Node feature = featuresMap.get(featureName);
                 if (feature != null) {
-                    feature.relation("value", nodes -> {
-                        loadColumn(taskContext, currentSheet, cellNum, feature, nodes[0]);
-                    });
+                    try {
+                        loadColumnWithType(taskContext, currentSheet, cellNum, feature, ((Integer) feature.get("value_type")).byteValue());
+                        //guessColumnTypeAndLoad(taskContext, currentSheet, cellNum, feature);
+                    } catch (Exception e) {
+                        System.out.println("v");
+                        e.printStackTrace();
+                    }
                 } else {
 
                     taskContext.append("Tag not listed in META: " + featureName + " from sheet " + currentSheet.getSheetName() + "\n");
@@ -240,210 +342,138 @@ class ActionLoadXlsx implements Action {
                     newFeature.set("tag_name", Type.STRING, featureName);
                     newFeature.set("tag_from_meta", Type.BOOL, false);
 
-                    Node newValuesNode = taskContext.graph().newNode(taskContext.world(), taskContext.time());
-                    newFeature.addToRelation("value", newValuesNode);
-
                     featuresMap.put(featureName, newFeature);
 
-                    loadColumn(taskContext, currentSheet, c, newFeature, newValuesNode);
+                    guessColumnTypeAndLoad(taskContext, currentSheet, c, newFeature);
                 }
 
-            }
+            }*/
         }
 
     }
 
-    private void loadSheets(TaskContext taskContext, XSSFWorkbook workbook) {
-        int sheetNum = workbook.getNumberOfSheets();
-        for (int i = 0; i < sheetNum; i++) {
-            XSSFSheet currentSheet = workbook.getSheetAt(i);
-            //System.out.println("Loading Sheet:" + currentSheet.getSheetName());
 
-            Row headerRow = currentSheet.getRow(currentSheet.getFirstRowNum());
-            if (headerRow == null) {
-                taskContext.append("First row of sheet '" + currentSheet.getSheetName() + "' is empty. Sheet ignored.\n");
-                continue;
-            }
-            int lastCell = headerRow.getLastCellNum();
-            for (int c = headerRow.getFirstCellNum() + 1; c <= lastCell; c++) {
+    private void insertValues(TaskContext taskContext, Node feature, TreeMap<Long, Object> featureValues, boolean guessType) {
 
-                Cell currentCell = headerRow.getCell(c);
-                if (currentCell == null) {
-                    continue;
-                }
-                String featureName;
-
-                if (currentCell != null && CellType.forInt(currentCell.getCellType()) == CellType.STRING) {
-                    featureName = currentCell.getStringCellValue();
-                } else {
-                    featureName = currentSheet.getSheetName() + "_GEN_TAG_" + c;
-                    taskContext.append("Wrong cell type " + CellType.forInt(currentCell.getCellType()) + " " + currentSheet.getSheetName() + ":" + currentCell.getAddress().formatAsString() + ". Generated: " + featureName + "\n");
-                }
-
-                Node newFeature = taskContext.graph().newNode(taskContext.world(), taskContext.time());
-                newFeature.set("tag_id", Type.INT, featuresMap.size());
-                newFeature.set("tag_name", Type.STRING, featureName);
-                newFeature.set("tag_from_meta", Type.BOOL, false);
-
-                Node newValuesNode = taskContext.graph().newNode(taskContext.world(), taskContext.time());
-                newFeature.addToRelation("value", newValuesNode);
-
-                featuresMap.put(featureName, newFeature);
-
-                loadColumn(taskContext, currentSheet, c, newFeature, newValuesNode);
-            }
-        }
-    }
-
-
-    private void loadColumn(TaskContext taskContext, XSSFSheet currentSheet, int colId, Node feature, final Node valueNode) {
-
-        //System.out.println("Loading Column:" + colId + " from sheet " + currentSheet.getSheetName());
-
-        //Guess type
+        final byte type;
+        if (guessType) {
+            //TODO
+            type = -1;
+            /*
         byte colType = -1;
         int lastRowNum = currentSheet.getLastRowNum();
         for (int r = currentSheet.getFirstRowNum() + 1; r <= lastRowNum; r++) {
-            Row currentRow = currentSheet.getRow(r);
-            if (currentRow == null) {
-                continue;
-            }
-            Cell currentCell = currentRow.getCell(colId);
-            if (currentCell == null) {
-                continue;
-            }
+            try {
+                Row currentRow = currentSheet.getRow(r);
+                if (currentRow == null) {
+                    continue;
+                }
+                Cell currentCell = currentRow.getCell(colId);
+                if (currentCell == null) {
+                    continue;
+                }
 
-            CellType ct = CellType.forInt(currentCell.getCellType());
-            if (ct == CellType.STRING) {
-                if (colType == -1) {
-                    colType = Type.STRING;
-                } else if (colType != Type.STRING) {
-                    if (!currentCell.getStringCellValue().trim().toLowerCase().equals("null")) {
+                CellType ct = CellType.forInt(currentCell.getCellType());
+                if (ct == CellType.STRING) {
+                    if (colType == -1) {
+                        colType = Type.STRING;
+                    } else if (colType != Type.STRING) {
+                        if (!currentCell.getStringCellValue().trim().toLowerCase().equals("null")) {
+                            taskContext.append("Inconsistent types in column: " + currentCell.getAddress().formatAsString() + "\n");
+                            return;
+                        } else {
+                            continue;
+                        }
+                    }
+                } else if (ct == CellType.BOOLEAN) {
+                    if (colType == -1) {
+                        colType = Type.BOOL;
+                    } else if (colType != Type.BOOL) {
                         taskContext.append("Inconsistent types in column: " + currentCell.getAddress().formatAsString() + "\n");
                         return;
-                    } else {
-                        continue;
                     }
-                }
-            } else if (ct == CellType.BOOLEAN) {
-                if (colType == -1) {
-                    colType = Type.BOOL;
-                } else if (colType != Type.BOOL) {
-                    taskContext.append("Inconsistent types in column: " + currentCell.getAddress().formatAsString() + "\n");
+                } else if (ct == CellType.NUMERIC) {
+                    boolean isDecimal = (currentCell.getNumericCellValue() % 1 != 0);
+                    if (colType == -1) {
+                        colType = (isDecimal ? Type.DOUBLE : Type.LONG);
+                    } else if (isDecimal) {
+                        colType = Type.DOUBLE;
+                    }
+                } else if (ct == CellType.BLANK) {
+                    //ignore
+                } else {
+                    taskContext.append("Could not find appropriate type for cell: " + currentCell.getAddress().formatAsString() + " " + ct + " \n");
                     return;
                 }
-            } else if (ct == CellType.NUMERIC) {
-                boolean isDecimal = (currentCell.getNumericCellValue() % 1 != 0);
-                if (colType == -1) {
-                    colType = (isDecimal ? Type.DOUBLE : Type.LONG);
-                } else if (isDecimal) {
-                    colType = Type.DOUBLE;
-                }
-            } else if (ct == CellType.BLANK) {
-                //ignore
-            } else {
-                taskContext.append("Could not find appropriate type for cell: " + currentCell.getAddress().formatAsString() + " " + ct + " \n");
-                return;
+            } catch (Exception e) {
+                System.out.println("rr");
             }
-        }
-
-
-        //load
-        if (colType != -1) {
-            feature.set("value_type", Type.STRING, Type.typeName(colType));
-            final byte finalType = colType;
-
-            loadColumnWithType(taskContext, currentSheet, colId, feature, valueNode, colType);
+        }*/
         } else {
-            taskContext.append("Could not load values for column '" + colId + "' type is undefined.\n");
+            type = ((Integer) feature.get("value_type")).byteValue();
         }
 
-    }
 
-    private void loadColumnWithType(TaskContext taskContext, XSSFSheet currentSheet, int colId, Node feature, final Node valueNode, final byte finalType) {
         final double[] min = {Double.MAX_VALUE};
         final double[] max = {Double.MIN_VALUE};
+        final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+        feature.addToRelation("value", valueNode);
+
+        featureValues.forEach((key, value) -> {
+            setValueInTime(valueNode, key, value, type);
+        });
 
 
-        int lastRowNum = currentSheet.getLastRowNum();
-        for (int r = currentSheet.getFirstRowNum() + 1; r <= lastRowNum; r++) {
-
-            Row currentRow = currentSheet.getRow(r);
-            if (currentRow == null) {
-                continue;
-            }
-            Cell timeCell = currentRow.getCell(currentRow.getFirstCellNum());
-            if (timeCell == null) {
-                continue;
-            }
-            Date timeCellValue = timeCell.getDateCellValue();
-            if (timeCellValue == null) {
-                continue;
-            }
-
-            ZonedDateTime rowTime = timeCellValue.toInstant().atZone(_loaderZoneId);
-            Cell currentCell = currentRow.getCell(colId);
-            if (currentCell == null) {
-                continue;
-            }
-            CellType ct = CellType.forInt(currentCell.getCellType());
-            if (finalType == Type.DOUBLE && ct != CellType.NUMERIC) {
-                if (ct == CellType.STRING && currentCell.getStringCellValue().trim().toLowerCase().equals("null")) {
-                    continue;
-                }
-                if (ct == CellType.BLANK) {
-                    continue;
-                }
-                taskContext.append("Ignored value of cell: " + currentSheet.getSheetName() + "!" + currentCell.getAddress() + "\n");
-                continue;
-            } else {
-                valueNode.travelInTime(rowTime.toInstant().toEpochMilli(), jumped -> {
-                    try {
-                        if (finalType == Type.STRING) {
-                            jumped.set("value", finalType, currentCell.getStringCellValue());
-                        } else if (finalType == Type.LONG || finalType == Type.DOUBLE) {
-                            double value = currentCell.getNumericCellValue();
-                            if (value > max[0]) {
-                                max[0] = value;
-                            }
-                            if (value < min[0]) {
-                                min[0] = value;
-                            }
-                            if (finalType == Type.LONG) {
-                                jumped.set("value", finalType, Long.valueOf("" + Math.round(value)));
-                            } else {
-                                jumped.set("value", finalType, value);
-                            }
-                        } else if (finalType == Type.BOOL) {
-                            jumped.set("value", finalType, currentCell.getBooleanCellValue());
-                        }
-                    } catch (ClassCastException e) {
-                        e.printStackTrace();
-                    } finally {
-                        jumped.free();
-                    }
-                });
-            }
+        if (valueNode != null) {
+            valueNode.free();
         }
         try {
             if (min[0] != Double.MAX_VALUE) {
-                if (finalType == Type.LONG) {
+                if (type == Type.LONG) {
                     feature.set("value_min", Type.LONG, Math.round(min[0]));
                 } else {
                     feature.set("value_min", Type.DOUBLE, min[0]);
                 }
             }
             if (max[0] != Double.MIN_VALUE) {
-                if (finalType == Type.LONG) {
+                if (type == Type.LONG) {
                     feature.set("value_max", Type.LONG, Math.round(max[0]));
                 } else {
                     feature.set("value_max", Type.DOUBLE, max[0]);
                 }
             }
         } catch (ClassCastException e) {
-            System.out.println("");
+            e.printStackTrace();
         }
+
     }
 
+    private void setValueInTime(Node featureNode, Long time, Object value, byte type) {
+        featureNode.travelInTime(time, jumped -> {
+            try {
+                if (jumped != null) {
+                    if (value instanceof String) {
+                        if (((String) value).trim().equals("")) {
+                            jumped.set("value", type, null);
+                        } else {
+                            jumped.set("value", type, value);
+                        }
+                    } else {
+                        if (type == Type.INT) {
+                            jumped.set("value", type, ((Double) value).intValue());
+                        } else {
+                            jumped.set("value", type, value);
+                        }
+                    }
+                }
+            } catch (ClassCastException e) {
+                System.out.println();
+            } finally {
+                if (jumped != null) {
+                    jumped.free();
+                }
+            }
+        });
+    }
 
 }

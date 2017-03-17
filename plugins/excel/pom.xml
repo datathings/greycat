@@ -25,7 +25,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.datathings.enterprise</groupId>
+            <groupId>com.datathings</groupId>
             <artifactId>greycat</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
@@ -75,10 +75,6 @@
                                 <exclusion>
                                     <groupId>stax</groupId>
                                     <artifactId>stax-api</artifactId>
-                                </exclusion>
-                                <exclusion>
-                                    <groupId>com.datathings</groupId>
-                                    <artifactId>greycat</artifactId>
                                 </exclusion>
                             </exclusions>
                             <options>
