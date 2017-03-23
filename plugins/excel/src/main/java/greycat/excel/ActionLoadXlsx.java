@@ -5,7 +5,10 @@ package greycat.excel;
 
 import greycat.*;
 import greycat.internal.task.TaskHelper;
+import greycat.ml.profiling.Gaussian;
+import greycat.ml.profiling.GaussianENode;
 import greycat.struct.Buffer;
+import greycat.struct.EGraph;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -97,7 +100,7 @@ class ActionLoadXlsx implements Action {
                 taskContext.append("Duplicate TAG name in META: " + featureName + "\n");
             }
 
-            Node newFeature = taskContext.graph().newNode(taskContext.world(), taskContext.time());
+            Node newFeature = taskContext.graph().newNode(taskContext.world(), Constants.BEGINNING_OF_TIME);
             newFeature.set("tag_id", Type.STRING, featureId);
             newFeature.set("tag_from_meta", Type.BOOL, true);
             newFeature.set("tag_name", Type.STRING, featureName);
@@ -119,6 +122,7 @@ class ActionLoadXlsx implements Action {
                         newFeature.set("value_min", Type.DOUBLE, getDoubleLowerBound(currentRow.getCell(firstCol + 7).getStringCellValue()));
                         newFeature.set("value_max", Type.DOUBLE, getDoubleUpperBound(currentRow.getCell(firstCol + 7).getStringCellValue()));
                     }
+
                 }
                 break;
                 case "int": {
@@ -419,8 +423,16 @@ class ActionLoadXlsx implements Action {
         final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
         feature.addToRelation("value", valueNode);
 
+        GaussianENode gaussian = null;
+        if(type==Type.DOUBLE||type==Type.INT){
+            EGraph eg = (EGraph) feature.getOrCreate("profile", Type.EGRAPH);
+            eg.setRoot(eg.newNode());
+            gaussian=new GaussianENode(eg.root());
+        }
+        GaussianENode finalGaussian = gaussian;
+
         featureValues.forEach((key, value) -> {
-            setValueInTime(valueNode, key, value, type);
+            setValueInTime(valueNode, key, value, type, finalGaussian);
         });
 
 
@@ -448,7 +460,7 @@ class ActionLoadXlsx implements Action {
 
     }
 
-    private void setValueInTime(Node featureNode, Long time, Object value, byte type) {
+    private void setValueInTime(Node featureNode, Long time, Object value, byte type, GaussianENode gaussianENode) {
         featureNode.travelInTime(time, jumped -> {
             try {
                 if (jumped != null) {
@@ -463,6 +475,9 @@ class ActionLoadXlsx implements Action {
                             jumped.set("value", type, ((Double) value).intValue());
                         } else {
                             jumped.set("value", type, value);
+                        }
+                        if(gaussianENode!=null){
+                            gaussianENode.learn(new double[]{(Double) value});
                         }
                     }
                 }
