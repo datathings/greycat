@@ -6,6 +6,7 @@ package greycat.excel;
 import greycat.*;
 import greycat.internal.task.TaskHelper;
 import greycat.ml.profiling.Gaussian;
+import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -22,9 +23,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gnain on 27/02/17.
@@ -35,9 +33,7 @@ class ActionLoadXlsx implements Action {
     private ZoneId _loaderZoneId = ZoneId.systemDefault();
 
     private HashMap<String, Node> featuresMap = new HashMap<>();
-    //private Node[] valuesArray;
 
-    private ExecutorService es = Executors.newFixedThreadPool(3);
 
     public ActionLoadXlsx(String uri) {
         this._uri = uri;
@@ -48,6 +44,7 @@ class ActionLoadXlsx implements Action {
         try {
             URI parsedUri = URI.create(taskContext.template(_uri));
             if (parsedUri.getScheme().equals("file")) {
+                System.out.println("Opening Workbook");
                 FileInputStream file = new FileInputStream(parsedUri.getPath());
                 XSSFWorkbook workbook = new XSSFWorkbook(file);
 
@@ -55,20 +52,15 @@ class ActionLoadXlsx implements Action {
                 if (metaSheet != null) {
                     loadMeta(taskContext, metaSheet);
                 }
-                loadSheets(taskContext, workbook);
-                es.shutdown();
-                while (!es.isTerminated()) {
-                    es.awaitTermination(2, TimeUnit.SECONDS);
-                }
-
+                loadSheets(taskContext, workbook, () -> {
+                    taskContext.continueWith(taskContext.wrap(featuresMap.values().toArray()));
+                });
             } else {
                 throw new UnsupportedOperationException("Schema: " + parsedUri.getScheme() + " not yet supported. Tried to open file from: " + _uri);
             }
         } catch (Exception e) {
             taskContext.endTask(null, e);
         }
-        taskContext.continueWith(taskContext.wrap(featuresMap.values().toArray()));
-
     }
 
     @Override
@@ -178,6 +170,7 @@ class ActionLoadXlsx implements Action {
     }
 
     private Map<String, TreeMap<Long, Object>> sheetPreload(TaskContext taskContext, XSSFSheet sheet) {
+        System.out.println("Pre-Loading Sheet:" + sheet.getSheetName());
         HashMap<String, TreeMap<Long, Object>> sheetPreload = new HashMap<String, TreeMap<Long, Object>>();
 
         Row headerRow = sheet.getRow(sheet.getFirstRowNum());
@@ -264,97 +257,53 @@ class ActionLoadXlsx implements Action {
     }
 
 
-    private void loadSheets(TaskContext taskContext, XSSFWorkbook workbook) {
+    private void loadSheets(TaskContext taskContext, XSSFWorkbook workbook, Job callback) {
 
         int sheetNum = workbook.getNumberOfSheets();
+
+        final DeferCounter countSheets = taskContext.graph().newCounter(sheetNum);
+        countSheets.then(() -> callback.run());
+
         for (int i = 0; i < sheetNum; i++) {
             XSSFSheet currentSheet = workbook.getSheetAt(i);
+            System.out.println(i + "/"+sheetNum + "Loading Sheet:" + currentSheet.getSheetName());
 
             if (currentSheet.getSheetName().toLowerCase().trim().equals("meta")) {
+                countSheets.count();
                 continue;
             }
-            System.out.println("Loading Sheet:" + currentSheet.getSheetName());
 
             Row headerRow = currentSheet.getRow(currentSheet.getFirstRowNum());
             if (headerRow == null) {
                 taskContext.append("First row of sheet '" + currentSheet.getSheetName() + "' is empty. Sheet ignored.\n");
+                countSheets.count();
                 continue;
             }
 
+
             Map<String, TreeMap<Long, Object>> content = sheetPreload(taskContext, currentSheet);
-
+            final DeferCounter countContent = taskContext.graph().newCounter(content.size());
+            countContent.then(() -> countSheets.count());
             content.forEach((featureName, featureValues) -> {
-
                 Node feature = featuresMap.get(featureName);
                 if (feature == null) { // META nor loaded. Create feature, guess type while loading
-
                     feature = taskContext.graph().newNode(taskContext.world(), taskContext.time());
                     feature.set("tag_id", Type.INT, featuresMap.size());
                     feature.set("tag_name", Type.STRING, featureName);
                     feature.set("tag_from_meta", Type.BOOL, false);
                     featuresMap.put(featureName, feature);
-
-                    insertValues(taskContext, feature, featureValues, true);
-
+                    insertValues(taskContext, feature, featureValues, true, () -> countContent.count());
                 } else {
-                    insertValues(taskContext, feature, featureValues, false);
+                    insertValues(taskContext, feature, featureValues, false, () -> countContent.count());
                 }
-
             });
 
-
-
-            /*
-            int lastCell = headerRow.getLastCellNum();
-
-            for (int c = headerRow.getFirstCellNum() + 1; c <= lastCell; c++) {
-
-                final int cellNum = c;
-                Cell currentCell = headerRow.getCell(c);
-                if (currentCell == null) {
-                    continue;
-                }
-                if (CellType.forInt(currentCell.getCellType()) == CellType.BLANK) {
-                    continue;
-                }
-                String featureName;
-
-                if (CellType.forInt(currentCell.getCellType()) == CellType.STRING) {
-                    featureName = currentCell.getStringCellValue();
-                } else {
-                    featureName = currentSheet.getSheetName() + "_GEN_TAG_" + c;
-                    taskContext.append("Wrong cell type " + CellType.forInt(currentCell.getCellType()) + " " + currentSheet.getSheetName() + ":" + currentCell.getAddress().formatAsString() + ". Generated: " + featureName + "\n");
-                }
-                Node feature = featuresMap.get(featureName);
-                if (feature != null) {
-                    try {
-                        loadColumnWithType(taskContext, currentSheet, cellNum, feature, ((Integer) feature.get("value_type")).byteValue());
-                        //guessColumnTypeAndLoad(taskContext, currentSheet, cellNum, feature);
-                    } catch (Exception e) {
-                        System.out.println("v");
-                        e.printStackTrace();
-                    }
-                } else {
-
-                    taskContext.append("Tag not listed in META: " + featureName + " from sheet " + currentSheet.getSheetName() + "\n");
-
-                    Node newFeature = taskContext.graph().newNode(taskContext.world(), taskContext.time());
-                    newFeature.set("tag_id", Type.INT, featuresMap.size());
-                    newFeature.set("tag_name", Type.STRING, featureName);
-                    newFeature.set("tag_from_meta", Type.BOOL, false);
-
-                    featuresMap.put(featureName, newFeature);
-
-                    guessColumnTypeAndLoad(taskContext, currentSheet, c, newFeature);
-                }
-
-            }*/
         }
 
     }
 
 
-    private void insertValues(TaskContext taskContext,final Node feature, TreeMap<Long, Object> featureValues, boolean guessType) {
+    private void insertValues(TaskContext taskContext, final Node feature, TreeMap<Long, Object> featureValues, boolean guessType, Job callback) {
 
         final byte type;
         if (guessType) {
@@ -365,43 +314,25 @@ class ActionLoadXlsx implements Action {
             type = ((Integer) feature.get("value_type")).byteValue();
         }
 
-
-        final double[] min = {Double.MAX_VALUE};
-        final double[] max = {Double.MIN_VALUE};
         final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
         feature.addToRelation("value", valueNode);
 
-        featureValues.forEach((key, value) -> {
-            setValueInTime(feature, valueNode, key, value, type);
+        DeferCounter defer = feature.graph().newCounter(featureValues.size());
+        defer.then(() -> {
+
+            if (valueNode != null) {
+                valueNode.free();
+            }
+            callback.run();
         });
-
-
-        if (valueNode != null) {
-            valueNode.free();
-        }
-        try {
-            if (min[0] != Double.MAX_VALUE) {
-                if (type == Type.LONG) {
-                    feature.set("value_min", Type.LONG, Math.round(min[0]));
-                } else {
-                    feature.set("value_min", Type.DOUBLE, min[0]);
-                }
-            }
-            if (max[0] != Double.MIN_VALUE) {
-                if (type == Type.LONG) {
-                    feature.set("value_max", Type.LONG, Math.round(max[0]));
-                } else {
-                    feature.set("value_max", Type.DOUBLE, max[0]);
-                }
-            }
-        } catch (ClassCastException e) {
-            e.printStackTrace();
-        }
+        featureValues.forEach((key, value) -> {
+            setValueInTime(feature, valueNode, key, value, type, () -> defer.count());
+        });
 
     }
 
-    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, byte type) {
-        
+    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, byte type, Job callback) {
+
         valueNode.travelInTime(time, jumped -> {
             try {
                 if (jumped != null) {
@@ -417,24 +348,22 @@ class ActionLoadXlsx implements Action {
                         } else {
                             jumped.set("value", type, value);
                         }
-                        if (type == Type.INT || type== Type.DOUBLE){
-                            Gaussian.profile(featureNode,(double) value);
+                        if (type == Type.INT || type == Type.DOUBLE) {
+                            if (value != null) {
+                                Gaussian.profile(featureNode, (double) value);
+                            }
                         }
                     }
                 }
             } catch (ClassCastException e) {
-
                 e.printStackTrace();
-                System.out.println();
             } finally {
                 if (jumped != null) {
                     jumped.free();
                 }
+                callback.run();
             }
         });
-
-
-
     }
 
 }
