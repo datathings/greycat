@@ -266,7 +266,7 @@ class ActionLoadXlsx implements Action {
 
         for (int i = 0; i < sheetNum; i++) {
             XSSFSheet currentSheet = workbook.getSheetAt(i);
-            System.out.println(i + "/"+sheetNum + "Loading Sheet:" + currentSheet.getSheetName());
+            System.out.println(i + "/"+sheetNum + " Loading Sheet:" + currentSheet.getSheetName());
 
             if (currentSheet.getSheetName().toLowerCase().trim().equals("meta")) {
                 countSheets.count();
