@@ -5,6 +5,7 @@ package greycat.excel;
 
 import greycat.*;
 import greycat.internal.task.TaskHelper;
+import greycat.ml.profiling.Gaussian;
 import greycat.struct.Buffer;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -353,62 +354,13 @@ class ActionLoadXlsx implements Action {
     }
 
 
-    private void insertValues(TaskContext taskContext, Node feature, TreeMap<Long, Object> featureValues, boolean guessType) {
+    private void insertValues(TaskContext taskContext,final Node feature, TreeMap<Long, Object> featureValues, boolean guessType) {
 
         final byte type;
         if (guessType) {
             //TODO
             type = -1;
-            /*
-        byte colType = -1;
-        int lastRowNum = currentSheet.getLastRowNum();
-        for (int r = currentSheet.getFirstRowNum() + 1; r <= lastRowNum; r++) {
-            try {
-                Row currentRow = currentSheet.getRow(r);
-                if (currentRow == null) {
-                    continue;
-                }
-                Cell currentCell = currentRow.getCell(colId);
-                if (currentCell == null) {
-                    continue;
-                }
 
-                CellType ct = CellType.forInt(currentCell.getCellType());
-                if (ct == CellType.STRING) {
-                    if (colType == -1) {
-                        colType = Type.STRING;
-                    } else if (colType != Type.STRING) {
-                        if (!currentCell.getStringCellValue().trim().toLowerCase().equals("null")) {
-                            taskContext.append("Inconsistent types in column: " + currentCell.getAddress().formatAsString() + "\n");
-                            return;
-                        } else {
-                            continue;
-                        }
-                    }
-                } else if (ct == CellType.BOOLEAN) {
-                    if (colType == -1) {
-                        colType = Type.BOOL;
-                    } else if (colType != Type.BOOL) {
-                        taskContext.append("Inconsistent types in column: " + currentCell.getAddress().formatAsString() + "\n");
-                        return;
-                    }
-                } else if (ct == CellType.NUMERIC) {
-                    boolean isDecimal = (currentCell.getNumericCellValue() % 1 != 0);
-                    if (colType == -1) {
-                        colType = (isDecimal ? Type.DOUBLE : Type.LONG);
-                    } else if (isDecimal) {
-                        colType = Type.DOUBLE;
-                    }
-                } else if (ct == CellType.BLANK) {
-                    //ignore
-                } else {
-                    taskContext.append("Could not find appropriate type for cell: " + currentCell.getAddress().formatAsString() + " " + ct + " \n");
-                    return;
-                }
-            } catch (Exception e) {
-                System.out.println("rr");
-            }
-        }*/
         } else {
             type = ((Integer) feature.get("value_type")).byteValue();
         }
@@ -420,7 +372,7 @@ class ActionLoadXlsx implements Action {
         feature.addToRelation("value", valueNode);
 
         featureValues.forEach((key, value) -> {
-            setValueInTime(valueNode, key, value, type);
+            setValueInTime(feature, valueNode, key, value, type);
         });
 
 
@@ -448,8 +400,9 @@ class ActionLoadXlsx implements Action {
 
     }
 
-    private void setValueInTime(Node featureNode, Long time, Object value, byte type) {
-        featureNode.travelInTime(time, jumped -> {
+    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, byte type) {
+        
+        valueNode.travelInTime(time, jumped -> {
             try {
                 if (jumped != null) {
                     if (value instanceof String) {
@@ -464,9 +417,14 @@ class ActionLoadXlsx implements Action {
                         } else {
                             jumped.set("value", type, value);
                         }
+                        if (type == Type.INT || type== Type.DOUBLE){
+                            Gaussian.profile(featureNode,(double) value);
+                        }
                     }
                 }
             } catch (ClassCastException e) {
+
+                e.printStackTrace();
                 System.out.println();
             } finally {
                 if (jumped != null) {
@@ -474,6 +432,9 @@ class ActionLoadXlsx implements Action {
                 }
             }
         });
+
+
+
     }
 
 }
