@@ -351,13 +351,10 @@ class ActionLoadXlsx implements Action {
                     /*feature.set("histogram_min",Type.DOUBLE_ARRAY,hist_min);
                     feature.set("histogram_max",Type.DOUBLE_ARRAY,hist_max);
                     feature.set("histogram_values",Type.DOUBLE_ARRAY,hist_values);*/
-                    
-                    DoubleArray minArray = (DoubleArray) feature.getOrCreate("histogram_min", Type.DOUBLE_ARRAY);
-                    minArray.initWith(hist_min);
-                    DoubleArray maxArray = (DoubleArray) feature.getOrCreate("histogram_max", Type.DOUBLE_ARRAY);
-                    maxArray.initWith(hist_max);
-                    DoubleArray valueArray = (DoubleArray) feature.getOrCreate("histogram_values", Type.DOUBLE_ARRAY);
-                    valueArray.initWith(hist_values);
+
+                    ((DoubleArray) feature.getOrCreate("histogram_min", Type.DOUBLE_ARRAY)).initWith(hist_min);
+                    ((DoubleArray) feature.getOrCreate("histogram_max", Type.DOUBLE_ARRAY)).initWith(hist_max);
+                    ((DoubleArray) feature.getOrCreate("histogram_values", Type.DOUBLE_ARRAY)).initWith(hist_values);
                 }
             }
             callback.run();
