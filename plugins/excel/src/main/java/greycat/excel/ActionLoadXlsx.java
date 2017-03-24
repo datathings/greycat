@@ -8,6 +8,7 @@ import greycat.internal.task.TaskHelper;
 import greycat.ml.profiling.Gaussian;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
+import greycat.struct.DoubleArray;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -29,6 +30,7 @@ import java.util.TreeMap;
  */
 class ActionLoadXlsx implements Action {
 
+    private static int HISTOGRAM_BUCKETS = 20;
     private String _uri;
     private ZoneId _loaderZoneId = ZoneId.systemDefault();
 
@@ -321,6 +323,43 @@ class ActionLoadXlsx implements Action {
             if (valueNode != null) {
                 valueNode.free();
             }
+
+            if (type == Type.INT || type == Type.DOUBLE) {
+                double min = feature.getWithDefault(Gaussian.MIN, 0.0);
+                double max = feature.getWithDefault(Gaussian.MAX, 0.0);
+                if (max != min) {
+                    double step = (max - min) / HISTOGRAM_BUCKETS;
+                    double[] hist_min = new double[HISTOGRAM_BUCKETS];
+                    double[] hist_max = new double[HISTOGRAM_BUCKETS];
+                    double[] hist_values = new double[HISTOGRAM_BUCKETS];
+                    for (int i = 0; i < HISTOGRAM_BUCKETS; i++) {
+                        hist_min[i] = min + step * i;
+                        hist_max[i] = min + step * (i + 1);
+                    }
+                    featureValues.forEach((key, value) -> {
+
+
+                        if (value != null) {
+                            int index = (int) (((double) value - min) / step);
+                            if (index == HISTOGRAM_BUCKETS) {
+                                index--;
+                            }
+                            hist_values[index]++;
+                        }
+
+                    });
+                    /*feature.set("histogram_min",Type.DOUBLE_ARRAY,hist_min);
+                    feature.set("histogram_max",Type.DOUBLE_ARRAY,hist_max);
+                    feature.set("histogram_values",Type.DOUBLE_ARRAY,hist_values);*/
+                    
+                    DoubleArray minArray = (DoubleArray) feature.getOrCreate("histogram_min", Type.DOUBLE_ARRAY);
+                    minArray.initWith(hist_min);
+                    DoubleArray maxArray = (DoubleArray) feature.getOrCreate("histogram_max", Type.DOUBLE_ARRAY);
+                    maxArray.initWith(hist_max);
+                    DoubleArray valueArray = (DoubleArray) feature.getOrCreate("histogram_values", Type.DOUBLE_ARRAY);
+                    valueArray.initWith(hist_values);
+                }
+            }
             callback.run();
         });
         featureValues.forEach((key, value) -> {
@@ -331,10 +370,16 @@ class ActionLoadXlsx implements Action {
 
     private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, byte type, Job callback) {
 
+        if (featureNode.graph().space().available() < 10) {
+            int x = 0;
+        }
+
         valueNode.travelInTime(time, jumped -> {
             try {
                 if (jumped != null) {
-                    if (value instanceof String) {
+                    if (value == null) {
+                        jumped.set("value", type, null);
+                    } else if (value instanceof String) {
                         if (((String) value).trim().equals("")) {
                             jumped.set("value", type, null);
                         } else {
@@ -347,9 +392,7 @@ class ActionLoadXlsx implements Action {
                             jumped.set("value", type, value);
                         }
                         if (type == Type.INT || type == Type.DOUBLE) {
-                            if (value != null) {
-                                Gaussian.profile(featureNode, (double) value);
-                            }
+                            Gaussian.profile(featureNode, (double) value);
                         }
                     }
                 }

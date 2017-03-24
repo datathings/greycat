@@ -13,19 +13,24 @@ import java.net.URL;
  */
 public class LoadFeaturesTest {
 
+    /*
+@Test
+public void loadFeaturesFromMeta() {
+ loadFeatues("testfile.xlsx");
+}
 
+@Test
+public void loadFeaturesFromSheets() {
+ loadFeatues("testfile2.xlsx");
+}
+*/
     @Test
-    public void loadFeaturesFromMeta() {
-        loadFeatues("testfile.xlsx");
-    }
-
-    @Test
-    public void loadFeaturesFromSheets() {
-        loadFeatues("testfile2.xlsx");
+    public void loadRealFeatures() {
+        loadFeatues("NeuroPTF_parameters_rev8_HO5.xlsx");
     }
 
     private void loadFeatues(String file) {
-        Graph graph = GraphBuilder.newBuilder().withMemorySize(1000000).withPlugin(new ExcelPlugin(".")).build();
+        Graph graph = GraphBuilder.newBuilder().withMemorySize(2000000).withPlugin(new ExcelPlugin(".")).build();
         graph.connect(connected->{
 
             URL fileUrl = getClass().getClassLoader().getResource(file);
