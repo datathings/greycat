@@ -232,17 +232,15 @@ class ActionLoadXlsx implements Action {
                     if (ct == CellType.NUMERIC) {
                         featuresTrees[c - 1].put(epochMillis, currentCell.getNumericCellValue());
                     } else if (ct == CellType.STRING) {
-                        if (currentCell.getStringCellValue().trim().toLowerCase().equals("null")) {
-                            featuresTrees[c - 1].put(epochMillis, null);
-                        } else {
-                            featuresTrees[c - 1].put(epochMillis, currentCell.getStringCellValue());
+                        if (currentCell.getStringCellValue().trim() != "") {
+                            if (currentCell.getStringCellValue().trim().toLowerCase().equals("null")) {
+                                featuresTrees[c - 1].put(epochMillis, null);
+                            } else {
+                                featuresTrees[c - 1].put(epochMillis, currentCell.getStringCellValue());
+                            }
                         }
                     } else if (ct == CellType.BOOLEAN) {
-                        if (currentCell.getStringCellValue().trim().toLowerCase().equals("null")) {
-                            featuresTrees[c - 1].put(epochMillis, currentCell.getBooleanCellValue());
-                        } else {
-                            featuresTrees[c - 1].put(epochMillis, currentCell.getStringCellValue());
-                        }
+                        featuresTrees[c - 1].put(epochMillis, currentCell.getBooleanCellValue());
                     } else if (ct == CellType.BLANK || ct == CellType._NONE) {
                         if ((c - 1) < featuresTrees.length) {
                             featuresTrees[c - 1].put(epochMillis, null);
@@ -266,7 +264,7 @@ class ActionLoadXlsx implements Action {
 
         for (int i = 0; i < sheetNum; i++) {
             XSSFSheet currentSheet = workbook.getSheetAt(i);
-            System.out.println(i + "/"+sheetNum + " Loading Sheet:" + currentSheet.getSheetName());
+            System.out.println(i + "/" + sheetNum + " Loading Sheet:" + currentSheet.getSheetName());
 
             if (currentSheet.getSheetName().toLowerCase().trim().equals("meta")) {
                 countSheets.count();
