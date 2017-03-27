@@ -30,7 +30,10 @@ public void loadFeaturesFromSheets() {
     }
 
     private void loadFeatues(String file) {
-        Graph graph = GraphBuilder.newBuilder().withMemorySize(2000000).withPlugin(new ExcelPlugin(".")).build();
+        Graph graph = GraphBuilder
+                .newBuilder()
+                .withMemorySize(2000000)
+                .withPlugin(new ExcelPlugin(".")).build();
         graph.connect(connected->{
 
             URL fileUrl = getClass().getClassLoader().getResource(file);
@@ -55,6 +58,7 @@ public void loadFeaturesFromSheets() {
                 for(int i = 0; i < taskResult.size(); i++) {
                     System.out.println(taskResult.get(i));
                 }
+                taskResult.free();
 
             });
             context.setVariable("file", fileUrl.toString());
