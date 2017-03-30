@@ -9,6 +9,8 @@ import greycat.ml.profiling.Gaussian;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.DoubleArray;
+import greycat.struct.Relation;
+import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -29,6 +31,7 @@ import java.util.TreeMap;
  * Created by gnain on 27/02/17.
  */
 class ActionLoadXlsx implements Action {
+    private static long TIME_SHIFT=3600*1000; //to convert hour to ms;
     private String _uri;
     private ZoneId _loaderZoneId = ZoneId.systemDefault();
 
@@ -138,9 +141,38 @@ class ActionLoadXlsx implements Action {
             } else {
                 newFeature.set("interpolation", Type.BOOL, false);
             }
-
             featuresMap.put("" + featureName, newFeature);
         }
+
+        for (int r = metaSheet.getFirstRowNum() + 1; r <= lastRowNum; r++) {
+            Row currentRow = metaSheet.getRow(r);
+            if (currentRow == null) {
+                continue;
+            }
+            int firstCol = currentRow.getFirstCellNum();
+            String featureName = currentRow.getCell(firstCol + 1).getStringCellValue();
+            Node newFeature = featuresMap.get(featureName);
+
+            if (currentRow.getCell(firstCol + 9) != null) {
+                HSSFCell cell = (HSSFCell) currentRow.getCell(firstCol + 9);
+                CellType type = cell.getCellTypeEnum();
+                if (type == CellType.STRING) {
+                    String ts = cell.getStringCellValue();
+                    Node tsnode = featuresMap.get(ts);
+                    if(tsnode==null) {
+                        throw new RuntimeException("Can't find this timeshift node: " + ts);
+                    }
+                    else {
+                        Relation rel= (Relation) newFeature.getOrCreate("timeshift",Type.RELATION);
+                        rel.addNode(tsnode);
+                    }
+                } else if (type == CellType.NUMERIC) {
+                    //convert to ms
+                    newFeature.set("timeshift", Type.DOUBLE, currentRow.getCell(firstCol + 9).getNumericCellValue() * TIME_SHIFT);
+                }
+            }
+        }
+
     }
 
     private int getIntUpperBound(String range) {
@@ -311,33 +343,75 @@ class ActionLoadXlsx implements Action {
             type = ((Integer) feature.get("value_type")).byteValue();
         }
 
-        final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
-        feature.addToRelation("value", valueNode);
+        String tagType = ((String) feature.get("tag_type")).toLowerCase().trim();
+        if (tagType.equals("timeshift")) {
 
-        DeferCounter defer = feature.graph().newCounter(featureValues.size());
-        defer.then(() -> {
+            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+            feature.addToRelation("value", valueNode);
 
-            if (valueNode != null) {
-                valueNode.free();
-            }
+            long firstkey=featureValues.firstKey();
+            long firstshifted=firstkey+ (long)((double) featureValues.get(firstkey) *TIME_SHIFT);
 
-            if (type == Type.INT || type == Type.DOUBLE) {
-                double min = feature.getWithDefault(Gaussian.MIN, 0.0);
-                double max = feature.getWithDefault(Gaussian.MAX, 0.0);
-                if (max != min) {
-                    featureValues.forEach((key, value) -> {
-                        if(value!=null) {
-                            Gaussian.histogram(feature, min, max, (double)value);
-                        }
-                    });
+            final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
+            feature.addToRelation("valueshifted", valueNodeShifted);
+
+            DeferCounter defer = feature.graph().newCounter(featureValues.size()*2);
+            defer.then(() -> {
+
+                if (valueNode != null) {
+                    valueNode.free();
                 }
-            }
-            callback.run();
-        });
-        featureValues.forEach((key, value) -> {
-            setValueInTime(feature, valueNode, key, value, type, () -> defer.count());
-        });
+                if (valueNodeShifted != null) {
+                    valueNodeShifted.free();
+                }
 
+                if (type == Type.INT || type == Type.DOUBLE) {
+                    double min = feature.getWithDefault(Gaussian.MIN, 0.0);
+                    double max = feature.getWithDefault(Gaussian.MAX, 0.0);
+                    if (max != min) {
+                        featureValues.forEach((key, value) -> {
+                            if (value != null) {
+                                Gaussian.histogram(feature, min, max, (double) value);
+                            }
+                        });
+                    }
+                }
+                callback.run();
+            });
+            featureValues.forEach((key, value) -> {
+                long shift = (long)((double) value *TIME_SHIFT);
+                setValueInTime(feature, valueNode, key, shift, type, () -> defer.count());
+                setValueInTime(feature, valueNodeShifted, key+shift, shift, type, () -> defer.count());
+            });
+
+        } else {
+            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+            feature.addToRelation("value", valueNode);
+
+            DeferCounter defer = feature.graph().newCounter(featureValues.size());
+            defer.then(() -> {
+
+                if (valueNode != null) {
+                    valueNode.free();
+                }
+
+                if (type == Type.INT || type == Type.DOUBLE) {
+                    double min = feature.getWithDefault(Gaussian.MIN, 0.0);
+                    double max = feature.getWithDefault(Gaussian.MAX, 0.0);
+                    if (max != min) {
+                        featureValues.forEach((key, value) -> {
+                            if (value != null) {
+                                Gaussian.histogram(feature, min, max, (double) value);
+                            }
+                        });
+                    }
+                }
+                callback.run();
+            });
+            featureValues.forEach((key, value) -> {
+                setValueInTime(feature, valueNode, key, value, type, () -> defer.count());
+            });
+        }
     }
 
     private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, byte type, Job callback) {
