@@ -9,7 +9,7 @@
     <parent>
         <groupId>com.datathings.enterprise</groupId>
         <artifactId>greycat-parent</artifactId>
-        <version>5.1-SNAPSHOT</version>
+        <version>6-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -27,12 +27,12 @@
         <dependency>
             <groupId>com.datathings</groupId>
             <artifactId>greycat</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${greycat.version}</version>
         </dependency>
         <dependency>
             <groupId>com.datathings</groupId>
             <artifactId>greycat-ml</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${greycat.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
