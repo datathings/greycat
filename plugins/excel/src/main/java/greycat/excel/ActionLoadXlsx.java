@@ -103,7 +103,7 @@ class ActionLoadXlsx implements Action {
             if (currentRow.getCell(firstCol + 3) != null) {
                 newFeature.set("tag_unit", Type.STRING, currentRow.getCell(firstCol + 3).getStringCellValue());
             }
-            newFeature.set("tag_type", Type.STRING, currentRow.getCell(firstCol + 4).getStringCellValue());
+            newFeature.set("tag_type", Type.STRING, currentRow.getCell(firstCol + 4).getStringCellValue().toLowerCase().trim());
             if (currentRow.getCell(firstCol + 5) != null) {
                 newFeature.set("value_precision", Type.DOUBLE, currentRow.getCell(firstCol + 5).getNumericCellValue());
             }
@@ -161,6 +161,9 @@ class ActionLoadXlsx implements Action {
                     Node tsnode = featuresMap.get(ts);
                     if(tsnode==null) {
                         throw new RuntimeException("Can't find this timeshift node: " + ts);
+                    }
+                    else if(!tsnode.get("tag_type").equals("timeshift")){
+                        throw new RuntimeException("Tag "+tsnode.get("tag_type")+" is not marked as a type shift type");
                     }
                     else {
                         Relation rel= (Relation) newFeature.getOrCreate("timeshift",Type.RELATION);
@@ -343,7 +346,7 @@ class ActionLoadXlsx implements Action {
             type = ((Integer) feature.get("value_type")).byteValue();
         }
 
-        String tagType = ((String) feature.get("tag_type")).toLowerCase().trim();
+        String tagType = ((String) feature.get("tag_type"));
         if (tagType.equals("timeshift")) {
 
             final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
