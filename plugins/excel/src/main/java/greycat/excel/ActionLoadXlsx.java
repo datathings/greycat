@@ -8,13 +8,9 @@ import greycat.internal.task.TaskHelper;
 import greycat.ml.profiling.Gaussian;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
-import greycat.struct.DoubleArray;
 import greycat.struct.Relation;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -31,15 +27,17 @@ import java.util.TreeMap;
  * Created by gnain on 27/02/17.
  */
 class ActionLoadXlsx implements Action {
-    private static long TIME_SHIFT=3600*1000; //to convert hour to ms;
+    private long _timeShiftConst = 3600 * 1000; //to convert hour to ms;
     private String _uri;
     private ZoneId _loaderZoneId = ZoneId.systemDefault();
+    private FormulaEvaluator evaluator = null;
 
     private HashMap<String, Node> featuresMap = new HashMap<>();
 
 
-    public ActionLoadXlsx(String uri) {
+    public ActionLoadXlsx(String uri, long timeshiftConst) {
         this._uri = uri;
+        this._timeShiftConst = timeshiftConst;
     }
 
     @Override
@@ -50,6 +48,7 @@ class ActionLoadXlsx implements Action {
                 System.out.println("Opening Workbook");
                 FileInputStream file = new FileInputStream(parsedUri.getPath());
                 XSSFWorkbook workbook = new XSSFWorkbook(file);
+                evaluator = workbook.getCreationHelper().createFormulaEvaluator();
 
                 Sheet metaSheet = workbook.getSheet("META");
                 if (metaSheet != null) {
@@ -154,24 +153,22 @@ class ActionLoadXlsx implements Action {
             Node newFeature = featuresMap.get(featureName);
 
             if (currentRow.getCell(firstCol + 9) != null) {
-                HSSFCell cell = (HSSFCell) currentRow.getCell(firstCol + 9);
+                XSSFCell cell = (XSSFCell) currentRow.getCell(firstCol + 9);
                 CellType type = cell.getCellTypeEnum();
-                if (type == CellType.STRING) {
+                if (type == CellType.STRING || type == CellType.FORMULA) {
                     String ts = cell.getStringCellValue();
                     Node tsnode = featuresMap.get(ts);
-                    if(tsnode==null) {
+                    if (tsnode == null) {
                         throw new RuntimeException("Can't find this timeshift node: " + ts);
-                    }
-                    else if(!tsnode.get("tag_type").equals("timeshift")){
-                        throw new RuntimeException("Tag "+tsnode.get("tag_type")+" is not marked as a type shift type");
-                    }
-                    else {
-                        Relation rel= (Relation) newFeature.getOrCreate("timeshift",Type.RELATION);
+                    } else if (!tsnode.get("tag_type").equals("timeshift")) {
+                        throw new RuntimeException("Tag " + tsnode.get("tag_type") + " is not marked as a type shift type");
+                    } else {
+                        Relation rel = (Relation) newFeature.getOrCreate("timeshift", Type.RELATION);
                         rel.addNode(tsnode);
                     }
                 } else if (type == CellType.NUMERIC) {
                     //convert to ms
-                    newFeature.set("timeshift", Type.DOUBLE, currentRow.getCell(firstCol + 9).getNumericCellValue() * TIME_SHIFT);
+                    newFeature.set("timeshift", Type.LONG, currentRow.getCell(firstCol + 9).getNumericCellValue() * _timeShiftConst);
                 }
             }
         }
@@ -257,7 +254,9 @@ class ActionLoadXlsx implements Action {
             long epochMillis = rowTime.toInstant().toEpochMilli();
 
             for (int c = currentRow.getFirstCellNum() + 1; c <= (currentRow.getLastCellNum() - 1); c++) {
-                final Cell currentCell = currentRow.getCell(c);
+                final Cell cell = currentRow.getCell(c);
+                CellValue currentCell = evaluator.evaluate(cell);
+
                 if (currentCell == null) {
                     if ((c - 1) < featuresTrees.length) {
                         featuresTrees[c - 1].put(epochMillis, null);
@@ -265,17 +264,17 @@ class ActionLoadXlsx implements Action {
                 } else {
                     CellType ct = CellType.forInt(currentCell.getCellType());
                     if (ct == CellType.NUMERIC) {
-                        featuresTrees[c - 1].put(epochMillis, currentCell.getNumericCellValue());
+                        featuresTrees[c - 1].put(epochMillis, currentCell.getNumberValue());
                     } else if (ct == CellType.STRING) {
-                        if (currentCell.getStringCellValue().trim() != "") {
-                            if (currentCell.getStringCellValue().trim().toLowerCase().equals("null")) {
+                        if (currentCell.getStringValue().trim() != "") {
+                            if (currentCell.getStringValue().trim().toLowerCase().equals("null")) {
                                 featuresTrees[c - 1].put(epochMillis, null);
                             } else {
-                                featuresTrees[c - 1].put(epochMillis, currentCell.getStringCellValue());
+                                featuresTrees[c - 1].put(epochMillis, currentCell.getStringValue());
                             }
                         }
                     } else if (ct == CellType.BOOLEAN) {
-                        featuresTrees[c - 1].put(epochMillis, currentCell.getBooleanCellValue());
+                        featuresTrees[c - 1].put(epochMillis, currentCell.getBooleanValue());
                     } else if (ct == CellType.BLANK || ct == CellType._NONE) {
                         if ((c - 1) < featuresTrees.length) {
                             featuresTrees[c - 1].put(epochMillis, null);
@@ -299,7 +298,7 @@ class ActionLoadXlsx implements Action {
 
         for (int i = 0; i < sheetNum; i++) {
             XSSFSheet currentSheet = workbook.getSheetAt(i);
-            System.out.println(i + "/" + sheetNum + " Loading Sheet:" + currentSheet.getSheetName());
+            System.out.println((i+1) + "/" + sheetNum + " Loading Sheet:" + currentSheet.getSheetName());
             if (currentSheet.getSheetName().toLowerCase().trim().equals("meta")) {
                 countSheets.count();
                 continue;
@@ -334,7 +333,6 @@ class ActionLoadXlsx implements Action {
 
     }
 
-
     private void insertValues(TaskContext taskContext, final Node feature, TreeMap<Long, Object> featureValues, boolean guessType, Job callback) {
 
         final byte type;
@@ -345,20 +343,19 @@ class ActionLoadXlsx implements Action {
         } else {
             type = ((Integer) feature.get("value_type")).byteValue();
         }
-
         String tagType = ((String) feature.get("tag_type"));
         if (tagType.equals("timeshift")) {
 
             final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
             feature.addToRelation("value", valueNode);
 
-            long firstkey=featureValues.firstKey();
-            long firstshifted=firstkey+ (long)((double) featureValues.get(firstkey) *TIME_SHIFT);
+            long firstkey = featureValues.firstKey();
+            long firstshifted = firstkey + (long) ((double) featureValues.get(firstkey) * _timeShiftConst);
 
             final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
-            feature.addToRelation("valueshifted", valueNodeShifted);
+            feature.addToRelation("shiftedvalue", valueNodeShifted);
 
-            DeferCounter defer = feature.graph().newCounter(featureValues.size()*2);
+            DeferCounter defer = feature.graph().newCounter(featureValues.size() * 2);
             defer.then(() -> {
 
                 if (valueNode != null) {
@@ -382,9 +379,9 @@ class ActionLoadXlsx implements Action {
                 callback.run();
             });
             featureValues.forEach((key, value) -> {
-                long shift = (long)((double) value *TIME_SHIFT);
-                setValueInTime(feature, valueNode, key, shift, type, () -> defer.count());
-                setValueInTime(feature, valueNodeShifted, key+shift, shift, type, () -> defer.count());
+                long shift = (long) ((double) value * _timeShiftConst);
+                setValueInTime(feature, valueNode, key, value, false, type, () -> defer.count());
+                setValueInTime(feature, valueNodeShifted, key + shift, shift, false, Type.LONG, () -> defer.count());
             });
 
         } else {
@@ -412,12 +409,12 @@ class ActionLoadXlsx implements Action {
                 callback.run();
             });
             featureValues.forEach((key, value) -> {
-                setValueInTime(feature, valueNode, key, value, type, () -> defer.count());
+                setValueInTime(feature, valueNode, key, value, true, type, () -> defer.count());
             });
         }
     }
 
-    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, byte type, Job callback) {
+    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, boolean profile, byte type, Job callback) {
 
         valueNode.travelInTime(time, jumped -> {
             try {
@@ -436,7 +433,8 @@ class ActionLoadXlsx implements Action {
                         } else {
                             jumped.set("value", type, value);
                         }
-                        if (type == Type.INT || type == Type.DOUBLE) {
+
+                        if (profile && (type == Type.INT || type == Type.DOUBLE)) {
                             Gaussian.profile(featureNode, (double) value);
                         }
                     }

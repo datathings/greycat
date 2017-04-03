@@ -26,8 +26,13 @@ public void loadFeaturesFromSheets() {
 */
     @Test
     public void loadRealFeatures() {
-        loadFeatues("NeuroPTF_parameters_rev8_HO5.xlsx");
+        loadFeatues("Testdata.xlsx");
     }
+
+
+//    public void loadRealFeatures() {
+//        loadFeatues("NeuroPTF_parameters_rev8_HO5.xlsx");
+//    }
 
     private void loadFeatues(String file) {
         Graph graph = GraphBuilder
@@ -43,7 +48,7 @@ public void loadFeaturesFromSheets() {
             Task task = Tasks.newTask()
                     .createNode()
                     .setAttribute("name", Type.STRING, "{{file}}")
-                    .action(ExcelActions.LOAD_XSLX, "{{file}}");
+                    .action(ExcelActions.LOAD_XSLX, "{{file}}","1");
 
             TaskContext context = task.prepare(graph, null, taskResult -> {
                 if(taskResult.exception() != null) {

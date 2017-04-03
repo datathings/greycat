@@ -18,8 +18,10 @@ import java.nio.file.Paths;
 public class ExcelPlugin implements Plugin {
 
     private Path _basePath;
+
     /**
      * Excel plugin constructor
+     *
      * @param basePath Base path from which files can be reached
      */
     public ExcelPlugin(String basePath) {
@@ -28,14 +30,14 @@ public class ExcelPlugin implements Plugin {
 
     @Override
     public void start(Graph graph) {
-        graph.actionRegistry().getOrCreateDeclaration(ExcelActions.LOAD_XSLX).setParams(Type.STRING).setFactory(new ActionFactory() {
+        graph.actionRegistry().getOrCreateDeclaration(ExcelActions.LOAD_XSLX).setParams(Type.STRING, Type.LONG).setFactory(new ActionFactory() {
             @Override
             public Action create(Object[] params) {
                 Path resolved = _basePath.resolve(String.valueOf(params[0]));
-                if(resolved.toFile().exists()) {
-                    return new ActionLoadXlsx(resolved.toFile().toURI().toString());
+                if (resolved.toFile().exists()) {
+                    return new ActionLoadXlsx(resolved.toFile().toURI().toString(), (long) params[1]);
                 } else {
-                    return new ActionLoadXlsx(String.valueOf(params[0]));
+                    return new ActionLoadXlsx(String.valueOf(params[0]), (long) params[1]);
                 }
 
             }
