@@ -250,12 +250,15 @@ class ActionLoadXlsx implements Action {
                 continue;
             }
 
+
+
             ZonedDateTime rowTime = timeCellValue.toInstant().atZone(_loaderZoneId);
             long epochMillis = rowTime.toInstant().toEpochMilli();
 
             for (int c = currentRow.getFirstCellNum() + 1; c <= (currentRow.getLastCellNum() - 1); c++) {
                 final Cell cell = currentRow.getCell(c);
                 CellValue currentCell = evaluator.evaluate(cell);
+
 
                 if (currentCell == null) {
                     if ((c - 1) < featuresTrees.length) {
