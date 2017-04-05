@@ -349,7 +349,7 @@ class ActionLoadXlsx implements Action {
         Double max = (Double) feature.get("value_max");
 
         String tagType = ((String) feature.get("tag_type"));
-        if (tagType.equals("timeshift")) {
+        if (tagType!=null && tagType.equals("timeshift")) {
 
             final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
             feature.addToRelation("value", valueNode);
@@ -401,6 +401,7 @@ class ActionLoadXlsx implements Action {
                 }
 
                 if (type == Type.INT || type == Type.DOUBLE) {
+
                     double pmin = feature.getWithDefault(Gaussian.MIN, 0.0);
                     double pmax = feature.getWithDefault(Gaussian.MAX, 0.0);
                     if (max != min) {
@@ -439,6 +440,9 @@ class ActionLoadXlsx implements Action {
                         if (type == Type.INT) {
                             jumped.set("value", type, ((Double) value).intValue());
                         } else {
+                            if(type<0) {
+                                System.out.println("type: " + type+ " at: "+featureNode.get("tag_name"));
+                            }
                             jumped.set("value", type, value);
                         }
 
