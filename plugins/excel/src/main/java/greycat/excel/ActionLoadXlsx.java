@@ -251,7 +251,6 @@ class ActionLoadXlsx implements Action {
             }
 
 
-
             ZonedDateTime rowTime = timeCellValue.toInstant().atZone(_loaderZoneId);
             long epochMillis = rowTime.toInstant().toEpochMilli();
 
@@ -301,7 +300,7 @@ class ActionLoadXlsx implements Action {
 
         for (int i = 0; i < sheetNum; i++) {
             XSSFSheet currentSheet = workbook.getSheetAt(i);
-            System.out.println((i+1) + "/" + sheetNum + " Loading Sheet:" + currentSheet.getSheetName());
+            System.out.println((i + 1) + "/" + sheetNum + " Loading Sheet:" + currentSheet.getSheetName());
             if (currentSheet.getSheetName().toLowerCase().trim().equals("meta")) {
                 countSheets.count();
                 continue;
@@ -346,6 +345,9 @@ class ActionLoadXlsx implements Action {
         } else {
             type = ((Integer) feature.get("value_type")).byteValue();
         }
+        Double min = (Double) feature.get("value_min");
+        Double max = (Double) feature.get("value_max");
+
         String tagType = ((String) feature.get("tag_type"));
         if (tagType.equals("timeshift")) {
 
@@ -369,12 +371,12 @@ class ActionLoadXlsx implements Action {
                 }
 
                 if (type == Type.INT || type == Type.DOUBLE) {
-                    double min = feature.getWithDefault(Gaussian.MIN, 0.0);
-                    double max = feature.getWithDefault(Gaussian.MAX, 0.0);
+                    double pmin = feature.getWithDefault(Gaussian.MIN, 0.0);
+                    double pmax = feature.getWithDefault(Gaussian.MAX, 0.0);
                     if (max != min) {
                         featureValues.forEach((key, value) -> {
                             if (value != null) {
-                                Gaussian.histogram(feature, min, max, (double) value);
+                                Gaussian.histogram(feature, pmin, pmax, (double) value);
                             }
                         });
                     }
@@ -383,8 +385,8 @@ class ActionLoadXlsx implements Action {
             });
             featureValues.forEach((key, value) -> {
                 long shift = (long) ((double) value * _timeShiftConst);
-                setValueInTime(feature, valueNode, key, value, false, type, () -> defer.count());
-                setValueInTime(feature, valueNodeShifted, key + shift, shift, false, Type.LONG, () -> defer.count());
+                setValueInTime(feature, valueNode, key, value, null, null, false, type, () -> defer.count());
+                setValueInTime(feature, valueNodeShifted, key + shift, shift, null, null, false, Type.LONG, () -> defer.count());
             });
 
         } else {
@@ -399,12 +401,12 @@ class ActionLoadXlsx implements Action {
                 }
 
                 if (type == Type.INT || type == Type.DOUBLE) {
-                    double min = feature.getWithDefault(Gaussian.MIN, 0.0);
-                    double max = feature.getWithDefault(Gaussian.MAX, 0.0);
+                    double pmin = feature.getWithDefault(Gaussian.MIN, 0.0);
+                    double pmax = feature.getWithDefault(Gaussian.MAX, 0.0);
                     if (max != min) {
                         featureValues.forEach((key, value) -> {
                             if (value != null) {
-                                Gaussian.histogram(feature, min, max, (double) value);
+                                Gaussian.histogram(feature, pmin, pmax, (double) value);
                             }
                         });
                     }
@@ -412,17 +414,20 @@ class ActionLoadXlsx implements Action {
                 callback.run();
             });
             featureValues.forEach((key, value) -> {
-                setValueInTime(feature, valueNode, key, value, true, type, () -> defer.count());
+                setValueInTime(feature, valueNode, key, value, min, max, true, type, () -> defer.count());
             });
         }
     }
 
-    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, boolean profile, byte type, Job callback) {
+    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, final Double min, final Double max, boolean profile, byte type, Job callback) {
 
         valueNode.travelInTime(time, jumped -> {
             try {
                 if (jumped != null) {
                     if (value == null) {
+                        if(profile){
+                            Gaussian.profile(featureNode, null, min, max);
+                        }
                         jumped.set("value", type, null);
                     } else if (value instanceof String) {
                         if (((String) value).trim().equals("")) {
@@ -438,7 +443,7 @@ class ActionLoadXlsx implements Action {
                         }
 
                         if (profile && (type == Type.INT || type == Type.DOUBLE)) {
-                            Gaussian.profile(featureNode, (double) value);
+                            Gaussian.profile(featureNode, (double) value, min, max);
                         }
                     }
                 }
