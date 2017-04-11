@@ -9,6 +9,8 @@ import greycat.Type;
 import greycat.plugin.ActionFactory;
 import greycat.plugin.Plugin;
 
+import java.io.File;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -17,7 +19,7 @@ import java.nio.file.Paths;
  */
 public class ExcelPlugin implements Plugin {
 
-    private Path _basePath;
+    private String _basePath;
 
     /**
      * Excel plugin constructor
@@ -25,21 +27,18 @@ public class ExcelPlugin implements Plugin {
      * @param basePath Base path from which files can be reached
      */
     public ExcelPlugin(String basePath) {
-        _basePath = Paths.get(basePath);
+        _basePath = basePath;
+        if (!_basePath.endsWith(File.separator)) {
+            _basePath += File.separator;
+        }
     }
 
     @Override
     public void start(Graph graph) {
-        graph.actionRegistry().getOrCreateDeclaration(ExcelActions.LOAD_XSLX).setParams(Type.STRING, Type.LONG).setFactory(new ActionFactory() {
+        graph.actionRegistry().getOrCreateDeclaration(ExcelActions.LOAD_XSLX).setParams(Type.STRING, Type.STRING).setFactory(new ActionFactory() {
             @Override
             public Action create(Object[] params) {
-                Path resolved = _basePath.resolve(String.valueOf(params[0]));
-                if (resolved.toFile().exists()) {
-                    return new ActionLoadXlsx(resolved.toFile().toURI().toString(), (long) params[1]);
-                } else {
-                    return new ActionLoadXlsx(String.valueOf(params[0]), (long) params[1]);
-                }
-
+                return new ActionLoadXlsx(_basePath, String.valueOf(params[0]), String.valueOf(params[1]));
             }
         });
     }

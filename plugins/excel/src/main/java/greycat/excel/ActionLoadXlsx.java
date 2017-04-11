@@ -16,6 +16,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileInputStream;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -28,22 +30,37 @@ import java.util.TreeMap;
  */
 class ActionLoadXlsx implements Action {
     private long _timeShiftConst = 3600 * 1000; //to convert hour to ms;
+    private String _basePath;
     private String _uri;
+    private String _timeShiftParam;
     private ZoneId _loaderZoneId = ZoneId.systemDefault();
     private FormulaEvaluator evaluator = null;
 
     private HashMap<String, Node> featuresMap = new HashMap<>();
 
 
-    public ActionLoadXlsx(String uri, long timeshiftConst) {
+    public ActionLoadXlsx(String basePath, String uri, String timeshiftConst) {
+        this._basePath = basePath;
         this._uri = uri;
-        this._timeShiftConst = timeshiftConst;
+        this._timeShiftParam = timeshiftConst;
     }
 
     @Override
     public void eval(TaskContext taskContext) {
         try {
-            URI parsedUri = URI.create(taskContext.template(_uri));
+            this._timeShiftConst = Long.parseLong(taskContext.template(_timeShiftParam));
+            String resolvedPath = taskContext.template(_uri);
+
+            Path resolved = Paths.get(resolvedPath);
+            URI parsedUri;
+            if (resolved.toFile().exists()) {
+                parsedUri = URI.create(resolved.toFile().toURI().toString());
+            } else if(Paths.get(_basePath).resolve(resolved).toFile().exists()) {
+                parsedUri = URI.create(Paths.get(_basePath).resolve(resolved).toFile().toURI().toString());
+            } else {
+                parsedUri = URI.create(resolvedPath);
+            }
+
             if (parsedUri.getScheme().equals("file")) {
                 System.out.println("Opening Workbook");
                 FileInputStream file = new FileInputStream(parsedUri.getPath());
