@@ -35,6 +35,7 @@ class ActionLoadXlsx implements Action {
     private String _timeShiftParam;
     private ZoneId _loaderZoneId = ZoneId.systemDefault();
     private FormulaEvaluator evaluator = null;
+    private boolean hasPrintHook = false;
 
     private HashMap<String, Node> featuresMap = new HashMap<>();
 
@@ -48,6 +49,7 @@ class ActionLoadXlsx implements Action {
     @Override
     public void eval(TaskContext taskContext) {
         try {
+            this.hasPrintHook = (taskContext.printHook() != null);
             this._timeShiftConst = Long.parseLong(taskContext.template(_timeShiftParam));
             String resolvedPath = taskContext.template(_uri);
 
@@ -63,6 +65,9 @@ class ActionLoadXlsx implements Action {
 
             if (parsedUri.getScheme().equals("file")) {
                 System.out.println("Opening Workbook");
+                if(this.hasPrintHook) {
+                    taskContext.printHook().on("{\"step\":4, \"total\":5, \"info\":\"Opening Workbook\"}");
+                }
                 FileInputStream file = new FileInputStream(parsedUri.getPath());
                 XSSFWorkbook workbook = new XSSFWorkbook(file);
                 evaluator = workbook.getCreationHelper().createFormulaEvaluator();
@@ -73,6 +78,7 @@ class ActionLoadXlsx implements Action {
                 }
                 loadSheets(taskContext, workbook, () -> {
                     taskContext.continueWith(taskContext.wrap(featuresMap.values().toArray()));
+                    this.hasPrintHook = false;
                 });
             } else {
                 throw new UnsupportedOperationException("Schema: " + parsedUri.getScheme() + " not yet supported. Tried to open file from: " + _uri);
@@ -92,6 +98,9 @@ class ActionLoadXlsx implements Action {
 
     private void loadMeta(TaskContext taskContext, Sheet metaSheet) {
         System.out.println("Load from META:" + metaSheet);
+        if(this.hasPrintHook) {
+            taskContext.printHook().on("{\"step\":4, \"total\":5, \"info\":\"Loading META\"}");
+        }
 
         int lastRowNum = metaSheet.getLastRowNum();
         for (int r = metaSheet.getFirstRowNum() + 1; r <= lastRowNum; r++) {
@@ -330,6 +339,9 @@ class ActionLoadXlsx implements Action {
                 continue;
             }
 
+            if(this.hasPrintHook) {
+                taskContext.printHook().on("{\"step\":4, \"total\":5, \"info\":\"Loading sheet:"+currentSheet.getSheetName()+"\"}");
+            }
 
             Map<String, TreeMap<Long, Object>> content = sheetPreload(taskContext, currentSheet);
             final DeferCounter countContent = taskContext.graph().newCounter(content.size());
