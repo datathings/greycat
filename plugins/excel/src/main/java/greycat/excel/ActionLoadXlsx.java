@@ -118,7 +118,9 @@ class ActionLoadXlsx implements Action {
                 taskContext.append("Duplicate TAG name in META: " + featureName + "\n");
             }
 
-            Node newFeature = taskContext.graph().newNode(taskContext.world(), taskContext.time());
+            Node newFeature = taskContext.graph().newNode(taskContext.world(), Constants.BEGINNING_OF_TIME);
+            newFeature.setTimeSensitivity(-1,0);
+
             newFeature.set("tag_id", Type.STRING, featureId);
             newFeature.set("tag_from_meta", Type.BOOL, true);
             newFeature.set("tag_name", Type.STRING, featureName);
@@ -402,11 +404,9 @@ class ActionLoadXlsx implements Action {
                 if (type == Type.INT || type == Type.DOUBLE) {
                     double pmin = feature.getWithDefault(Gaussian.MIN, 0.0);
                     double pmax = feature.getWithDefault(Gaussian.MAX, 0.0);
-                    if (max != min) {
+                    if (pmin != pmax) {
                         featureValues.forEach((key, value) -> {
-                            if (value != null) {
-                                Gaussian.histogram(feature, pmin, pmax, (double) value);
-                            }
+                            Gaussian.histogram(feature, pmin, pmax, (Double) value);
                         });
                     }
                 }
@@ -430,14 +430,11 @@ class ActionLoadXlsx implements Action {
                 }
 
                 if (type == Type.INT || type == Type.DOUBLE) {
-
                     double pmin = feature.getWithDefault(Gaussian.MIN, 0.0);
                     double pmax = feature.getWithDefault(Gaussian.MAX, 0.0);
-                    if (max != min) {
+                    if (pmax != pmin) {
                         featureValues.forEach((key, value) -> {
-                            if (value != null) {
-                                Gaussian.histogram(feature, pmin, pmax, (double) value);
-                            }
+                            Gaussian.histogram(feature, pmin, pmax, (Double) value);
                         });
                     }
                 }
@@ -455,7 +452,7 @@ class ActionLoadXlsx implements Action {
             try {
                 if (jumped != null) {
                     if (value == null) {
-                        if(profile){
+                        if(profile && (type == Type.INT || type == Type.DOUBLE)){
                             Gaussian.profile(featureNode, null, min, max);
                         }
                         jumped.set("value", type, null);
