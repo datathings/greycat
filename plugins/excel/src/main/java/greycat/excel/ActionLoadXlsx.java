@@ -113,6 +113,10 @@ class ActionLoadXlsx implements Action {
             String featureId = "" + Math.round(currentRow.getCell(firstCol).getNumericCellValue());
             String featureName = currentRow.getCell(firstCol + 1).getStringCellValue();
 
+            if(featureName.trim().equals("")){
+                continue;
+            }
+
             if (featuresMap.get(featureName) != null) {
                 taskContext.append("Duplicate TAG name in META: " + featureName + "\n");
             }
@@ -195,7 +199,7 @@ class ActionLoadXlsx implements Action {
                     }
                 } else if (type == CellType.NUMERIC) {
                     //convert to ms
-                    newFeature.set("timeshift", Type.LONG, currentRow.getCell(firstCol + 9).getNumericCellValue() * _timeShiftConst);
+                    newFeature.set("timeshift", Type.LONG, (long) (currentRow.getCell(firstCol + 9).getNumericCellValue() * _timeShiftConst));
                 }
             }
         }
@@ -371,6 +375,7 @@ class ActionLoadXlsx implements Action {
         if (guessType) {
             //TODO
             type = -1;
+            System.out.println("type -1 "+ feature.get("tag_name"));
 
         } else {
             type = ((Integer) feature.get("value_type")).byteValue();
