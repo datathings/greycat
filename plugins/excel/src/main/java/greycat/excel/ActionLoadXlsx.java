@@ -5,7 +5,6 @@ package greycat.excel;
 
 import greycat.*;
 import greycat.internal.task.TaskHelper;
-import greycat.ml.profiling.Gaussian;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.Relation;
@@ -376,8 +375,6 @@ class ActionLoadXlsx implements Action {
         } else {
             type = ((Integer) feature.get("value_type")).byteValue();
         }
-        Double min = (Double) feature.get("value_min");
-        Double max = (Double) feature.get("value_max");
 
         String tagType = ((String) feature.get("tag_type"));
         if (tagType!=null && tagType.equals("timeshift")) {
@@ -401,21 +398,12 @@ class ActionLoadXlsx implements Action {
                     valueNodeShifted.free();
                 }
 
-                if (type == Type.INT || type == Type.DOUBLE) {
-                    double pmin = feature.getWithDefault(Gaussian.MIN, 0.0);
-                    double pmax = feature.getWithDefault(Gaussian.MAX, 0.0);
-                    if (pmin != pmax) {
-                        featureValues.forEach((key, value) -> {
-                            Gaussian.histogram(feature, pmin, pmax, (Double) value);
-                        });
-                    }
-                }
                 callback.run();
             });
             featureValues.forEach((key, value) -> {
                 long shift = (long) ((double) value * _timeShiftConst);
-                setValueInTime(feature, valueNode, key, value, null, null, false, type, () -> defer.count());
-                setValueInTime(feature, valueNodeShifted, key + shift, shift, null, null, false, Type.LONG, () -> defer.count());
+                setValueInTime(feature, valueNode, key, value, type, () -> defer.count());
+                setValueInTime(feature, valueNodeShifted, key + shift, shift, Type.LONG, () -> defer.count());
             });
 
         } else {
@@ -429,32 +417,20 @@ class ActionLoadXlsx implements Action {
                     valueNode.free();
                 }
 
-                if (type == Type.INT || type == Type.DOUBLE) {
-                    double pmin = feature.getWithDefault(Gaussian.MIN, 0.0);
-                    double pmax = feature.getWithDefault(Gaussian.MAX, 0.0);
-                    if (pmax != pmin) {
-                        featureValues.forEach((key, value) -> {
-                            Gaussian.histogram(feature, pmin, pmax, (Double) value);
-                        });
-                    }
-                }
                 callback.run();
             });
             featureValues.forEach((key, value) -> {
-                setValueInTime(feature, valueNode, key, value, min, max, true, type, () -> defer.count());
+                setValueInTime(feature, valueNode, key, value, type, () -> defer.count());
             });
         }
     }
 
-    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, final Double min, final Double max, boolean profile, byte type, Job callback) {
+    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, byte type, Job callback) {
 
         valueNode.travelInTime(time, jumped -> {
             try {
                 if (jumped != null) {
                     if (value == null) {
-                        if(profile && (type == Type.INT || type == Type.DOUBLE)){
-                            Gaussian.profile(featureNode, null, min, max);
-                        }
                         jumped.set("value", type, null);
                     } else if (value instanceof String) {
                         if (((String) value).trim().equals("")) {
@@ -470,10 +446,6 @@ class ActionLoadXlsx implements Action {
                                 System.out.println("type: " + type+ " at: "+featureNode.get("tag_name"));
                             }
                             jumped.set("value", type, value);
-                        }
-
-                        if (profile && (type == Type.INT || type == Type.DOUBLE)) {
-                            Gaussian.profile(featureNode, (double) value, min, max);
                         }
                     }
                 }
