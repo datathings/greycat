@@ -58,7 +58,7 @@ class ActionLoadXlsx implements Action {
             URI parsedUri;
             if (resolved.toFile().exists()) {
                 parsedUri = URI.create(resolved.toFile().toURI().toString());
-            } else if(Paths.get(_basePath).resolve(resolved).toFile().exists()) {
+            } else if (Paths.get(_basePath).resolve(resolved).toFile().exists()) {
                 parsedUri = URI.create(Paths.get(_basePath).resolve(resolved).toFile().toURI().toString());
             } else {
                 parsedUri = URI.create(resolvedPath);
@@ -66,7 +66,8 @@ class ActionLoadXlsx implements Action {
 
             if (parsedUri.getScheme().equals("file")) {
                 System.out.println("Opening Workbook");
-                if(this.hasPrintHook) {
+                taskContext.reportProgress(-1, -1, "Opening Workbook");
+                if (this.hasPrintHook) {
                     taskContext.printHook().on("{\"step\":4, \"total\":5, \"info\":\"Opening Workbook\"}");
                 }
                 FileInputStream file = new FileInputStream(parsedUri.getPath());
@@ -99,12 +100,12 @@ class ActionLoadXlsx implements Action {
 
     @Override
     public String name() {
-        return LOAD_XSLX;
+        return ExcelActions.LOAD_XSLX;
     }
 
     private void loadMeta(TaskContext taskContext, Sheet metaSheet) {
         System.out.println("Load from META:" + metaSheet);
-        if(this.hasPrintHook) {
+        if (this.hasPrintHook) {
             taskContext.printHook().on("{\"step\":4, \"total\":5, \"info\":\"Loading META\"}");
         }
 
@@ -120,7 +121,7 @@ class ActionLoadXlsx implements Action {
             String featureId = "" + Math.round(currentRow.getCell(firstCol).getNumericCellValue());
             String featureName = currentRow.getCell(firstCol + 1).getStringCellValue();
 
-            if(featureName.trim().equals("")){
+            if (featureName.trim().equals("")) {
                 continue;
             }
 
@@ -129,7 +130,7 @@ class ActionLoadXlsx implements Action {
             }
 
             Node newFeature = taskContext.graph().newNode(taskContext.world(), Constants.BEGINNING_OF_TIME);
-            newFeature.setTimeSensitivity(-1,0);
+            newFeature.setTimeSensitivity(-1, 0);
 
             newFeature.set("tag_id", Type.STRING, featureId);
             newFeature.set("tag_from_meta", Type.BOOL, true);
@@ -339,6 +340,7 @@ class ActionLoadXlsx implements Action {
         for (int i = 0; i < sheetNum; i++) {
             XSSFSheet currentSheet = workbook.getSheetAt(i);
             System.out.println((i + 1) + "/" + sheetNum + " Loading Sheet:" + currentSheet.getSheetName());
+            taskContext.reportProgress(i, sheetNum, "Loading Sheet:" + currentSheet.getSheetName());
             if (currentSheet.getSheetName().toLowerCase().trim().equals("meta")) {
                 countSheets.count();
                 continue;
@@ -351,8 +353,8 @@ class ActionLoadXlsx implements Action {
                 continue;
             }
 
-            if(this.hasPrintHook) {
-                taskContext.printHook().on("{\"step\":4, \"total\":5, \"info\":\"Loading sheet:"+currentSheet.getSheetName()+"\"}");
+            if (this.hasPrintHook) {
+                taskContext.printHook().on("{\"step\":4, \"total\":5, \"info\":\"Loading sheet:" + currentSheet.getSheetName() + "\"}");
             }
 
             Map<String, TreeMap<Long, Object>> content = sheetPreload(taskContext, currentSheet);
@@ -382,14 +384,14 @@ class ActionLoadXlsx implements Action {
         if (guessType) {
             //TODO
             type = -1;
-            System.out.println("type -1 "+ feature.get("tag_name"));
+            System.out.println("type -1 " + feature.get("tag_name"));
 
         } else {
             type = ((Integer) feature.get("value_type")).byteValue();
         }
 
         String tagType = ((String) feature.get("tag_type"));
-        if (tagType!=null && tagType.equals("timeshift")) {
+        if (tagType != null && tagType.equals("timeshift")) {
 
             final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
             feature.addToRelation("value", valueNode);
@@ -454,8 +456,8 @@ class ActionLoadXlsx implements Action {
                         if (type == Type.INT) {
                             jumped.set("value", type, ((Double) value).intValue());
                         } else {
-                            if(type<0) {
-                                System.out.println("type: " + type+ " at: "+featureNode.get("tag_name"));
+                            if (type < 0) {
+                                System.out.println("type: " + type + " at: " + featureNode.get("tag_name"));
                             }
                             jumped.set("value", type, value);
                         }
