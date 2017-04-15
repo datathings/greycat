@@ -255,12 +255,13 @@ class ActionLoadXlsx implements Action {
             if (CellType.forInt(currentCell.getCellType()) == CellType.BLANK) {
                 continue;
             }
-            String featureName;
+            String featureName = null;
 
             if (CellType.forInt(currentCell.getCellType()) == CellType.STRING) {
                 featureName = currentCell.getStringCellValue();
-            } else {
-                featureName = sheet.getSheetName() + "_GEN_TAG_" + c;
+            }
+            if (featureName == null || featureName.trim().equals("")) {
+                throw new RuntimeException("Could not read tag_name from cell in first row of column n°" + (c + 1) + " from sheet " + sheet.getSheetName() + ". Empty or not of type String. Please check.");
             }
             featuresTrees[c - 1] = new TreeMap<Long, Object>();
             sheetPreload.put(featureName, featuresTrees[c - 1]);
@@ -278,45 +279,53 @@ class ActionLoadXlsx implements Action {
             if (timeCell == null) {
                 continue;
             }
-            final Date timeCellValue = timeCell.getDateCellValue();
+            Date timeCellValue = null;
+            try {
+                timeCellValue = timeCell.getDateCellValue();
+            } catch (IllegalStateException e) {
+                throw new RuntimeException("Could not read a timestamp from cell " + timeCell.getAddress().toString() + " in sheet '" + sheet.getSheetName() + "'.", e);
+            }
+
             if (timeCellValue == null) {
                 continue;
             }
-
 
             ZonedDateTime rowTime = timeCellValue.toInstant().atZone(_loaderZoneId);
             long epochMillis = rowTime.toInstant().toEpochMilli();
 
             for (int c = currentRow.getFirstCellNum() + 1; c <= (currentRow.getLastCellNum() - 1); c++) {
                 final Cell cell = currentRow.getCell(c);
-                CellValue currentCell = evaluator.evaluate(cell);
+                try {
+                    CellValue currentCell = evaluator.evaluate(cell);
 
-
-                if (currentCell == null) {
-                    if ((c - 1) < featuresTrees.length) {
-                        featuresTrees[c - 1].put(epochMillis, null);
-                    }
-                } else {
-                    CellType ct = CellType.forInt(currentCell.getCellType());
-                    if (ct == CellType.NUMERIC) {
-                        featuresTrees[c - 1].put(epochMillis, currentCell.getNumberValue());
-                    } else if (ct == CellType.STRING) {
-                        if (currentCell.getStringValue().trim() != "") {
-                            if (currentCell.getStringValue().trim().toLowerCase().equals("null")) {
-                                featuresTrees[c - 1].put(epochMillis, null);
-                            } else {
-                                featuresTrees[c - 1].put(epochMillis, currentCell.getStringValue());
-                            }
-                        }
-                    } else if (ct == CellType.BOOLEAN) {
-                        featuresTrees[c - 1].put(epochMillis, currentCell.getBooleanValue());
-                    } else if (ct == CellType.BLANK || ct == CellType._NONE) {
+                    if (currentCell == null) {
                         if ((c - 1) < featuresTrees.length) {
                             featuresTrees[c - 1].put(epochMillis, null);
                         }
                     } else {
-                        System.err.println("Unknown CellType:" + ct.name());
+                        CellType ct = CellType.forInt(currentCell.getCellType());
+                        if (ct == CellType.NUMERIC) {
+                            featuresTrees[c - 1].put(epochMillis, currentCell.getNumberValue());
+                        } else if (ct == CellType.STRING) {
+                            if (currentCell.getStringValue().trim() != "") {
+                                if (currentCell.getStringValue().trim().toLowerCase().equals("null")) {
+                                    featuresTrees[c - 1].put(epochMillis, null);
+                                } else {
+                                    featuresTrees[c - 1].put(epochMillis, currentCell.getStringValue());
+                                }
+                            }
+                        } else if (ct == CellType.BOOLEAN) {
+                            featuresTrees[c - 1].put(epochMillis, currentCell.getBooleanValue());
+                        } else if (ct == CellType.BLANK || ct == CellType._NONE) {
+                            if ((c - 1) < featuresTrees.length) {
+                                featuresTrees[c - 1].put(epochMillis, null);
+                            }
+                        } else {
+                            System.err.println("Unknown CellType:" + ct.name());
+                        }
                     }
+                } catch (IllegalStateException e) {
+                    throw new RuntimeException("Could not read the content of cell " + cell.getAddress().toString() + " in sheet '" + sheet.getSheetName() + "'.", e);
                 }
             }
         }
@@ -346,22 +355,25 @@ class ActionLoadXlsx implements Action {
                 continue;
             }
 
-            taskContext.reportProgress((i*2), (sheetNum*2), "Data pre-load from " + currentSheet.getSheetName());
+            taskContext.reportProgress((i * 2), (sheetNum * 2), "Data pre-load from " + currentSheet.getSheetName());
             Map<String, TreeMap<Long, Object>> content = sheetPreload(taskContext, currentSheet);
-            taskContext.reportProgress((i*2)+1, (sheetNum*2), "Data insertion from " + currentSheet.getSheetName());
+            taskContext.reportProgress((i * 2) + 1, (sheetNum * 2), "Data insertion from " + currentSheet.getSheetName());
             final DeferCounter countContent = taskContext.graph().newCounter(content.size());
             countContent.then(() -> countSheets.count());
             content.forEach((featureName, featureValues) -> {
                 Node feature = featuresMap.get(featureName);
                 if (feature == null) { // META nor loaded. Create feature, guess type while loading
+                    throw new RuntimeException("Feature '" + featureName + "' from sheet " + currentSheet.getSheetName() + " not declared in META sheet. Abort loading.");
+                    /* TYPE INFERENCE NOT SUPPORTED
                     feature = taskContext.graph().newNode(taskContext.world(), taskContext.time());
                     feature.set("tag_id", Type.INT, featuresMap.size());
                     feature.set("tag_name", Type.STRING, featureName);
                     feature.set("tag_from_meta", Type.BOOL, false);
                     featuresMap.put(featureName, feature);
                     insertValues(taskContext, feature, featureValues, true, () -> countContent.count());
+                    */
                 } else {
-                    insertValues(taskContext, feature, featureValues, false, () -> countContent.count());
+                    insertValues(taskContext, feature, featureValues, () -> countContent.count());
                 }
             });
 
@@ -369,17 +381,9 @@ class ActionLoadXlsx implements Action {
 
     }
 
-    private void insertValues(TaskContext taskContext, final Node feature, TreeMap<Long, Object> featureValues, boolean guessType, Job callback) {
+    private void insertValues(TaskContext taskContext, final Node feature, TreeMap<Long, Object> featureValues, Job callback) {
 
-        final byte type;
-        if (guessType) {
-            //TODO
-            type = -1;
-            System.out.println("type -1 " + feature.get("tag_name"));
-
-        } else {
-            type = ((Integer) feature.get("value_type")).byteValue();
-        }
+        final byte type = ((Integer) feature.get("value_type")).byteValue();
 
         String tagType = ((String) feature.get("tag_type"));
         if (tagType != null && tagType.equals("timeshift")) {
