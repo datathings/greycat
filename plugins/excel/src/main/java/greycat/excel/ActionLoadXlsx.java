@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static greycat.excel.ExcelActions.LOAD_XSLX;
+
 /**
  * Created by gnain on 27/02/17.
  */
@@ -89,10 +91,15 @@ class ActionLoadXlsx implements Action {
 
     @Override
     public void serialize(Buffer buffer) {
-        buffer.writeString(ExcelActions.LOAD_XSLX);
+        buffer.writeString(LOAD_XSLX);
         buffer.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_uri, buffer, true);
         buffer.writeChar(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
+    public String name() {
+        return LOAD_XSLX;
     }
 
     private void loadMeta(TaskContext taskContext, Sheet metaSheet) {
