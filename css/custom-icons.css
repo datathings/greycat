@@ -1,0 +1,121 @@
+@font-face {
+	font-family: 'custom-icons';
+	src:url('../fonts/custom-icons.eot?-tdhzc7');
+	src:url('../fonts/custom-icons.eot?#iefix-tdhzc7') format('embedded-opentype'),
+		url('../fonts/custom-icons.woff?-tdhzc7') format('woff'),
+		url('../fonts/custom-icons.ttf?-tdhzc7') format('truetype'),
+		url('../fonts/custom-icons.svg?-tdhzc7#custom-icons') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+[class^="ci-icon-"], [class*=" ci-icon-"] {
+	font-family: 'custom-icons';
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+
+	/* Better Font Rendering =========== */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.ci-icon-uniE01B:before {
+	content: "\e01b";
+}
+
+.ci-icon-uniE810:before {
+	content: "\e810";
+}
+
+.ci-icon-uniE821:before {
+	content: "\e821";
+}
+
+.ci-icon-uniE854:before {
+	content: "\e854";
+}
+
+.ci-icon-uniE855:before {
+	content: "\e855";
+}
+
+.ci-icon-uniE883:before {
+	content: "\e883";
+}
+
+.ci-icon-uniE890:before {
+	content: "\e890";
+}
+
+.ci-icon-uniE893:before {
+	content: "\e893";
+}
+
+.ci-icon-uniE894:before {
+	content: "\e894";
+}
+
+.ci-icon-uniE8BD:before {
+	content: "\e8bd";
+}
+
+.ci-icon-uniE8BE:before {
+	content: "\e8be";
+}
+
+.ci-icon-uniE8D0:before {
+	content: "\e8d0";
+}
+
+.ci-icon-uniE8D1:before {
+	content: "\e8d1";
+}
+
+.ci-icon-uniE8D3:before {
+	content: "\e8d3";
+}
+
+.ci-icon-uniE8D4:before {
+	content: "\e8d4";
+}
+
+.ci-icon-uniE8D5:before {
+	content: "\e8d5";
+}
+
+.ci-icon-uniE8DE:before {
+	content: "\e8de";
+}
+
+.ci-icon-uniE8E0:before {
+	content: "\e8e0";
+}
+
+.ci-icon-uniE8F4:before {
+	content: "\e8f4";
+}
+
+.ci-icon-uniE8F5:before {
+	content: "\e8f5";
+}
+
+.ci-icon-uniE92F:before {
+	content: "\e92f";
+}
+
+.ci-icon-uniE930:before {
+	content: "\e930";
+}
+
+.ci-icon-uniE937:before {
+	content: "\e937";
+}
+
+.ci-icon-uniE938:before {
+	content: "\e938";
+}
+
