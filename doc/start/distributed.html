@@ -1,0 +1,629 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>Distributed graph · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.2">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+        <link rel="stylesheet" href="../styles/greycat.css">
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="../tasks/" />
+    
+    
+    <link rel="prev" href="persistence.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    Quick start
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" data-path="minimal.html">
+            
+                <a href="minimal.html">
+            
+                    
+                    First minimal graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" data-path="temporal.html">
+            
+                <a href="temporal.html">
+            
+                    
+                    Temporal graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" data-path="manyworld.html">
+            
+                <a href="manyworld.html">
+            
+                    
+                    Many-World graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.4" data-path="indexing.html">
+            
+                <a href="indexing.html">
+            
+                    
+                    Indexing
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.5" data-path="persistence.html">
+            
+                <a href="persistence.html">
+            
+                    
+                    Persistence
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.2.6" data-path="distributed.html">
+            
+                <a href="distributed.html">
+            
+                    
+                    Distributed graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="../tasks/">
+            
+                <a href="../tasks/">
+            
+                    
+                    Tasks
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../tasks/Context.html">
+            
+                <a href="../tasks/Context.html">
+            
+                    
+                    Context and variables
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="../tasks/actions/">
+            
+                <a href="../tasks/actions/">
+            
+                    
+                    Actions
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.2.1" data-path="../tasks/actions/add.html">
+            
+                <a href="../tasks/actions/add.html">
+            
+                    
+                    add
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.2" data-path="../tasks/actions/addTo.html">
+            
+                <a href="../tasks/actions/addTo.html">
+            
+                    
+                    addTo
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.3" data-path="../tasks/actions/asVar.html">
+            
+                <a href="../tasks/actions/asVar.html">
+            
+                    
+                    asVar
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.4" data-path="../tasks/actions/asGlobalVar.html">
+            
+                <a href="../tasks/actions/asGlobalVar.html">
+            
+                    
+                    asGlobalVar
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.5" data-path="../tasks/actions/get.html">
+            
+                <a href="../tasks/actions/get.html">
+            
+                    
+                    get
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.6" data-path="../tasks/actions/loop.html">
+            
+                <a href="../tasks/actions/loop.html">
+            
+                    
+                    loop
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.7" data-path="../tasks/actions/loopPar.html">
+            
+                <a href="../tasks/actions/loopPar.html">
+            
+                    
+                    loopPar
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.8" data-path="../tasks/actions/setProperty.html">
+            
+                <a href="../tasks/actions/setProperty.html">
+            
+                    
+                    setProperty
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.9" data-path="../tasks/actions/traverse.html">
+            
+                <a href="../tasks/actions/traverse.html">
+            
+                    
+                    traverse
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="../tasks/Execute.html">
+            
+                <a href="../tasks/Execute.html">
+            
+                    
+                    Execution methods
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="../tasks/Hook.html">
+            
+                <a href="../tasks/Hook.html">
+            
+                    
+                    Hooks and Debug
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="../scheduler.html">
+            
+                <a href="../scheduler.html">
+            
+                    
+                    Scheduler
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" data-path="../ml/">
+            
+                <a href="../ml/">
+            
+                    
+                    Machine learning
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="../ml/polynomial.html">
+            
+                <a href="../ml/polynomial.html">
+            
+                    
+                    Polynomial compression
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" data-path="../js/">
+            
+                <a href="../js/">
+            
+                    
+                    JavaScript
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" data-path="../js/browser.html">
+            
+                <a href="../js/browser.html">
+            
+                    
+                    Browser
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href=".." >Distributed graph</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="distribution">Distribution</h1>
+<p> allows to seamlessly distribute the graph across computational nodes. 
+Therefore, let&apos;s first setup a server node, which exposes the many-world graph to clients via websocket. </p>
+<pre><code class="lang-java">Graph g = <span class="hljs-keyword">new</span> GraphBuilder()
+    .withMemorySize(<span class="hljs-number">10000</span>) <span class="hljs-comment">//cache size before sync to disk</span>
+    .withStorage(<span class="hljs-keyword">new</span> LevelDBStorage(<span class="hljs-string">&quot;_db&quot;</span>))
+    .build();
+
+ g.connect(isConnected -&gt; {
+    <span class="hljs-keyword">new</span> WSServer(g, <span class="hljs-number">8050</span>).start();
+        System.out.println(<span class="hljs-string">&quot; Server listener :8050&quot;</span>);
+    });
+</code></pre>
+<p>This code starts a websocket server on localhost port 8050. Next, we connect a client to the websocket server. </p>
+<pre><code class="lang-java">Graph g = <span class="hljs-keyword">new</span> GraphBuilder()
+    .withMemorySize(<span class="hljs-number">10000</span>) <span class="hljs-comment">//cache size before sync to disk</span>
+    .withStorage(<span class="hljs-keyword">new</span> WSClient(<span class="hljs-string">&quot;ws://127.0.0.1:8050&quot;</span>))
+    .build();
+
+g.connect(isConnected -&gt; {
+    <span class="hljs-comment">//create new node for world 0 and time 0</span>
+    Node sensor = g.newNode(<span class="hljs-number">0</span>, System.currentTimeMillis()); 
+    sensor.set(<span class="hljs-string">&quot;id&quot;</span>, Math.abs(rand.nextInt()));
+    sensor.set(<span class="hljs-string">&quot;value&quot;</span>, rand.nextInt());
+
+    g.index(<span class="hljs-string">&quot;sensors&quot;</span>, sensor, <span class="hljs-string">&quot;id&quot;</span>, res -&gt; {
+        g.save(saveResult -&gt; {
+            g.findAll(<span class="hljs-number">0</span>, System.currentTimeMillis(), <span class="hljs-string">&quot;sensors&quot;</span>, 
+                allSensorsNow -&gt; {
+                System.out.println(<span class="hljs-string">&quot;All sensors indexed:&quot;</span>);
+                <span class="hljs-keyword">for</span> (Node sensorNow : allSensorsNow) {
+                    System.out.println(<span class="hljs-string">&quot;\t&quot;</span> + sensorNow.toString());
+                }
+                g.disconnect(result -&gt; System.out.println(<span class="hljs-string">&quot;GoodBye!&quot;</span>));
+            });
+        });
+    });
+});
+</code></pre>
+<p>This allows clients to use the graph hosted on the server. The above code creates a new sensor graph node, a new index, and saves these changes to the server. </p>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="persistence.html" class="navigation navigation-prev " aria-label="Previous page: Persistence">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="../tasks/" class="navigation navigation-next " aria-label="Next page: Tasks">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Distributed graph","level":"1.2.6","depth":2,"next":{"title":"Tasks","level":"1.3","depth":1,"path":"tasks/README.md","ref":"tasks/README.md","articles":[{"title":"Context and variables","level":"1.3.1","depth":2,"path":"tasks/Context.md","ref":"tasks/Context.md","articles":[]},{"title":"Actions","level":"1.3.2","depth":2,"path":"tasks/actions/README.md","ref":"tasks/actions/README.md","articles":[{"title":"add","level":"1.3.2.1","depth":3,"path":"tasks/actions/add.md","ref":"tasks/actions/add.md","articles":[]},{"title":"addTo","level":"1.3.2.2","depth":3,"path":"tasks/actions/addTo.md","ref":"tasks/actions/addTo.md","articles":[]},{"title":"asVar","level":"1.3.2.3","depth":3,"path":"tasks/actions/asVar.md","ref":"tasks/actions/asVar.md","articles":[]},{"title":"asGlobalVar","level":"1.3.2.4","depth":3,"path":"tasks/actions/asGlobalVar.md","ref":"tasks/actions/asGlobalVar.md","articles":[]},{"title":"get","level":"1.3.2.5","depth":3,"path":"tasks/actions/get.md","ref":"tasks/actions/get.md","articles":[]},{"title":"loop","level":"1.3.2.6","depth":3,"path":"tasks/actions/loop.md","ref":"tasks/actions/loop.md","articles":[]},{"title":"loopPar","level":"1.3.2.7","depth":3,"path":"tasks/actions/loopPar.md","ref":"tasks/actions/loopPar.md","articles":[]},{"title":"setProperty","level":"1.3.2.8","depth":3,"path":"tasks/actions/setProperty.md","ref":"tasks/actions/setProperty.md","articles":[]},{"title":"traverse","level":"1.3.2.9","depth":3,"path":"tasks/actions/traverse.md","ref":"tasks/actions/traverse.md","articles":[]}]},{"title":"Execution methods","level":"1.3.3","depth":2,"path":"tasks/Execute.md","ref":"tasks/Execute.md","articles":[]},{"title":"Hooks and Debug","level":"1.3.4","depth":2,"path":"tasks/Hook.md","ref":"tasks/Hook.md","articles":[]}]},"previous":{"title":"Persistence","level":"1.2.5","depth":2,"path":"start/persistence.md","ref":"start/persistence.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/greycat.css"}},"file":{"path":"start/distributed.md","mtime":"2017-05-08T13:01:15.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-05-08T13:22:16.016Z"},"basePath":"..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../gitbook/gitbook.js"></script>
+    <script src="../gitbook/theme.js"></script>
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
