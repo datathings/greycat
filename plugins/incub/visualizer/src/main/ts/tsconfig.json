@@ -1,9 +1,0 @@
-{
-  "compileOnSave": true,
-  "compilerOptions": {
-    "outDir": "../resources/js/generated"
-  },
-  "exclude": [
-    "mwg"
-  ]
-}

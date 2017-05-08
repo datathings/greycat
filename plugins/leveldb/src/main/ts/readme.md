@@ -1,1 +1,0 @@
-# GreyCat LevelDB plugin
