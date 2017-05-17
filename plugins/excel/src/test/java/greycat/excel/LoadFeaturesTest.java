@@ -34,6 +34,11 @@ public void loadFeaturesFromSheets() {
 //        loadFeatues("NeuroPTF_parameters_rev8_HO5.xlsx");
 //    }
 
+    @Test
+    public void loadRealFeatures2() {
+        loadFeatues("NeuroPTF parameters_rev9_HO5.xlsx");
+    }
+
     private void loadFeatues(String file) {
         Graph graph = GraphBuilder
                 .newBuilder()

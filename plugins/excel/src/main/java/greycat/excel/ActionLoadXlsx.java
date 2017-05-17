@@ -8,6 +8,7 @@ import greycat.internal.task.TaskHelper;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.Relation;
+import greycat.struct.StringArray;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -141,7 +142,8 @@ class ActionLoadXlsx implements Action {
             }
             String valueType = currentRow.getCell(firstCol + 6).getStringCellValue();
             switch (valueType.trim().toLowerCase()) {
-                case "double": {
+                case "double":
+                case "int": {
                     newFeature.set("value_type", Type.INT, Type.DOUBLE);
                     if (currentRow.getCell(firstCol + 7) != null) {
                         newFeature.set("value_min", Type.DOUBLE, getDoubleLowerBound(currentRow.getCell(firstCol + 7).getStringCellValue()));
@@ -149,18 +151,15 @@ class ActionLoadXlsx implements Action {
                     }
                 }
                 break;
-                case "int": {
-                    newFeature.set("value_type", Type.INT, Type.INT);
-                    if (currentRow.getCell(firstCol + 7) != null) {
-                        newFeature.set("value_min", Type.INT, getIntLowerBound(currentRow.getCell(firstCol + 7).getStringCellValue()));
-                        newFeature.set("value_max", Type.INT, getIntUpperBound(currentRow.getCell(firstCol + 7).getStringCellValue()));
-                    }
-                }
-                break;
                 case "enum": {
-                    newFeature.set("value_type", Type.INT, Type.STRING);
+                    newFeature.set("value_type", Type.INT, Type.DOUBLE);
                     if (currentRow.getCell(firstCol + 7) != null) {
-                        newFeature.set("value_range", Type.STRING, currentRow.getCell(firstCol + 7).getStringCellValue());
+                        String enumRange = currentRow.getCell(firstCol + 7).getStringCellValue();
+                        String[] enumValues = enumRange.substring(1, enumRange.length() - 1).split(",");
+                        StringArray valuesArray = (StringArray) newFeature.getOrCreate("enum_values", Type.STRING_ARRAY);
+                        valuesArray.addAll(enumValues);
+                        newFeature.set("value_min", Type.DOUBLE, 0d);
+                        newFeature.set("value_max", Type.DOUBLE, (double)enumValues.length - 1);
                     }
                 }
                 break;
@@ -208,9 +207,7 @@ class ActionLoadXlsx implements Action {
 
     }
 
-    private int getIntUpperBound(String range) {
-        return Integer.parseInt(getUpperBound(range));
-    }
+
 
     private double getDoubleUpperBound(String range) {
         return Double.parseDouble(getUpperBound(range));
@@ -221,9 +218,6 @@ class ActionLoadXlsx implements Action {
         return bound.substring(0, bound.length() - 1).replace(",", ".");
     }
 
-    private int getIntLowerBound(String range) {
-        return Integer.parseInt(getLowerBound(range));
-    }
 
     private double getDoubleLowerBound(String range) {
         return Double.parseDouble(getLowerBound(range));
@@ -384,7 +378,6 @@ class ActionLoadXlsx implements Action {
     private void insertValues(TaskContext taskContext, final Node feature, TreeMap<Long, Object> featureValues, Job callback) {
 
         final byte type = ((Integer) feature.get("value_type")).byteValue();
-
         String tagType = ((String) feature.get("tag_type"));
         if (tagType != null && tagType.equals("timeshift")) {
 
@@ -411,8 +404,8 @@ class ActionLoadXlsx implements Action {
             });
             featureValues.forEach((key, value) -> {
                 long shift = (long) ((double) value * _timeShiftConst);
-                setValueInTime(feature, valueNode, key, value, type, () -> defer.count());
-                setValueInTime(feature, valueNodeShifted, key + shift, shift, Type.LONG, () -> defer.count());
+                setValueInTime(feature, valueNode, key, value, type, false, null, () -> defer.count());
+                setValueInTime(feature, valueNodeShifted, key + shift, shift, Type.LONG, false, null, () -> defer.count());
             });
 
         } else {
@@ -428,13 +421,26 @@ class ActionLoadXlsx implements Action {
 
                 callback.run();
             });
+
+            final boolean isEnum;
+            Map<String, Double> enumValues = new HashMap<>();
+            if (feature.get("enum_values") != null) {
+                StringArray values = (StringArray) feature.get("enum_values");
+                for (int i = 0; i < values.size(); i++) {
+                    enumValues.put(values.get(i), (double) i);
+                }
+                isEnum = true;
+            } else {
+                isEnum = false;
+            }
+
             featureValues.forEach((key, value) -> {
-                setValueInTime(feature, valueNode, key, value, type, () -> defer.count());
+                setValueInTime(feature, valueNode, key, value, type, isEnum, enumValues, () -> defer.count());
             });
         }
     }
 
-    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, byte type, Job callback) {
+    private void setValueInTime(Node featureNode, Node valueNode, Long time, Object value, byte type, boolean isEnum, Map<String, Double> enumValues, Job callback) {
 
         valueNode.travelInTime(time, jumped -> {
             try {
@@ -442,11 +448,20 @@ class ActionLoadXlsx implements Action {
                     if (value == null) {
                         jumped.set("value", type, null);
                     } else if (value instanceof String) {
-                        if (((String) value).trim().equals("")) {
-                            jumped.set("value", type, null);
+                        if (isEnum) {
+                            if (((String) value).trim().equals("") || !enumValues.containsKey(((String) value).trim())) {
+                                jumped.set("value", type, -1d);
+                            } else {
+                                jumped.set("value", type, enumValues.get(((String) value).trim()));
+                            }
                         } else {
-                            jumped.set("value", type, value);
+                            if (((String) value).trim().equals("")) {
+                                jumped.set("value", type, null);
+                            } else {
+                                jumped.set("value", type, value);
+                            }
                         }
+
                     } else {
                         if (type == Type.INT) {
                             jumped.set("value", type, ((Double) value).intValue());
