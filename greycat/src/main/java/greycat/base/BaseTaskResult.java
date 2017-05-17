@@ -193,13 +193,13 @@ public class BaseTaskResult<A> implements TaskResult<A> {
     }
 
     @Override
-    public TaskResult<A> set(int index, A input) {
+    public synchronized TaskResult<A> set(int index, A input) {
         if (index >= _capacity) {
             extendTil(index);
         }
         _backend[index] = input;
         if (index >= _size) {
-            _size++;
+            _size = index+1;
         }
         return this;
     }
