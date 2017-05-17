@@ -20,8 +20,12 @@ import greycat.base.BaseTaskResult;
 import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.CoreTask;
 import greycat.struct.Buffer;
+import greycat.utility.L3GMap;
+import greycat.utility.Tuple;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.List;
 
 public class BaseTaskResultTest {
 
@@ -60,6 +64,84 @@ public class BaseTaskResultTest {
         res.set(1, "");
         res.set(0, "");
         Assert.assertEquals(2, res.size());
+    }
+
+    @Test
+    public void doubleArrays() {
+
+        Graph graph = GraphBuilder.newBuilder().build();
+        graph.connect((connected) -> {
+
+            BaseTaskResult res = new BaseTaskResult(null, false);
+
+            Buffer buffer = new HeapBuffer();
+
+            res.add(new double[]{0d, 1d, 2d, 3d});
+            res.add(new double[]{4d, 5d, 6d, 7d});
+            res.add(new double[]{8d, 9d, 10d, 11d});
+
+            res.saveToBuffer(buffer);
+
+            L3GMap<List<Tuple<Object[], Integer>>> collector = new L3GMap<List<Tuple<Object[], Integer>>>(true);
+            BaseTaskResult loaded = new BaseTaskResult(null, false);
+            loaded.load(buffer, 0, graph, collector);
+
+            Assert.assertEquals(res.size(), loaded.size());
+
+            Assert.assertNotNull(loaded.get(0));
+            Assert.assertNotNull(loaded.get(1));
+            Assert.assertNotNull(loaded.get(2));
+
+            Assert.assertEquals(((double[])res.get(0)).length, ((double[])loaded.get(0)).length);
+            Assert.assertEquals(((double[])res.get(1)).length, ((double[])loaded.get(1)).length);
+            Assert.assertEquals(((double[])res.get(2)).length, ((double[])loaded.get(2)).length);
+
+            Assert.assertEquals(((double[])res.get(1))[2], ((double[])loaded.get(1))[2], 0);
+        });
+
+    }
+
+    @Test
+    public void nestedTaskResults() {
+
+        Graph graph = GraphBuilder.newBuilder().build();
+        graph.connect((connected) -> {
+
+            BaseTaskResult res = new BaseTaskResult(null, false);
+
+            Buffer buffer = new HeapBuffer();
+
+            BaseTaskResult resA = new BaseTaskResult(null, false);
+            resA.add("1");
+
+            BaseTaskResult resB = new BaseTaskResult(null, false);
+            resB.add(2);
+
+            BaseTaskResult resC = new BaseTaskResult(null, false);
+            resC.add(3d);
+
+            res.add(resA);
+            res.add(resB);
+            res.add(resC);
+
+            res.saveToBuffer(buffer);
+
+            L3GMap<List<Tuple<Object[], Integer>>> collector = new L3GMap<List<Tuple<Object[], Integer>>>(true);
+            BaseTaskResult loaded = new BaseTaskResult(null, false);
+            loaded.load(buffer, 0, graph, collector);
+
+            Assert.assertEquals(res.size(), loaded.size());
+
+            Assert.assertNotNull(loaded.get(0));
+            Assert.assertNotNull(loaded.get(1));
+            Assert.assertNotNull(loaded.get(2));
+
+            Assert.assertEquals(((TaskResult)res.get(0)).size(), ((TaskResult)loaded.get(0)).size());
+            Assert.assertEquals(((TaskResult)res.get(1)).size(), ((TaskResult)loaded.get(1)).size());
+            Assert.assertEquals(((TaskResult)res.get(2)).size(), ((TaskResult)loaded.get(2)).size());
+
+        });
+
     }
 
 }

@@ -401,6 +401,9 @@ public class BaseTaskResult<A> implements TaskResult<A> {
             case Type.STRING:
                 loaded = Base64.decodeToStringWithBounds(buffer, previous, cursor);
                 break;
+            case Type.INT:
+                loaded = Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                break;
             case Type.DOUBLE:
                 loaded = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
                 break;
@@ -537,7 +540,9 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     }
                 } else if (current == Constants.BLOCK_OPEN && cursor != begin) {
                     final BaseTaskResult subResult = new BaseTaskResult(null, false);
-                    subResult.load(buffer, cursor, graph, collector);
+                    cursor = subResult.load(buffer, cursor, graph, collector);
+                    cursor++;
+                    previous = cursor+1;
                     _backend[index - 4] = subResult;
                     index++;
                 }
