@@ -134,4 +134,92 @@ public class Gaussian {
     }
 
 
+
+
+
+    public static double normalizeValue(final double input, final double avg, final double std) {
+        double res = 0;
+
+        if (std != 0) {
+            res = (input - avg) / std;
+        } else {
+            res = 0;
+        }
+
+        return res;
+    }
+
+    public static double inverseNormaliseValue(final double input, final double avg, final double std) {
+        return input * std + avg;
+    }
+
+    public static double normalizeMinMaxValue(final double input, final double min, final double max) {
+
+        double res = 0;
+
+        if ((max - min) != 0) {
+            res = (input - min) / (max - min);
+        } else {
+            res = 0;
+        }
+
+        return res;
+    }
+
+    public double inverseNormaliseMinMaxValue(final double input, final double min, final double max) {
+        return input * (max - min) + min;
+    }
+
+
+
+
+    public static double[] normalize(final double[] input, final double[] avg, final double[] std) {
+        double[] res = new double[input.length];
+
+        for (int i = 0; i < input.length; i++) {
+            if (std[i] != 0) {
+                res[i] = (input[i] - avg[i]) / std[i];
+            } else {
+                res[i] = 0;
+            }
+        }
+
+        return res;
+    }
+
+    public static double[] inverseNormalise(final double[] input, final double[] avg, final double[] std) {
+
+        double[] res = new double[input.length];
+
+        for (int i = 0; i < input.length; i++) {
+            res[i] = input[i] * std[i] + avg[i];
+        }
+        return res;
+    }
+
+    public static double[] normalizeMinMax(final double[] input, final double [] min, final double[] max) {
+
+        double[] res = new double[input.length];
+
+        for (int i = 0; i < input.length; i++) {
+            if ((max[i] - min[i]) != 0) {
+                res[i] = (input[i] - min[i]) / (max[i] - min[i]);
+            } else {
+                res[i] = 0;
+            }
+        }
+
+        return res;
+    }
+
+    public static double[] inverseNormaliseMinMax(final double[] input, final double [] min, final double[] max) {
+
+        double[] res = new double[input.length];
+
+        for (int i = 0; i < input.length; i++) {
+            res[i] = input[i] * (max[i] - min[i]) + min[i];
+        }
+        return res;
+    }
+
 }

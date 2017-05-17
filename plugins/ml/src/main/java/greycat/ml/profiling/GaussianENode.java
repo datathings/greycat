@@ -45,6 +45,7 @@ public class GaussianENode {
         ((DoubleArray) backend.getOrCreate(Gaussian.PRECISIONS,Type.DOUBLE_ARRAY)).initWith(precisions);
     }
 
+
     public void learn(double[] values) {
         int features = values.length;
         int total = backend.getWithDefault(Gaussian.TOTAL, 0);
@@ -315,69 +316,4 @@ public class GaussianENode {
     }
 
 
-    public double[] normalize(double[] input) {
-        if (!initStd()) {
-            throw new RuntimeException("can't normalize yet, not enough data!");
-        }
-
-        double[] res = new double[input.length];
-
-        for (int i = 0; i < input.length; i++) {
-            if (std[i] != 0) {
-                res[i] = (input[i] - avg[i]) / std[i];
-            } else {
-                res[i] = 0;
-            }
-        }
-
-        return res;
-    }
-
-    public double[] inverseNormalise(double[] input) {
-        if (!initStd()) {
-            throw new RuntimeException("can't normalize yet, not enough data!");
-        }
-
-        double[] res = new double[input.length];
-
-        for (int i = 0; i < input.length; i++) {
-            res[i] = input[i] * std[i] + avg[i];
-        }
-        return res;
-    }
-
-    public double[] normalizeMinMax(double[] input) {
-        if (!initAvg()) {
-            throw new RuntimeException("can't normalize yet, not enough data!");
-        }
-
-        double[] res = new double[input.length];
-        double[] max = getMax();
-        double[] min = getMin();
-
-        for (int i = 0; i < input.length; i++) {
-            if ((max[i] - min[i]) != 0) {
-                res[i] = (input[i] - min[i]) / (max[i] - min[i]);
-            } else {
-                res[i] = 0;
-            }
-        }
-
-        return res;
-    }
-
-    public double[] inverseNormaliseMinMax(double[] input) {
-        if (!initAvg()) {
-            throw new RuntimeException("can't normalize yet, not enough data!");
-        }
-
-        double[] res = new double[input.length];
-        double[] max = getMax();
-        double[] min = getMin();
-
-        for (int i = 0; i < input.length; i++) {
-            res[i] = input[i] * (max[i] - min[i]) + min[i];
-        }
-        return res;
-    }
 }
