@@ -305,8 +305,8 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     Base64.encodeLongToBuffer(castedNode.time(), buffer);
                     buffer.write(CoreConstants.CHUNK_VAL_SEP);
                     Base64.encodeLongToBuffer(castedNode.id(), buffer);
-                } else if (it instanceof TaskResult) {
-                    ((TaskResult)it).saveToBuffer(buffer);
+                } else if (it instanceof BaseTaskResult) {
+                    ((BaseTaskResult)it).saveToBuffer(buffer);
                 } else if (it instanceof String) {
                     Base64.encodeIntToBuffer((int) Type.STRING, buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
@@ -333,7 +333,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         Base64.encodeDoubleToBuffer(castedDA[j], buffer);
                     }
                 } else {
-                    throw new RuntimeException("Unsupported yet! "+it.getClass());
+                    throw new RuntimeException("Unsupported yet!");
                 }
             }
         }
@@ -429,7 +429,8 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     dArrayCursor++;
                 }
                 if(dArrayCursor != dArrayPrevious) {
-                    tmp[arrayIndex++] = Base64.decodeToDoubleWithBounds(buffer, dArrayPrevious, dArrayCursor);
+                    tmp[arrayIndex] = Base64.decodeToDoubleWithBounds(buffer, dArrayPrevious, dArrayCursor);
+                    arrayIndex++;
                 }
                 loaded = tmp;
             }break;
