@@ -82,6 +82,10 @@ public class Gaussian {
             host.set(COV, Type.DOUBLE, cov);
             host.set(STD, Type.DOUBLE, Math.sqrt(cov));
         }
+        else{
+            host.set(COV, Type.DOUBLE, 0);
+            host.set(STD, Type.DOUBLE, 0);
+        }
         return STATUS_ACCEPTED;
     }
 
@@ -138,7 +142,7 @@ public class Gaussian {
 
 
     public static double normalizeValue(final double input, final double avg, final double std) {
-        double res = 0;
+        double res;
 
         if (std != 0) {
             res = (input - avg) / std;
