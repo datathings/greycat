@@ -305,6 +305,8 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     Base64.encodeLongToBuffer(castedNode.time(), buffer);
                     buffer.write(CoreConstants.CHUNK_VAL_SEP);
                     Base64.encodeLongToBuffer(castedNode.id(), buffer);
+                } else if (it instanceof TaskResult) {
+                    ((TaskResult)it).saveToBuffer(buffer);
                 } else if (it instanceof String) {
                     Base64.encodeIntToBuffer((int) Type.STRING, buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
@@ -317,6 +319,10 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     Base64.encodeIntToBuffer((int) Type.DOUBLE, buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
                     Base64.encodeDoubleToBuffer((Double) it, buffer);
+                } else if (it instanceof Integer) {
+                    Base64.encodeIntToBuffer((int) Type.INT, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeIntToBuffer((Integer) it, buffer);
                 } else if (it instanceof double[]) {
                     final double[] castedDA = (double[]) it;
                     Base64.encodeIntToBuffer((int) Type.DOUBLE_ARRAY, buffer);
@@ -401,6 +407,29 @@ public class BaseTaskResult<A> implements TaskResult<A> {
             case Type.LONG:
                 loaded = Base64.decodeToLongWithBounds(buffer, previous, cursor);
                 break;
+            case Type.DOUBLE_ARRAY: {
+                int dArrayCursor = previous;
+                int dArrayPrevious = previous;
+                int arrayIndex = -1;
+                double[] tmp = null;
+                while (dArrayCursor < cursor) {
+                    byte current = buffer.read(dArrayCursor);
+                    if (current == Constants.CHUNK_VAL_SEP) {
+                        if(arrayIndex == -1) {
+                            tmp = new double[Base64.decodeToIntWithBounds(buffer, dArrayPrevious, dArrayCursor)];
+                        } else {
+                            tmp[arrayIndex] = Base64.decodeToDoubleWithBounds(buffer, dArrayPrevious, dArrayCursor);
+                        }
+                        arrayIndex++;
+                        dArrayPrevious = dArrayCursor + 1;
+                    }
+                    dArrayCursor++;
+                }
+                if(dArrayCursor != dArrayPrevious) {
+                    tmp[arrayIndex++] = Base64.decodeToDoubleWithBounds(buffer, dArrayPrevious, dArrayCursor);
+                }
+                loaded = tmp;
+            }break;
         }
         if (loaded != null) {
             _backend[index] = loaded;
