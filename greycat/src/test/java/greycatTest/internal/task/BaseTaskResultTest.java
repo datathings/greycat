@@ -54,4 +54,12 @@ public class BaseTaskResultTest {
         });
     }
 
+    @Test
+    public void sizeTest() {
+        BaseTaskResult res = new BaseTaskResult(null, false);
+        res.set(1, "");
+        res.set(0, "");
+        Assert.assertEquals(2, res.size());
+    }
+
 }
