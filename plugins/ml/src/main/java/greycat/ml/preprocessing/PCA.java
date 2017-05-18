@@ -259,7 +259,7 @@ public class PCA {
             _information[i] = integrator * 100 / d;
             previoust = t;
             t = svector[i] * svector[i] / (svector[i - 1] * svector[i - 1]);
-            System.out.println(i + " , " + svector[i] + " , " + t / previoust + " , " + _information[i] + "%");
+//            System.out.println(i + " , " + svector[i] + " , " + t / previoust + " , " + _information[i] + "%");
             p = integrator * 100 / d;
             if (t / previoust < 0.85 && xi == 0 && i != 1 && p >= 85 && tag) {
                 tag = false;
@@ -273,8 +273,8 @@ public class PCA {
             _percentToRetain = integrator * 100 / d;
             xi = svector.length;
         }
-        System.out.println(svector.length + " , " + svector[svector.length - 1] + " , " + t / previoust + " , " + integrator * 100 / d + "%");
-        System.out.println("");
+//        System.out.println(svector.length + " , " + svector[svector.length - 1] + " , " + t / previoust + " , " + integrator * 100 / d + "%");
+//        System.out.println("");
         _bestDim = xi;
         return xi;
     }
@@ -318,6 +318,7 @@ public class PCA {
 //        if (normalize) {
 //            normalizeData(_data);
 //        }
+
 
 
         _svdDecompose = MatrixOps.defaultEngine().decomposeSVD(_data, false);
