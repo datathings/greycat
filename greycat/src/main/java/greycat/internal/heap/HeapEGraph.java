@@ -200,7 +200,9 @@ class HeapEGraph implements EGraph {
             } else {
                 cursor++;
             }
-            current = buffer.read(cursor);
+            if (cursor < max) {
+                current = buffer.read(cursor);
+            }
         }
         return cursor;
     }
