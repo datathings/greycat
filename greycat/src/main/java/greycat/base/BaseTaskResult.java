@@ -199,7 +199,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         }
         _backend[index] = input;
         if (index >= _size) {
-            _size = index+1;
+            _size = index + 1;
         }
         return this;
     }
@@ -306,7 +306,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     buffer.write(CoreConstants.CHUNK_VAL_SEP);
                     Base64.encodeLongToBuffer(castedNode.id(), buffer);
                 } else if (it instanceof BaseTaskResult) {
-                    ((BaseTaskResult)it).saveToBuffer(buffer);
+                    ((BaseTaskResult) it).saveToBuffer(buffer);
                 } else if (it instanceof String) {
                     Base64.encodeIntToBuffer((int) Type.STRING, buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
@@ -418,7 +418,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                 while (dArrayCursor < cursor) {
                     byte current = buffer.read(dArrayCursor);
                     if (current == Constants.CHUNK_VAL_SEP) {
-                        if(arrayIndex == -1) {
+                        if (arrayIndex == -1) {
                             tmp = new double[Base64.decodeToIntWithBounds(buffer, dArrayPrevious, dArrayCursor)];
                         } else {
                             tmp[arrayIndex] = Base64.decodeToDoubleWithBounds(buffer, dArrayPrevious, dArrayCursor);
@@ -428,12 +428,13 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     }
                     dArrayCursor++;
                 }
-                if(dArrayCursor != dArrayPrevious) {
+                if (dArrayCursor != dArrayPrevious) {
                     tmp[arrayIndex] = Base64.decodeToDoubleWithBounds(buffer, dArrayPrevious, dArrayCursor);
                     arrayIndex++;
                 }
                 loaded = tmp;
-            }break;
+            }
+            break;
         }
         if (loaded != null) {
             _backend[index] = loaded;
@@ -528,7 +529,9 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                 } else if (current == Constants.BLOCK_CLOSE) {
                     try {
                         if (previous == cursor) {
-                            _backend[index - 4] = null;
+                            if (index - 4 < _backend.length) {
+                                _backend[index - 4] = null;
+                            }
                         } else {
                             if (type != -1) {
                                 internal_load_element(buffer, previous, cursor, type, index - 4, collector);
@@ -542,8 +545,10 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                 } else if (current == Constants.BLOCK_OPEN && cursor != begin) {
                     final BaseTaskResult subResult = new BaseTaskResult(null, false);
                     cursor = subResult.load(buffer, cursor, graph, collector);
-                    cursor++;
-                    previous = cursor+1;
+                    if (cursor + 1 < buffer.length() && buffer.read(cursor + 1) == Constants.CHUNK_SEP) {//Case of the end of taskRes in TaskRes : ]]
+                        cursor++;
+                    }
+                    previous = cursor + 1;
                     _backend[index - 4] = subResult;
                     index++;
                 }
