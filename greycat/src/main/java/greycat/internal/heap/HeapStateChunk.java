@@ -278,7 +278,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         final int found = internal_find(p_key);
         if (found != -1) {
             if (_type[found] == p_type) {
-                return _v[found];
+                Object foundValue = _v[found];
+                if(foundValue != null){
+                    return _v[found];
+                }
             }
         }
         Object toSet = null;
