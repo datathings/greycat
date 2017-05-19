@@ -18,6 +18,7 @@ package greycat.ml.profiling;
 import greycat.Node;
 import greycat.Type;
 import greycat.ml.math.Gaussian1D;
+import greycat.struct.DMatrix;
 import greycat.struct.DoubleArray;
 import greycat.struct.Relation;
 
@@ -138,10 +139,43 @@ public class Gaussian {
     }
 
 
+    public static void normaliseMatrix(DMatrix input, double[] avg, double[] std) {
+        for (int i = 0; i < input.columns(); i++) {
+            for (int j = 0; j < input.rows(); j++) {
+                input.set(j, i, normaliseValue(input.get(j, i), avg[j], std[j]));
+            }
+        }
+    }
+    
+    
+    public static void inversenormaliseMatrix(DMatrix input, double[] avg, double[] std) {
+        for (int i = 0; i < input.columns(); i++) {
+            for (int j = 0; j < input.rows(); j++) {
+                input.set(j, i, inverseNormaliseValue(input.get(j, i), avg[j], std[j]));
+            }
+        }
+    }
 
 
+    public static void normaliseMinMaxMatrix(DMatrix input, double[] avg, double[] std) {
+        for (int i = 0; i < input.columns(); i++) {
+            for (int j = 0; j < input.rows(); j++) {
+                input.set(j, i, normaliseMinMaxValue(input.get(j, i), avg[j], std[j]));
+            }
+        }
+    }
 
-    public static double normalizeValue(final double input, final double avg, final double std) {
+
+    public static void inversenormaliseMinMaxMatrix(DMatrix input, double[] avg, double[] std) {
+        for (int i = 0; i < input.columns(); i++) {
+            for (int j = 0; j < input.rows(); j++) {
+                input.set(j, i, inverseNormaliseMinMaxValue(input.get(j, i), avg[j], std[j]));
+            }
+        }
+    }
+
+
+    public static double normaliseValue(final double input, final double avg, final double std) {
         double res;
 
         if (std != 0) {
@@ -157,7 +191,7 @@ public class Gaussian {
         return input * std + avg;
     }
 
-    public static double normalizeMinMaxValue(final double input, final double min, final double max) {
+    public static double normaliseMinMaxValue(final double input, final double min, final double max) {
 
         double res = 0;
 
@@ -170,14 +204,14 @@ public class Gaussian {
         return res;
     }
 
-    public double inverseNormaliseMinMaxValue(final double input, final double min, final double max) {
+    public static double inverseNormaliseMinMaxValue(final double input, final double min, final double max) {
         return input * (max - min) + min;
     }
 
 
 
 
-    public static double[] normalize(final double[] input, final double[] avg, final double[] std) {
+    public static double[] normalise(final double[] input, final double[] avg, final double[] std) {
         double[] res = new double[input.length];
 
         for (int i = 0; i < input.length; i++) {
@@ -201,7 +235,7 @@ public class Gaussian {
         return res;
     }
 
-    public static double[] normalizeMinMax(final double[] input, final double [] min, final double[] max) {
+    public static double[] normaliseMinMax(final double[] input, final double [] min, final double[] max) {
 
         double[] res = new double[input.length];
 
