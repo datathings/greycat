@@ -69,12 +69,18 @@ class FeedForward implements Layer {
         if (activationParams != null) {
             ((DoubleArray) host.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY)).initWith(activationParams);
         }
+        return reInit(random, std);
+    }
+
+    @Override
+    public Layer reInit(RandomGenerator random, double std) {
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(weights, random, std);
             MatrixOps.fillWithRandomStd(bias, random, std);
         }
         return this;
     }
+
 
     public void setWeights(DMatrix weights) {
         MatrixOps.copy(weights, this.weights);
@@ -107,12 +113,12 @@ class FeedForward implements Layer {
     }
 
     @Override
-    public int inputDimension() {
+    public int inputDimensions() {
         return weights.columns();
     }
 
     @Override
-    public int outputDimension() {
+    public int outputDimensions() {
         return weights.rows();
     }
 }

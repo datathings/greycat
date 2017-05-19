@@ -70,7 +70,7 @@ class Softmax implements Loss {
         }
         double sum = 0;
         for (int i = 0; i < loglen; i++) {
-            probs.unsafeSet(i, Math.exp(logprobs.unsafeGet(i) - maxval));  //probs.w[i] = Math.exp(logprobs.w[i] - maxval); //all inputs to exp() are non-positive
+            probs.unsafeSet(i, Math.exp(logprobs.unsafeGet(i) - maxval));  //probs.w[i] = Math.exp(logprobs.w[i] - maxval); //all inputDimensions to exp() are non-positive
             sum += probs.unsafeGet(i); //sum += probs.w[i];
         }
         for (int i = 0; i < loglen; i++) {

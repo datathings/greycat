@@ -30,8 +30,6 @@ import greycat.struct.ENode;
 import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.VolatileDMatrix;
 
-import java.util.Random;
-
 public class NeuralNet {
 
     private static final String TRAIN_LOSS = "train_loss";
@@ -45,7 +43,7 @@ public class NeuralNet {
     private ENode root;
     private Layer[] layers;
     private Loss tarinLoss;
-    private Loss reportingLoss;
+    private Loss testLoss;
     private Optimiser learner;
 
     private RandomGenerator random;
@@ -67,7 +65,7 @@ public class NeuralNet {
         //Load config with everything in default
 
         tarinLoss = Losses.getUnit(root.getWithDefault(TRAIN_LOSS, Losses.DEFAULT));
-        reportingLoss = Losses.getUnit(root.getWithDefault(REPORTING_LOSS, Losses.DEFAULT));
+        testLoss = Losses.getUnit(root.getWithDefault(REPORTING_LOSS, Losses.DEFAULT));
         learner = Optimisers.getUnit(root.getWithDefault(LEARNER, Optimisers.DEFAULT), backend.root());
         random = new RandomGenerator();
         random.setSeed(root.getWithDefault(SEED, System.currentTimeMillis()));
@@ -92,14 +90,14 @@ public class NeuralNet {
     }
 
 
-    public void setReportingLoss(int reportingLoss) {
-        this.reportingLoss = Losses.getUnit(reportingLoss);
-        root.set(REPORTING_LOSS, Type.INT, reportingLoss);
+    public void setTestLoss(int testLoss) {
+        this.testLoss = Losses.getUnit(testLoss);
+        root.set(REPORTING_LOSS, Type.INT, testLoss);
     }
 
 
-    public void setLearner(int learner, double[] learnerParams, int frequency) {
-        this.learner = Optimisers.getUnit(learner, root);
+    public void setOptimizer(int optimizer, double[] learnerParams, int frequency) {
+        this.learner = Optimisers.getUnit(optimizer, root);
         if (learnerParams != null) {
             this.learner.setParams(learnerParams);
         }
@@ -108,15 +106,20 @@ public class NeuralNet {
 
 
     public void setRandom(long seed, double std) {
-        random.setSeed(seed);
+        this.random.setSeed(seed);
         this.std = std;
         root.set(SEED, Type.LONG, seed);
         root.set(STD, Type.DOUBLE, std);
+
+        for (int i = 0; i < layers.length; i++) {
+            layers[i].reInit(random,std);
+        }
+
     }
 
     public NeuralNet addLayer(int layerType, int inputs, int outputs, int activationUnit, double[] activationParams) {
         if (layers.length > 0) {
-            if (layers[layers.length - 1].outputDimension() != inputs) {
+            if (layers[layers.length - 1].outputDimensions() != inputs) {
                 throw new RuntimeException("Layers last output size is different that current layer input");
             }
         }
@@ -146,8 +149,24 @@ public class NeuralNet {
         ExMatrix actualOutput = internalForward(cg, input);
         DMatrix error = cg.applyLoss(tarinLoss, actualOutput, targetOutput, reportLoss);
         cg.backpropagate();
+        learner.setBatchSize(inputs.columns());
         learner.stepUpdate(layers);
         return error;
+    }
+
+    public DMatrix testVec(DMatrix inputs, DMatrix outputs) {
+        ProcessGraph cg = new ProcessGraph(false);
+        ExMatrix input = ExMatrix.createFromW(inputs);
+        ExMatrix targetOutput = ExMatrix.createFromW(outputs);
+        ExMatrix actualOutput = internalForward(cg, input);
+        return cg.applyLoss(testLoss, actualOutput, targetOutput, true);
+    }
+
+    public DMatrix predictVec(DMatrix inputs) {
+        ProcessGraph cg = new ProcessGraph(false);
+        ExMatrix input = ExMatrix.createFromW(inputs);
+        ExMatrix actualOutput = internalForward(cg, input);
+        return actualOutput.getW();
     }
 
 

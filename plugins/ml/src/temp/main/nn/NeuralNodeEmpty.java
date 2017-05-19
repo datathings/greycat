@@ -37,10 +37,10 @@ import static greycat.Tasks.newTask;
 public class NeuralNodeEmpty extends BaseNode {
     public static String NAME = "NeuralNodeEmpty";
 
-    public static String INPUTS = "inputs"; //Input relationships
+    public static String INPUTS = "inputDimensions"; //Input relationships
     public static String INPUTS_MAP = "inputs_map"; //order of the relationships
 
-    public static String OUTPUTS = "outputs"; //output relationships
+    public static String OUTPUTS = "outputDimensions"; //output relationships
     public static String OUTPUTS_MAP = "outputs_map"; //order of the relationships
 
     private static String WEIGHTS = "weights"; //weights of the network
@@ -55,7 +55,7 @@ public class NeuralNodeEmpty extends BaseNode {
 
 
     public NeuralNodeEmpty configure(int inputs, int outputs, int hiddenlayers, int nodesPerLayer) {
-        ArrayList<NeuralNodeEmpty> internalNodes = new ArrayList<NeuralNodeEmpty>();//inputs + outputs + hiddenlayers * nodesPerLayer + 1
+        ArrayList<NeuralNodeEmpty> internalNodes = new ArrayList<NeuralNodeEmpty>();//inputDimensions + outputDimensions + hiddenlayers * nodesPerLayer + 1
         internalNodes.add(this);
 
         ArrayList<NeuralNodeEmpty> previousLayer = new ArrayList<NeuralNodeEmpty>();
@@ -249,7 +249,7 @@ public class NeuralNodeEmpty extends BaseNode {
 
                 double learningRate = state.getFromKeyWithDefault(LEARNINGRATE, LEARNINGRATE_DEF);
 
-                //back-propagate derivatives[i] to outputs and lunch back propagation
+                //back-propagate derivatives[i] to outputDimensions and lunch back propagation
 
 
                 if (callback != null) {

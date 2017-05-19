@@ -115,7 +115,12 @@ class LSTM implements Layer {
         hiddenContext.init(outputs, 1);
         cellContext.init(outputs, 1);
 
+        return reInit(random, std);
 
+    }
+
+    @Override
+    public Layer reInit(RandomGenerator random, double std) {
         //todo check why bias are not initialized randomly
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(wix, random, std);
@@ -208,12 +213,12 @@ class LSTM implements Layer {
     }
 
     @Override
-    public int inputDimension() {
+    public int inputDimensions() {
         return wix.columns();
     }
 
     @Override
-    public int outputDimension() {
+    public int outputDimensions() {
         return wix.rows();
     }
 }

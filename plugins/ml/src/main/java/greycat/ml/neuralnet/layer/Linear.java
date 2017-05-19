@@ -23,7 +23,7 @@ import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 
 // Returns Weights*Input
-// Can be used as PCA or dimensionality reduction of data, since here we are combining linearly outputs from input
+// Can be used as PCA or dimensionality reduction of data, since here we are combining linearly outputDimensions from input
 // There is no non-linearity here, since there is no activation function.
 
 class Linear implements Layer {
@@ -46,6 +46,12 @@ class Linear implements Layer {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.LINEAR_LAYER);
         weights.init(outputs, inputs);
+        return reInit(random, std);
+
+    }
+
+    @Override
+    public Layer reInit(RandomGenerator random, double std) {
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(weights, random, std);
         }
@@ -72,12 +78,12 @@ class Linear implements Layer {
     }
 
     @Override
-    public int inputDimension() {
+    public int inputDimensions() {
         return weights.columns();
     }
 
     @Override
-    public int outputDimension() {
+    public int outputDimensions() {
         return weights.rows();
     }
 }

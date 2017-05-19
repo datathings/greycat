@@ -19,9 +19,10 @@ import greycat.struct.DMatrix;
 
 public class Losses {
     public static final int SUM_OF_SQUARES = 0;
-    public static final int SOFTMAX = 1;
-    public static final int ARGMAX = 2;
-    public static final int MULTI_DIM_BINARY = 3;
+    public static final int ABSTRACT_VALUE = 1;
+    public static final int SOFTMAX = 2;
+    public static final int ARGMAX = 3;
+    public static final int MULTI_DIM_BINARY = 4;
 
 
     public static final int DEFAULT = SUM_OF_SQUARES;
@@ -30,6 +31,8 @@ public class Losses {
         switch (lossUnit) {
             case SUM_OF_SQUARES:
                 return SumOfSquares.instance();
+            case ABSTRACT_VALUE:
+                return AbstractValue.instance();
             case SOFTMAX:
                 return Softmax.instance();
             case ARGMAX:

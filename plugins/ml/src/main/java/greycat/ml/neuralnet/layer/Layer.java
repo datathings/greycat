@@ -27,10 +27,13 @@ public interface Layer {
 
     Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std);
 
+    Layer reInit(RandomGenerator random, double std);
+
     void resetState();
 
-    int inputDimension();
+    int inputDimensions();
 
-    int outputDimension();
+    int outputDimensions();
+
 
 }

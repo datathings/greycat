@@ -94,7 +94,11 @@ class GRU implements Layer {
 
         context.init(outputs, 1);
 
+        return reInit(random, std);
+    }
 
+    @Override
+    public Layer reInit(RandomGenerator random, double std) {
         //todo check why bias are not initialized randomly
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(ihmix, random, std);
@@ -109,7 +113,6 @@ class GRU implements Layer {
             MatrixOps.fillWithRandomStd(hhreset, random, std);
             // MatrixOps.fillWithRandomStd(breset,random,std);
         }
-
         return this;
     }
 
@@ -160,12 +163,12 @@ class GRU implements Layer {
     }
 
     @Override
-    public int inputDimension() {
+    public int inputDimensions() {
         return ihmix.columns();
     }
 
     @Override
-    public int outputDimension() {
+    public int outputDimensions() {
         return ihmix.rows();
     }
 }

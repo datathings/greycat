@@ -29,10 +29,10 @@ import java.util.Random;
 public class NeuralNode extends BaseNode {
     public static String NAME = "NeuralNode";
 
-    public static String INPUTS = "inputs"; //Input relationships
+    public static String INPUTS = "inputDimensions"; //Input relationships
     public static String INPUTS_MAP = "inputs_map"; //order of the relationships
 
-    public static String OUTPUTS = "outputs"; //output relationships
+    public static String OUTPUTS = "outputDimensions"; //output relationships
     public static String OUTPUTS_MAP = "outputs_map"; //order of the relationships
 
     private static String WEIGHTS = "weights"; //weights of the network
@@ -47,7 +47,7 @@ public class NeuralNode extends BaseNode {
 
 
     public NeuralNode configure(int inputs, int outputs, int hiddenlayers, int nodesPerLayer) {
-        ArrayList<NeuralNode> internalNodes = new ArrayList<NeuralNode>();//inputs + outputs + hiddenlayers * nodesPerLayer + 1
+        ArrayList<NeuralNode> internalNodes = new ArrayList<NeuralNode>();//inputDimensions + outputDimensions + hiddenlayers * nodesPerLayer + 1
         internalNodes.add(this);
 
         ArrayList<NeuralNode> previousLayer = new ArrayList<NeuralNode>();
@@ -208,7 +208,7 @@ public class NeuralNode extends BaseNode {
 
                 double learningRate = state.getFromKeyWithDefault(LEARNINGRATE, LEARNINGRATE_DEF);
 
-                //back-propagate derivatives[i] to outputs and lunch back propagation
+                //back-propagate derivatives[i] to outputDimensions and lunch back propagation
 
                 if (callback != null) {
                     callback.on(errors);

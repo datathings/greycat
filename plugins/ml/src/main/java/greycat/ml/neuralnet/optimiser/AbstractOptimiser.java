@@ -39,8 +39,11 @@ abstract class AbstractOptimiser implements Optimiser {
 
     private static final String STEPS = "steps";
     private static final String MAX_STEPS = "max_steps";
+    private static final String BATCH_SIZE = "batch_size";
+
 
     int steps;
+    private int batchSize;
     private int maxSteps;
     protected ENode _backend;
 
@@ -51,7 +54,17 @@ abstract class AbstractOptimiser implements Optimiser {
         regularization = backend.getWithDefault(REGULARIZATION_RATE, REGULARIZATION_RATE_DEF);
         steps=backend.getWithDefault(STEPS,0);
         maxSteps=backend.getWithDefault(MAX_STEPS,1);
+        batchSize=backend.getWithDefault(BATCH_SIZE,1);
     }
+
+
+
+    @Override
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+        _backend.set(BATCH_SIZE, Type.INT, batchSize);
+    }
+
 
     @Override
     public void setFrequency(int maxSteps) {
@@ -62,8 +75,8 @@ abstract class AbstractOptimiser implements Optimiser {
 
     @Override
     public void stepUpdate(Layer[] layers) {
-        steps++;
-        if (maxSteps > 0 && steps == maxSteps) {
+        steps+=batchSize;
+        if (maxSteps > 0 && steps >= maxSteps) {
             update(layers);
             steps = 0;
         }

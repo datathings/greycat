@@ -65,6 +65,12 @@ class RNN implements Layer {
         if (activationParams != null) {
             ((DoubleArray) host.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY)).initWith(activationParams);
         }
+        return reInit(random, std);
+
+    }
+
+    @Override
+    public Layer reInit(RandomGenerator random, double std) {
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(weights, random, std);
             //MatrixOps.fillWithRandomStd(bias, random, std);
@@ -104,12 +110,12 @@ class RNN implements Layer {
     }
 
     @Override
-    public int inputDimension() {
+    public int inputDimensions() {
         return weights.columns() - weights.rows();
     }
 
     @Override
-    public int outputDimension() {
+    public int outputDimensions() {
         return weights.rows();
     }
 }

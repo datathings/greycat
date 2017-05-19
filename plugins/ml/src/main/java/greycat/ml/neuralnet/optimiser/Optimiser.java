@@ -25,6 +25,7 @@ public interface Optimiser {
 
     void setParams(double[] params);
 
+    void setBatchSize(int batchSize);
 
     void stepUpdate(Layer[] layers);
 

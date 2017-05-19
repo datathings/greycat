@@ -27,9 +27,9 @@ import java.util.Random;
 public class BioNeuralNetwork extends BaseNode {
 
     public static String NAME = "BioNeuralNetworkNode";
-    public static final String RELATION_INPUTS = "inputs";
+    public static final String RELATION_INPUTS = "inputDimensions";
     private static final String RELATION_INPUTS_MAP = "inputs_map";
-    public static final String RELATION_OUTPUTS = "outputs";
+    public static final String RELATION_OUTPUTS = "outputDimensions";
     private static final String RELATION_OUTPUTS_MAP = "outputs_map";
 
     public static final String BUFFER_SPIKE_SUM = "spike_sum";

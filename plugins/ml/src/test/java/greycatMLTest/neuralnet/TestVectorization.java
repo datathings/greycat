@@ -38,7 +38,7 @@ public class TestVectorization {
             @Override
             public void on(Boolean result) {
 
-                //set number of input to outputs
+                //set number of input to outputDimensions
                 int inputdim = 5;
                 int outputdim = 2;
 
@@ -55,14 +55,14 @@ public class TestVectorization {
                 DMatrix inputs = VolatileDMatrix.random(inputdim, trainset, randomGenerator, -1, 1);
                 DMatrix linearsys = VolatileDMatrix.random(outputdim, inputdim, randomGenerator,-2, 2);
                 DMatrix outputs = MatrixOps.multiply(linearsys, inputs);
-                //System.out.println(outputs.rows() + " , " + outputs.columns());
+                //System.out.println(outputDimensions.rows() + " , " + outputDimensions.columns());
 
                 Node node1 = g.newNode(0, 0);
                 EGraph egraph1 = (EGraph) node1.getOrCreate("nn1", Type.EGRAPH);
                 NeuralNet net1 = new NeuralNet(egraph1);
                 net1.setRandom(1234, 0.1);
                 net1.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
-                net1.setLearner(Optimisers.GRADIENT_DESCENT, new double[]{learningrate/trainset, regularisation}, 1);
+                net1.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate/trainset, regularisation}, 1);
                 net1.setTrainLoss(Losses.SUM_OF_SQUARES);
 
 
@@ -71,7 +71,7 @@ public class TestVectorization {
                 NeuralNet net2 = new NeuralNet(egraph2);
                 net2.setRandom(1234, 0.1);
                 net2.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
-                net2.setLearner(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 0);
+                net2.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 0);
                 net2.setTrainLoss(Losses.SUM_OF_SQUARES);
 
 
