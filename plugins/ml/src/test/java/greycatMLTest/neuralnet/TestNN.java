@@ -73,7 +73,7 @@ public class TestNN {
                     }
 
                     if (i % 100 == 0) {
-                        DMatrix err = net.learn(inputSet, outputSet,true);
+                        DMatrix[] err = net.learn(inputSet, outputSet,true);
                         //System.out.println("Step " + i + " error: " + Losses.sumOfLosses(err));
                     }
                     else {

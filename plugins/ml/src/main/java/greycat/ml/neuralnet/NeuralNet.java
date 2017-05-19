@@ -112,7 +112,7 @@ public class NeuralNet {
         root.set(STD, Type.DOUBLE, std);
 
         for (int i = 0; i < layers.length; i++) {
-            layers[i].reInit(random,std);
+            layers[i].reInit(random, std);
         }
 
     }
@@ -130,7 +130,7 @@ public class NeuralNet {
     }
 
 
-    public DMatrix learn(double[] inputs, double[] outputs, boolean reportLoss) {
+    public DMatrix[] learn(double[] inputs, double[] outputs, boolean reportLoss) {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
@@ -138,11 +138,11 @@ public class NeuralNet {
         DMatrix error = cg.applyLoss(tarinLoss, actualOutput, targetOutput, reportLoss);
         cg.backpropagate();
         learner.stepUpdate(layers);
-        return error;
+        return new DMatrix[]{actualOutput, error};
     }
 
 
-    public DMatrix learnVec(DMatrix inputs, DMatrix outputs, boolean reportLoss) {
+    public DMatrix[] learnVec(DMatrix inputs, DMatrix outputs, boolean reportLoss) {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(inputs);
         ExMatrix targetOutput = ExMatrix.createFromW(outputs);
@@ -151,15 +151,15 @@ public class NeuralNet {
         cg.backpropagate();
         learner.setBatchSize(inputs.columns());
         learner.stepUpdate(layers);
-        return error;
+        return new DMatrix[]{actualOutput, error};
     }
 
-    public DMatrix testVec(DMatrix inputs, DMatrix outputs) {
+    public DMatrix[] testVec(DMatrix inputs, DMatrix outputs) {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(inputs);
         ExMatrix targetOutput = ExMatrix.createFromW(outputs);
         ExMatrix actualOutput = internalForward(cg, input);
-        return cg.applyLoss(testLoss, actualOutput, targetOutput, true);
+        return  new DMatrix[]{actualOutput, cg.applyLoss(testLoss, actualOutput, targetOutput, true)};
     }
 
     public DMatrix predictVec(DMatrix inputs) {

@@ -78,8 +78,8 @@ public class TestVectorization {
 
                 long start=System.currentTimeMillis();
                 for (int j = 0; j < rounds; j++) {
-                    DMatrix err = net1.learnVec(inputs, outputs, true);
-                    double[] reserr = Losses.avgLossPerOutput(err);
+                    DMatrix[] err = net1.learnVec(inputs, outputs, true);
+                    double[] reserr = Losses.avgLossPerOutput(err[1]);
 //                    if(display||j==rounds-1) {
 //                        System.out.print("error Vectorized NN at round " + (j+1) + ": ");
 //                        for (int i = 0; i < reserr.length; i++) {
@@ -97,9 +97,9 @@ public class TestVectorization {
                 for (int j = 0; j < rounds; j++) {
                     double[] lossround=new double[outputdim];
                     for(int i=0;i<trainset;i++){
-                        DMatrix res= net2.learn(inputs.column(i),outputs.column(i),true);
+                        DMatrix[] res= net2.learn(inputs.column(i),outputs.column(i),true);
                         for(int k=0;k<outputdim;k++){
-                            lossround[k]+=res.get(k,0);
+                            lossround[k]+=res[1].get(k,0);
                         }
                     }
                     if(display||j==rounds-1) {
