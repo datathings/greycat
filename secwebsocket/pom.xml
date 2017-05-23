@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2017 DataThings - All rights reserved.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>greycat-parent</artifactId>
+        <groupId>com.datathings.enterprise</groupId>
+        <version>8-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>secwebsocket</artifactId>
+
+    <properties>
+        <header.path>${basedir}/../LICENSE</header.path>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.datathings</groupId>
+            <artifactId>greycat-websocket</artifactId>
+            <version>8-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <id>main.ts.compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                def ant = new AntBuilder()
+                                ant.copy(file: "${basedir}/src/main/ts/greycat.secws.ts", todir: "${basedir}/target/classes-npm")
+                                ant.copy(file: "${basedir}/src/main/ts/package.json", todir: "${basedir}/target/classes-npm")
+                                ant.copy(file: "${basedir}/src/main/ts/tsconfig.json", todir: "${basedir}/target/classes-npm")
+                                def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
+                                while (project_version.split('\\.').length != 3) { project_version += '.0' }
+                                def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
+                                while (j2ts_version.split('\\.').length != 3) { j2ts_version += '.0' }
+                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
+                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
+                                ant.copy(file: "${basedir}/src/main/ts/readme.md", todir: "${basedir}/target/classes-npm")
+                                def installGreycat = "npm install ${greycat.path}/greycat/target/classes-npm".execute(null, new File("${basedir}/target/classes-npm"))
+                                installGreycat.waitForProcessOutput(System.out, System.err)
+                                if (installGreycat.exitValue() != 0) {
+                                    exit
+                                }
+                                def installGreycatWS = "npm install ${greycat.path}/plugins/websocket/target/classes-npm".execute(null, new File("${basedir}/target/classes-npm"))
+                                installGreycatWS.waitForProcessOutput(System.out, System.err)
+                                if (installGreycatWS.exitValue() != 0) {
+                                    exit
+                                }
+                                def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/classes-npm"))
+                                npmInstallProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmInstallProcess.exitValue() != 0) { exit }
+                                def tscProcess = "node ${basedir}/target/classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/classes-npm"))
+                                tscProcess.waitForProcessOutput(System.out, System.err)
+                                if (tscProcess.exitValue() != 0) { exit }
+                                ant.delete(file: "${basedir}/target/classes-npm/greycat.secws.ts")
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

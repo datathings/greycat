@@ -1,0 +1,21 @@
+{
+  "name": "greycat-sec-websocket",
+  "homepage": "https://github.com/datathings/greycat",
+  "description": "Secured WebSocket plugin for GreyCat",
+  "version": "GREYCAT_VERSION",
+  "main": "greycat.secws.js",
+  "typings": "greycat.secws.d.ts",
+  "dependencies": {
+    "greycat-websocket":"^GREYCAT_VERSION"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/datathings/greycat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/datathings/greycat/issues"
+  },
+  "devDependencies": {
+    "typescript": "^2.1.5"
+  }
+}
