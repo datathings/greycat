@@ -10,9 +10,6 @@ import greycat.plugin.ActionFactory;
 import greycat.plugin.Plugin;
 
 import java.io.File;
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Created by gnain on 27/02/17.

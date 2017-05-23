@@ -9,8 +9,8 @@
     <parent>
         <groupId>com.datathings.enterprise</groupId>
         <artifactId>greycat-parent</artifactId>
-        <version>7.1-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
+        <version>8-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>greycat-excel</artifactId>
@@ -20,7 +20,7 @@
 
     <properties>
         <poi.version>3.15</poi.version>
-        <header.path>${basedir}/../../LICENSE</header.path>
+        <header.path>${basedir}/../LICENSE</header.path>
     </properties>
 
     <dependencies>
