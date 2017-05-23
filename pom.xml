@@ -9,22 +9,22 @@
     <groupId>com.datathings.enterprise</groupId>
     <artifactId>greycat-parent</artifactId>
     <packaging>pom</packaging>
-    <version>7.1-SNAPSHOT</version>
+    <version>8-SNAPSHOT</version>
     <name>greycat-enterprise-parent</name>
     <description>greycat-enterprise-parent</description>
 
 
     <properties>
-        <greycat.version>7.1-SNAPSHOT</greycat.version>
+        <greycat.version>8-SNAPSHOT</greycat.version>
         <java2typescript.plugin.version>87</java2typescript.plugin.version>
         <header.path>${project.basedir}/LICENSE</header.path>
     </properties>
 
     <modules>
         <module>greycat</module>
-
-        <module>plugins/excel</module>
-        <module>plugins/blas</module>
+        <module>excel</module>
+        <module>blas</module>
+        <module>secwebsocket</module>
     </modules>
 
     <developers>
