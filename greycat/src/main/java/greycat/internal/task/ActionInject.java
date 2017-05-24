@@ -32,7 +32,13 @@ class ActionInject implements Action {
 
     @Override
     public void eval(final TaskContext ctx) {
-        ctx.continueWith(ctx.wrap(_value).clone());
+        if(_value instanceof String) {
+            String flat = ctx.template((String) _value);
+            ctx.continueWith(ctx.wrap(flat).clone());
+        }else {
+            ctx.continueWith(ctx.wrap(_value).clone());
+        }
+
     }
 
     @Override
