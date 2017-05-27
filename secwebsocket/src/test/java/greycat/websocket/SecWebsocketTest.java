@@ -36,7 +36,7 @@ public class SecWebsocketTest {
 
 
 
-                Graph clientConnection = GraphBuilder.newBuilder().withStorage(new SecWSClient("ws://localhost:8050/ws")).build();
+                Graph clientConnection = GraphBuilder.newBuilder().withStorage(new SecWSClient("ws://localhost:8050/ws", "[KEY]")).build();
                 clientConnection.connect(connected->{
                     System.out.println("Client connected:" + connected);
                 });

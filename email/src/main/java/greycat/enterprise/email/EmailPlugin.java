@@ -3,13 +3,12 @@
  */
 package greycat.enterprise.email;
 
-import greycat.Action;
-import greycat.Graph;
-import greycat.TaskContext;
-import greycat.Type;
+import greycat.*;
+import greycat.internal.task.TaskHelper;
 import greycat.plugin.ActionFactory;
 import greycat.plugin.Plugin;
 import greycat.struct.Buffer;
+import greycat.utility.Base64;
 
 import javax.mail.*;
 import javax.mail.event.TransportEvent;
@@ -95,16 +94,27 @@ public class EmailPlugin implements Plugin {
                 message.setText(body);
 
                 Transport.send(message, smtpUser, smtpPass);
+                ctx.append("Email sent to user.");
 
             } catch (MessagingException e) {
                 e.printStackTrace();
+                ctx.endTask(null,e);
             }
             ctx.continueTask();
         }
 
         @Override
-        public void serialize(Buffer builder) {
-
+        public void serialize(Buffer buffer) {
+            buffer.writeString(ACTION_SEND_EMAIL);
+            buffer.writeChar(Constants.TASK_PARAM_OPEN);
+            TaskHelper.serializeString(_from, buffer, true);
+            buffer.writeChar(Constants.TASK_PARAM_SEP);
+            TaskHelper.serializeString(_to, buffer, true);
+            buffer.writeChar(Constants.TASK_PARAM_SEP);
+            TaskHelper.serializeString(_subject, buffer, true);
+            buffer.writeChar(Constants.TASK_PARAM_SEP);
+            Base64.encodeStringToBuffer(_body, buffer);
+            buffer.writeChar(Constants.TASK_PARAM_CLOSE);
         }
 
         @Override
