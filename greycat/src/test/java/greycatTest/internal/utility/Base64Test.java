@@ -169,7 +169,7 @@ public class Base64Test {
     private void boolArrayInnerTest(boolean[] array) {
         Buffer buffer = bufferFactory.newBuffer();
         Base64.encodeBoolArrayToBuffer(array, buffer);
-        boolean[] dec = Base64.decodeToBoolArrayWithBounds(buffer, 0, buffer.length(), array.length);
+        boolean[] dec = Base64.decodeToBoolArrayWithBounds(buffer, 0, buffer.length());
         //System.out.println(0x7fffffff + " -> " + enc + " -> " + dec);
         Assert.assertTrue(array.length == dec.length);
         for (int i = 0; i < array.length; i++) {

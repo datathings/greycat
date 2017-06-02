@@ -221,6 +221,34 @@ public abstract class AbstractStateChunkTest {
     }
 
     @Test
+    public void bArrayTest() {
+        ChunkSpace space = factory.newSpace(100,-1, null, false);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        BoolArray sArray = (BoolArray) chunk.getOrCreateAt(0, Type.BOOL_ARRAY);
+        Assert.assertEquals(0, sArray.size());
+        sArray.init(3);
+        sArray.set(0, true);
+        sArray.set(1, false);
+        sArray.set(2, true);
+        Assert.assertEquals(3, sArray.size());
+        //test load and save of array
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk2.save(buffer2);
+        Assert.assertTrue(compareBuffers(buffer, buffer2));
+        //check consistency
+        Assert.assertEquals(3, ((BoolArray) chunk2.getAt(0)).size());
+        space.free(chunk);
+        space.free(chunk2);
+        buffer2.free();
+        buffer.free();
+        space.freeAll();
+    }
+
+    @Test
     public void castTest() {
         ChunkSpace space = factory.newSpace(100,-1, null, false);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);

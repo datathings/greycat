@@ -183,6 +183,8 @@ public final class ENodeProxy implements ENode {
                     return new DoubleArrayProxy(index, this, (DoubleArray) elem);
                 case Type.STRING_ARRAY:
                     return new StringArrayProxy(index, this, (StringArray) elem);
+                case Type.BOOL_ARRAY:
+                    return new BoolArrayProxy(index, this, (BoolArray) elem);
                 default:
                     return elem;
             }

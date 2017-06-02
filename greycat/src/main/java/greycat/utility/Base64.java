@@ -15,6 +15,7 @@
  */
 package greycat.utility;
 
+import greycat.Constants;
 import greycat.struct.Buffer;
 
 /**
@@ -120,6 +121,8 @@ import greycat.struct.Buffer;
  * return (exp != 0) ? sign * Math.pow(2, exp - 1023) * (1 + (mantissaBits / Math.pow(2, 52))) : sign * Math.pow(2, -1022) * (0 + (mantissaBits / Math.pow(2, 52)));
  * }
  * public static encodeBoolArrayToBuffer(boolArr : Array<boolean>, buffer : greycat.struct.Buffer) {
+ * Base64.encodeIntToBuffer(boolArr.length,buffer);
+ * buffer.write(greycat.Constants.CHUNK_VAL_SEP);
  * var tmpVal = 0;
  * for (var i = 0; i < boolArr.length; i++) {
  * tmpVal = tmpVal | ((boolArr[i] ? 1 : 0) * Base64.powTwo[i % 6]);
@@ -129,13 +132,21 @@ import greycat.struct.Buffer;
  * }
  * }
  * }
- * public static decodeBoolArray(s : greycat.struct.Buffer, arraySize : number) {
- * return Base64.decodeToBoolArrayWithBounds(s, 0, s.length(), arraySize);
+ * public static decodeBoolArray(s : greycat.struct.Buffer) {
+ * return Base64.decodeToBoolArrayWithBounds(s, 0, s.length());
  * }
- * public static decodeToBoolArrayWithBounds(s : greycat.struct.Buffer, offsetBegin : number, offsetEnd : number, arraySize : number) {
+ * public static decodeToBoolArrayWithBounds(s : greycat.struct.Buffer, offsetBegin : number, offsetEnd : number) {
+ * var cursor = offsetBegin;
+ * var arraySize : number = -1;
+ * while(cursor<offsetEnd && arraySize == -1){
+ * if(s.read(cursor) == greycat.Constants.CHUNK_VAL_SEP) {
+ * arraySize  = Base64.decodeToIntWithBounds(s,offsetBegin,cursor);
+ * }
+ * cursor++;
+ * }
  * var resultTmp : any[] = [];
- * for (var i = 0; i < (offsetEnd - offsetBegin); i++) {
- * var bitarray = Base64.dictionary.indexOf(s.read(offsetBegin + i)) & 0xFF;
+ * for (var i = 0; i < (offsetEnd - cursor); i++) {
+ * var bitarray = Base64.dictionary.indexOf(s.read(cursor + i)) & 0xFF;
  * for (var bit_i = 0; bit_i < 6; bit_i++) {
  * if ((6 * i) + bit_i < arraySize) {
  * resultTmp[(6 * i) + bit_i] = (bitarray & (1 * Base64.powTwo[bit_i])) != 0;
@@ -318,6 +329,8 @@ public class Base64 {
      * @param buffer    the buffer to fill
      */
     public static void encodeBoolArrayToBuffer(boolean[] boolArr, Buffer buffer) {
+        encodeIntToBuffer(boolArr.length,buffer);
+        buffer.write(Constants.CHUNK_VAL_SEP);
         int tmpVal = 0;
         for (int i = 0; i < boolArr.length; i++) {
             tmpVal = tmpVal | ((boolArr[i] ? 1 : 0) << i % 6);
@@ -333,16 +346,23 @@ public class Base64 {
      * @param buffer        the buffer containing the string to decode
      * @param offsetBegin   the offset to the beginning of the string in the buffer
      * @param offsetEnd     the offset to the end of the string
-     * @param arraySize     The size of the array
      * @return              the decoded boolean array
      */
-    public static boolean[] decodeToBoolArrayWithBounds(Buffer buffer, long offsetBegin, long offsetEnd, int arraySize) {
-        boolean[] resultTmp = new boolean[arraySize];
-        long length = offsetEnd - offsetBegin;
+    public static boolean[] decodeToBoolArrayWithBounds(Buffer buffer, long offsetBegin, long offsetEnd) {
+        long cursor = offsetBegin;
+        boolean[] resultTmp = null;
+        while(cursor<offsetEnd && resultTmp == null) {
+            if(buffer.read(cursor) == Constants.CHUNK_VAL_SEP) {
+                resultTmp  = new boolean[decodeToIntWithBounds(buffer,offsetBegin,cursor)];
+            }
+            cursor++;
+        }
+
+        long length = offsetEnd - cursor;
         for (int i = 0; i < length; i++) {
-            int bitarray = Base64.decodeArray[buffer.read(offsetBegin + i)] & 0xFF;
+            int bitarray = Base64.decodeArray[buffer.read(cursor + i)] & 0xFF;
             for (int bit_i = 0; bit_i < 6; bit_i++) {
-                if ((6 * i) + bit_i < arraySize) {
+                if ((6 * i) + bit_i < resultTmp.length) {
                     resultTmp[(6 * i) + bit_i] = (bitarray & (1 << bit_i)) != 0;
                 } else {
                     break;
@@ -351,6 +371,7 @@ public class Base64 {
         }
         return resultTmp;
     }
+
 
     /**
      * Encodes a double into Base64 string Following the IEEE-754.

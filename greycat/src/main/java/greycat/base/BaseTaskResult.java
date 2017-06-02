@@ -19,9 +19,10 @@ import greycat.*;
 import greycat.internal.CoreConstants;
 import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.TaskHelper;
-import greycat.plugin.Job;
 import greycat.struct.Buffer;
-import greycat.utility.*;
+import greycat.utility.Base64;
+import greycat.utility.L3GMap;
+import greycat.utility.Tuple;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -332,7 +333,39 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         buffer.write(CoreConstants.CHUNK_VAL_SEP);
                         Base64.encodeDoubleToBuffer(castedDA[j], buffer);
                     }
-                } else {
+                } /*else if(it instanceof boolean[]) {
+                    final boolean[] castedDA = (boolean[]) it;
+                    Base64.encodeIntToBuffer((int) Type.BOOL_ARRAY, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeBoolArrayToBuffer(castedDA,buffer);
+                }*/ else if (it instanceof int[]) {
+                    final int[] castedDA = (int[]) it;
+                    Base64.encodeIntToBuffer((int) Type.INT_ARRAY, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeIntToBuffer(castedDA.length, buffer);
+                    for (int j = 0; j < castedDA.length; j++) {
+                        buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                        Base64.encodeIntToBuffer(castedDA[j], buffer);
+                    }
+                } else if (it instanceof long[]) {
+                    final long[] castedDA = (long[]) it;
+                    Base64.encodeIntToBuffer((int) Type.LONG_ARRAY, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeIntToBuffer(castedDA.length, buffer);
+                    for (int j = 0; j < castedDA.length; j++) {
+                        buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                        Base64.encodeLongToBuffer(castedDA[j], buffer);
+                    }
+                } /*else if (it instanceof String[]) {
+                    final String[] castedDA = (String[]) it;
+                    Base64.encodeIntToBuffer((int) Type.STRING_ARRAY, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeIntToBuffer(castedDA.length, buffer);
+                    for (int j = 0; j < castedDA.length; j++) {
+                        buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                        Base64.encodeStringToBuffer(castedDA[j], buffer);
+                    }
+                }*/ else {
                     throw new RuntimeException("Unsupported yet!");
                 }
             }

@@ -60,10 +60,11 @@ class ActionSetAttribute implements Action {
                     break;
                 case Type.DOUBLE_ARRAY:
                 case Type.LONG_ARRAY:
+                case Type.BOOL_ARRAY:
                 case Type.INT_ARRAY: {
                     try {
                         toSet = loadArray(valueAfterTemplate, _propertyType);
-                    } catch (NumberFormatException e) {
+                    } catch (RuntimeException e) {
                         toSet = null;
                         ctx.endTask(null, new Exception("Error while parsing array from string:\"" + valueAfterTemplate + "\"\n" + e.toString()));
                     }
@@ -120,6 +121,17 @@ class ActionSetAttribute implements Action {
                 }
                 return finalValues;
             }
+            case Type.BOOL_ARRAY:
+                boolean[] finalValues = new boolean[valuesToParse.length];
+                for(int i=0;i<valuesToParse.length;i++) {
+                    if(valuesToParse[i].equals("true") || valuesToParse[i].equals("1")) {
+                        finalValues[i] = true;
+                    } else if(valuesToParse[i].equals("false") || valuesToParse[i].equals("0")) {
+                        finalValues[i] = false;
+                    } else {
+                        throw new RuntimeException(valuesToParse[i] + " is not a correct boolean. Accepted value: [true,false, 1, 0]");
+                    }
+                }
         }
         return null;
 

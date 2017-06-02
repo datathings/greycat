@@ -33,6 +33,7 @@ public class Type {
     public static final byte LONG_ARRAY = 7;
     public static final byte INT_ARRAY = 8;
     public static final byte STRING_ARRAY = 9;
+    public static final byte BOOL_ARRAY = 28;
 
 
     public static final byte LONG_TO_LONG_MAP = 10;
@@ -89,6 +90,8 @@ public class Type {
                 return "INT_ARRAY";
             case Type.STRING_ARRAY:
                 return "STRING_ARRAY";
+            case Type.BOOL_ARRAY:
+                return "BOOL_ARRAY";
             /* Maps */
             case Type.LONG_TO_LONG_MAP:
                 return "LONG_TO_LONG_MAP";
@@ -147,6 +150,8 @@ public class Type {
                 return Type.INT_ARRAY;
             case "STRING_ARRAY":
                 return Type.STRING_ARRAY;
+            case "BOOL_ARRAY":
+                return Type.BOOL_ARRAY;
             case "LONG_TO_LONG_MAP":
                 return Type.LONG_TO_LONG_MAP;
             case "LONG_TO_LONG_ARRAY_MAP":

@@ -17,13 +17,11 @@ package greycat.base;
 
 import greycat.*;
 import greycat.chunk.StateChunk;
-import greycat.chunk.WorldOrderChunk;
 import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
 import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
-import greycat.struct.*;
 import greycat.struct.proxy.*;
 import greycat.utility.Tuple;
 
@@ -222,6 +220,8 @@ public class BaseNode implements Node {
                     return new DoubleArrayProxy(index, this, (DoubleArray) elem);
                 case Type.STRING_ARRAY:
                     return new StringArrayProxy(index, this, (StringArray) elem);
+                case Type.BOOL_ARRAY:
+                    return new BoolArrayProxy(index,this,(BoolArray)elem);
                 case Type.INT_TO_INT_MAP:
                     return new IntIntMapProxy(index, this, (IntIntMap) elem);
                 case Type.INT_TO_STRING_MAP:
@@ -381,6 +381,18 @@ public class BaseNode implements Node {
                 }
                 return true;
                 */
+            case Type.BOOL_ARRAY:
+                BoolArray bObj1 = (BoolArray) obj1;
+                BoolArray bObj2 = (BoolArray) obj2;
+                if(bObj1.size() != bObj2.size()) {
+                    return false;
+                }
+                for (int i = 0; i < bObj1.size(); i++) {
+                    if (bObj1.get(i) != (bObj2.get(i))) {
+                        return false;
+                    }
+                }
+                return true;
             case Type.RELATION:
             case Type.RELATION_INDEXED:
             case Type.STRING_TO_INT_MAP:
@@ -709,6 +721,21 @@ public class BaseNode implements Node {
                                 builder.append("\":");
                                 builder.append("[");
                                 IntArray castedArr3 = (IntArray) elem;
+                                for (int j = 0; j < castedArr3.size(); j++) {
+                                    if (j != 0) {
+                                        builder.append(",");
+                                    }
+                                    builder.append(castedArr3.get(j));
+                                }
+                                builder.append("]");
+                                break;
+                            }
+                            case Type.BOOL_ARRAY: {
+                                builder.append(",\"");
+                                builder.append(resolveName);
+                                builder.append("\":");
+                                builder.append("[");
+                                BoolArray castedArr3 = (BoolArray) elem;
                                 for (int j = 0; j < castedArr3.size(); j++) {
                                     if (j != 0) {
                                         builder.append(",");
