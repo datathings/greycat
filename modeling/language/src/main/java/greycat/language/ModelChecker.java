@@ -38,13 +38,7 @@ public class ModelChecker {
 
         // enums
         for (greycat.language.GreyCatModelParser.EnumDclContext enumDclCxt : modelDclCtx.enumDcl()) {
-            String enumFqn = null;
-            if (enumDclCxt.TYPE_NAME() != null) {
-                enumFqn = enumDclCxt.TYPE_NAME().toString();
-            }
-            if (enumDclCxt.IDENT() != null) {
-                enumFqn = enumDclCxt.IDENT().toString();
-            }
+            String enumFqn = enumDclCxt.name.getText();
             if (classifiers.contains(enumFqn)) {
                 long line = enumDclCxt.getStart().getLine();
                 raiseModelCheckingException(line, enumFqn + " is not an unique identifier");
@@ -54,13 +48,7 @@ public class ModelChecker {
 
         // classes
         for (greycat.language.GreyCatModelParser.ClassDclContext classDclCxt : modelDclCtx.classDcl()) {
-            String classFqn = null;
-            if (classDclCxt.TYPE_NAME() != null) {
-                classFqn = classDclCxt.TYPE_NAME().toString();
-            }
-            if (classDclCxt.IDENT() != null) {
-                classFqn = classDclCxt.IDENT().toString();
-            }
+            String classFqn = classDclCxt.name.getText();
             if (classifiers.contains(classFqn)) {
                 long line = classDclCxt.getStart().getLine();
                 raiseModelCheckingException(line, classFqn + " is not an unique identifier");
@@ -69,13 +57,7 @@ public class ModelChecker {
 
             // parents
             if (classDclCxt.parentDcl() != null) {
-                String parentClassFqn = null;
-                if (classDclCxt.parentDcl().TYPE_NAME() != null) {
-                    parentClassFqn = classDclCxt.parentDcl().TYPE_NAME().toString();
-                }
-                if (classDclCxt.parentDcl().IDENT() != null) {
-                    parentClassFqn = classDclCxt.parentDcl().IDENT().toString();
-                }
+                String parentClassFqn = classDclCxt.parentDcl().name.getText();
                 if (!isClassifierDeclared(parentClassFqn, modelDclCtx)) {
                     long line = classDclCxt.parentDcl().getStart().getLine();
                     raiseModelCheckingException(line, parentClassFqn + " is specified as parent of " + classFqn + " but is not declared");
@@ -91,21 +73,12 @@ public class ModelChecker {
                 boolean isToOne = relDecCxt.toOneDcl() != null;
                 if (isToOne) {
                     // toOne
-                    relName = relDecCxt.toOneDcl().IDENT().get(0).getText();
-                    if (relDecCxt.toOneDcl().TYPE_NAME() == null) {
-                        relType = relDecCxt.toOneDcl().IDENT(1).toString();
-                    } else {
-                        relType = relDecCxt.toOneDcl().TYPE_NAME().toString();
-                    }
+//                    relName = relDecCxt.toOneDcl().name.getText();
+                    relType = relDecCxt.toOneDcl().type.getText();
                 } else {
                     // toMany
-                    relName = relDecCxt.toManyDcl().IDENT().get(0).getText();
-                    if (relDecCxt.toManyDcl().TYPE_NAME() == null) {
-                        relType = relDecCxt.toManyDcl().IDENT(1).toString();
-                    } else {
-                        relType = relDecCxt.toManyDcl().TYPE_NAME().toString();
-                    }
-
+//                    relName = relDecCxt.toManyDcl().name.getText();
+                    relType = relDecCxt.toManyDcl().type.getText();
                 }
                 if (!isClassifierDeclared(relType, modelDclCtx)) {
                     long line = relDecCxt.getStart().getLine();
@@ -116,7 +89,10 @@ public class ModelChecker {
                     // relation indexes
                     if (relDecCxt.toManyDcl().relationIndexDcl() != null) {
                         long line = relDecCxt.toManyDcl().relationIndexDcl().getStart().getLine();
-                        for (TerminalNode relationIdxIdent : relDecCxt.toManyDcl().relationIndexDcl().IDENT()) {
+                        greycat.language.GreyCatModelParser.IndexedAttributesDclContext idxAttsDclCtx =
+                                relDecCxt.toManyDcl().relationIndexDcl().indexedAttributesDcl();
+
+                        for (TerminalNode relationIdxIdent : idxAttsDclCtx.IDENT()) {
                             String relIndexedAttName = relationIdxIdent.getText();
                             if (!isAttOfCassifier(relType, relIndexedAttName, modelDclCtx)) {
                                 raiseModelCheckingException(line, relIndexedAttName + " is specified as index of relation " + relType + " but is not an attribute of " + relType);
@@ -130,7 +106,7 @@ public class ModelChecker {
             for (int i = 0; i < classDclCxt.indexDcl().size(); i++) {
                 greycat.language.GreyCatModelParser.IndexDclContext indexDclCxt = classDclCxt.indexDcl().get(i);
                 long line = indexDclCxt.getStart().getLine();
-                for (TerminalNode idxDclIdent : indexDclCxt.IDENT()) {
+                for (TerminalNode idxDclIdent : indexDclCxt.indexedAttributesDcl().IDENT()) {
                     String indexedAttName = idxDclIdent.getText();
 
                     if (!isAttOfCassifier(classFqn, indexedAttName, modelDclCtx)) {
@@ -143,23 +119,21 @@ public class ModelChecker {
 
     private boolean isAttOfCassifier(String classifier, String att, greycat.language.GreyCatModelParser.ModelDclContext modelDclCtx) {
         for (greycat.language.GreyCatModelParser.ClassDclContext classDclCxt : modelDclCtx.classDcl()) {
-            String classFqn = null;
-            if (classDclCxt.TYPE_NAME() != null) {
-                classFqn = classDclCxt.TYPE_NAME().toString();
-            }
-            if (classDclCxt.IDENT() != null) {
-                classFqn = classDclCxt.IDENT().toString();
-            }
+            String classFqn = classDclCxt.name.getText();
             if (classFqn.equals(classifier)) {
                 for (greycat.language.GreyCatModelParser.AttributeDclContext attDcl : classDclCxt.attributeDcl()) {
-                    String attName = attDcl.IDENT().getText();
+                    String attName = attDcl.name.getText();
                     if (attName.equals(att)) {
                         return true;
                     }
                 }
+                // recursively check parents
+                if (classDclCxt.parentDcl() != null) {
+                    return isAttOfCassifier(classDclCxt.parentDcl().name.getText(), att, modelDclCtx);
+                }
             }
-
         }
+
         return false;
     }
 
@@ -167,13 +141,7 @@ public class ModelChecker {
 
         // classes
         for (greycat.language.GreyCatModelParser.ClassDclContext classDclCxt : modelDclCtx.classDcl()) {
-            String classFqn = null;
-            if (classDclCxt.TYPE_NAME() != null) {
-                classFqn = classDclCxt.TYPE_NAME().toString();
-            }
-            if (classDclCxt.IDENT() != null) {
-                classFqn = classDclCxt.IDENT().toString();
-            }
+            String classFqn = classDclCxt.name.getText();
             if (classFqn.equals(fqn)) {
                 return true;
             }
@@ -181,13 +149,7 @@ public class ModelChecker {
         }
         // enums
         for (greycat.language.GreyCatModelParser.EnumDclContext enumDclCtx : modelDclCtx.enumDcl()) {
-            String enumFqn = null;
-            if (enumDclCtx.TYPE_NAME() != null) {
-                enumFqn = enumDclCtx.TYPE_NAME().toString();
-            }
-            if (enumDclCtx.IDENT() != null) {
-                enumFqn = enumDclCtx.IDENT().toString();
-            }
+            String enumFqn = enumDclCtx.name.getText();
             if (enumFqn.equals(fqn)) {
                 return true;
             }

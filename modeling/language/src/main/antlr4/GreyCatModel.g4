@@ -21,25 +21,24 @@ fragment HEX : [0-9a-fA-F] ;
 
 STRING :  '"' (ESC | ~["\\])* '"' | '\'' (ESC | ~["\\])* '\'' ;
 IDENT : [a-zA-Z_][a-zA-Z_0-9]*;
-TYPE_NAME : [a-zA-Z_][a-z0-9]*;
 NUMBER : [\-]?[0-9]+'.'?[0-9]*;
 WS : ([ \t\r\n]+ | SL_COMMENT) -> skip ; // skip spaces, tabs, newlines
 SL_COMMENT :  '//' ~('\r' | '\n')* ;
 
 modelDcl: (enumDcl | classDcl)*;
 
-enumDcl: 'enum' (TYPE_NAME|IDENT) '{' enumLiteralsDcl '}';
+enumDcl: 'enum' name=IDENT '{' enumLiteralsDcl '}';
 enumLiteralsDcl: IDENT (',' IDENT)*;
 
-classDcl: 'class' (TYPE_NAME|IDENT) parentDcl? '{' (attributeDcl | relationDcl | indexDcl)* '}';
-parentDcl: 'extends' (TYPE_NAME|IDENT);
-attributeDcl: 'att' IDENT ':' attributeTypeDcl;
+classDcl: 'class' name=IDENT parentDcl? '{' (attributeDcl | relationDcl | indexDcl)* '}';
+parentDcl: 'extends' name=IDENT;
+attributeDcl: 'att' name=IDENT ':' attributeTypeDcl;
 attributeTypeDcl: ('String' | 'Double' | 'Long' | 'Integer' | 'Boolean') ('[]')?;
 relationDcl: (toManyDcl | toOneDcl);
-toManyDcl : 'rel' IDENT ':' (TYPE_NAME|IDENT) relationIndexDcl?;
-relationIndexDcl: 'indexed' 'by' IDENT (',' IDENT)*;
-toOneDcl : 'ref' IDENT ':' (TYPE_NAME|IDENT);
+toManyDcl : 'rel' name=IDENT ':' type=IDENT relationIndexDcl?;
+relationIndexDcl: 'indexed' 'by' indexedAttributesDcl;
+indexedAttributesDcl: IDENT (',' IDENT)*;
+toOneDcl : 'ref' name=IDENT ':' type=IDENT;
 
-indexDcl: 'indexed' withTimeDcl? 'by' IDENT (',' IDENT)* ('as' indexNameDcl)?;
+indexDcl: 'indexed' withTimeDcl? 'by' indexedAttributesDcl ('as' name=IDENT)?;
 withTimeDcl: 'with time';
-indexNameDcl: IDENT;

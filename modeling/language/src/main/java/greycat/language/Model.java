@@ -59,13 +59,7 @@ public class Model {
 
         // enums
         for (GreyCatModelParser.EnumDclContext enumDclCtx : modelDclCtx.enumDcl()) {
-            String fqn = null;
-            if (enumDclCtx.TYPE_NAME() != null) {
-                fqn = enumDclCtx.TYPE_NAME().toString();
-            }
-            if (enumDclCtx.IDENT() != null) {
-                fqn = enumDclCtx.IDENT().toString();
-            }
+            String fqn = enumDclCtx.name.getText();
             final Enum enumClass = getOrCreateAndAddEnum(fqn);
             for (TerminalNode literal : enumDclCtx.enumLiteralsDcl().IDENT()) {
                 enumClass.addLiteral(literal.getText());
@@ -74,30 +68,18 @@ public class Model {
 
         // classes
         for (GreyCatModelParser.ClassDclContext classDclCxt : modelDclCtx.classDcl()) {
-            String classFqn = null;
-            if (classDclCxt.TYPE_NAME() != null) {
-                classFqn = classDclCxt.TYPE_NAME().toString();
-            }
-            if (classDclCxt.IDENT() != null) {
-                classFqn = classDclCxt.IDENT().toString();
-            }
+            String classFqn = classDclCxt.name.getText();;
             final Class newClass = getOrCreateAndAddClass(classFqn);
 
             // parents
             if (classDclCxt.parentDcl() != null) {
-                if (classDclCxt.parentDcl().TYPE_NAME() != null) {
-                    final Class newClassTT = getOrCreateAndAddClass(classDclCxt.parentDcl().TYPE_NAME().toString());
-                    newClass.setParent(newClassTT);
-                }
-                if (classDclCxt.parentDcl().IDENT() != null) {
-                    final Class newClassTT = getOrCreateAndAddClass(classDclCxt.parentDcl().IDENT().toString());
-                    newClass.setParent(newClassTT);
-                }
+                final Class newClassTT = getOrCreateAndAddClass(classDclCxt.parentDcl().name.getText());
+                newClass.setParent(newClassTT);
             }
 
             // attributes
             for (GreyCatModelParser.AttributeDclContext attDcl : classDclCxt.attributeDcl()) {
-                String name = attDcl.IDENT().getText();
+                String name = attDcl.name.getText();
                 GreyCatModelParser.AttributeTypeDclContext attTypeDclCxt = attDcl.attributeTypeDcl();
                 String value = attTypeDclCxt.getText();
                 boolean isArray = false;
@@ -116,28 +98,23 @@ public class Model {
                 boolean isToOne = relDclCxt.toOneDcl() != null;
                 if (isToOne) {
                     // toOne
-                    name = relDclCxt.toOneDcl().IDENT().get(0).getText();
-                    if (relDclCxt.toOneDcl().TYPE_NAME() == null) {
-                        type = relDclCxt.toOneDcl().IDENT(1).toString();
-                    } else {
-                        type = relDclCxt.toOneDcl().TYPE_NAME().toString();
-                    }
+                    name = relDclCxt.toOneDcl().name.getText();
+                    type = relDclCxt.toOneDcl().type.getText();
                 } else {
                     // toMany
-                    name = relDclCxt.toManyDcl().IDENT().get(0).getText();
-                    if (relDclCxt.toManyDcl().TYPE_NAME() == null) {
-                        type = relDclCxt.toManyDcl().IDENT(1).toString();
-                    } else {
-                        type = relDclCxt.toManyDcl().TYPE_NAME().toString();
-                    }
+                    name = relDclCxt.toManyDcl().name.getText();
+                    type = relDclCxt.toManyDcl().type.getText();
                 }
                 final Relation relation = new Relation(name, type, isToOne);
 
                 if (!isToOne) {
                     // relation indexes
                     if (relDclCxt.toManyDcl().relationIndexDcl() != null) {
-                        for (TerminalNode relationIdxIdent : relDclCxt.toManyDcl().relationIndexDcl().IDENT()) {
-                            relation.addIndexedAttribute(relationIdxIdent.getText());
+                        GreyCatModelParser.IndexedAttributesDclContext idxAttDclCtx =
+                                relDclCxt.toManyDcl().relationIndexDcl().indexedAttributesDcl();
+
+                        for (TerminalNode idxAttIdent : idxAttDclCtx.IDENT()) {
+                            relation.addIndexedAttribute(idxAttIdent.getText());
                         }
                     }
                 }
@@ -149,11 +126,11 @@ public class Model {
             for (int i = 0; i < classDclCxt.indexDcl().size(); i++) {
                 GreyCatModelParser.IndexDclContext indexDclCxt = classDclCxt.indexDcl().get(i);
                 String idxName = newClass.name() + "Idx" + i;
-                if (indexDclCxt.indexNameDcl() != null) {
-                    idxName = indexDclCxt.indexNameDcl().getText();
+                if (indexDclCxt.name != null) {
+                    idxName = indexDclCxt.name.getText();
                 }
                 Index idx = new Index(idxName);
-                for (TerminalNode idxDclIdent : indexDclCxt.IDENT()) {
+                for (TerminalNode idxDclIdent : indexDclCxt.indexedAttributesDcl().IDENT()) {
                     Property indexedProperty = newClass.getProperty(idxDclIdent.getText());
                     Attribute att = (Attribute) indexedProperty;
                     idx.addAttribute(att);
