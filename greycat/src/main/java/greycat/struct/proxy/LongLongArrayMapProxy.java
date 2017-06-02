@@ -49,6 +49,12 @@ public final class LongLongArrayMapProxy implements LongLongArrayMap {
     }
 
     @Override
+    public void putNoCheck(long insertKey, long insertValue) {
+        check();
+        _elem.put(insertKey, insertValue);
+    }
+
+    @Override
     public final void each(final LongLongArrayMapCallBack callback) {
         _elem.each(callback);
     }
