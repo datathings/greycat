@@ -215,7 +215,12 @@
                                 if (npmLinkGreycat.exitValue() != 0) {
                                     exit
                                 }
-
+                                ant.echo("NPM JRE")
+                                def npmInstallJreProcess = "npm install j2ts-jre".execute(null, new File("${basedir}/target/classes-npm"))
+                                npmInstallJreProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmInstallJreProcess.exitValue() != 0) {
+                                    exit
+                                }
                                 ant.echo("NPM Install")
                                 def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/classes-npm"))
                                 npmInstallProcess.waitForProcessOutput(System.out, System.err)
@@ -263,10 +268,26 @@
                                 ant.copy(file: "${basedir}/target/generated-test-sources/test.ts", todir: "${basedir}/target/test-classes-npm")
                                 ant.concat(append: "true", destfile: "${basedir}/target/test-classes-npm/test.ts", "export = greycatBlasTest;")
                                 ant.replace(file: "${basedir}/target/test-classes-npm/test.ts", token: "greycat.blas", value: "greycatBlas.blas")
-
+                                ant.echo("NPM JRE")
+                                def npmInstallJreProcess = "npm install j2ts-jre".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                npmInstallJreProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmInstallJreProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                ant.echo("NPM Junit")
+                                def npmInstallJunitProcess = "npm install j2ts-junit".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                npmInstallJunitProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmInstallJunitProcess.exitValue() != 0) {
+                                    exit
+                                }
                                 def npmLinkGreycat = "npm install ${greycat.path}/greycat/target/classes-npm".execute(null, new File("${basedir}/target/test-classes-npm"))
                                 npmLinkGreycat.waitForProcessOutput(System.out, System.err)
                                 if (npmLinkGreycat.exitValue() != 0) {
+                                    exit
+                                }
+                                def npmInstallJasmine = "npm install jasmine".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                npmInstallJasmine.waitForProcessOutput(System.out, System.err)
+                                if (npmInstallJasmine.exitValue() != 0) {
                                     exit
                                 }
                                 def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/test-classes-npm"))
@@ -274,7 +295,6 @@
                                 if (npmInstallProcess.exitValue() != 0) {
                                     exit
                                 }
-
                                 def tscProcess = "node ${basedir}/target/test-classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/test-classes-npm"))
                                 tscProcess.waitForProcessOutput(System.out, System.err)
                                 if (tscProcess.exitValue() != 0) {
