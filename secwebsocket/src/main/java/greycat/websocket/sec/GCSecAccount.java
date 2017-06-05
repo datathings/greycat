@@ -18,7 +18,7 @@ public class GCSecAccount implements Account {
     private GCPrincipal _principal;
     private UUID _sessionId;
     private long expiration;
-    private static final long VALIDITY_PERIOD = 30*60*1000; // 5min
+    private static final long VALIDITY_PERIOD = 5*60*1000; // 5min
 
 
     public GCSecAccount(GCPrincipal principal) {
