@@ -3,29 +3,29 @@
  */
 package greycat.websocket.sec;
 
+import greycat.Node;
+
 import javax.security.auth.Subject;
 import java.security.Principal;
 
 /**
  * Created by Gregory NAIN on 23/05/2017.
  */
-public class GCPrincipal implements Principal {
+public class GCPrincipal<T extends Node> implements Principal {
 
-    private String firstName, lastName, email;
+    private T user;
 
-    public GCPrincipal(String firstName, String lastName, String email) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
+    public GCPrincipal(T user) {
+        this.user = user;
+    }
+
+    public T getUser() {
+        return this.user;
     }
 
     @Override
     public String getName() {
-        return firstName + " " + lastName;
-    }
-
-    public String getEmail() {
-        return email;
+        return this.user.toString();
     }
 
     @Override
