@@ -76,7 +76,7 @@ public class NeuralNet {
             //load all layers
             layers = new Layer[nb];
             for (int i = 0; i < layers.length; i++) {
-                layers[i] = Layers.loadLayer(backend.node(i));
+                layers[i] = Layers.loadLayer(backend.node(i+1));
             }
         } else {
             layers = new Layer[0];

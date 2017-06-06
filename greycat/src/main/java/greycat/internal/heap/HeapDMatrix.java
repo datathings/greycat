@@ -323,6 +323,10 @@ class HeapDMatrix implements DMatrix {
     }
 
     public final long load(final Buffer buffer, final long offset, final long max) {
+        if(offset >= max) {
+            unsafe_init(INDEX_OFFSET);
+            return offset;
+        }
         long cursor = offset;
         byte current = buffer.read(cursor);
         boolean isFirst = true;
@@ -345,7 +349,7 @@ class HeapDMatrix implements DMatrix {
             }
         }
         if(previous == cursor) {
-            unsafe_init(0);
+            unsafe_init(INDEX_OFFSET);
         } else if (isFirst) {
             unsafe_init(Base64.decodeToIntWithBounds(buffer, previous, cursor));
         } else {
