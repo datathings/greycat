@@ -127,6 +127,16 @@ class HeapENode implements ENode, HeapContainer {
                                 _v[i] = ((HeapStringArray) origin._v[i]).cloneFor(this);
                             }
                             break;
+                        case Type.INT_SET:
+                        if (origin._v[i] != null) {
+                            _v[i] = ((HeapIntSet) origin._v[i]).cloneFor(this);
+                        }
+                        break;
+                        case Type.LONG_SET:
+                        if (origin._v[i] != null) {
+                            _v[i] = ((HeapLongSet) origin._v[i]).cloneFor(this);
+                        }
+                        break;
                         default:
                             _v[i] = origin._v[i];
                             break;
@@ -320,6 +330,12 @@ class HeapENode implements ENode, HeapContainer {
                         break;
                     case Type.STRING_ARRAY:
                         param_elem = (StringArray) p_unsafe_elem;
+                        break;
+                    case Type.LONG_SET:
+                        param_elem = (LongSet) p_unsafe_elem;
+                        break;
+                    case Type.INT_SET:
+                        param_elem = (IntSet) p_unsafe_elem;
                         break;
                     case Type.STRING_TO_INT_MAP:
                         param_elem = (StringIntMap) p_unsafe_elem;
@@ -650,6 +666,12 @@ class HeapENode implements ENode, HeapContainer {
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 toSet = new HeapLongLongArrayMap(this);
                 break;
+            case Type.LONG_SET:
+                toSet = new HeapLongSet(this);
+                break;
+            case Type.INT_SET:
+                toSet = new HeapIntSet(this);
+                break;
         }
         internal_set(key, type, toSet, true, false);
         return toSet;
@@ -793,6 +815,34 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append("]");
                         break;
                     }
+                    case Type.LONG_SET:
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("[");
+                        long[] castedLS =  ((LongSet)elem).extract();
+                        for (int j = 0; j < castedLS.length; j++) {
+                            if (j != 0) {
+                                builder.append(",");
+                            }
+                            builder.append(castedLS[j]);
+                        }
+                        builder.append("]");
+                        break;
+                    case Type.INT_SET:
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("[");
+                        int[] castedIS =  ((IntSet)elem).extract();
+                        for (int j = 0; j < castedIS.length; j++) {
+                            if (j != 0) {
+                                builder.append(",");
+                            }
+                            builder.append(castedIS[j]);
+                        }
+                        builder.append("]");
+                        break;
                     case Type.LONG_TO_LONG_MAP: {
                         builder.append("\"");
                         builder.append(resolveName);
@@ -1019,6 +1069,22 @@ class HeapENode implements ENode, HeapContainer {
                                 Base64.encodeStringToBuffer(castedStringArr.get(j), buffer);
                             }
                             break;
+                        case Type.INT_SET:
+                            HeapIntSet castedIntSet = new HeapIntSet(this);
+                            Base64.encodeIntToBuffer(castedIntSet.size(), buffer);
+                            for (int j = 0; j < castedIntSet.size(); j++) {
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeIntToBuffer(castedIntSet.key(j), buffer);
+                            }
+                            break;
+                        case Type.LONG_SET:
+                            HeapLongSet castedLongSet = new HeapLongSet(this);
+                            Base64.encodeIntToBuffer(castedLongSet.size(), buffer);
+                            for (int j = 0; j < castedLongSet.size(); j++) {
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeLongToBuffer(castedLongSet.key(j), buffer);
+                            }
+                            break;
                         case Type.DMATRIX:
                             HeapDMatrix castedMatrix = (HeapDMatrix) loopValue;
                             final double[] unsafeContent = castedMatrix.unsafe_data();
@@ -1212,6 +1278,34 @@ class HeapENode implements ENode, HeapContainer {
                                 cursor++;
                                 cursor = sarray.load(buffer, cursor, payloadSize);
                                 internal_set(read_key, read_type, sarray, true, initial);
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
+                                break;
+                            case Type.INT_SET:
+                                HeapIntSet is = new HeapIntSet(this);
+                                cursor++;
+                                cursor = is.load(buffer, cursor, payloadSize);
+                                internal_set(read_key, read_type, is, true, initial);
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
+                                break;
+                            case Type.LONG_SET:
+                                HeapLongSet ls = new HeapLongSet(this);
+                                cursor++;
+                                cursor = ls.load(buffer, cursor, payloadSize);
+                                internal_set(read_key, read_type, ls, true, initial);
                                 if (cursor < payloadSize) {
                                     current = buffer.read(cursor);
                                     if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
@@ -1502,4 +1596,10 @@ class HeapENode implements ENode, HeapContainer {
     public final LongLongArrayMap getLongLongArrayMap(String name) {
         return (LongLongArrayMap) get(name);
     }
+
+    @Override
+    public final LongSet getLongSet(String name){return (LongSet) get(name);}
+
+    @Override
+    public final IntSet getIntSet(String name){return (IntSet) get(name);}
 }

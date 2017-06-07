@@ -61,6 +61,9 @@ public class Type {
     public static final byte INT_TO_INT_MAP = 26;
     public static final byte INT_TO_STRING_MAP = 27;
 
+    public static final byte INT_SET = 28;
+    public static final byte LONG_SET = 29;
+
     /**
      * Convert a type that represent a byte to a readable String representation
      *
@@ -122,6 +125,10 @@ public class Type {
                 return "INT_TO_INT_MAP";
             case Type.INT_TO_STRING_MAP:
                 return "INT_TO_STRING_MAP";
+            case Type.INT_SET:
+                return "INT_SET";
+            case Type.LONG_SET:
+                return "LONG_SET";
             default:
                 return "unknown";
         }
@@ -179,6 +186,10 @@ public class Type {
                 return Type.INT_TO_INT_MAP;
             case "INT_TO_STRING_MAP":
                 return Type.INT_TO_STRING_MAP;
+            case "INT_SET":
+                return Type.INT_SET;
+            case "LONG_SET":
+                return Type.LONG_SET;
             default:
                 return -1;
         }

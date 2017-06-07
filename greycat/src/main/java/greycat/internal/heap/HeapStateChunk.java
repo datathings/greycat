@@ -279,7 +279,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         if (found != -1) {
             if (_type[found] == p_type) {
                 Object foundValue = _v[found];
-                if(foundValue != null){
+                if (foundValue != null) {
                     return _v[found];
                 }
             }
@@ -301,6 +301,14 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 break;
             case Type.STRING_ARRAY:
                 toSet = new HeapStringArray(this);
+                toGet = toSet;
+                break;
+            case Type.LONG_SET:
+                toSet = new HeapLongSet(this);
+                toGet = toSet;
+                break;
+            case Type.INT_SET:
+                toSet = new HeapIntSet(this);
                 toGet = toSet;
                 break;
             case Type.RELATION:
@@ -434,6 +442,22 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         for (int j = 0; j < stringArray.size(); j++) {
                             buffer.write(CoreConstants.CHUNK_VAL_SEP);
                             Base64.encodeStringToBuffer(stringArray.get(j), buffer);
+                        }
+                        break;
+                    case Type.INT_SET:
+                        HeapIntSet castedIntSet = new HeapIntSet(this);
+                        Base64.encodeIntToBuffer(castedIntSet.size(), buffer);
+                        for (int j = 0; j < castedIntSet.size(); j++) {
+                            buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                            Base64.encodeIntToBuffer(castedIntSet.key(j), buffer);
+                        }
+                        break;
+                    case Type.LONG_SET:
+                        HeapLongSet castedLongSet = new HeapLongSet(this);
+                        Base64.encodeIntToBuffer(castedLongSet.size(), buffer);
+                        for (int j = 0; j < castedLongSet.size(); j++) {
+                            buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                            Base64.encodeLongToBuffer(castedLongSet.key(j), buffer);
                         }
                         break;
                     case Type.RELATION:
@@ -602,88 +626,98 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         if (casted._v != null) {
             _v = new Object[_capacity];
             for (int i = 0; i < _size; i++) {
-                    if (casted._v[i] == null) {
-                        _v[i] = null;
-                    } else {
-                        switch (casted._type[i]) {
-                            case Type.LONG_TO_LONG_MAP:
-                                if (casted._v[i] != null) {
-                                    _v[i] = ((HeapLongLongMap) casted._v[i]).cloneFor(this);
-                                }
-                                break;
-                            case Type.RELATION_INDEXED:
-                                if (casted._v[i] != null) {
-                                    _v[i] = ((HeapRelationIndexed) casted._v[i]).cloneIRelFor(this, casted.graph());
-                                }
-                                break;
-                            case Type.LONG_TO_LONG_ARRAY_MAP:
-                                if (casted._v[i] != null) {
-                                    _v[i] = ((HeapLongLongArrayMap) casted._v[i]).cloneFor(this);
-                                }
-                                break;
-                            case Type.STRING_TO_INT_MAP:
-                                if (casted._v[i] != null) {
-                                    _v[i] = ((HeapStringIntMap) casted._v[i]).cloneFor(this);
-                                }
-                                break;
-                            case Type.INT_TO_INT_MAP:
-                                if (casted._v[i] != null) {
-                                    _v[i] = ((HeapIntIntMap) casted._v[i]).cloneFor(this);
-                                }
-                                break;
-                            case Type.INT_TO_STRING_MAP:
-                                if (casted._v[i] != null) {
-                                    _v[i] = ((HeapIntStringMap) casted._v[i]).cloneFor(this);
-                                }
-                                break;
-                            case Type.RELATION:
-                                if (casted._v[i] != null) {
-                                    _v[i] = new HeapRelation(this, (HeapRelation) casted._v[i]);
-                                }
-                                break;
-                            case Type.DMATRIX:
-                                if (casted._v[i] != null) {
-                                    _v[i] = new HeapDMatrix(this, (HeapDMatrix) casted._v[i]);
-                                }
-                                break;
-                            case Type.LMATRIX:
-                                if (casted._v[i] != null) {
-                                    _v[i] = new HeapLMatrix(this, (HeapLMatrix) casted._v[i]);
-                                }
-                                break;
-                            case Type.EGRAPH:
-                                if (casted._v[i] != null) {
-                                    _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
-                                }
-                                break;
-                            case Type.LONG_ARRAY:
-                                if (casted._v[i] != null) {
-                                    _v[i] = ((HeapLongArray) casted._v[i]).cloneFor(this);
-                                }
-                                break;
-                            case Type.DOUBLE_ARRAY:
-                                if (casted._v[i] != null) {
-                                    _v[i] = ((HeapDoubleArray) casted._v[i]).cloneFor(this);
-                                }
-                                break;
-                            case Type.INT_ARRAY:
-                                if (casted._v[i] != null) {
-                                    _v[i] = ((HeapIntArray) casted._v[i]).cloneFor(this);
-                                }
-                                break;
-                            case Type.STRING_ARRAY:
-                                if (casted._v[i] != null) {
-                                    _v[i] = ((HeapStringArray) casted._v[i]).cloneFor(this);
-                                }
-                                break;
-                            default:
-                                _v[i] = casted._v[i];
-                                break;
-                        }
+                if (casted._v[i] == null) {
+                    _v[i] = null;
+                } else {
+                    switch (casted._type[i]) {
+                        case Type.LONG_TO_LONG_MAP:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapLongLongMap) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.RELATION_INDEXED:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapRelationIndexed) casted._v[i]).cloneIRelFor(this, casted.graph());
+                            }
+                            break;
+                        case Type.LONG_TO_LONG_ARRAY_MAP:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapLongLongArrayMap) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.STRING_TO_INT_MAP:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapStringIntMap) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.INT_TO_INT_MAP:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapIntIntMap) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.INT_TO_STRING_MAP:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapIntStringMap) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.RELATION:
+                            if (casted._v[i] != null) {
+                                _v[i] = new HeapRelation(this, (HeapRelation) casted._v[i]);
+                            }
+                            break;
+                        case Type.DMATRIX:
+                            if (casted._v[i] != null) {
+                                _v[i] = new HeapDMatrix(this, (HeapDMatrix) casted._v[i]);
+                            }
+                            break;
+                        case Type.LMATRIX:
+                            if (casted._v[i] != null) {
+                                _v[i] = new HeapLMatrix(this, (HeapLMatrix) casted._v[i]);
+                            }
+                            break;
+                        case Type.EGRAPH:
+                            if (casted._v[i] != null) {
+                                _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
+                            }
+                            break;
+                        case Type.LONG_ARRAY:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapLongArray) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.DOUBLE_ARRAY:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapDoubleArray) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.INT_ARRAY:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapIntArray) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.STRING_ARRAY:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapStringArray) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.INT_SET:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapIntSet) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.LONG_SET:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapLongSet) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        default:
+                            _v[i] = casted._v[i];
+                            break;
                     }
                 }
             }
         }
+    }
 
     private void internal_set(final int p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
         Object param_elem = null;
@@ -774,6 +808,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         break;
                     case Type.STRING_ARRAY:
                         param_elem = (StringArray) p_unsafe_elem;
+                        break;
+                    case Type.LONG_SET:
+                        param_elem = (LongSet) p_unsafe_elem;
+                        break;
+                    case Type.INT_SET:
+                        param_elem = (IntSet) p_unsafe_elem;
                         break;
                     case Type.STRING_TO_INT_MAP:
                         param_elem = (StringIntMap) p_unsafe_elem;
@@ -1089,6 +1129,34 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                         }
                                     }
                                     break;
+                                case Type.INT_SET:
+                                    HeapIntSet is = new HeapIntSet(this);
+                                    cursor++;
+                                    cursor = is.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, is, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
+                                    break;
+                                case Type.LONG_SET:
+                                    HeapLongSet ls = new HeapLongSet(this);
+                                    cursor++;
+                                    cursor = ls.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, ls, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
+                                    break;
                                 case Type.RELATION:
                                     HeapRelation relation = new HeapRelation(this, null);
                                     cursor++;
@@ -1367,6 +1435,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     @Override
     public final LongLongArrayMap getLongLongArrayMap(String name) {
         return (LongLongArrayMap) get(name);
+    }
+
+    @Override
+    public LongSet getLongSet(String name) {
+        return (LongSet) get(name);
+    }
+
+    @Override
+    public IntSet getIntSet(String name) {
+        return (IntSet) get(name);
     }
 
 }

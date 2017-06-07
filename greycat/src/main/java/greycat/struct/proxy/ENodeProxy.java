@@ -119,6 +119,16 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
+    public LongSet getLongSet(String name) {
+        return (LongSet) get(name);
+    }
+
+    @Override
+    public IntSet getIntSet(String name) {
+        return (IntSet) get(name);
+    }
+
+    @Override
     public final <A> A getWithDefault(final String key, final A defaultValue) {
         return getAtWithDefault(_node.egraph().graph().resolver().stringToHash(key, false), defaultValue);
     }
