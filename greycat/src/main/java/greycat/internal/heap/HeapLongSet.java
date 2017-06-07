@@ -173,6 +173,25 @@ public class HeapLongSet implements LongSet {
     }
 
     @Override
+    public int index(long requestKey) {
+        int result = -1;
+        synchronized (parent) {
+            if (keys != null) {
+                final int hashIndex = (int)HashHelper.longHash(requestKey, capacity * 2);
+                int m = hash(hashIndex);
+                while (m >= 0) {
+                    if (requestKey == key(m)) {
+                        result = m;
+                        break;
+                    }
+                    m = next(m);
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
     public boolean remove(long requestKey) {
         boolean result = false;
         synchronized (parent) {

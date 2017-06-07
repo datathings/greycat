@@ -49,6 +49,11 @@ public class IntSetProxy implements IntSet {
     }
 
     @Override
+    public int index(int element) {
+        return _elem.index(element);
+    }
+
+    @Override
     public boolean remove(int element) {
         check();
         return _elem.remove(element);

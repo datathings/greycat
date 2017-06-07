@@ -21,6 +21,8 @@ public interface IntSet extends Map {
 
     boolean contains(int element);
 
+    int index(int element);
+
     boolean remove(int element);
 
     int[] extract();

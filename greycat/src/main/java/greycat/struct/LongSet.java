@@ -21,6 +21,8 @@ public interface LongSet extends Map{
 
     boolean contains(long element);
 
+    int index(long element);
+
     boolean remove(long element);
 
     long[] extract();

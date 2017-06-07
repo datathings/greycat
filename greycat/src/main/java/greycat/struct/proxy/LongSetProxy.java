@@ -48,6 +48,11 @@ public class LongSetProxy implements LongSet {
     }
 
     @Override
+    public int index(long element) {
+        return _elem.index(element);
+    }
+
+    @Override
     public boolean remove(long element) {
         check();
         return _elem.remove(element);

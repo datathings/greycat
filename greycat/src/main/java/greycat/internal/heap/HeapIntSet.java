@@ -172,6 +172,25 @@ public class HeapIntSet implements IntSet {
     }
 
     @Override
+    public int index(int requestKey) {
+        int result = -1;
+        synchronized (parent) {
+            if (keys != null) {
+                final int hashIndex = HashHelper.intHash(requestKey, capacity * 2);
+                int m = hash(hashIndex);
+                while (m >= 0) {
+                    if (requestKey == key(m)) {
+                        result = m;
+                        break;
+                    }
+                    m = next(m);
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
     public boolean remove(int requestKey) {
         boolean result = false;
         synchronized (parent) {
