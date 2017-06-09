@@ -29,6 +29,7 @@ public class VolatileDMatrix implements DMatrix {
     private VolatileDMatrix(double[] backend, int p_nbRows, int p_nbColumns) {
         this._nbRows = p_nbRows;
         this._nbColumns = p_nbColumns;
+        this._nbMaxColumn = p_nbColumns;
         if (backend != null) {
             this._data = backend;
         } else {
@@ -38,11 +39,12 @@ public class VolatileDMatrix implements DMatrix {
 
     @Override
     public DMatrix init(int rows, int columns) {
-        if (rows != _nbRows && columns != _nbColumns) {
+        if (rows != _nbRows && columns != _nbMaxColumn) {
             throw new RuntimeException("Bad API usage !");
         }
         _nbMaxColumn = columns;
-        this._data = new double[_nbRows * _nbColumns];
+        _nbColumns = columns;
+        this._data = new double[_nbRows * _nbMaxColumn];
         return this;
     }
 
@@ -59,12 +61,12 @@ public class VolatileDMatrix implements DMatrix {
 
     @Override
     public int columns() {
-        return _nbColumns;
+        return _nbMaxColumn;
     }
 
     @Override
     public int length() {
-        return _nbRows * _nbColumns;
+        return _nbRows * _nbMaxColumn;
     }
 
     @Override
@@ -108,14 +110,17 @@ public class VolatileDMatrix implements DMatrix {
             _data = next_backend;
         }
         //just insert
+        if(newColumn.length!=_nbRows){
+            throw new RuntimeException("Vector has different row size than Matrix");
+        }
         System.arraycopy(newColumn, 0, _data, _nbMaxColumn * _nbRows, newColumn.length);
         _nbMaxColumn = _nbMaxColumn + 1;
-        return null;
+        return this;
     }
 
     @Override
     public DMatrix fill(double value) {
-        for (int i = 0; i < _nbColumns * _nbRows; i++) {
+        for (int i = 0; i < _nbMaxColumn * _nbRows; i++) {
             this._data[i] = value;
         }
         return this;
@@ -130,7 +135,7 @@ public class VolatileDMatrix implements DMatrix {
 
     @Override
     public int leadingDimension() {
-        return Math.max(_nbColumns, _nbRows);
+        return Math.max(_nbMaxColumn, _nbRows);
     }
 
     @Override
@@ -173,7 +178,7 @@ public class VolatileDMatrix implements DMatrix {
         double[] res = new double[_data.length];
         int k = 0;
         for (int i = 0; i < _nbRows; i++) {
-            for (int j = 0; j < _nbColumns; j++) {
+            for (int j = 0; j < _nbMaxColumn; j++) {
                 res[k] = get(i, j);
                 k++;
             }
@@ -187,7 +192,7 @@ public class VolatileDMatrix implements DMatrix {
 
         int k = 0;
         for (int i = 0; i < _nbRows; i++) {
-            for (int j = 0; j < _nbColumns; j++) {
+            for (int j = 0; j < _nbMaxColumn; j++) {
                 res.set(i, j, rowdata[k]);
                 k++;
             }
@@ -219,7 +224,7 @@ public class VolatileDMatrix implements DMatrix {
 
     public static DMatrix random(int rows, int columns, RandomGenerator rand, double min, double max) {
         VolatileDMatrix res = new VolatileDMatrix(null, rows, columns);
-           for (int i = 0; i < rows * columns; i++) {
+        for (int i = 0; i < rows * columns; i++) {
             res.unsafeSet(i, rand.nextDouble() * (max - min) + min);
         }
         return res;
@@ -258,7 +263,7 @@ public class VolatileDMatrix implements DMatrix {
     }
 
     public static DMatrix cloneFrom(DMatrix origin) {
-        //TODO checj according to .data() clone
+        //TODO check according to .data() clone
         double[] prev = origin.data();
         double[] copy = new double[prev.length];
         System.arraycopy(prev, 0, copy, 0, copy.length);

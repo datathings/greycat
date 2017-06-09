@@ -15,28 +15,8 @@
  */
 package greycat.chunk;
 
-public interface TimeTreeChunk extends Chunk {
+public interface TimeTreeEmbeddedChunk extends TimeTreeChunk {
 
-    int insert(long key);
-
-    long getKey(int offset);
-
-    long previousOrEqual(long key);
-
-    int previousOrEqualOffset(long key);
-
-    void range(long startKey, long endKey, long maxElements, TreeWalker walker);
-
-    long magic();
-
-    long previous(long key);
-
-    long next(long key);
-
-    int size();
-
-    long capacity();
-
-    void setCapacity(long v);
+    StateChunk state(int offset);
 
 }

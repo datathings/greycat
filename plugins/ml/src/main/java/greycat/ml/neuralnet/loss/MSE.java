@@ -20,13 +20,13 @@ import greycat.struct.DMatrix;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.VolatileDMatrix;
 
-class SumOfSquares implements Loss {
+class MSE implements Loss {
 
-    private static SumOfSquares static_unit = null;
+    private static MSE static_unit = null;
 
-    public static SumOfSquares instance() {
+    public static MSE instance() {
         if (static_unit == null) {
-            static_unit = new SumOfSquares();
+            static_unit = new MSE();
         }
         return static_unit;
     }
@@ -35,7 +35,7 @@ class SumOfSquares implements Loss {
     public void backward(ExMatrix actualOutput, ExMatrix targetOutput) {
         final int len = targetOutput.length();
         for (int i = 0; i < len; i++) {
-            double errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);  //double errDelta = 2*(actualOutput.w[i] - targetOutput.w[i]);
+            double errDelta = 2*(actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i));  //double errDelta = 2*(actualOutput.w[i] - targetOutput.w[i]);
             actualOutput.getDw().unsafeSet(i, actualOutput.getDw().unsafeGet(i) + errDelta); //actualOutput.dw[i] += errDelta;
         }
     }
@@ -48,7 +48,7 @@ class SumOfSquares implements Loss {
         double errDelta;
         for (int i = 0; i < len; i++) {
             errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);
-            res.unsafeSet(i, 0.5*errDelta * errDelta);
+            res.unsafeSet(i, errDelta * errDelta);
         }
         return res;
     }

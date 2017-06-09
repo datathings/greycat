@@ -86,6 +86,12 @@ public class CoreGraph implements Graph {
                 return new CoreNodeIndex(world, time, id, graph);
             }
         });
+        this._nodeRegistry.getOrCreateDeclaration(CoreNodeValue.NAME).setFactory(new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new CoreNodeValue(world, time, id, graph);
+            }
+        });
         this._nodeRegistry.getOrCreateDeclaration(KDTreeNode.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
@@ -144,7 +150,7 @@ public class CoreGraph implements Graph {
      */
     @Override
     public <A extends Node> A newTypedNode(long world, long time, String nodeType, Class<A> type) {
-        return (A) newTypedNode(world,time,nodeType);
+        return (A) newTypedNode(world, time, nodeType);
     }
 
     @Override

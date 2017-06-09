@@ -19,7 +19,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-websocket</artifactId>
-    <version>8-SNAPSHOT</version>
+    <version>9-SNAPSHOT</version>
     <name>greycat-websocket</name>
 
     <properties>
@@ -29,7 +29,7 @@
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings</groupId>
-        <version>8-SNAPSHOT</version>
+        <version>9-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
 
@@ -72,23 +72,39 @@
                                 ant.copy(file: "${basedir}/src/main/ts/greycat.ws.ts", todir: "${basedir}/target/classes-npm")
                                 ant.copy(file: "${basedir}/src/main/ts/package.json", todir: "${basedir}/target/classes-npm")
                                 ant.copy(file: "${basedir}/src/main/ts/tsconfig.json", todir: "${basedir}/target/classes-npm")
+
                                 def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
                                 while (project_version.split('\\.').length != 3) { project_version += '.0' }
+                                def greycatPtr = new File("${basedir}/../../greycat/target/greycat-${project_version}.tgz").canonicalPath
                                 def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
                                 while (j2ts_version.split('\\.').length != 3) { j2ts_version += '.0' }
+                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION_D", value: greycatPtr)
                                 ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
                                 ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
                                 ant.copy(file: "${basedir}/src/main/ts/readme.md", todir: "${basedir}/target/classes-npm")
-                                def linkGreycatProcess = "npm install ${basedir}/../../greycat/target/classes-npm".execute(null, new File("${basedir}/target/classes-npm"))
-                                linkGreycatProcess.waitForProcessOutput(System.out, System.err)
-                                if (linkGreycatProcess.exitValue() != 0) { exit }
+                                /*
+                                if(!isSnapshot){
+                                    def linkGreycatProcess = "npm install ${grecatPtr}".execute(null, new File("${basedir}/target/classes-npm"))
+                                    linkGreycatProcess.waitForProcessOutput(System.out, System.err)
+                                    if (linkGreycatProcess.exitValue() != 0) { exit }
+                                }*/
                                 def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/classes-npm"))
                                 npmInstallProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmInstallProcess.exitValue() != 0) { exit }
+
                                 def tscProcess = "node ${basedir}/target/classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/classes-npm"))
                                 tscProcess.waitForProcessOutput(System.out, System.err)
                                 if (tscProcess.exitValue() != 0) { exit }
                                 ant.delete(file: "${basedir}/target/classes-npm/greycat.ws.ts")
+
+                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: greycatPtr, value: project_version)
+
+                                def npmPackProcess = "npm pack classes-npm/".execute(null, new File("${basedir}/target/"))
+                                npmPackProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmPackProcess.exitValue() != 0) {
+                                    exit
+                                }
+
                             </source>
                         </configuration>
                     </execution>

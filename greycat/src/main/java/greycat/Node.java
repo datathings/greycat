@@ -221,11 +221,18 @@ public interface Node extends Container {
 
     Node setTimeSensitivity(long deltaTime, long offset);
 
-    Tuple<Long,Long> timeSensitivity();
+    Tuple<Long, Long> timeSensitivity();
 
     /**
      * This method end the lifespan of this node. All request after this time will reply null.
      */
     void end();
+
+    /**
+     * Delete completely this node and all time and world variations
+     *
+     * @param callback
+     */
+    void drop(Callback callback);
 
 }

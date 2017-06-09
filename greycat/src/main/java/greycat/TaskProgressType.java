@@ -15,9 +15,6 @@
  */
 package greycat;
 
-/**
- * Created by Gregory NAIN on 14/04/17.
- */
 public class TaskProgressType {
 
     public static final byte START_TASK = 0;

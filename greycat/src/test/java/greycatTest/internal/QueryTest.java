@@ -17,6 +17,7 @@ package greycatTest.internal;
 
 import greycat.*;
 import greycat.chunk.ChunkSpace;
+import greycat.internal.CoreNodeValue;
 import greycat.internal.CoreQuery;
 import greycat.internal.heap.HeapMemoryFactory;
 import greycat.plugin.*;
@@ -314,6 +315,11 @@ public class QueryTest implements Resolver, Graph {
     @Override
     public Tuple<Long, Long> getTimeSensitivity(Node node) {
         return new Tuple<Long, Long>(0L, 0L);
+    }
+
+    @Override
+    public void drop(Node target, Callback callback) {
+
     }
 
 }

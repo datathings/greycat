@@ -152,6 +152,9 @@ public class HeapChunkSpace implements ChunkSpace {
     @Override
     public final Chunk get(final long index) {
         final int casted = (int) index;
+        if(casted == -1){
+            return null;
+        }
         boolean valid = true;
         if (_interceptors != null) {
             for (int i = 0; i < _interceptors.length && valid; i++) {

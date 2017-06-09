@@ -23,6 +23,7 @@ import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.HashHelper;
+import greycat.utility.Tuple;
 
 class HeapTimeTreeChunk implements TimeTreeChunk {
 
@@ -145,13 +146,13 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public final synchronized void load(final Buffer buffer) {
-        internal_load(buffer, true);
+        internal_load(buffer);
         //TODO reset _dirty
     }
 
     @Override
     public final synchronized void loadDiff(final Buffer buffer) {
-        if (internal_load(buffer, false) && _hash != Constants.EMPTY_HASH) {
+        if (internal_load(buffer) && _hash != Constants.EMPTY_HASH) {
             _hash = Constants.EMPTY_HASH;
             if (_space != null) {
                 _space.notifyUpdate(_index);
@@ -164,7 +165,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         return _hash;
     }
 
-    private boolean internal_load(final Buffer buffer, final boolean initial) {
+    private boolean internal_load(final Buffer buffer) {
         if (buffer == null || buffer.length() == 0) {
             return false;
         }
@@ -190,8 +191,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                     previous = cursor + 1;
                     break;
                 case Constants.CHUNK_VAL_SEP:
-                    boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
-                    isDirty = isDirty || insertResult;
+                    final Tuple<Boolean, Integer> insertTuple = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    isDirty = isDirty || insertTuple.left();
                     previous = cursor + 1;
                     break;
             }
@@ -220,7 +221,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
-    public synchronized long next(long key) {
+    public final synchronized long next(long key) {
         long resultKey;
         int result = internal_previousOrEqual_index(key);
         if (result != -1) {
@@ -232,6 +233,11 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             resultKey = CoreConstants.NULL_LONG;
         }
         return resultKey;
+    }
+
+    @Override
+    public final long getKey(int offset) {
+        return _k[offset];
     }
 
     @Override
@@ -248,14 +254,23 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
+    public synchronized int previousOrEqualOffset(long key) {
+        return internal_previousOrEqual_index(key);
+    }
+
+    @Override
     public final long magic() {
         return this._magic;
     }
 
     @Override
-    public synchronized final void insert(final long p_key) {
-        if (internal_insert(p_key, false)) {
+    public synchronized final int insert(final long p_key) {
+        final Tuple<Boolean, Integer> insertedTuple = internal_insert(p_key);
+        if (insertedTuple.left()) {
             internal_set_dirty();
+            return insertedTuple.right();
+        } else {
+            return insertedTuple.right();
         }
     }
 
@@ -302,13 +317,6 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             return -1;
         }
         return _k[p_currentIndex];
-    }
-
-    private void setKey(int p_currentIndex, long p_paramIndex, boolean initial) {
-        _k[p_currentIndex] = p_paramIndex;
-       /* if (!initial) {
-            _diff[p_currentIndex] = true;
-        }*/
     }
 
     private int left(int p_currentIndex) {
@@ -563,7 +571,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @SuppressWarnings("Duplicates")
-    private boolean internal_insert(long p_key, boolean initial) {
+    private Tuple<Boolean, Integer> internal_insert(long p_key) {
         if (_k == null || _k.length == _size) {
             int length = _size;
             if (length == 0) {
@@ -576,7 +584,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         int newIndex = _size;
         if (newIndex == 0) {
             _root = newIndex;
-            setKey(newIndex, p_key, initial);
+            _k[newIndex] = p_key;
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
             setColor(newIndex, true);
@@ -588,7 +596,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             while (leaf != -1) {
                 father = leaf;
                 if (_k[father] == p_key) {
-                    return false;
+                    return new Tuple<Boolean, Integer>(false, father);
                 }
                 if (key(father) < p_key) {
                     leaf = right(father);
@@ -599,7 +607,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                 }
             }
             setColor(newIndex, false);
-            setKey(newIndex, p_key, initial);
+            _k[newIndex] = p_key;
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
             setParent(newIndex, father);
@@ -646,7 +654,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             setColor(_root, true);
         }
         _size++;
-        return true;
+        return new Tuple<Boolean, Integer>(true, _size - 1);
     }
 
     private void internal_set_dirty() {

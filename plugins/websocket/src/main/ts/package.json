@@ -6,7 +6,8 @@
   "main": "greycat.ws.js",
   "typings": "greycat.ws.d.ts",
   "dependencies": {
-    "greycat": "^GREYCAT_VERSION"
+    "greycat": "GREYCAT_VERSION_D",
+    "j2ts-jre": "J2TS_VERSION"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,6 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "typescript": "^2.1.5"
+    "typescript": "2.3.4"
   }
 }

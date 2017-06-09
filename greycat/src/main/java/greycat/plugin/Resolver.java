@@ -17,6 +17,7 @@ package greycat.plugin;
 
 import greycat.Node;
 import greycat.Callback;
+import greycat.internal.CoreNodeValue;
 import greycat.utility.Tuple;
 
 /**
@@ -82,7 +83,7 @@ public interface Resolver {
     void lookupAll(long world, long time, long ids[], Callback<Node[]> callback);
 
     void lookupTimes(long world, long rfrom, long rto, long id, int limit, Callback<Node[]> callback);
-
+    
     /**
      * Resolves the state of a node, to access attributes, relations, and indexes.
      *
@@ -141,5 +142,7 @@ public interface Resolver {
     void setTimeSensitivity(Node node, long deltaTime, long delta);
 
     Tuple<Long, Long> getTimeSensitivity(Node node);
+
+    void drop(Node target, Callback callback);
 
 }

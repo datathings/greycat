@@ -16,16 +16,17 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat</artifactId>
     <name>greycat</name>
-    <version>8-SNAPSHOT</version>
+    <version>9-SNAPSHOT</version>
 
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings</groupId>
-        <version>8-SNAPSHOT</version>
+        <version>9-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 
@@ -125,6 +126,8 @@
                                 ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
                                 ant.copy(file: "${basedir}/target/generated-sources/greycat.ts", todir: "${basedir}/target/classes-npm")
                                 ant.concat(append: true, destfile: "${basedir}/target/classes-npm/greycat.ts", "export = greycat;")
+                                def npmVersionProcess = "npm --version; node --version".execute(null, new File("${basedir}/target/classes-npm"))
+                                npmVersionProcess.waitForProcessOutput(System.out, System.err)
                                 def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/classes-npm"))
                                 npmInstallProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmInstallProcess.exitValue() != 0) {
@@ -137,6 +140,11 @@
                                     exit
                                 }
                                 ant.delete(file: "${basedir}/target/classes-npm/greycat.ts")
+                                def npmPackProcess = "npm pack classes-npm/".execute(null, new File("${basedir}/target/"))
+                                npmPackProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmPackProcess.exitValue() != 0) {
+                                    exit
+                                }
                             </source>
                         </configuration>
                     </execution>

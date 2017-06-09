@@ -32,11 +32,18 @@ public class MatrixOps {
         _defaultEngine = engine;
     }
 
-    public static void copyMatrix(DMatrix source, DMatrix destination) {
+    public static DMatrix copyMatrix(DMatrix source, DMatrix destination) {
         for (int row = 0; row < source.rows(); row++) {
             for (int col = 0; col < source.columns(); col++) {
                 destination.set(row, col, source.get(row, col));
             }
+        }
+        return destination;
+    }
+
+    public static void appendBtoA(DMatrix A, DMatrix B, int step){
+        for(int i=0;i<B.columns();i+=step){
+            A.appendColumn(B.column(i));
         }
     }
 
@@ -246,6 +253,9 @@ public class MatrixOps {
     //todo can be replaced by system array copy if possible
     public static void copy(DMatrix from, DMatrix to) {
         int total = from.length();
+        if(to.length()==0){
+            to.init(from.rows(),from.columns());
+        }
         for (int i = 0; i < total; i++) {
             to.unsafeSet(i, from.unsafeGet(i));
         }

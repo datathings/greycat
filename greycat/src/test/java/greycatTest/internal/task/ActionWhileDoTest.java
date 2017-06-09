@@ -37,7 +37,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
                         .whileDo(context -> context.result().size() != 0,
                                 newTask().map(
                                         newTask().ifThenElse(context -> context.resultAsNodes().get(0).get("child") != null,
-                                                newTask().then(traverse("child")),
+                                                newTask().traverse("child"),
                                                 newTask().thenDo(context -> {
                                                     //System.out.println("if is false");
                                                     context.addToGlobalVariable("leaves", context.wrap(context.resultAsNodes().get(0).id()));

@@ -16,6 +16,7 @@
 package greycat.ml.neuralnet.loss;
 
 import greycat.struct.DMatrix;
+import greycat.struct.matrix.VolatileDMatrix;
 
 public class Losses {
     public static final int SUM_OF_SQUARES = 0;
@@ -23,7 +24,7 @@ public class Losses {
     public static final int SOFTMAX = 2;
     public static final int ARGMAX = 3;
     public static final int MULTI_DIM_BINARY = 4;
-
+    public static final int MEAN_SQUARED_ERROR = 5;
 
     public static final int DEFAULT = SUM_OF_SQUARES;
 
@@ -39,9 +40,42 @@ public class Losses {
                 return ArgMax.instance();
             case MULTI_DIM_BINARY:
                 return MultiDimensionalBinary.instance();
+            case MEAN_SQUARED_ERROR:
+                return MSE.instance();
         }
         return getUnit(DEFAULT);
     }
+
+
+
+    public static DMatrix sumOverOutputsMatrix(DMatrix losses) {
+        DMatrix res = VolatileDMatrix.identity(losses.rows(),1);
+
+        for (int i = 0; i < losses.rows(); i++) {
+            for (int j = 0; j < losses.columns(); j++) {
+                res.add(i,0,losses.get(i, j));
+            }
+        }
+        return res;
+    }
+
+    public static void processRMSErr(DMatrix err, int counter){
+        for(int i=0;i<err.rows();i++){
+            for(int j=0;j<err.columns();j++){
+                err.set(i,j,Math.sqrt(err.get(i,j)/counter));
+            }
+        }
+    }
+
+    public static void inverseNormalizeError(DMatrix error, double[] std) {
+        for (int j = 0; j < error.rows(); j++) {
+            double factor = std[j] * std[j];
+            for (int i = 0; i < error.columns(); i++) {
+                error.set(j, i, error.get(j, i) * factor);
+            }
+        }
+    }
+
 
 
     public static double[] sumOverOutputs(DMatrix losses) {

@@ -13,30 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.chunk;
+package greycat;
 
-public interface TimeTreeChunk extends Chunk {
+public interface NodeValue extends Node {
 
-    int insert(long key);
+    double getValue();
 
-    long getKey(int offset);
-
-    long previousOrEqual(long key);
-
-    int previousOrEqualOffset(long key);
-
-    void range(long startKey, long endKey, long maxElements, TreeWalker walker);
-
-    long magic();
-
-    long previous(long key);
-
-    long next(long key);
-
-    int size();
-
-    long capacity();
-
-    void setCapacity(long v);
+    void setValue(double newValue);
 
 }
