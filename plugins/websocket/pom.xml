@@ -19,7 +19,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-websocket</artifactId>
-    <version>8.2-SNAPSHOT</version>
+    <version>8.1-SNAPSHOT</version>
     <name>greycat-websocket</name>
 
     <properties>
@@ -29,7 +29,7 @@
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings</groupId>
-        <version>8.2-SNAPSHOT</version>
+        <version>8.1-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
 
