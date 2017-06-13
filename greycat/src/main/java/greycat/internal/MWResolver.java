@@ -672,12 +672,11 @@ final class MWResolver implements Resolver {
                                     final SuperTimeTreeChunk timeTree = (SuperTimeTreeChunk) superTimeTrees[i];
                                     if (timeTree != null) {
                                         long currentDivergenceTime = objectWorldOrder.get(worldCollector.get(i));
-                                        final long finalPreviousDivergenceTime = previousDivergenceTime;
                                         int finalI = i;
                                         timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
                                             @Override
                                             public void elem(final long superTime, final long superCapacity) {
-                                                if (superTime != finalPreviousDivergenceTime) {
+                                                if(!tempSuperTimeCollector.contains(superTime)){
                                                     tempSuperTimeCollector.put(superTime, finalI);
                                                     sumCapacity[0] = sumCapacity[0] + ((int) superCapacity);
                                                 }
@@ -701,12 +700,11 @@ final class MWResolver implements Resolver {
                                     final SuperTimeTreeChunk timeTree = (SuperTimeTreeChunk) superTimeTrees[i];
                                     if (timeTree != null) {
                                         long currentDivergenceTime = objectWorldOrder.get(worldCollector.get(i));
-                                        final long finalPreviousDivergenceTime = previousDivergenceTime;
                                         int finalI = i;
                                         timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
                                             @Override
                                             public void elem(final long superTime, final long superCapacity) {
-                                                if (superTime != finalPreviousDivergenceTime) {
+                                                if(!tempSuperTimeCollector.contains(superTime)){
                                                     tempSuperTimeCollector.put(superTime, finalI);
                                                     tempSuperTimeCollectorCapacity.put(superTime, superCapacity);
                                                 }
@@ -756,12 +754,11 @@ final class MWResolver implements Resolver {
                                                 if (currentDivergenceTime < from) {
                                                     currentDivergenceTime = from;
                                                 }
-                                                final long finalPreviousDivergenceTime = previousDivergenceTime;
                                                 int finalI = i;
                                                 timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new TreeWalker() {
                                                     @Override
                                                     public void elem(long t) {
-                                                        if (t != finalPreviousDivergenceTime) {
+                                                        if(!timeCollector.contains(t)){
                                                             timeCollector.put(t, finalI);
                                                         }
                                                     }

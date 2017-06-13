@@ -152,7 +152,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                             Node loopNode = (Node) loopObj;
                             _backend[i] = loopNode.graph().cloneNode(loopNode);
                         } else if (loopObj instanceof BaseTaskResult) {
-                            _backend[i] = ((BaseTaskResult)loopObj).clone();
+                            _backend[i] = ((BaseTaskResult) loopObj).clone();
                         } else {
                             _backend[i] = loopObj;
                         }
