@@ -244,6 +244,23 @@ public class GaussianENode {
         return covtemp;
     }
 
+    public DMatrix getPearson() {
+        if (!initCov()) {
+            return null;
+        }
+        VolatileDMatrix covtemp = VolatileDMatrix.empty(cov.rows(), cov.columns());
+        MatrixOps.copy(cov, covtemp);
+
+        for(int i=0;i<covtemp.rows();i++){
+            for(int j=0;j<covtemp.columns();j++){
+                if(covtemp.get(i,i)!=0 && covtemp.get(j,j)!=0) {
+                    covtemp.set(i, j, covtemp.get(i, j) / (covtemp.get(i, i) * covtemp.get(j, j)));
+                }
+            }
+        }
+        return covtemp;
+    }
+
     public double[] getSum() {
         int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         if (total != 0) {
