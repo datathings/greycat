@@ -249,12 +249,11 @@ public class GaussianENode {
             return null;
         }
         VolatileDMatrix covtemp = VolatileDMatrix.empty(cov.rows(), cov.columns());
-        MatrixOps.copy(cov, covtemp);
 
         for(int i=0;i<covtemp.rows();i++){
             for(int j=0;j<covtemp.columns();j++){
-                if(covtemp.get(i,i)!=0 && covtemp.get(j,j)!=0) {
-                    covtemp.set(i, j, covtemp.get(i, j) / (covtemp.get(i, i) * covtemp.get(j, j)));
+                if(cov.get(i,i)!=0 && cov.get(j,j)!=0) {
+                    covtemp.set(i, j, cov.get(i, j) / (cov.get(i, i) * cov.get(j, j)));
                 }
             }
         }
