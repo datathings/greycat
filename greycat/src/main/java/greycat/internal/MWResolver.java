@@ -1395,8 +1395,11 @@ final class MWResolver implements Resolver {
                 if (superTimeTree.lastKey() == timeTree.time()) {
                     superTimeTree.setLastValue(timeTree.size());
                 } else {
+                    superTimeTree.insert(timeTree.time(), timeTree.size());
+                    /*nodeWorldOrder.unlock();
                     castedNode.cacheUnlock();
                     throw new RuntimeException("GreyCat internal error");
+                    */
                 }
             } else {
                 //are we the last last one?
