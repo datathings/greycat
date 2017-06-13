@@ -169,8 +169,7 @@ public class TimelineTest {
         });
         Assert.assertTrue(counter[0] == 8);
     }
-
-
+    
     @Test
     public void test3() {
         Graph g = GraphBuilder.newBuilder().build();
@@ -189,8 +188,8 @@ public class TimelineTest {
                         TaskContext ctx = readprev.prepare(g, f_t10, new Callback<TaskResult>() {
                             @Override
                             public void on(TaskResult result) {
-                                Assert.assertEquals(1,result.size());
-                                Assert.assertEquals(5,((Node)((TaskResult)result.get(0)).get(0)).time());
+                                Assert.assertEquals(1, result.size());
+                                Assert.assertEquals(5, ((Node) ((TaskResult) result.get(0)).get(0)).time());
                                 f_t10.free();
                                 result.free();
                             }

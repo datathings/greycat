@@ -9,11 +9,17 @@ For any questions please contact us via our Gitter:
 [![Build Status](https://travis-ci.org/datathings/greycat.svg?branch=master)](https://travis-ci.org/datathings/greycat)
 
 # Changelog
-- Version 8 (~end of Mai 2017)
+- Version 9 (~end of June 2017)
+    - New DValueNode for high speed time-series
+    - Fix lower bound for travel in times
+    - Simplified update methods for index
+    - Fix NPM Compatibility v5, using the tgz file instead of NPM link during compilation
+- Version 8 (09/06/2017)
     - Backend API change: new mini-batch trees
     - New Traverse in Times API
-    - Data Compression using Time Offset strategy
-
+    - Introducing GreyCat modeling sub-project
+    - Initiate the IDEA plugin
+    - New protocol for TimeTree serialization
 - Version 7 (15/05/2017)
     - fix bug in global dictionary
     - add option in builder to desactivate global dictionary and introspection ability
