@@ -126,8 +126,6 @@
                                 ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
                                 ant.copy(file: "${basedir}/target/generated-sources/greycat.ts", todir: "${basedir}/target/classes-npm")
                                 ant.concat(append: true, destfile: "${basedir}/target/classes-npm/greycat.ts", "export = greycat;")
-                                def npmVersionProcess = "npm --version; node --version".execute(null, new File("${basedir}/target/classes-npm"))
-                                npmVersionProcess.waitForProcessOutput(System.out, System.err)
                                 def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/classes-npm"))
                                 npmInstallProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmInstallProcess.exitValue() != 0) {

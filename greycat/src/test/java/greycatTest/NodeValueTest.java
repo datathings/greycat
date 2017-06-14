@@ -25,7 +25,7 @@ public class NodeValueTest {
     /**
      * @ignore ts
      */
-    @Test
+    //@Test
     public void test() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
         g.connect(new Callback<Boolean>() {
@@ -33,7 +33,7 @@ public class NodeValueTest {
             public void on(Boolean result) {
                 NodeValue nodeValue = (NodeValue) g.newTypedNode(0, 0, CoreNodeValue.NAME);
                 long before = System.currentTimeMillis();
-                long size = 10000000;
+                long size = 5000000;
                 for (int i = 0; i < size; i++) {
                     int finalI = i;
                     g.lookup(0, i, nodeValue.id(), new Callback<NodeValue>() {

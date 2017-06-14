@@ -169,5 +169,37 @@ public class TimelineTest {
         });
         Assert.assertTrue(counter[0] == 8);
     }
+    
+    @Test
+    public void test3() {
+        Graph g = GraphBuilder.newBuilder().build();
+        g.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+
+                Node f = g.newNode(0, 5);
+                f.set("temp", Type.DOUBLE, 5.0);
+
+                f.travelInTime(10, new Callback<Node>() {
+                    @Override
+                    public void on(Node f_t10) {
+                        f_t10.set("temp", Type.DOUBLE, 10.0);
+                        Task readprev = Tasks.newTask().traverseTimeline("5", Constants.BEGINNING_OF_TIME_STR, "1");
+                        TaskContext ctx = readprev.prepare(g, f_t10, new Callback<TaskResult>() {
+                            @Override
+                            public void on(TaskResult result) {
+                                Assert.assertEquals(1, result.size());
+                                Assert.assertEquals(5, ((Node) ((TaskResult) result.get(0)).get(0)).time());
+                                f_t10.free();
+                                result.free();
+                            }
+                        });
+                        readprev.executeUsing(ctx);
+                    }
+                });
+            }
+        });
+    }
+
 
 }

@@ -5,8 +5,8 @@ class Device {
     rel modules : Module indexed by name,name2
     ref button : Button
 
-    indexed with time by name,identifier as MyIndex
-    indexed by name as MyIndex2
+    key with time name,identifier as MyKey
+    key name as MyKey2
 
 }
 

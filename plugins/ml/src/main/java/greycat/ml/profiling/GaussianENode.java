@@ -42,7 +42,7 @@ public class GaussianENode {
     }
 
     public void setPrecisions(double[] precisions) {
-        ((DoubleArray) backend.getOrCreate(Gaussian.PRECISIONS,Type.DOUBLE_ARRAY)).initWith(precisions);
+        ((DoubleArray) backend.getOrCreate(Gaussian.PRECISIONS, Type.DOUBLE_ARRAY)).initWith(precisions);
     }
 
 
@@ -125,7 +125,7 @@ public class GaussianENode {
 
         int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         if (total != 0) {
-            double[] sum = ((DoubleArray)backend.get(Gaussian.SUM)).extract();
+            double[] sum = ((DoubleArray) backend.get(Gaussian.SUM)).extract();
             avg = new double[sum.length];
             for (int i = 0; i < sum.length; i++) {
                 avg[i] = sum[i] / total;
@@ -175,15 +175,14 @@ public class GaussianENode {
             initAvg();
             int dim = avg.length;
 
-            DoubleArray gp= (DoubleArray) backend.get(Gaussian.PRECISIONS);
+            DoubleArray gp = (DoubleArray) backend.get(Gaussian.PRECISIONS);
 
 
             double[] err;
-            if(gp!=null){
-                err=gp.extract();
-            }
-            else {
-                err=new double[avg.length];
+            if (gp != null) {
+                err = gp.extract();
+            } else {
+                err = new double[avg.length];
             }
 
 
@@ -241,6 +240,22 @@ public class GaussianENode {
         }
         VolatileDMatrix covtemp = VolatileDMatrix.empty(cov.rows(), cov.columns());
         MatrixOps.copy(cov, covtemp);
+        return covtemp;
+    }
+
+    public DMatrix getPearson() {
+        if (!initCov()) {
+            return null;
+        }
+        VolatileDMatrix covtemp = VolatileDMatrix.empty(cov.rows(), cov.columns());
+
+        for (int i = 0; i < covtemp.rows(); i++) {
+            for (int j = 0; j < covtemp.columns(); j++) {
+                if (cov.get(i, i) != 0 && cov.get(j, j) != 0) {
+                    covtemp.set(i, j, (cov.get(i, j) / Math.sqrt(cov.get(i, i) * cov.get(j, j))));
+                }
+            }
+        }
         return covtemp;
     }
 

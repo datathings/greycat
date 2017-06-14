@@ -15,8 +15,6 @@
  */
 package greycat.language;
 
-import greycat.language.GreyCatModelLexer;
-import greycat.language.GreyCatModelParser;
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -108,7 +106,7 @@ public class Model {
                 final Relation relation = new Relation(name, type, isToOne);
 
                 if (!isToOne) {
-                    // relation indexes
+                    // relation keys
                     if (relDclCxt.toManyDcl().relationIndexDcl() != null) {
                         GreyCatModelParser.IndexedAttributesDclContext idxAttDclCtx =
                                 relDclCxt.toManyDcl().relationIndexDcl().indexedAttributesDcl();
@@ -122,23 +120,23 @@ public class Model {
                 newClass.addProperty(relation);
             }
 
-            // global indexes
-            for (int i = 0; i < classDclCxt.indexDcl().size(); i++) {
-                GreyCatModelParser.IndexDclContext indexDclCxt = classDclCxt.indexDcl().get(i);
-                String idxName = newClass.name() + "Idx" + i;
-                if (indexDclCxt.name != null) {
-                    idxName = indexDclCxt.name.getText();
+            // global keys
+            for (int i = 0; i < classDclCxt.keyDcl().size(); i++) {
+                GreyCatModelParser.KeyDclContext keyDclCxt = classDclCxt.keyDcl().get(i);
+                String idxName = newClass.name() + "Key" + i;
+                if (keyDclCxt.name != null) {
+                    idxName = keyDclCxt.name.getText();
                 }
-                Index idx = new Index(idxName);
-                for (TerminalNode idxDclIdent : indexDclCxt.indexedAttributesDcl().IDENT()) {
+                Key idx = new Key(idxName);
+                for (TerminalNode idxDclIdent : keyDclCxt.indexedAttributesDcl().IDENT()) {
                     Property indexedProperty = newClass.getProperty(idxDclIdent.getText());
                     Attribute att = (Attribute) indexedProperty;
                     idx.addAttribute(att);
                 }
-                if (indexDclCxt.withTimeDcl() != null) {
+                if (keyDclCxt.withTimeDcl() != null) {
                     idx.setWithTime(true);
                 }
-                newClass.addIndex(idx);
+                newClass.addKey(idx);
 
             }
         }

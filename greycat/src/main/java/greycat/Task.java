@@ -407,4 +407,6 @@ public interface Task {
 
     Task atomic(Task protectedTask, String... variablesToLock);
 
+    Task remote(Task sub);
+
 }

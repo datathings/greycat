@@ -248,7 +248,7 @@ public class VolatileDMatrix implements DMatrix {
 
     public static DMatrix identity(int rows, int columns) {
         DMatrix res = new VolatileDMatrix(null, rows, columns);
-        for (int i = 0; i < Math.max(rows, columns); i++) {
+        for (int i = 0; i < Math.min(rows, columns); i++) {
             res.set(i, i, 1.0);
         }
         return res;

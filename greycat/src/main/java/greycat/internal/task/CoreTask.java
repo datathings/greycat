@@ -165,6 +165,11 @@ public class CoreTask implements Task {
     }
 
     @Override
+    public final Task remote(Task sub) {
+        return then(new CF_Remote(sub));
+    }
+
+    @Override
     public final void execute(final Graph graph, final Callback<TaskResult> callback) {
         executeWith(graph, null, callback);
     }
@@ -334,11 +339,11 @@ public class CoreTask implements Task {
         boolean previousIsBS = false;
         for (int i = begin; i < end; i++) {
             char loopChar = reader.charAt(i);
-            if(previousIsBS){
+            if (previousIsBS) {
                 buf.append(loopChar);
                 previousIsBS = false;
             } else {
-                if(loopChar == '\\'){
+                if (loopChar == '\\') {
                     previousIsBS = true;
                 } else {
                     buf.append(loopChar);

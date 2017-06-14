@@ -57,7 +57,7 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
         return this;
     }
 
-    public static final String PREFIX = "ws";
+    public static final String PREFIX = "/ws";
 
     public void start() {
         PathHandler pathHandler = Handlers.path();

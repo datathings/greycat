@@ -86,7 +86,7 @@ public class ModelChecker {
                 }
 
                 if (!isToOne) {
-                    // relation indexes
+                    // relation keys
                     if (relDecCxt.toManyDcl().relationIndexDcl() != null) {
                         long line = relDecCxt.toManyDcl().relationIndexDcl().getStart().getLine();
                         greycat.language.GreyCatModelParser.IndexedAttributesDclContext idxAttsDclCtx =
@@ -102,11 +102,11 @@ public class ModelChecker {
                 }
             }
 
-            // global indexes
-            for (int i = 0; i < classDclCxt.indexDcl().size(); i++) {
-                greycat.language.GreyCatModelParser.IndexDclContext indexDclCxt = classDclCxt.indexDcl().get(i);
-                long line = indexDclCxt.getStart().getLine();
-                for (TerminalNode idxDclIdent : indexDclCxt.indexedAttributesDcl().IDENT()) {
+            // global keys
+            for (int i = 0; i < classDclCxt.keyDcl().size(); i++) {
+                greycat.language.GreyCatModelParser.KeyDclContext keyDclCxt = classDclCxt.keyDcl().get(i);
+                long line = keyDclCxt.getStart().getLine();
+                for (TerminalNode idxDclIdent : keyDclCxt.indexedAttributesDcl().IDENT()) {
                     String indexedAttName = idxDclIdent.getText();
 
                     if (!isAttOfCassifier(classFqn, indexedAttName, modelDclCtx)) {

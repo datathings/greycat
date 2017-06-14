@@ -46,6 +46,11 @@ public class CoreNodeValue extends BaseNode implements NodeValue {
     }
 
     @Override
+    public final void batchInsert(final long[] times, final double[] values) {
+        _resolver.batchInsert(this, times, values);
+    }
+
+    @Override
     public Node setAt(int index, byte type, Object value) {
         if (index != cached) {
             throw new RuntimeException("Bad API usage, NodeValue cannot contains other attributes");

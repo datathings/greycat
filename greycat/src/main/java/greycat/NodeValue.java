@@ -21,4 +21,6 @@ public interface NodeValue extends Node {
 
     void setValue(double newValue);
 
+    void batchInsert(long[] times, double[] values);
+
 }

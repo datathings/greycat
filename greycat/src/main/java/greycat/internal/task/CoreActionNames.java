@@ -83,6 +83,7 @@ public class CoreActionNames {
     public static String IF_THEN = "ifThen";
     public static String IF_THEN_ELSE = "ifThenElse";
     public static String ATOMIC = "atomic";
+    public static String REMOTE = "remote";
     public static String FLAT = "flat";
     public static String INJECT = "inject";
     public static String QUERY_BOUNDED_RADIUS = "queryBoundedRadius";

@@ -49,8 +49,7 @@ public class Losses {
 
 
     public static DMatrix sumOverOutputsMatrix(DMatrix losses) {
-        DMatrix res = VolatileDMatrix.identity(losses.rows(),1);
-
+        DMatrix res = VolatileDMatrix.empty(losses.rows(),1);
         for (int i = 0; i < losses.rows(); i++) {
             for (int j = 0; j < losses.columns(); j++) {
                 res.add(i,0,losses.get(i, j));

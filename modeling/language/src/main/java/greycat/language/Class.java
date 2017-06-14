@@ -21,14 +21,14 @@ import java.util.*;
 public class Class implements Classifier {
     private final String name;
     private final Map<String, Property> properties;
-    private final List<Index> indexes;
+    private final List<Key> keys;
 
     private Class parent;
 
     public Class(String name) {
         this.name = name;
         this.properties = new HashMap<>();
-        this.indexes = new LinkedList<>();
+        this.keys = new LinkedList<>();
     }
 
     public Property[] properties() {
@@ -56,12 +56,12 @@ public class Class implements Classifier {
         this.parent = parent;
     }
 
-    public void addIndex(Index index) {
-        indexes.add(index);
+    public void addKey(Key index) {
+        keys.add(index);
     }
 
-    public Index[] indexes() {
-        return indexes.toArray(new Index[indexes.size()]);
+    public Key[] keys() {
+        return keys.toArray(new Key[keys.size()]);
     }
 
 

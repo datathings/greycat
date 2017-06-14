@@ -61,6 +61,8 @@ public class CoreConstants extends Constants {
 
     public static final String INDEX_ATTRIBUTE = "index";
 
+    public static final String REVERSE_INDEX_ATTRIBUTE = "r_index";
+
     /**
      * Map constants
      */

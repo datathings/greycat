@@ -128,7 +128,7 @@ final class MWResolver implements Resolver {
         final BaseNode casted = (BaseNode) node;
         casted.cacheLock();
         if (!casted._dead) {
-            if(casted._index_stateChunk != -1){
+            if (casted._index_stateChunk != -1) {
                 this._space.unmark(casted._index_stateChunk);
             }
             this._space.unmark(casted._index_timeTree);
@@ -185,6 +185,125 @@ final class MWResolver implements Resolver {
     }
 
     @Override
+    public void batchInsert(final Node target, final long[] times, final double[] values) {
+        if (times.length != values.length) {
+            throw new RuntimeException("Bad API usage, times and values array should have the same size");
+        }
+        final BaseNode castedNode = (BaseNode) target;
+        castedNode.cacheLock();
+        if (castedNode._dead) {
+            castedNode.cacheUnlock();
+            throw new RuntimeException(CoreConstants.DEAD_NODE_ERROR + " node id: " + castedNode.id());
+        }
+        final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(castedNode._index_worldOrder);
+        if (worldOrderChunk.type() != NodeValueType) {
+            castedNode.cacheUnlock();
+            throw new RuntimeException("Bad API usage, batch insert only valid for NodeValue");
+        }
+        worldOrderChunk.lock();
+        //compute time sensitivity
+        final SuperTimeTreeChunk superTimeTree = (SuperTimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
+
+
+        final long timeSensitivity = superTimeTree.timeSensitivity();
+
+
+        /*
+        if (timeSensitivity != 0 && timeSensitivity != Constants.NULL_LONG) {
+            if (timeSensitivity < 0) {
+                nodeTime = previousTime;
+            } else {
+                long timeSensitivityOffset = superTimeTree.timeSensitivityOffset();
+                if (timeSensitivityOffset == Constants.NULL_LONG) {
+                    timeSensitivityOffset = 0;
+                }
+                nodeTime = nodeTime - (nodeTime % timeSensitivity) + timeSensitivityOffset;
+            }
+        }*/
+
+        /*
+        StateChunk clonedState = null;
+        if (castedNode._index_stateChunk != -1) {
+            if (nodeTime != previousTime || nodeWorld != previousWorld) {
+                try {
+                    clonedState = (StateChunk) this._space.createAndMark(ChunkType.STATE_CHUNK, nodeWorld, nodeTime, nodeId);
+                    clonedState.loadFrom(previouStateChunk);
+                } catch (Exception e) {
+                    nodeWorldOrder.unlock();
+                    castedNode.cacheUnlock();
+                    throw e;
+                }
+                castedNode._index_stateChunk = clonedState.index();
+                _space.unmark(previouStateChunk.index());
+            } else {
+                clonedState = previouStateChunk;
+            }
+        }
+        castedNode._world_magic = -1;
+        castedNode._super_time_magic = -1;
+        castedNode._time_magic = -1;
+
+        byte subTreeType = ChunkType.TIME_TREE_CHUNK;
+        if (castedNode._index_stateChunk == -1) {
+            subTreeType = ChunkType.TIME_TREE_DVALUE_CHUNK;
+        }
+        if (previousWorld == nodeWorld || nodeWorldOrder.get(nodeWorld) != CoreConstants.NULL_LONG) {
+            //final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
+            final TimeTreeChunk timeTree = (TimeTreeChunk) this._space.get(castedNode._index_timeTree);
+            final long subTreeCapacity = timeTree.capacity();
+            if (timeTree.size() < subTreeCapacity) {
+                //easy, just insert the new timeslot
+                castedNode._index_timeTree_offset = timeTree.insert(nodeTime);
+                if (superTimeTree.lastKey() == timeTree.time()) {
+                    superTimeTree.setLastValue(timeTree.size());
+                } else {
+                    castedNode.cacheUnlock();
+                    throw new RuntimeException("GreyCat internal error");
+                }
+            } else {
+                //are we the last last one?
+                if (superTimeTree.lastKey() == timeTree.time()) {
+                    TimeTreeChunk newTimeTree = (TimeTreeChunk) this._space.createAndMark(subTreeType, nodeWorld, nodeTime, nodeId);
+                    long allowedSubTreeCapacity = superTimeTree.subTreeCapacity();
+                    castedNode._index_timeTree_offset = newTimeTree.insert(nodeTime);
+                    newTimeTree.setCapacity(allowedSubTreeCapacity);
+                    superTimeTree.insert(nodeTime, allowedSubTreeCapacity);
+                    _space.unmark(castedNode._index_timeTree);
+                    castedNode._index_timeTree = newTimeTree.index();
+                } else {
+                    //insertion in past, oversize tree
+                    castedNode._index_timeTree_offset = timeTree.insert(nodeTime);
+                    timeTree.setCapacity(subTreeCapacity + 1);
+                    superTimeTree.insert(timeTree.time(), subTreeCapacity + 1);
+                }
+            }
+        } else {
+            //create a new node superTimeTree
+            SuperTimeTreeChunk newSuperTimeTree = (SuperTimeTreeChunk) this._space.createAndMark(ChunkType.SUPER_TIME_TREE_CHUNK, nodeWorld, 0, nodeId);
+            long subTreeCapacity = superTimeTree.subTreeCapacity();
+            newSuperTimeTree.insert(nodeTime, subTreeCapacity);
+            //create a new node timeTree
+            TimeTreeChunk newTimeTree = (TimeTreeChunk) this._space.createAndMark(subTreeType, nodeWorld, nodeTime, nodeId);
+            castedNode._index_timeTree_offset = newTimeTree.insert(nodeTime);
+            newTimeTree.setCapacity(subTreeCapacity);
+            //insert into node world order
+            nodeWorldOrder.put(nodeWorld, nodeTime);
+            //let's store the new state if necessary
+            _space.unmark(castedNode._index_timeTree);
+            _space.unmark(castedNode._index_superTimeTree);
+            castedNode._index_timeTree = newTimeTree.index();
+            castedNode._index_superTimeTree = newSuperTimeTree.index();
+        }
+        if (castedNode._index_stateChunk == -1) {
+            clonedState = ((TimeTreeEmbeddedChunk) _space.get(castedNode._index_timeTree)).state(castedNode._index_timeTree_offset);
+        }
+        nodeWorldOrder.unlock();
+        castedNode.cacheUnlock();
+        return clonedState;
+        */
+    }
+
+    @Override
     public final <A extends Node> void lookup(final long world, final long time, final long id, final Callback<A> callback) {
         final MWResolver selfPointer = this;
         selfPointer._space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
@@ -218,7 +337,7 @@ final class MWResolver implements Resolver {
                                 }
                                 byte treeType = ChunkType.TIME_TREE_CHUNK;
                                 //TODO extends
-                                if(castedWC.type() == NodeValueType){
+                                if (castedWC.type() == NodeValueType) {
                                     treeType = ChunkType.TIME_TREE_DVALUE_CHUNK;
                                 }
                                 selfPointer._space.getOrLoadAndMark(treeType, closestWorld, closestSuperTime, id, new Callback<Chunk>() {
@@ -283,7 +402,7 @@ final class MWResolver implements Resolver {
                                                     }
                                                 }
                                             };
-                                            if(castedWC.type() == NodeValueType){
+                                            if (castedWC.type() == NodeValueType) {
                                                 cc.on(((TimeTreeEmbeddedChunk) theNodeTimeTree).state(closestTimeOffset));
                                             } else {
                                                 selfPointer._space.getOrLoadAndMark(ChunkType.STATE_CHUNK, closestWorld, closestTime, id, cc);
@@ -617,7 +736,7 @@ final class MWResolver implements Resolver {
 
     @Override
     public void lookupPTimes(long world, long[] times, long id, Callback<Node[]> callback) {
-
+        throw new RuntimeException("Not implemented yet!");
     }
 
     @Override
@@ -697,12 +816,11 @@ final class MWResolver implements Resolver {
                                     final SuperTimeTreeChunk timeTree = (SuperTimeTreeChunk) superTimeTrees[i];
                                     if (timeTree != null) {
                                         long currentDivergenceTime = objectWorldOrder.get(worldCollector.get(i));
-                                        final long finalPreviousDivergenceTime = previousDivergenceTime;
                                         int finalI = i;
                                         timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
                                             @Override
                                             public void elem(final long superTime, final long superCapacity) {
-                                                if (superTime != finalPreviousDivergenceTime) {
+                                                if (!tempSuperTimeCollector.contains(superTime)) {
                                                     tempSuperTimeCollector.put(superTime, finalI);
                                                     sumCapacity[0] = sumCapacity[0] + ((int) superCapacity);
                                                 }
@@ -726,12 +844,11 @@ final class MWResolver implements Resolver {
                                     final SuperTimeTreeChunk timeTree = (SuperTimeTreeChunk) superTimeTrees[i];
                                     if (timeTree != null) {
                                         long currentDivergenceTime = objectWorldOrder.get(worldCollector.get(i));
-                                        final long finalPreviousDivergenceTime = previousDivergenceTime;
                                         int finalI = i;
                                         timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
                                             @Override
                                             public void elem(final long superTime, final long superCapacity) {
-                                                if (superTime != finalPreviousDivergenceTime) {
+                                                if (!tempSuperTimeCollector.contains(superTime)) {
                                                     tempSuperTimeCollector.put(superTime, finalI);
                                                     tempSuperTimeCollectorCapacity.put(superTime, superCapacity);
                                                 }
@@ -781,12 +898,11 @@ final class MWResolver implements Resolver {
                                                 if (currentDivergenceTime < from) {
                                                     currentDivergenceTime = from;
                                                 }
-                                                final long finalPreviousDivergenceTime = previousDivergenceTime;
                                                 int finalI = i;
                                                 timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new TreeWalker() {
                                                     @Override
                                                     public void elem(long t) {
-                                                        if (t != finalPreviousDivergenceTime) {
+                                                        if (!timeCollector.contains(t)) {
                                                             timeCollector.put(t, finalI);
                                                         }
                                                     }
@@ -1449,8 +1565,11 @@ final class MWResolver implements Resolver {
                 if (superTimeTree.lastKey() == timeTree.time()) {
                     superTimeTree.setLastValue(timeTree.size());
                 } else {
+                    superTimeTree.insert(timeTree.time(), timeTree.size());
+                    /*nodeWorldOrder.unlock();
                     castedNode.cacheUnlock();
                     throw new RuntimeException("GreyCat internal error");
+                    */
                 }
             } else {
                 //are we the last last one?

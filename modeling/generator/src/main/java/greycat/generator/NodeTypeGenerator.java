@@ -192,7 +192,7 @@ class NodeTypeGenerator {
                     );
                 }
 
-                // relation indexes
+                // relation keys
                 StringBuilder relIdxBuilder = new StringBuilder();
                 if (rel.isIndexedRelation()) {
                     for (String att : rel.indexedAttributes()) {
@@ -269,13 +269,13 @@ class NodeTypeGenerator {
         }
 
 
-        // indexes
-        if (classClassifier.indexes().length > 0) {
+        // keys
+        if (classClassifier.keys().length > 0) {
             StringBuilder indexMethodBody = new StringBuilder();
             StringBuilder unindexMethodBody = new StringBuilder();
 
             String deferPart = "\t\tfinal " + classClassifier.name() + " self = this;\n" +
-                    "\t\tgreycat.DeferCounter deferCounter = this.graph().newCounter(" + classClassifier.indexes().length + ");\n" +
+                    "\t\tgreycat.DeferCounter deferCounter = this.graph().newCounter(" + classClassifier.keys().length + ");\n" +
                     "\t\tdeferCounter.then(new greycat.plugin.Job() {\n" +
                     "\t\t\t@Override\n" +
                     "\t\t\tpublic void run() {\n" +
@@ -288,28 +288,28 @@ class NodeTypeGenerator {
             indexMethodBody.append(deferPart);
             unindexMethodBody.append(deferPart);
 
-            for (Index idx : classClassifier.indexes()) {
-                String idxName = idx.name();
+            for (Key key : classClassifier.keys()) {
+                String keyName = key.name();
 
                 // index constants
                 javaClass.addField()
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
-                        .setName(idxName.toUpperCase())
+                        .setName(keyName.toUpperCase())
                         .setType(String.class)
-                        .setStringInitializer(idxName)
+                        .setStringInitializer(keyName)
                         .setStatic(true);
 
                 StringBuilder indexedProperties = new StringBuilder();
-                for (Property property : idx.attributes()) {
+                for (Property property : key.attributes()) {
                     indexedProperties.append(property.name().toUpperCase());
                     indexedProperties.append(",");
                 }
                 indexedProperties.deleteCharAt(indexedProperties.length() - 1);
-                String time = idx.isWithTime() ? "time()" : "greycat.Constants.BEGINNING_OF_TIME";
+                String time = key.isWithTime() ? "time()" : "greycat.Constants.BEGINNING_OF_TIME";
 
                 indexMethodBody.append(
-                        "\t\tthis.graph().index(world(), " + time + "," + idxName.toUpperCase() + " , new greycat.Callback<greycat.NodeIndex>() {\n" +
+                        "\t\tthis.graph().index(world(), " + time + "," + keyName.toUpperCase() + " , new greycat.Callback<greycat.NodeIndex>() {\n" +
                                 "\t\t\t@Override\n" +
                                 "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
                                 "\t\t\t\tindexNode.removeFromIndex(self, " + indexedProperties + " );\n" +
@@ -320,7 +320,7 @@ class NodeTypeGenerator {
                 );
 
                 unindexMethodBody.append(
-                        "\t\tthis.graph().index(world(), " + time + "," + idxName.toUpperCase() + " , new greycat.Callback<greycat.NodeIndex>() {\n" +
+                        "\t\tthis.graph().index(world(), " + time + "," + keyName.toUpperCase() + " , new greycat.Callback<greycat.NodeIndex>() {\n" +
                                 "\t\t\t@Override\n" +
                                 "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
                                 "\t\t\t\tindexNode.removeFromIndex(self, " + indexedProperties + " );\n" +

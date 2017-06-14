@@ -18,14 +18,14 @@ import java.util.List;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class Index {
+public class Key {
     private final String name;
     private final List<Attribute> attributes;
 
     private boolean withTime;
 
 
-    public Index(String name) {
+    public Key(String name) {
         this.name = name;
         this.attributes = new LinkedList<>();
         this.withTime = false;
@@ -42,8 +42,8 @@ public class Index {
 
     public boolean equals(Object other) {
         if (this == other) return true;
-        if (!(other instanceof Index)) return false;
-        final Index that = (Index) other;
+        if (!(other instanceof Key)) return false;
+        final Key that = (Key) other;
         return this.name().equals(that.name());
     }
 

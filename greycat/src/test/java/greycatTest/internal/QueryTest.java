@@ -322,4 +322,9 @@ public class QueryTest implements Resolver, Graph {
 
     }
 
+    @Override
+    public void batchInsert(Node target, long[] times, double[] values) {
+
+    }
+
 }

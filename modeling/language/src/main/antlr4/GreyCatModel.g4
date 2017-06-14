@@ -30,7 +30,7 @@ modelDcl: (enumDcl | classDcl)*;
 enumDcl: 'enum' name=IDENT '{' enumLiteralsDcl '}';
 enumLiteralsDcl: IDENT (',' IDENT)*;
 
-classDcl: 'class' name=IDENT parentDcl? '{' (attributeDcl | relationDcl | indexDcl)* '}';
+classDcl: 'class' name=IDENT parentDcl? '{' (attributeDcl | relationDcl | keyDcl)* '}';
 parentDcl: 'extends' name=IDENT;
 attributeDcl: 'att' name=IDENT ':' attributeTypeDcl;
 attributeTypeDcl: ('String' | 'Double' | 'Long' | 'Integer' | 'Boolean') ('[]')?;
@@ -40,5 +40,5 @@ relationIndexDcl: 'indexed' 'by' indexedAttributesDcl;
 indexedAttributesDcl: IDENT (',' IDENT)*;
 toOneDcl : 'ref' name=IDENT ':' type=IDENT;
 
-indexDcl: 'indexed' withTimeDcl? 'by' indexedAttributesDcl ('as' name=IDENT)?;
+keyDcl: 'key' withTimeDcl? indexedAttributesDcl ('as' name=IDENT)?;
 withTimeDcl: 'with time';
