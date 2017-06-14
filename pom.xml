@@ -9,13 +9,13 @@
     <groupId>com.datathings.enterprise</groupId>
     <artifactId>greycat-parent</artifactId>
     <packaging>pom</packaging>
-    <version>8-SNAPSHOT</version>
+    <version>9-SNAPSHOT</version>
     <name>greycat-enterprise-parent</name>
     <description>greycat-enterprise-parent</description>
 
 
     <properties>
-        <greycat.version>8.2</greycat.version>
+        <greycat.version>9-SNAPSHOT</greycat.version>
         <java2typescript.plugin.version>87</java2typescript.plugin.version>
         <header.path>${project.basedir}/LICENSE</header.path>
     </properties>
