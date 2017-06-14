@@ -25,6 +25,7 @@
         <module>excel</module>
         <module>blas</module>
         <module>secwebsocket</module>
+        <module>email</module>
     </modules>
 
     <developers>
