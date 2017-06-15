@@ -20,3 +20,8 @@ class Button {
 }
 
 
+class SubModule extends Module {
+
+    key name as SubModules
+}
+

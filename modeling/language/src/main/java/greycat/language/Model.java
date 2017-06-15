@@ -129,7 +129,7 @@ public class Model {
                 }
                 Key idx = new Key(idxName);
                 for (TerminalNode idxDclIdent : keyDclCxt.indexedAttributesDcl().IDENT()) {
-                    Property indexedProperty = newClass.getProperty(idxDclIdent.getText());
+                    Property indexedProperty = getProperty(newClass, idxDclIdent.getText());
                     Attribute att = (Attribute) indexedProperty;
                     idx.addAttribute(att);
                 }
@@ -142,6 +142,14 @@ public class Model {
         }
     }
 
+    private Property getProperty(Class clazz, String propertyName) {
+        Property p = clazz.getProperty(propertyName);
+        if (p != null) {
+            return p;
+        } else {
+            return getProperty(clazz.parent(), propertyName);
+        }
+    }
 
     private Class getOrCreateAndAddClass(String fqn) {
         Class previous = (Class) this.get(fqn);

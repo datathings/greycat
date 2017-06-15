@@ -192,7 +192,7 @@ class NodeTypeGenerator {
                     );
                 }
 
-                // relation keys
+                // relation indexes
                 StringBuilder relIdxBuilder = new StringBuilder();
                 if (rel.isIndexedRelation()) {
                     for (String att : rel.indexedAttributes()) {
