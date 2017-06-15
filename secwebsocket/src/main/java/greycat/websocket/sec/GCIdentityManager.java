@@ -3,9 +3,7 @@
  */
 package greycat.websocket.sec;
 
-import greycat.Callback;
-import greycat.Constants;
-import greycat.Graph;
+import greycat.*;
 import greycat.websocket.sec.GCPrincipal;
 import greycat.websocket.sec.GCSecAccount;
 import io.undertow.security.idm.Account;
@@ -97,6 +95,49 @@ public class GCIdentityManager {
             }
         }
         callback.on(active);
+    }
+
+    public String createPasswordChangeUUID(Node user) {
+        UUID tmpUUID = UUID.randomUUID();
+        user.set("password_reset_uuid", Type.STRING, tmpUUID.toString());
+        user.set("password_reset_timeout", Type.LONG, System.currentTimeMillis() + 5 * 60 * 1000);
+        return tmpUUID.toString();
+    }
+
+    public void resetPassword(String uuid, String pass, Callback<Integer> callback) {
+        graph.index(0, Constants.BEGINNING_OF_TIME, usersIndex, indexNode -> {
+            indexNode.find(users -> {
+                boolean acted = false;
+                for (int i = 0; i < users.length; i++) {
+                    Node user = users[i];
+                    String userUuid = (String) user.get("password_reset_uuid");
+                    if (userUuid != null) {
+                        long timeout = (long) user.get("password_reset_timeout");
+                        if (System.currentTimeMillis() < timeout) {
+                            if(userUuid.equals(uuid)) {
+                                user.set(passAttribute, Type.STRING, pass);
+                                user.set("password_reset_uuid", Type.STRING, null);
+                                user.set("password_reset_timeout", Type.LONG, null);
+                                graph.save((ok)->{
+                                    callback.on(1);
+                                });
+                                acted = true;
+                                break;
+                            }
+                        } else {
+                            user.set("password_reset_uuid", Type.STRING, null);
+                            user.set("password_reset_timeout", Type.LONG, null);
+                            if(userUuid.equals(uuid)) {
+                                callback.on(-1);
+                            }
+                        }
+                    }
+                }
+                if (!acted) {
+                    callback.on(-2);
+                }
+            });
+        });
     }
 
 }
