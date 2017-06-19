@@ -132,6 +132,14 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
             byte firstCodeView = codeView.read(0);
             //compute resp prefix
             switch (firstCodeView) {
+                case WSConstants.HEART_BEAT_PING:{
+                    final Buffer concat = graph.newBuffer();
+                    concat.write(WSConstants.HEART_BEAT_PONG);
+                    concat.writeString("ok");
+                    WSServer.this.send_resp(concat, channel);
+                }break;
+                case WSConstants.HEART_BEAT_PONG:{//Ignore
+                }break;
                 case WSConstants.REQ_GET:
                     //build keys list
                     final List<ChunkKey> keys = new ArrayList<ChunkKey>();

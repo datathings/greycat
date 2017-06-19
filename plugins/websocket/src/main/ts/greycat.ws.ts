@@ -42,6 +42,10 @@ export class WSClient implements greycat.plugin.Storage {
   private static NOTIFY_PRINT = 13;
   private static NOTIFY_PROGRESS = 14;
 
+  private static HEART_BEAT_PING = 15;
+  private static HEART_BEAT_PONG = 16;
+
+  private heartBeatFunctionId;
 
   constructor(p_url: string) {
     this.url = p_url;
@@ -52,6 +56,14 @@ export class WSClient implements greycat.plugin.Storage {
 
   listen(cb: greycat.Callback<greycat.struct.Buffer>) {
     this._listeners.push(cb);
+  }
+
+  private heartbeat() {
+    const concat = this.graph.newBuffer();
+    concat.write(WSClient.HEART_BEAT_PING);
+    let flatData = concat.data();
+    concat.free();
+    this.ws.send(flatData);
   }
 
   connect(p_graph: greycat.Graph, callback: greycat.Callback<boolean>): void {
@@ -77,6 +89,7 @@ export class WSClient implements greycat.plugin.Storage {
           callback(false);
         }
         self.ws = null;
+        clearInterval(selfPointer.heartBeatFunctionId);
       };
 
       this.ws.onerror = function (event: ErrorEvent) {
@@ -85,11 +98,13 @@ export class WSClient implements greycat.plugin.Storage {
           callback(false);
         }
         self.ws = null;
+        clearInterval(selfPointer.heartBeatFunctionId);
       };
 
       this.ws.onopen = function (event: Event) {
         initialConnection = false;
         callback(true);
+        selfPointer.heartBeatFunctionId = setInterval(selfPointer.heartbeat.bind(selfPointer), 50*1000);
       };
     } else {
       //do nothing
@@ -99,6 +114,7 @@ export class WSClient implements greycat.plugin.Storage {
 
   disconnect(callback: greycat.Callback<boolean>): void {
     if (this.ws != null) {
+      clearInterval(this.heartBeatFunctionId);
       this.ws.close();
       this.ws = null;
       callback(true);
@@ -267,6 +283,16 @@ export class WSClient implements greycat.plugin.Storage {
     if (codeView != null && codeView.length() != 0) {
       let firstCode = codeView.read(0);
       switch (firstCode) {
+        case WSClient.HEART_BEAT_PING:{
+          const concat = this.graph.newBuffer();
+          concat.write(WSClient.HEART_BEAT_PONG);
+          concat.writeString("ok");
+          let flatData = concat.data();
+          concat.free();
+          this.ws.send(flatData);
+        }break;
+        case WSClient.HEART_BEAT_PONG:{//Ignore
+        }break;
         case WSClient.NOTIFY_UPDATE:
           while (it.hasNext()) {
             WSClient.process_notify(it.next(), this.graph);
