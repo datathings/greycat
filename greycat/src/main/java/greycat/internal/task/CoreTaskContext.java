@@ -24,7 +24,6 @@ import greycat.internal.task.math.MathExpressionEngine;
 import greycat.base.BaseNode;
 import greycat.struct.Buffer;
 import greycat.utility.*;
-import greycat.TaskProgressType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +52,7 @@ class CoreTaskContext implements TaskContext {
     private Buffer _silent;
     private Callback<String> _printHook = null;
     private Callback<TaskProgressReport> _progressHook = null;
+    private boolean _taskProgressAutoReporting = false;
     private LMap _transactionTracker = null;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
@@ -116,7 +116,7 @@ class CoreTaskContext implements TaskContext {
         for (int i = 0; i < globalKeys.length; i++) {
             collected.put(globalKeys[i], _globalVariables.get(globalKeys[i]));
         }
-        if(_localVariables != null) {
+        if (_localVariables != null) {
             String[] localKeys = _localVariables.keySet().toArray(new String[_localVariables.size()]);
             for (int i = 0; i < localKeys.length; i++) {
                 collected.put(localKeys[i], _localVariables.get(localKeys[i]));
@@ -471,6 +471,9 @@ class CoreTaskContext implements TaskContext {
                     globalHooks[i].beforeAction(nextAction, this);
                 }
             }
+            if (this._taskProgressAutoReporting) {
+                reportProgress(0, null);
+            }
             final int previousCursor = cursor;
             try {
                 nextAction.eval(this);
@@ -550,7 +553,7 @@ class CoreTaskContext implements TaskContext {
                     _result = new BaseTaskResult(null, false);
                 }
                 _result.setOutput(_output.toString());
-                if (_silent == null  && _parent == null) {
+                if (_silent == null && _parent == null) {
                     System.out.println(_result.output());
                 }
             }
@@ -774,6 +777,8 @@ class CoreTaskContext implements TaskContext {
         buffer.write(CoreConstants.CHUNK_SEP);
         Base64.encodeLongToBuffer(_time, buffer);
         buffer.write(CoreConstants.CHUNK_SEP);
+        Base64.encodeIntToBuffer((_taskProgressAutoReporting ? 1 : 0), buffer);
+        buffer.write(CoreConstants.CHUNK_SEP);
         if (_result != null) {
             _result.saveToBuffer(buffer);
         }
@@ -782,6 +787,22 @@ class CoreTaskContext implements TaskContext {
             Base64.encodeStringToBuffer(variables[i].left(), buffer);
             variables[i].right().saveToBuffer(buffer);
         }
+    }
+
+    private int readInt(final Buffer buffer, final int begin) {
+        int cursor = begin;
+        while (cursor < buffer.length()) {
+            byte current = buffer.read(cursor);
+            if (current == Constants.CHUNK_SEP) {
+                if (begin != cursor) {
+                    _taskProgressAutoReporting = (Base64.decodeToIntWithBounds(buffer, begin, cursor) == 1 ? true : false);
+                    break;
+                }
+            } else {
+                cursor++;
+            }
+        }
+        return cursor;
     }
 
     private int readLong(final Buffer buffer, final int begin, final boolean world) {
@@ -842,6 +863,8 @@ class CoreTaskContext implements TaskContext {
         cursor++;
         cursor = readLong(buffer, cursor, false);
         cursor++;
+        cursor = readInt(buffer, cursor);
+        cursor++;
         while (cursor < buffer.length()) {
             cursor = readResult(buffer, cursor, collector);
             cursor++;
@@ -895,90 +918,67 @@ class CoreTaskContext implements TaskContext {
         return this._progressHook;
     }
 
-    @Override
-    public final void reportProgress(final int step, final int total, final String comment) {
-        if (this._progressHook != null) {
-            this._progressHook.on(new CoreProgressReport()
-                    .setType(TaskProgressType.ACTION_PROGRESS)
-                    .setIndex(step)
-                    .setTotal(total)
-                    .setComment(comment));
-        } else {
-            if(_parent != null) {
-                _parent.reportProgress(step, total, comment);
+    private String _parentActionPath;
+
+    private String currentActionPath() {
+        if (_parentActionPath == null) {
+            if (_parent != null) {
+                _parentActionPath = ((CoreTaskContext) _parent).currentActionPath() + ".";
+            } else {
+                _parentActionPath = "";
             }
         }
+        return this._parentActionPath + cursor;
     }
+
+    private String _sumPath;
+
+    private String sumPath() {
+        if (_sumPath == null) {
+            if (_parent != null) {
+                _sumPath = ((CoreTaskContext) _parent).sumPath() + ".";
+            } else {
+                _sumPath = "";
+            }
+            _sumPath = _sumPath + _origin.insertCursor;
+        }
+        return this._sumPath;
+    }
+
+
+    @Override
+    public final void reportProgress(final double progress, final String comment) {
+
+        Callback<TaskProgressReport> progressHook = this._progressHook;
+        TaskContext localParent = _parent;
+        while (progressHook == null && localParent != null) {
+            progressHook = localParent.progressHook();
+            localParent = ((CoreTaskContext) localParent)._parent;
+        }
+
+        if (progressHook != null) {
+            CoreProgressReport report = new CoreProgressReport()
+                    .setActionPath(currentActionPath())
+                    .setSumPath(sumPath())
+                    .setProgress(progress);
+            if (comment != null) {
+                report.setComment(comment);
+            } else {
+                report.setComment(_origin.actions[cursor].name());
+            }
+            progressHook.on(report);
+        }
+    }
+
 
     @Override
     public final void setProgressHook(final Callback<TaskProgressReport> hook) {
         this._progressHook = hook;
-        TaskHook[] hooks;
-        if (this._hooks != null) {
-            hooks = new TaskHook[this._hooks.length + 1];
-        } else {
-            hooks = new TaskHook[1];
-        }
-        //TODO huge warning for performance, we need a log granularity
-        hooks[0] = new TaskHook() {
-            @Override
-            public void start(TaskContext initialContext) {
-                hook.on(new CoreProgressReport()
-                        .setType(TaskProgressType.START_TASK)
-                        .setIndex(((CoreTaskContext) initialContext).cursor)
-                        .setTotal(((CoreTaskContext) initialContext)._origin.insertCursor)
-                        .setComment("Execution Start"));
-            }
+    }
 
-            @Override
-            public void beforeAction(Action action, TaskContext context) {
-                hook.on(new CoreProgressReport()
-                        .setType(TaskProgressType.START_ACTION)
-                        .setIndex(((CoreTaskContext) context).cursor)
-                        .setTotal(((CoreTaskContext) context)._origin.insertCursor)
-                        .setComment("Start " + action.name()));
-            }
-
-            @Override
-            public void afterAction(Action action, TaskContext context) {
-                hook.on(new CoreProgressReport()
-                        .setType(TaskProgressType.END_ACTION)
-                        .setIndex(((CoreTaskContext) context).cursor)
-                        .setTotal(((CoreTaskContext) context)._origin.insertCursor)
-                        .setComment("End " + action.name()));
-            }
-
-            @Override
-            public void beforeTask(TaskContext parentContext, TaskContext context) {
-                hook.on(new CoreProgressReport()
-                        .setType(TaskProgressType.START_SUB_TASK)
-                        .setIndex(((CoreTaskContext) context).cursor)
-                        .setTotal(((CoreTaskContext) context)._origin.insertCursor)
-                        .setComment("Start sub-task"));
-            }
-
-            @Override
-            public void afterTask(TaskContext context) {
-                hook.on(new CoreProgressReport()
-                        .setType(TaskProgressType.END_SUB_TASK)
-                        .setIndex(((CoreTaskContext) context).cursor)
-                        .setTotal(((CoreTaskContext) context)._origin.insertCursor)
-                        .setComment("End sub-task"));
-            }
-
-            @Override
-            public void end(TaskContext finalContext) {
-                hook.on(new CoreProgressReport()
-                        .setType(TaskProgressType.END_TASK)
-                        .setIndex(((CoreTaskContext) finalContext).cursor)
-                        .setTotal(((CoreTaskContext) finalContext)._origin.insertCursor)
-                        .setComment("Execution end"));
-            }
-        };
-        if (this._hooks != null) {
-            System.arraycopy(this._hooks, 0, hooks, 1, this._hooks.length);
-        }
-        this._hooks = hooks;
+    @Override
+    public void setProgressAutoReport(boolean activate) {
+        this._taskProgressAutoReporting = activate;
     }
 
     @Override

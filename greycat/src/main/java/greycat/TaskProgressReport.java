@@ -20,9 +20,9 @@ package greycat;
  */
 public interface TaskProgressReport {
 
-    byte type();
-    int index();
-    int total();
+    double progress();
+    String actionPath();
+    String actionSumPath();
     String comment();
 
 }
