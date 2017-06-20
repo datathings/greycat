@@ -405,7 +405,7 @@ class ActionLoadXlsx implements Action {
             featureValues.forEach((key, value) -> {
                 long shift = (long) ((double) value * _timeShiftConst);
                 setValueInTime(feature, valueNode, key, value, type, false, null, () -> defer.count());
-                setValueInTime(feature, valueNodeShifted, key + shift, shift, Type.LONG, false, null, () -> defer.count());
+                setValueInTime(feature, valueNodeShifted, key + shift, shift, (byte)Type.LONG, false, null, () -> defer.count());
             });
 
         } else {
