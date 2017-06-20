@@ -66,7 +66,7 @@ class ActionLoadXlsx implements Action {
             if (parsedUri.getScheme().equals("file")) {
                 System.out.println("Opening Workbook");
 
-                taskContext.reportProgress(-1, -1, "Opening Workbook");
+                taskContext.reportProgress(-1, "Opening Workbook");
 
                 FileInputStream file = new FileInputStream(parsedUri.getPath());
                 XSSFWorkbook workbook = new XSSFWorkbook(file);
@@ -74,7 +74,7 @@ class ActionLoadXlsx implements Action {
 
                 Sheet metaSheet = workbook.getSheet("META");
                 if (metaSheet != null) {
-                    taskContext.reportProgress(-1, -1, "Loading META information");
+                    taskContext.reportProgress(-1, "Loading META information");
                     loadMeta(taskContext, metaSheet);
                 }
                 loadSheets(taskContext, workbook, () -> {
@@ -349,9 +349,9 @@ class ActionLoadXlsx implements Action {
                 continue;
             }
 
-            taskContext.reportProgress((i * 2), (sheetNum * 2), "Data pre-load from " + currentSheet.getSheetName());
+            taskContext.reportProgress((i * 2.)/(sheetNum * 2), "Data pre-load from " + currentSheet.getSheetName());
             Map<String, TreeMap<Long, Object>> content = sheetPreload(taskContext, currentSheet);
-            taskContext.reportProgress((i * 2) + 1, (sheetNum * 2), "Data insertion from " + currentSheet.getSheetName());
+            taskContext.reportProgress(((i * 2.) + 1)/(sheetNum * 2), "Data insertion from " + currentSheet.getSheetName());
             final DeferCounter countContent = taskContext.graph().newCounter(content.size());
             countContent.then(() -> countSheets.count());
             content.forEach((featureName, featureValues) -> {
