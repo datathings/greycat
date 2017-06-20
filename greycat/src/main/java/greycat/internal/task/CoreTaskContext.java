@@ -550,7 +550,7 @@ class CoreTaskContext implements TaskContext {
                     _result = new BaseTaskResult(null, false);
                 }
                 _result.setOutput(_output.toString());
-                if (_silent == null) {
+                if (_silent == null  && _parent == null) {
                     System.out.println(_result.output());
                 }
             }
