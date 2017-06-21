@@ -41,12 +41,14 @@ class HeapRelation implements Relation {
     }
 
     final void allocate(int _capacity) {
-        long[] new_back = new long[_capacity];
-        if (_back != null) {
-            System.arraycopy(_back, 0, new_back, 0, _back.length);
+        if (_capacity > 0) {
+            long[] new_back = new long[_capacity];
+            if (_back != null) {
+                System.arraycopy(_back, 0, new_back, 0, _back.length);
+            }
+            _back = new_back;
+            aligned = true;
         }
-        _back = new_back;
-        aligned = true;
     }
 
     @Override
@@ -237,6 +239,7 @@ class HeapRelation implements Relation {
     @Override
     public final Relation clear() {
         synchronized (parent) {
+            _back = null;
             _size = 0;
         }
         return this;
