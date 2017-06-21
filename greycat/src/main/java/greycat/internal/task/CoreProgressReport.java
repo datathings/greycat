@@ -20,33 +20,34 @@ import greycat.TaskProgressReport;
 import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
+import greycat.TaskProgressType;
 
 /**
  * Created by Gregory NAIN on 14/04/17.
  */
 public class CoreProgressReport implements TaskProgressReport {
 
+    private byte _type;
+    private int _index;
+    private int _total;
     private String _comment;
-    private double _progress;
-    private String _actionPath;
-    private String _actionSumPath;
 
-    public CoreProgressReport() {
+    public CoreProgressReport(){
     }
 
     @Override
-    public double progress() {
-        return this._progress;
+    public byte type() {
+        return this._type;
     }
 
     @Override
-    public String actionPath() {
-        return this._actionPath;
+    public int index() {
+        return this._index;
     }
 
     @Override
-    public String actionSumPath() {
-        return this._actionSumPath;
+    public int total() {
+        return this._total;
     }
 
     @Override
@@ -54,24 +55,23 @@ public class CoreProgressReport implements TaskProgressReport {
         return this._comment;
     }
 
+    public CoreProgressReport setType(byte _type) {
+        this._type = _type;
+        return this;
+    }
+
+    public CoreProgressReport setIndex(int _index) {
+        this._index = _index;
+        return this;
+    }
+
+    public CoreProgressReport setTotal(int _total) {
+        this._total = _total;
+        return this;
+    }
 
     public CoreProgressReport setComment(String _comment) {
         this._comment = _comment;
-        return this;
-    }
-
-    public CoreProgressReport setActionPath(String path) {
-        this._actionPath = path;
-        return this;
-    }
-
-    public CoreProgressReport setSumPath(String sumPath) {
-        this._actionSumPath = sumPath;
-        return this;
-    }
-
-    public CoreProgressReport setProgress(double progress) {
-        this._progress = progress;
         return this;
     }
 
@@ -85,15 +85,15 @@ public class CoreProgressReport implements TaskProgressReport {
             if (current == Constants.CHUNK_ESEP || cursor + 1 == buffer.length()) {
                 switch (index) {
                     case 0:
-                        _actionPath = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                        _type = (byte)Base64.decodeToIntWithBounds(buffer, previous, cursor);
                         index++;
                         break;
                     case 1:
-                        _actionSumPath = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                        _index = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                         index++;
                         break;
                     case 2:
-                        _progress = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                        _total = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                         index++;
                         break;
                     case 3:
@@ -109,11 +109,11 @@ public class CoreProgressReport implements TaskProgressReport {
     }
 
     public void saveToBuffer(Buffer buffer) {
-        Base64.encodeStringToBuffer(this._actionPath, buffer);
+        Base64.encodeIntToBuffer(this._type, buffer);
         buffer.write(CoreConstants.CHUNK_ESEP);
-        Base64.encodeStringToBuffer(this._actionSumPath, buffer);
+        Base64.encodeIntToBuffer(this._index, buffer);
         buffer.write(CoreConstants.CHUNK_ESEP);
-        Base64.encodeDoubleToBuffer(this._progress, buffer);
+        Base64.encodeIntToBuffer(this._total, buffer);
         buffer.write(CoreConstants.CHUNK_ESEP);
         if (this._comment != null) {
             Base64.encodeStringToBuffer(this._comment, buffer);
@@ -122,7 +122,7 @@ public class CoreProgressReport implements TaskProgressReport {
     }
 
     public String toString() {
-        return this._actionPath + "\t" + this._actionSumPath + "\t" + _progress + ":" + _comment;
+        return TaskProgressType.toString(_type) + "\t\t" + _index + "/" + _total + "\t" + _comment;
     }
 
 }

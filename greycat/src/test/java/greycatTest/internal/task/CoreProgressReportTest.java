@@ -18,6 +18,7 @@ package greycatTest.internal.task;
 import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.CoreProgressReport;
 import greycat.struct.Buffer;
+import greycat.TaskProgressType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,24 +30,26 @@ public class CoreProgressReportTest {
     @Test
     public void saveLoadTest() {
 
-        CoreProgressReport report = new CoreProgressReport().setActionPath("1.2.3").setSumPath("3.3.3").setProgress(-1).setComment("Yaha");
+        CoreProgressReport report = new CoreProgressReport().setType(TaskProgressType.START_TASK).setIndex(2).setTotal(3).setComment("Yaha");
         Buffer b = new HeapBuffer();
         report.saveToBuffer(b);
         CoreProgressReport reportBack = new CoreProgressReport();
         reportBack.loadFromBuffer(b);
 
-        Assert.assertEquals(report.actionPath(), reportBack.actionPath());
-        Assert.assertTrue(report.progress() == reportBack.progress());
+        Assert.assertEquals(report.type(), reportBack.type());
+        Assert.assertEquals(report.index(), reportBack.index());
+        Assert.assertEquals(report.total(), reportBack.total());
         Assert.assertEquals(report.comment(), reportBack.comment());
 
-        report = new CoreProgressReport().setActionPath("1.2.3").setSumPath("3.3.3").setProgress(0.64).setComment("Yehe");
+        report = new CoreProgressReport().setType(TaskProgressType.START_TASK).setIndex(2).setTotal(3);
         b = new HeapBuffer();
         report.saveToBuffer(b);
         reportBack = new CoreProgressReport();
         reportBack.loadFromBuffer(b);
 
-        Assert.assertEquals(report.actionPath(), reportBack.actionPath());
-        Assert.assertTrue(report.progress() == reportBack.progress());
+        Assert.assertEquals(report.type(), reportBack.type());
+        Assert.assertEquals(report.index(), reportBack.index());
+        Assert.assertEquals(report.total(), reportBack.total());
         Assert.assertEquals(report.comment(), reportBack.comment());
 
     }

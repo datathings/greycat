@@ -102,10 +102,9 @@ public interface TaskContext {
 
     Callback<TaskProgressReport> progressHook();
 
-    void reportProgress(double progress, String comment);
+    void reportProgress(int step, int total, String comment);
 
     void setProgressHook(Callback<TaskProgressReport> hook);
-    void setProgressAutoReport(boolean activate);
 
     void initTracker();
 
