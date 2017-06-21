@@ -79,7 +79,7 @@ final class HeapDoubleArray implements DoubleArray {
 
     @Override
     public final synchronized double[] extract() {
-        if(_backend == null){
+        if (_backend == null) {
             return new double[0];
         }
         final double[] extracted = new double[_backend.length];
@@ -216,10 +216,14 @@ final class HeapDoubleArray implements DoubleArray {
                 current = buffer.read(cursor);
             }
         }
-        if (isFirst) {
-            _backend = new double[Base64.decodeToIntWithBounds(buffer, previous, cursor)];
+        if (previous == cursor) {
+            _backend = new double[0];
         } else {
-            _backend[elemIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+            if (isFirst) {
+                _backend = new double[Base64.decodeToIntWithBounds(buffer, previous, cursor)];
+            } else {
+                _backend[elemIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+            }
         }
         return cursor;
     }
