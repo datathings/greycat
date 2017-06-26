@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.datathings</groupId>
             <artifactId>greycat-websocket</artifactId>
-            <version>8-SNAPSHOT</version>
+            <version>${parent.version}</version>
         </dependency>
     </dependencies>
 

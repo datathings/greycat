@@ -38,7 +38,7 @@ public class GCIdentityManager {
 
     public void verifyCredentials(String login, String pass, Callback<GCSecAccount> callback) {
         graph.index(0, Constants.BEGINNING_OF_TIME, usersIndex, indexNode->{
-            indexNode.find(users->{
+            indexNode.findFrom(users->{
 
                 if(users.length <= 1) {
 
@@ -80,7 +80,7 @@ public class GCIdentityManager {
                 } else {
                     throw new RuntimeException("multiple users indexed with the same ID !");
                 }
-            }, loginAttribute, login);
+            }, login);
         });
     }
 
@@ -106,7 +106,7 @@ public class GCIdentityManager {
 
     public void resetPassword(String uuid, String pass, Callback<Integer> callback) {
         graph.index(0, Constants.BEGINNING_OF_TIME, usersIndex, indexNode -> {
-            indexNode.find(users -> {
+            indexNode.findFrom(users -> {
                 boolean acted = false;
                 for (int i = 0; i < users.length; i++) {
                     Node user = users[i];
