@@ -56,10 +56,9 @@ public class GCAuthHandler implements HttpHandler {
 
                                 GCAuthHandler.this.identityManager.verifyCredentials(login, pass, account -> {
                                     if (account != null) {
-
                                         httpServerExchange.getResponseHeaders().add(new HttpString("Access-Control-Allow-Origin"), "*");
                                         httpServerExchange.setStatusCode(StatusCodes.OK);
-                                        httpServerExchange.getResponseSender().send(account.getUUID());
+                                        httpServerExchange.getResponseSender().send(account.getUUID() + "#" + account.getPrincipal().getUserId());
 
                                     } else {
 

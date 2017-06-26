@@ -46,7 +46,7 @@ public class GCIdentityManager {
                     for(GCSecAccount acc : new ArrayList<>(activeAccounts)) {
                         if(acc.isExpired()) {
                             activeAccounts.remove(acc);
-                        } else if(acc.getPrincipal().getEmail().equals(login)) {
+                        } else if(acc.getPrincipal().getName().equals(login)) {
                             active = acc;
                             break;
                         }
@@ -58,7 +58,7 @@ public class GCIdentityManager {
 
                         if(passCheck) {
                             if(active == null){
-                                active = new GCSecAccount(new GCPrincipal((String)users[0].get("firstName"),(String)users[0].get("lastName"),(String)users[0].get("email")));
+                                active = new GCSecAccount(new GCPrincipal(login, users[0]));
                                 activeAccounts.add(active);
                             } else {
                                 active.hit();
