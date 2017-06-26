@@ -9,6 +9,7 @@ import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.Relation;
 import greycat.struct.StringArray;
+import org.apache.poi.hssf.util.CellReference;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -156,10 +157,15 @@ class ActionLoadXlsx implements Action {
                     if (currentRow.getCell(firstCol + 7) != null) {
                         String enumRange = currentRow.getCell(firstCol + 7).getStringCellValue();
                         String[] enumValues = enumRange.substring(1, enumRange.length() - 1).split(",");
+                        if(enumValues.length == 0) {
+                            throw new RuntimeException("Tag "+featureName+" is declared as enum, but possible values are not specified in cell " + currentRow.getCell(firstCol + 7).getAddress().toString() + " in sheet '" + metaSheet.getSheetName() + "'.");
+                        }
                         StringArray valuesArray = (StringArray) newFeature.getOrCreate("enum_values", Type.STRING_ARRAY);
                         valuesArray.addAll(enumValues);
                         newFeature.set("value_min", Type.DOUBLE, 0d);
                         newFeature.set("value_max", Type.DOUBLE, (double)enumValues.length - 1);
+                    } else {
+                        throw new RuntimeException("Tag "+featureName+" is declared as enum, but possible values are not specified in cell " + CellReference.convertNumToColString(firstCol + 7) + (currentRow.getRowNum()+1) + " in sheet '" + metaSheet.getSheetName() + "'.");
                     }
                 }
                 break;
