@@ -156,14 +156,24 @@ public interface Graph {
 
     /**
      * Retrieve a named global index, at a precise world and time.<br>
-     * Creates the index if it does not exist.
+     * Creates the index and configure it, if it does not exist.
+     *
+     * @param world    The world id in which the index has to be looked for
+     * @param name     The name of the index
+     * @param callback The callback to be called when the index lookup is complete.
+     */
+    void declareIndex(long world, String name, Callback<NodeIndex> callback, String... indexedAttributes);
+
+    /**
+     * Retrieve a named global index, at a precise world and time.<br>
+     * Creates the index and configure it, if it does not exist.
      *
      * @param world    The world id in which the index has to be looked for
      * @param time     The time at which the index has to be looked for
      * @param name     The name of the index
      * @param callback The callback to be called when the index lookup is complete.
      */
-    void index(long world, long time, String name, Callback<NodeIndex> callback);
+    void declareTimedIndex(long world, long time, String name, Callback<NodeIndex> callback, String... indexedAttributes);
 
     /**
      * Retrieve a named global index, at a precise world and time.<br>
@@ -174,7 +184,7 @@ public interface Graph {
      * @param name     The name of the index
      * @param callback The callback to be called when the index lookup is complete.
      */
-    void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback);
+    void index(long world, long time, String name, Callback<NodeIndex> callback);
 
     /**
      * Retrieve the list of indexes.
@@ -261,8 +271,12 @@ public interface Graph {
 
     NodeRegistry nodeRegistry();
 
+    TypeRegistry typeRegistry();
+
     Graph setMemoryFactory(MemoryFactory factory);
 
     Graph addGlobalTaskHook(TaskHook taskHook);
+
+    Graph addConnectHook(Callback<Callback<Boolean>> onConnect);
 
 }

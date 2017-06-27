@@ -18,9 +18,6 @@ package greycat.ml.neuralnet.optimiser;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.struct.ENode;
 
-/**
- * Created by assaad on 17/02/2017.
- */
 public class AdaDelta extends AbstractOptimiser {
     AdaDelta(ENode backend) {
         super(backend);

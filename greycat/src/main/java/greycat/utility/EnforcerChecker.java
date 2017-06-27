@@ -17,6 +17,6 @@ package greycat.utility;
 
 public interface EnforcerChecker {
 
-    void check(byte inputType, Object input) throws RuntimeException;
+    void check(int inputType, Object input) throws RuntimeException;
 
 }

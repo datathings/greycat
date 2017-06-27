@@ -38,10 +38,11 @@ public class MicroWorldTest {
 
                 newTask().loopPar("1", "2",
                         newTask()
-                                .then(createNode())
-                                .then(setAttribute("name", Type.STRING, "room_{{i}}"))
-                                .then(addToGlobalIndex("rooms", "name"))
-                                .then(defineAsVar("parentRoom"))
+                                .declareIndex("rooms","name")
+                                .createNode()
+                                .setAttribute("name", Type.STRING, "room_{{i}}")
+                                .updateIndex("rooms")
+                                .defineAsVar("parentRoom")
                                 .loop("1", "3",
                                         newTask()
                                                 .then(createNode())

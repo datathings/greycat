@@ -16,7 +16,7 @@
 package greycatTest.internal.tree;
 
 import greycat.*;
-import greycat.internal.tree.VolatileTreeResult;
+import greycat.internal.custom.VolatileTreeResult;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
 import org.junit.Test;

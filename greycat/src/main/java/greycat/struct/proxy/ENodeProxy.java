@@ -16,6 +16,7 @@
 package greycat.struct.proxy;
 
 import greycat.Container;
+import greycat.Index;
 import greycat.Type;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.*;
@@ -54,8 +55,8 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
-    public final RelationIndexed getRelationIndexed(String name) {
-        return (RelationIndexed) get(name);
+    public final Index getIndex(String name) {
+        return (Index) get(name);
     }
 
     @Override
@@ -144,12 +145,12 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
-    public final Object getOrCreate(final String name, final byte type) {
+    public final Object getOrCreate(final String name, final int type) {
         return this.getOrCreateAt(_node.egraph().graph().resolver().stringToHash(name, false), type);
     }
 
     @Override
-    public final Object getOrCreateAt(final int index, final byte type) {
+    public final Object getOrCreateAt(final int index, final int type) {
         Object elem = getAt(index);
         if (elem != null) {
             return proxifyIfNeeded(elem, index);
@@ -163,7 +164,7 @@ public final class ENodeProxy implements ENode {
         if (elem == null || _parent == null) { //implement time sensitivity
             return elem;
         } else {
-            byte type = typeAt(index);
+            int type = typeAt(index);
             switch (type) {
                 case Type.LMATRIX:
                     return new LMatrixProxy(index, this, (LMatrix) elem);
@@ -173,12 +174,13 @@ public final class ENodeProxy implements ENode {
                     return new ERelationProxy(index, this, (ERelation) elem);
                 case Type.RELATION:
                     return new RelationProxy(index, this, (Relation) elem);
-                case Type.RELATION_INDEXED:
-                    return new RelationIndexedProxy(index, this, (RelationIndexed) elem);
-                case Type.KDTREE:
+                /*case Type.RELATION_INDEXED:
+                    return new RelationIndexedProxy(index, this, (RelationIndexed) elem);*/
+                /*case Type.KDTREE:
                     return new TreeProxy(index, this, (Tree) elem);
                 case Type.NDTREE:
                     return new ProfileProxy(index, this, (Profile) elem);
+                    */
                 case Type.LONG_TO_LONG_MAP:
                     return new LongLongMapProxy(index, this, (LongLongMap) elem);
                 case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -210,17 +212,17 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
-    public final Object getTypedRawAt(final int index, final byte type) {
+    public final Object getTypedRawAt(final int index, final int type) {
         return _node.getTypedRawAt(index, type);
     }
 
     @Override
-    public final byte type(final String name) {
+    public final int type(final String name) {
         return _node.type(name);
     }
 
     @Override
-    public final byte typeAt(final int index) {
+    public final int typeAt(final int index) {
         return _node.typeAt(index);
     }
 
@@ -239,13 +241,13 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
-    public final Container set(final String name, final byte type, final Object value) {
+    public final Container set(final String name, final int type, final Object value) {
         check();
         return _node.set(name, type, value);
     }
 
     @Override
-    public final Container setAt(final int index, final byte type, final Object value) {
+    public final Container setAt(final int index, final int type, final Object value) {
         check();
         return _node.setAt(index, type, value);
     }

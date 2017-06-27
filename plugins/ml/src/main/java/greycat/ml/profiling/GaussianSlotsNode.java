@@ -50,7 +50,7 @@ public class GaussianSlotsNode extends BaseNode {
 
 
     @Override
-    public Node set(String name, byte type, Object value) {
+    public Node set(String name, int type, Object value) {
         enforcer.check(name, type, value);
 
         if (!load()) {
@@ -73,8 +73,6 @@ public class GaussianSlotsNode extends BaseNode {
         throw new RuntimeException("can't set anything other than precisions or values on this node!");
     }
 
-
-
     public void learn(double[] values) {
         //this should be fine no need to fix here
         set(Gaussian.VALUES, Type.DOUBLE_ARRAY, values);
@@ -84,7 +82,7 @@ public class GaussianSlotsNode extends BaseNode {
         if (!load()) {
             return null;
         }
-        GaussianENode backend=gsgraph.getGaussian(getSlotNumber());
+        GaussianENode backend = gsgraph.getGaussian(getSlotNumber());
         if (load()) {
             return backend.getAvg();
         } else {
@@ -98,7 +96,7 @@ public class GaussianSlotsNode extends BaseNode {
         if (!load()) {
             return null;
         }
-        GaussianENode backend=gsgraph.getGaussian(getSlotNumber());
+        GaussianENode backend = gsgraph.getGaussian(getSlotNumber());
         switch (attributeName) {
             case Gaussian.MIN:
 
@@ -137,8 +135,7 @@ public class GaussianSlotsNode extends BaseNode {
     }
 
 
-
-    private int getSlotNumber(){
+    private int getSlotNumber() {
         long t = time();
         NodeState resolved = unphasedState();
         int slots = resolved.getWithDefault(NUMBER_OF_SLOTS, NUMBER_OF_SLOTS_DEF);

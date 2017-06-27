@@ -53,9 +53,9 @@ public class RobustnessTests {
                 root.addToRelation("child", n2);
                 root.addToRelation("child", n3);
 
-                _graph.index(0, 0, "rootIndex", rootIndex -> {
-                    rootIndex.addToIndex(root, "name");
-                });
+                _graph.declareIndex(0, "rootIndex", rootIndex -> {
+                    rootIndex.update(root);
+                }, "name");
             }
         });
 
@@ -63,12 +63,11 @@ public class RobustnessTests {
 
     @After
     public void deleteGrap() {
-
         _graph.index(0, 0, "rootIndex", rootIndex -> {
             rootIndex.find(result -> {
                 for (Node r : result) {
                     final Node rr = r;
-                    r.relation("child", new Callback<Node[]>() {
+                    r.traverse("child", new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
                             for (Node n : result) {
@@ -78,7 +77,7 @@ public class RobustnessTests {
                         }
                     });
                 }
-            }, "name", "root");
+            },0,0, "name", "root");
         });
     }
 
@@ -126,7 +125,7 @@ public class RobustnessTests {
         //indexName null
         boolean exceptionCaught = false;
         try {
-            newTask().then(readGlobalIndex(null, "name", "root")).execute(_graph, null);
+            newTask().then(readIndex(null, "name", "root")).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -137,7 +136,7 @@ public class RobustnessTests {
         //query null
         exceptionCaught = false;
         try {
-            newTask().then(readGlobalIndex("rootIndex", null)).execute(_graph, null);
+            newTask().then(readIndex("rootIndex", null)).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -151,7 +150,7 @@ public class RobustnessTests {
         //indexName null
         boolean exceptionCaught = false;
         try {
-            newTask().then(readGlobalIndex(null)).execute(_graph, null);
+            newTask().then(readIndex(null)).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -443,7 +442,7 @@ public class RobustnessTests {
         //relationName
         boolean exceptionCaught = false;
         try {
-            newTask().then(inject(_graph.newNode(0, 0))).then(defineAsGlobalVar("x")).then(addVarToRelation(null, "x")).execute(_graph, null);
+            newTask().then(inject(_graph.newNode(0, 0))).then(defineAsGlobalVar("x")).then(addVarTo(null, "x")).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -454,7 +453,7 @@ public class RobustnessTests {
         //relatedNode
         exceptionCaught = false;
         try {
-            newTask().then(addVarToRelation("", null)).execute(_graph, null);
+            newTask().then(addVarTo("", null)).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {

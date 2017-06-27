@@ -16,10 +16,10 @@
 package greycatTest.internal.tree;
 
 import greycat.*;
-import greycat.internal.tree.NDTree;
+import greycat.internal.custom.NDTree;
 import greycat.scheduler.NoopScheduler;
-import greycat.struct.Profile;
 import greycat.struct.TreeResult;
+import greycat.utility.HashHelper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,7 +35,7 @@ public class EmbeddedTreeTest {
             @Override
             public void on(Boolean result) {
                 Node node = g.newNode(0, 0);
-                NDTree profile = (NDTree) node.getOrCreate("mindex", Type.NDTREE);
+                NDTree profile = (NDTree) node.getOrCreate("mindex", HashHelper.hash(NDTree.NAME));
                 //configure the profile
                 profile.setMinBound(new double[]{0, 0});
                 profile.setMaxBound(new double[]{23, 1000});

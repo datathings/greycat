@@ -33,11 +33,12 @@ public class ActionAddToGlobalIndexTest {
             @Override
             public void on(Boolean result) {
                 newTask()
-                        .then(createNode())
-                        .then(setAttribute("name", Type.STRING, "root"))
-                        .then(addToGlobalIndex("indexName", "name"))
-                        .then(defineAsGlobalVar("nodeIndexed"))
-                        .then(readGlobalIndex("indexName"))
+                        .declareIndex("indexName", "name")
+                        .createNode()
+                        .setAttribute("name", Type.STRING, "root")
+                        .updateIndex("indexName")
+                        .defineAsGlobalVar("nodeIndexed")
+                        .readIndex("indexName")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -48,8 +49,9 @@ public class ActionAddToGlobalIndexTest {
                                 ctx.continueTask();
                             }
                         })
-                        .then(removeFromGlobalIndex("indexName", "name"))
-                        .then(readGlobalIndex("indexName"))
+                        // .then(removeFromGlobalIndex("indexName", "name"))
+                        .then(readIndex("indexName"))
+                        /*
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -57,7 +59,7 @@ public class ActionAddToGlobalIndexTest {
                                 Assert.assertEquals(0, ctx.result().size());
                                 ctx.continueWith(null);
                             }
-                        })
+                        })*/
                         .execute(graph, null);
             }
         });
@@ -71,11 +73,12 @@ public class ActionAddToGlobalIndexTest {
             @Override
             public void on(Boolean result) {
                 newTask()
-                        .then(createNode())
-                        .then(setAttribute("name", Type.STRING, "root"))
-                        .then(addToGlobalIndex("indexName", "name"))
+                        .declareIndex("indexName", "name")
+                        .createNode()
+                        .setAttribute("name", Type.STRING, "root")
+                        .updateIndex("indexName")
                         .then(defineAsGlobalVar("nodeIndexed"))
-                        .then(readGlobalIndex("indexName", "name","root"))
+                        .readIndex("indexName", "root")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {

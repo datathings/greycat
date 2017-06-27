@@ -17,9 +17,6 @@ package greycat.ml.neuralnet.optimiser;
 
 import greycat.ml.neuralnet.layer.Layer;
 
-/**
- * Created by assaad on 13/02/2017.
- */
 public interface Optimiser {
     void setFrequency(int n);
 

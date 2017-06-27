@@ -17,8 +17,6 @@ package greycat.websocket;
 
 import greycat.*;
 import greycat.struct.Buffer;
-import greycat.websocket.WSClient;
-import greycat.websocket.WSServer;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import org.junit.Assert;
@@ -57,10 +55,10 @@ public class WSServerTest {
                 root.addToRelation("children", n0);
                 root.addToRelation("children", n1);
 
-                graph.index(0, 0, "nodes", new Callback<NodeIndex>() {
+                graph.declareIndex(0, "nodes", new Callback<NodeIndex>() {
                     @Override
                     public void on(NodeIndex indexNode) {
-                        indexNode.addToIndex(root, "name");
+                        indexNode.update(root);
 
                         System.out.println(indexNode.toString());
 
@@ -73,7 +71,7 @@ public class WSServerTest {
                         System.out.println(chunk.index());
 
                     }
-                });
+                }, "name");
 
             }
         });
@@ -91,15 +89,15 @@ public class WSServerTest {
                 Node node = graph.newNode(0, 0);
                 node.set("name", Type.STRING, "hello");
 
-                graph.index(0, 0, "nodes", new Callback<NodeIndex>() {
+                graph.declareIndex(0, "nodes", new Callback<NodeIndex>() {
 
                     @Override
                     public void on(NodeIndex indexNode) {
-                        indexNode.addToIndex(node, "name");
+                        indexNode.update(node);
 
 
                     }
-                });
+                }, "name");
 
                 //   graph.index("nodes", node, "name", null);
 
@@ -125,7 +123,7 @@ public class WSServerTest {
                         graph2.index(0, 0, "nodes", new Callback<NodeIndex>() {
                             @Override
                             public void on(NodeIndex indexNodes) {
-                                indexNodes.find(new Callback<Node[]>() {
+                                indexNodes.findFrom(new Callback<Node[]>() {
                                     @Override
                                     public void on(Node[] result1) {
                                         Assert.assertEquals(result1[0].toString(), node.toString());
@@ -135,18 +133,18 @@ public class WSServerTest {
 
                                         Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":137438953473,\"name\":\"hello2\"}", newNode.toString());
 
-                                        graph2.index(0, 0, "nodes", new Callback<NodeIndex>() {
+                                        graph2.declareIndex(0, "nodes", new Callback<NodeIndex>() {
                                             @Override
                                             public void on(NodeIndex graph2Nodes) {
-                                                graph2Nodes.addToIndex(newNode, "name");
+                                                graph2Nodes.update(newNode);
                                                 graph2Nodes.find(new Callback<Node[]>() {
                                                     @Override
                                                     public void on(Node[] result) {
                                                         Assert.assertEquals(2, result.length);
                                                     }
-                                                });
+                                                }, graph2Nodes.world(), graph2Nodes.time());
                                             }
-                                        });
+                                        }, "name");
 
 
                                         graph2.save(new Callback<Boolean>() {
@@ -156,8 +154,8 @@ public class WSServerTest {
 
                                                 graph.index(0, 0, "nodes", new Callback<NodeIndex>() {
                                                     @Override
-                                                    public void on(NodeIndex grapNodeIndex) {
-                                                        grapNodeIndex.find(new Callback<Node[]>() {
+                                                    public void on(NodeIndex grapIndex) {
+                                                        grapIndex.find(new Callback<Node[]>() {
                                                             @Override
                                                             public void on(Node[] result) {
                                                                 Assert.assertEquals(2, result.length);
@@ -165,7 +163,7 @@ public class WSServerTest {
                                                                 Assert.assertEquals(result[1].toString(), "{\"world\":0,\"time\":0,\"id\":137438953473,\"name\":\"hello2\"}");
                                                                 latch.countDown();
                                                             }
-                                                        });
+                                                        }, grapIndex.world(), grapIndex.time());
                                                     }
                                                 });
 

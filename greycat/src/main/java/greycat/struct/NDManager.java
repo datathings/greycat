@@ -27,7 +27,7 @@ public interface NDManager {
     Object get(long id);
 
 
-    long updateExistingLeafNode(long oldKey, Object valueToInsert);
+    long updateExistingLeafNode(long oldKey, double[] key, Object valueToInsert);
 
     boolean updateParentsOnExisting();
 
@@ -35,7 +35,7 @@ public interface NDManager {
 
     boolean parentsHaveNodes();
 
-    long getNewLeafNode(Object valueToInsert);
+    long getNewLeafNode(double[] key, Object valueToInsert);
 
     long getNewParentNode();
 

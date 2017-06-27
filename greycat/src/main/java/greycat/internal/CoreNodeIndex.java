@@ -17,7 +17,8 @@ package greycat.internal;
 
 import greycat.*;
 import greycat.base.BaseNode;
-import greycat.struct.RelationIndexed;
+import greycat.internal.custom.CoreIndexAttribute;
+import greycat.utility.HashHelper;
 
 final class CoreNodeIndex extends BaseNode implements NodeIndex {
 
@@ -29,59 +30,61 @@ final class CoreNodeIndex extends BaseNode implements NodeIndex {
 
     @Override
     public final void init() {
-        getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.RELATION_INDEXED);
+        getOrCreateAt(0, HashHelper.hash(CoreIndexAttribute.NAME));
     }
 
     @Override
-    public final long size() {
-        return ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).size();
+    public final void declareAttributes(Callback callback, String... attributeNames) {
+        ((Index) getAt(0)).declareAttributes(callback, attributeNames);
+    }
+
+    @Override
+    public final int size() {
+        return ((Index) getAt(0)).size();
     }
 
     @Override
     public final long[] all() {
-        return ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).all();
+        return ((Index) getAt(0)).all();
     }
 
     @Override
-    public final NodeIndex addToIndex(Node node, String... attributeNames) {
-        ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).add(node, attributeNames);
-        return this;
+    public final Index update(Node node) {
+        return ((Index) getAt(0)).update(node);
     }
 
     @Override
-    public final NodeIndex removeFromIndex(Node node, String... attributeNames) {
-        ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).remove(node, attributeNames);
-        return this;
+    public final Index unindex(Node node) {
+        return ((Index) getAt(0)).unindex(node);
     }
 
     @Override
-    public final NodeIndex clear() {
-        ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).clear();
-        return this;
+    public final Index clear() {
+        return ((Index) getAt(0)).clear();
     }
 
     @Override
-    public final void find(Callback<Node[]> callback, String... query) {
-        if (query == null || query.length == 0) {
-            long[] flat = ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).all();
-            graph().lookupAll(world(), time(), flat, callback);
-        } else {
-            ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).find(callback, world(), time(), query);
-        }
+    public final void find(Callback<Node[]> callback, long world, long time, String... params) {
+        ((Index) getAt(0)).find(callback, world, time, params);
     }
 
     @Override
     public final void findByQuery(Query query, Callback<Node[]> callback) {
-        ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).findByQuery(query, callback);
+        ((Index) getAt(0)).findByQuery(query, callback);
     }
 
     @Override
     public final long[] select(String... params) {
-        if (params == null || params.length == 0) {
-            return ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).all();
-        } else {
-            return ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).select(params);
-        }
+        return ((Index) getAt(0)).select(params);
     }
 
+    @Override
+    public final long[] selectByQuery(Query query) {
+        return ((Index) getAt(0)).selectByQuery(query);
+    }
+
+    @Override
+    public final void findFrom(Callback<Node[]> callback, String... params) {
+        ((Index) getAt(0)).find(callback, _world, _time, params);
+    }
 }

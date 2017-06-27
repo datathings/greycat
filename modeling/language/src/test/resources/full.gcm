@@ -1,0 +1,190 @@
+const ASBUILT                   : String    =   "AsBuilt"
+const BACKEND_PROPERTIES_FILE   : String    =   "backend.properties"
+const SALT                      : String    =   "jrj(F+[wJ&ki{R5i{Nuw`uAAEX.7^J<EcIcG?2:H1p|iRI[^%n|Em*I8$pG9cO2"
+const APP_STORAGE_PROP_KEY      : String    =   "APPLICATION_STORAGE"
+const UPLOAD_FOLDER_PROP_KEY    : String    =   "UPLOAD_FOLDER"
+const APP_STATE_WS_PORT_PROP_KEY: String    =   "APPLICATION_STATE_WS_PORT"
+const APP_MAIN_PORT_PROP_KEY    : String    =   "APPLICATION_MAIN_PORT"
+const WS_PORT                   : Integer   =   "443"
+const ACTION_RESET_PASSWORD     : String    =   "resetPassword"
+
+index UnitTypes : UnitType using name
+index UnitsByName : Unit using name
+index UnitsBySystem : Unit using system
+index Uniclasses : Uniclass using name
+index Standards : Standard using code
+index Continents : Continent using code
+index Countries : Country using code
+index Cities : City using name
+index Users : User using email
+index Clients : Client using name
+
+class AttributeType{
+    att name            : String
+    att isMendatory     : Boolean
+    att isStatic        : Boolean
+    att cpType          : String
+}
+
+
+class AttributeInstance{
+    ref attType         : AttributeType
+}
+
+class GPSInstance extends AttributeInstance{
+    att lat             : Double
+    att lng             : Double
+}
+
+class UnitInstance extends AttributeInstance{
+    att value           : Double
+    ref unitType        : UnitType
+}
+
+class CpType {
+    att name : String
+}
+
+class UnitType extends CpType {
+    index units         : Unit using name
+    ref default         : Unit
+}
+
+class Unit {
+    ref unitType        : UnitType
+    att unitTypeName    : String
+    att sid             : Integer
+    att name            : String
+    att symbol          : String
+    att system          : String
+    att coef            : Double
+}
+
+
+
+class NbsNrm {
+    att content         : String
+}
+
+class UniclassElem {
+    att groupId : Integer
+    att subGroupId : Integer
+    att sectionId : Integer
+    att objectId : Integer
+    att code : String
+    att title : String
+
+    rel nbs : NbsNrm
+    rel nrm : NbsNrm
+}
+
+class Uniclass  extends CpType{
+    att comment : String
+    index groups : UniclassGroup using groupId
+}
+
+class UniclassGroup extends UniclassElem {
+    index subGroups : UniclassSubGroup using subGroupId
+}
+
+class UniclassSubGroup extends UniclassElem {
+    index sections : UniclassSection using sectionId
+}
+
+class UniclassSection extends UniclassElem {
+    index objects : UniclassElem using objectId
+}
+
+class CodedElement {
+    att code            : String
+    att name            : String
+}
+
+class Standard extends CodedElement {
+    rel validityRegion   : CodedElement
+}
+
+class Continent extends CodedElement {
+    index countries       : Country using name
+
+}
+
+class Country extends CodedElement {
+    att native          : String
+    att phone           : String
+    rel continent       : Continent
+    index cities          : City using name
+}
+
+class City {
+    att name            : String
+    att postalcode      : String
+    rel country         : Country
+}
+
+class Location extends AttributeInstance{
+     att name           : String
+     att street         : String
+     ref city           : City
+}
+
+
+class Client {
+    att name            : String
+    rel complexes       : BusinessInstance
+    rel users           : User
+}
+
+
+class BusinessType {
+  att name              : String
+  rel attributeTypes    : AttributeType
+  ref parent            : BusinessType
+  rel content           : ChildrenRelationType
+}
+
+class ChildrenRelationType {
+    att name : String
+    ref elements : BusinessType
+}
+
+class BusinessInstance {
+  att guid              : String // generated
+  ref parent            : BusinessInstance
+  rel content           : ChildrenRelationInstance
+}
+
+class ChildrenRelationInstance {
+    ref childtype       : ChildrenRelationType
+    rel elements        : BusinessInstance
+}
+
+class Manufacturer {
+
+}
+
+class ProductModel extends BusinessType{
+
+}
+
+class ProductInstance extends BusinessInstance {
+    ref model           : ProductModel
+}
+
+
+class User {
+    att firstName       : String
+    att lastName        : String
+    att email           : String
+    att password        : String
+    ref client          : Client
+    att admin           : Boolean
+    rel accesses        : Access
+    index unitsPref     : Unit using unitTypeName
+}
+
+class Access {
+    ref instance : BusinessInstance
+    att edit        : Boolean
+}
+

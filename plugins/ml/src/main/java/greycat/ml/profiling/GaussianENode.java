@@ -46,16 +46,39 @@ public class GaussianENode {
     }
 
 
-    public void learn(double[] values) {
+    public void learnWithOccurence(double[] values, int occ){
         int features = values.length;
         int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         //Create dirac only save total and sum
         if (total == 0) {
             double[] sum = new double[features];
-            System.arraycopy(values, 0, sum, 0, features);
-            total = 1;
-            backend.set(Gaussian.TOTAL, Type.INT, total);
-            ((DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY)).initWith(sum);
+            if(occ==1) {
+                System.arraycopy(values, 0, sum, 0, features);
+                total = 1;
+                backend.set(Gaussian.TOTAL, Type.INT, total);
+                ((DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY)).initWith(sum);
+            }
+            else{
+                double[] min= new double[features];
+                double[] max= new double[features];
+                double[] sumsq= new double[features * (features + 1) / 2];
+                System.arraycopy(values, 0, min, 0, features);
+                System.arraycopy(values, 0, max, 0, features);
+                int count = 0;
+                for(int i=0;i<features;i++){
+                    sum[i]=values[i]*occ;
+                    for (int j = i; j < features; j++) {
+                        sumsq[count]=values[i]*values[j]*occ;
+                        count++;
+                    }
+                }
+                total = occ;
+                backend.set(Gaussian.TOTAL, Type.INT, total);
+                ((DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY)).initWith(sum);
+                ((DoubleArray) backend.getOrCreate(Gaussian.MIN, Type.DOUBLE_ARRAY)).initWith(min);
+                ((DoubleArray) backend.getOrCreate(Gaussian.MAX, Type.DOUBLE_ARRAY)).initWith(max);
+                ((DoubleArray) backend.getOrCreate(Gaussian.SUMSQ, Type.DOUBLE_ARRAY)).initWith(sumsq);
+            }
 
             //set total, weight, sum, return
         } else {
@@ -93,22 +116,27 @@ public class GaussianENode {
                 if (values[i] > max.get(i)) {
                     max.set(i, values[i]);
                 }
-                sum.set(i, sum.get(i) + values[i]);
+                sum.set(i, sum.get(i) + values[i]*occ);
             }
 
             int count = 0;
             for (int i = 0; i < features; i++) {
                 for (int j = i; j < features; j++) {
-                    sumsquares.set(count, sumsquares.get(count) + values[i] * values[j]);
+                    sumsquares.set(count, sumsquares.get(count) + values[i] * values[j]*occ);
                     count++;
                 }
             }
-            total++;
+            total+=occ;
             //Store everything
             backend.set(Gaussian.TOTAL, Type.INT, total);
         }
         // set all cached avg, std, and cov arrays to null
         invalidate();
+
+    }
+
+    public void learn(double[] values) {
+        learnWithOccurence(values,1);
     }
 
     private void invalidate() {
@@ -331,4 +359,7 @@ public class GaussianENode {
     }
 
 
+    public void print() {
+        System.out.println("Gaussian Enode: "+ backend.toString());
+    }
 }

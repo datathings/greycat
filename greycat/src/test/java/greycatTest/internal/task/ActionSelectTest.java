@@ -23,7 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import greycat.TaskContext;
 
-import static greycat.internal.task.CoreActions.readGlobalIndex;
+import static greycat.internal.task.CoreActions.readIndex;
 import static greycat.internal.task.CoreActions.select;
 import static greycat.Tasks.newTask;
 
@@ -33,7 +33,7 @@ public class ActionSelectTest extends AbstractActionTest {
     public void test() {
         initGraph();
         newTask()
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .then(select(new TaskFunctionSelect() {
                     @Override
                     public boolean select(Node node, TaskContext context) {
@@ -54,7 +54,7 @@ public class ActionSelectTest extends AbstractActionTest {
     public void test2() {
         initGraph();
         newTask()
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .then(select((node, context) -> false))
                 .thenDo(new ActionFunction() {
                     @Override
@@ -70,7 +70,7 @@ public class ActionSelectTest extends AbstractActionTest {
     public void test3() {
         initGraph();
         newTask()
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .then(select((node, context) -> true))
                 .thenDo(new ActionFunction() {
                     @Override

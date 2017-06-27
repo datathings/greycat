@@ -20,7 +20,6 @@ import greycat.ActionFunction;
 import org.junit.Assert;
 import org.junit.Test;
 import greycat.scheduler.NoopScheduler;
-import greycat.struct.RelationIndexed;
 import greycat.TaskContext;
 import greycat.Tasks;
 
@@ -83,8 +82,9 @@ public class IndexTest {
                 final Node node_t1 = graph.newNode(0, 0);
                 node_t1.set("name", Type.STRING, "MyName");
 
-                RelationIndexed irel = (RelationIndexed) node_t0.getOrCreate("ichildren", Type.RELATION_INDEXED);
-                irel.add(node_t1, "name");
+                Index irel = (Index) node_t0.getOrCreate("ichildren", Type.INDEX);
+                irel.declareAttributes(null, "name");
+                irel.update(node_t1);
 
                 long[] flat = irel.all();
                 Assert.assertEquals(1, flat.length);
@@ -98,7 +98,7 @@ public class IndexTest {
                         Assert.assertEquals(result[0].id(), node_t1.id());
                         passed[0]++;
                     }
-                }, 0, 0, "name", "MyName");
+                }, 0, 0, "MyName");
 
                 irel.find(new Callback<Node[]>() {
                     @Override
@@ -107,7 +107,7 @@ public class IndexTest {
                         Assert.assertEquals(result[0].id(), node_t1.id());
                         passed[0]++;
                     }
-                }, 0, 0, "name", "MyName");
+                }, 0, 0, "MyName");
 
                 irel.findByQuery(graph.newQuery().add("name", "MyName").setTime(0).setWorld(0), new Callback<Node[]>() {
                     @Override
@@ -134,18 +134,19 @@ public class IndexTest {
                 Tasks.newTask()
                         .travelInTime(System.currentTimeMillis() + "")
                         .travelInWorld("0")
-                        .readGlobalIndex("indexName") //comment this line to make the test passed
+                        .declareIndex("indexName", "name")
+                        .readIndex("indexName")
                         .createNode()
                         .setAttribute("name", Type.STRING, "156ea1e_11-SNAPSHOT")
-                        .addToGlobalIndex("indexName", "name")
-                        .readGlobalIndex("indexName")
+                        .updateIndex("indexName")
+                        .readIndex("indexName")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
                                 Assert.assertEquals(1, ctx.result().size());
                             }
                         })
-                        .readGlobalIndex("indexName", "name", "156ea1e_11-SNAPSHOT")
+                        .readIndex("indexName", "name", "156ea1e_11-SNAPSHOT")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -159,6 +160,7 @@ public class IndexTest {
         });
     }
 
+    /*
     @Test
     public void testModificationKeyAttribute() {
         Graph graph = new GraphBuilder().build();
@@ -175,20 +177,21 @@ public class IndexTest {
                 Tasks.newTask()
                         .travelInTime("0")
                         .travelInWorld("0")
+                        .declareTimedIndex(idxName, kAtt)
                         .createNode()
                         .setAttribute(kAtt, Type.STRING, fValue)
                         .setAsVar(rootNode)
-                        .addToGlobalTimedIndex(idxName, kAtt) //add to index at time 0
+                        .updateIndex(idxName) //add to index at time 0
                         .readVar(rootNode)
                         .travelInTime("10") //jump the context at time 10
-                        .removeFromGlobalTimedIndex(idxName, kAtt) //remove the node from the index
+                        //.removeFromGlobalTimedIndex(idxName, kAtt) //remove the node from the index
                         .setAttribute(kAtt, Type.STRING, sValue) //modify its key value
 
-                        .addToGlobalTimedIndex(idxName, kAtt) //re-add to the index
+                        .updateIndex(idxName) //re-add to the index
 
                         //Check
                         .travelInTime("10")
-                        .readGlobalIndex(idxName, kAtt, sValue)
+                        .readIndex(sValue)
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -197,7 +200,7 @@ public class IndexTest {
                             }
                         })
                         .travelInTime("0") //jump the context at time 0
-                        .readGlobalIndex(idxName)
+                        .readIndex(idxName)
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -208,12 +211,12 @@ public class IndexTest {
                                 ctx.continueTask();
                             }
                         })
-                        .readGlobalIndex(idxName, kAtt, fValue)
+                        .readIndex(idxName, fValue)
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
                                 //But not with the query...
-                                Assert.assertEquals(1, ctx.result().size());
+                                Assert.assertEquals(0, ctx.result().size());
                                 ctx.continueTask();
                             }
                         })
@@ -221,7 +224,7 @@ public class IndexTest {
             }
         });
     }
-
+*/
 
     /*
     private void test(final Graph graph) {

@@ -57,7 +57,7 @@ public class AttributeNode extends BaseNode {
 
     //Override default Abstract node default setters and getters
     @Override
-    public Node set(String propertyName, byte propertyType, Object propertyValue) {
+    public Node set(String propertyName, int propertyType, Object propertyValue) {
         if (propertyName.equals(VALUE)) {
             internalSet(Double.parseDouble(propertyValue.toString()), null);
         } else if (propertyName.equals(MIN_TOLERATED)) {

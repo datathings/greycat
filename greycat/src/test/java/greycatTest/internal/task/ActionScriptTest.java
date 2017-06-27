@@ -15,16 +15,6 @@
  */
 package greycatTest.internal.task;
 
-import greycat.Callback;
-import greycat.ActionFunction;
-import greycat.TaskContext;
-import greycat.TaskResult;
-import org.junit.Assert;
-import org.junit.Test;
-
-import static greycat.internal.task.CoreActions.readGlobalIndex;
-import static greycat.Tasks.newTask;
-
 public class ActionScriptTest extends AbstractActionTest {
 
     /*
@@ -32,7 +22,7 @@ public class ActionScriptTest extends AbstractActionTest {
     public void testSimpleScript() {
         initGraph();
         newTask()
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .asyncScript("ctx.setVariable(\"val1\",55).continueTask();")
                 .asyncScript("ctx.setVariable(\"val2\",56).continueTask();")
                 .asyncScript("ctx.setVariable(\"val4\",70).setVariable(\"val8\",999).continueTask();")

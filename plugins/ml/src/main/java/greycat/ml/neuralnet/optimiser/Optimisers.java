@@ -17,9 +17,6 @@ package greycat.ml.neuralnet.optimiser;
 
 import greycat.struct.ENode;
 
-/**
- * Created by assaad on 13/02/2017.
- */
 public class Optimisers {
     public static final int GRADIENT_DESCENT = 0;
     public static final int RMSPROP = 1;

@@ -16,8 +16,8 @@
 package greycatTest.internal.tree;
 
 import greycat.*;
-import greycat.internal.tree.NDTree;
-import greycat.internal.tree.ndmanager.IndexManager;
+import greycat.internal.custom.NDTree;
+import greycat.internal.custom.IndexManager;
 import greycat.struct.EGraph;
 import greycat.struct.NDManager;
 

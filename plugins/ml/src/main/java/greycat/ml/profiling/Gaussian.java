@@ -22,9 +22,6 @@ import greycat.struct.DMatrix;
 import greycat.struct.DoubleArray;
 import greycat.struct.Relation;
 
-/**
- * Created by assaad on 20/02/2017.
- */
 public class Gaussian {
     public static final String NULL = "profile_null";
     public static final String REJECT = "profile_reject";
@@ -91,24 +88,18 @@ public class Gaussian {
     }
 
     public static void clearProfile(Node host) {
-        host.set(NULL, Type.LONG, null);
-        host.set(REJECT, Type.LONG, null);
-        host.set(TOTAL, Type.LONG, null);
-        host.set(SUM, Type.DOUBLE, null);
-        host.set(SUMSQ, Type.DOUBLE, null);
-        host.set(AVG, Type.DOUBLE, null);
-        host.set(COV, Type.DOUBLE, null);
-        host.set(STD, Type.DOUBLE, null);
-        host.set(MIN, Type.DOUBLE, null);
-        host.set(MAX, Type.DOUBLE, null);
-        DoubleArray center =host.getDoubleArray(HISTOGRAM_CENTER);
-        DoubleArray values= host.getDoubleArray(HISTOGRAM_VALUES);
-        if(center!=null){
-            center.clear();
-        }
-        if(values!=null){
-            values.clear();
-        }
+        host.remove(NULL);
+        host.remove(REJECT);
+        host.remove(TOTAL);
+        host.remove(SUM);
+        host.remove(SUMSQ);
+        host.remove(AVG);
+        host.remove(COV);
+        host.remove(STD);
+        host.remove(MIN);
+        host.remove(MAX);
+        host.remove(HISTOGRAM_CENTER);
+        host.remove(HISTOGRAM_VALUES);
     }
 
     public static void histogram(Node host, double min, double max, Double value, int histogramBins) {

@@ -15,16 +15,11 @@
  */
 package greycatTest.internal.task;
 
-import greycat.Callback;
-import greycat.Node;
-import greycat.Type;
-import greycat.struct.RelationIndexed;
-import greycat.ActionFunction;
-import greycat.TaskContext;
+import greycat.*;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static greycat.internal.task.CoreActions.readGlobalIndex;
+import static greycat.internal.task.CoreActions.readIndex;
 import static greycat.internal.task.CoreActions.traverse;
 import static greycat.Tasks.newTask;
 
@@ -34,7 +29,7 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
     public void test() {
         initGraph();
         newTask()
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .traverse("children")
                 .traverse("name")
                 .thenDo(new ActionFunction() {
@@ -52,7 +47,7 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
     public void testDefaultSynthax() {
         initGraph();
         newTask()
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .parse("children.name", graph)
                 .thenDo(new ActionFunction() {
                     @Override
@@ -70,7 +65,7 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
     public void testParse() {
         initGraph();
         newTask()
-                .parse("readGlobalIndex(nodes).traverse(children)", graph)
+                .parse("readIndex(nodes).traverse(children)", graph)
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {
@@ -81,6 +76,7 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
                 .execute(graph, null);
         removeGraph();
     }
+
 
     @Test
     public void testTraverseIndex() {
@@ -100,24 +96,24 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
         Node root = graph.newNode(0, 0);
         root.set("name", Type.STRING, "root2");
 
-        graph.index(0, 0, "roots", rootIndex -> {
-            rootIndex.addToIndex(root, "name");
 
-            RelationIndexed irel = (RelationIndexed) root.getOrCreate("childrenIndexed", Type.RELATION_INDEXED);
-            irel.add(node1, "name");
-            irel.add(node2, "name");
-            irel.add(node3, "name");
-
+        graph.declareIndex(0, "roots", rootIndex -> {
+            rootIndex.update(root);
+            Index irel = (Index) root.getOrCreate("childrenIndexed", Type.INDEX);
+            irel.declareAttributes(null, "name");
+            irel.update(node1);
+            irel.update(node2);
+            irel.update(node3);
             root.travelInTime(12, new Callback<Node>() {
                 @Override
                 public void on(Node result) {
 
-                    RelationIndexed irel12 = (RelationIndexed) root.getOrCreate("childrenIndexed", Type.RELATION_INDEXED);
-                    irel12.add(node3, "name");
+                    Index irel12 = (Index) root.getOrCreate("childrenIndexed", Type.INDEX);
+                    irel12.update(node3);
                 }
             });
 
-        });
+        }, "name");
 
         /*
         readIndex("rootIndex", "name=root2")
@@ -132,8 +128,8 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
 */
 
         newTask()
-                .then(readGlobalIndex("rootIndex", "name", "root2"))
-                .then(traverse("childrenIndexed", "name", "node3"))
+                .readIndex("rootIndex", "name", "root2")
+                .traverse("childrenIndexed", "name", "node3")
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {

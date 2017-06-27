@@ -51,7 +51,7 @@ public class CoreNodeValue extends BaseNode implements NodeValue {
     }
 
     @Override
-    public Node setAt(int index, byte type, Object value) {
+    public Node setAt(int index, int type, Object value) {
         if (index != cached) {
             throw new RuntimeException("Bad API usage, NodeValue cannot contains other attributes");
         }

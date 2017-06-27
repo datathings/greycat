@@ -24,7 +24,7 @@
     <name>greycat-example-modeling</name>
 
     <properties>
-        <!-- replace by the wanted GreyCat version -->
+        <!-- replace by the desired GreyCat version -->
         <greycat.version>${project.version}</greycat.version>
     </properties>
 

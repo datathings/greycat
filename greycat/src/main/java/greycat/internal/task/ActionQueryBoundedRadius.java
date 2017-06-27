@@ -16,8 +16,8 @@
 package greycat.internal.task;
 
 import greycat.*;
-import greycat.internal.tree.KDTree;
-import greycat.internal.tree.NDTree;
+import greycat.internal.custom.KDTree;
+import greycat.internal.custom.NDTree;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.Tree;
@@ -93,7 +93,7 @@ public class ActionQueryBoundedRadius implements Action {
 
     @Override
     public void serialize(final Buffer builder) {
-        builder.writeString(CoreActionNames.READ_GLOBAL_INDEX);
+        builder.writeString(CoreActionNames.READ_INDEX);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         builder.writeString("" + _n);
         builder.writeChar(Constants.TASK_PARAM_SEP);

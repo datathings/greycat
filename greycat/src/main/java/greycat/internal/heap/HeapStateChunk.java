@@ -15,17 +15,12 @@
  */
 package greycat.internal.heap;
 
-import greycat.Constants;
-import greycat.Container;
-import greycat.Graph;
-import greycat.Type;
+import greycat.*;
 import greycat.chunk.ChunkType;
 import greycat.chunk.StateChunk;
 import greycat.internal.CoreConstants;
-import greycat.internal.tree.KDTree;
-import greycat.internal.tree.NDTree;
-import greycat.internal.tree.ndmanager.IndexManager;
 import greycat.plugin.NodeStateCallback;
+import greycat.plugin.TypeDeclaration;
 import greycat.struct.*;
 import greycat.utility.Base64;
 import greycat.utility.HashHelper;
@@ -41,8 +36,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     private volatile int _size;
     private int[] _k;
     private Object[] _v;
-    private byte[] _type;
-
+    private int[] _type;
     private int[] next_and_hash;
     private long _hash;
     private boolean _inSync;
@@ -107,34 +101,23 @@ class HeapStateChunk implements StateChunk, HeapContainer {
 
     @Override
     public synchronized final Object getAt(final int p_key) {
-        return internal_get(p_key);
+        return internal_get(p_key, false);
     }
 
     @Override
-    public synchronized Object getRawAt(int p_key) {
-        return getAt(p_key);
+    public synchronized Object getRawAt(final int p_key) {
+        return internal_get(p_key, true);
     }
 
     @Override
-    public Object getTypedRawAt(int index, byte type) {
+    public Object getTypedRawAt(int index, int type) {
         //empty chunk, we return immediately
         if (_size == 0) {
             return null;
         }
         int found = internal_find(index);
-        Object result;
         if (found != -1 && _type[found] == type) {
-            result = _v[found];
-            if (result != null) {
-                switch (_type[found]) {
-                    case Type.NDTREE:
-                        return new NDTree((EGraph) result, new IndexManager());
-                    case Type.KDTREE:
-                        return new KDTree((EGraph) result);
-                    default:
-                        return result;
-                }
-            }
+            return _v[found];
         }
         return null;
     }
@@ -166,7 +149,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
     }
 
-    private Object internal_get(final int p_key) {
+    private Object internal_get(final int p_key, final boolean p_raw) {
         //empty chunk, we return immediately
         if (_size == 0) {
             return null;
@@ -177,12 +160,48 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             result = _v[found];
             if (result != null) {
                 switch (_type[found]) {
+                    case Type.BOOL:
+                    case Type.STRING:
+                    case Type.LONG:
+                    case Type.INT:
+                    case Type.DOUBLE:
+                    case Type.DOUBLE_ARRAY:
+                    case Type.LONG_ARRAY:
+                    case Type.INT_ARRAY:
+                    case Type.STRING_ARRAY:
+                    case Type.LONG_TO_LONG_MAP:
+                    case Type.LONG_TO_LONG_ARRAY_MAP:
+                    case Type.STRING_TO_INT_MAP:
+                    case Type.RELATION:
+                    case Type.DMATRIX:
+                    case Type.LMATRIX:
+                    case Type.EGRAPH:
+                    case Type.ENODE:
+                    case Type.ERELATION:
+                    case Type.TASK:
+                    case Type.TASK_ARRAY:
+                    case Type.NODE:
+                        //case Type.NODE_ARRAY:
+                    case Type.INT_TO_INT_MAP:
+                    case Type.INT_TO_STRING_MAP:
+                        return result;
+                        /*
                     case Type.NDTREE:
                         return new NDTree((EGraph) result, new IndexManager());
                     case Type.KDTREE:
                         return new KDTree((EGraph) result);
+                        */
                     default:
-                        return result;
+                        if (p_raw) {
+                            return result;
+                        } else {
+                            final TypeDeclaration declaration = graph().typeRegistry().declarationByHash(_type[found]);
+                            if (declaration == null) {
+                                return result;
+                            } else {
+                                return declaration.factory().wrap((EGraph) result);
+                            }
+                        }
                 }
             }
         }
@@ -207,7 +226,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
      * }
      */
     @Override
-    public synchronized final Container setAt(final int p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
+    public synchronized final Container setAt(final int p_elementIndex, final int p_elemType, final Object p_unsafe_elem) {
         internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
         return this;
     }
@@ -223,14 +242,14 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public synchronized final Container set(final String key, final byte p_elemType, final Object p_unsafe_elem) {
+    public synchronized final Container set(final String key, final int p_elemType, final Object p_unsafe_elem) {
         internal_set(_space.graph().resolver().stringToHash(key, true), p_elemType, p_unsafe_elem, true, false);
         return this;
     }
 
     @Override
     public synchronized final Object get(final String key) {
-        return internal_get(_space.graph().resolver().stringToHash(key, false));
+        return internal_get(_space.graph().resolver().stringToHash(key, false), false);
     }
 
     @Override
@@ -259,7 +278,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public synchronized final byte typeAt(final int p_key) {
+    public synchronized final int typeAt(final int p_key) {
         final int found_index = internal_find(p_key);
         if (found_index != -1) {
             return _type[found_index];
@@ -269,12 +288,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public byte type(final String key) {
+    public final int type(final String key) {
         return typeAt(_space.graph().resolver().stringToHash(key, false));
     }
 
     @Override
-    public synchronized final Object getOrCreateAt(final int p_key, final byte p_type) {
+    public synchronized final Object getOrCreateAt(final int p_key, final int p_type) {
         final int found = internal_find(p_key);
         if (found != -1) {
             if (_type[found] == p_type) {
@@ -315,10 +334,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 toSet = new HeapRelation(this, null);
                 toGet = toSet;
                 break;
-            case Type.RELATION_INDEXED:
-                toSet = new HeapRelationIndexed(this, _space.graph());
-                toGet = toSet;
-                break;
             case Type.DMATRIX:
                 toSet = new HeapDMatrix(this, null);
                 toGet = toSet;
@@ -351,6 +366,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 toSet = new HeapEGraph(this, null, _space.graph());
                 toGet = toSet;
                 break;
+                /*
             case Type.KDTREE:
                 EGraph tempKD = new HeapEGraph(this, null, _space.graph());
                 toSet = tempKD;
@@ -361,13 +377,25 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 toSet = tempND;
                 toGet = new NDTree(tempND, new IndexManager());
                 break;
+                */
+        }
+        //Default, custom Type
+        if (toSet == null) {
+            EGraph tempND = new HeapEGraph(this, null, _space.graph());
+            toSet = tempND;
+            final TypeDeclaration typeDeclaration = graph().typeRegistry().declarationByHash(p_type);
+            if (typeDeclaration == null) {
+                toGet = toSet;
+            } else {
+                toGet = typeDeclaration.factory().wrap(tempND);
+            }
         }
         internal_set(p_key, p_type, toSet, true, false);
         return toGet;
     }
 
     @Override
-    public final Object getOrCreate(final String key, final byte elemType) {
+    public final Object getOrCreate(final String key, final int elemType) {
         return getOrCreateAt(_space.graph().resolver().stringToHash(key, true), elemType);
     }
 
@@ -542,7 +570,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             }
                         });
                         break;
-                    case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
                         Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
@@ -556,9 +583,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             }
                         });
                         break;
-                    case Type.NDTREE:
-                    case Type.KDTREE:
-                    case Type.EGRAPH:
+                   /* case Type.NDTREE:
+                    case Type.KDTREE:*/
+                    /*case Type.EGRAPH:
                         HeapEGraph castedEGraph = (HeapEGraph) loopValue;
                         HeapENode[] eNodes = castedEGraph._nodes;
                         int eGSize = castedEGraph.size();
@@ -568,8 +595,17 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             eNodes[j].save(buffer);
                         }
                         castedEGraph._dirty = false;
-                        break;
+                        break;*/
                     default:
+                        HeapEGraph castedEGraph = (HeapEGraph) loopValue;
+                        HeapENode[] eNodes = castedEGraph._nodes;
+                        int eGSize = castedEGraph.size();
+                        Base64.encodeIntToBuffer(eGSize, buffer);
+                        for (int j = 0; j < eGSize; j++) {
+                            buffer.write(CoreConstants.CHUNK_ENODE_SEP);
+                            eNodes[j].save(buffer);
+                        }
+                        castedEGraph._dirty = false;
                         break;
                 }
             }
@@ -613,7 +649,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         */
         //copy types
         if (casted._type != null) {
-            byte[] cloned_type = new byte[_capacity];
+            int[] cloned_type = new int[_capacity];
             System.arraycopy(casted._type, 0, cloned_type, 0, _capacity);
             _type = cloned_type;
         }
@@ -635,11 +671,14 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 _v[i] = ((HeapLongLongMap) casted._v[i]).cloneFor(this);
                             }
                             break;
+<<<<<<< HEAD
                         case Type.RELATION_INDEXED:
                             if (casted._v[i] != null) {
                                 _v[i] = ((HeapRelationIndexed) casted._v[i]).cloneIRelFor(this, casted.graph());
                             }
                             break;
+=======
+>>>>>>> master
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             if (casted._v[i] != null) {
                                 _v[i] = ((HeapLongLongArrayMap) casted._v[i]).cloneFor(this);
@@ -700,6 +739,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 _v[i] = ((HeapStringArray) casted._v[i]).cloneFor(this);
                             }
                             break;
+<<<<<<< HEAD
                         case Type.INT_SET:
                             if (casted._v[i] != null) {
                                 _v[i] = ((HeapIntSet) casted._v[i]).cloneFor(this);
@@ -712,6 +752,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             break;
                         default:
                             _v[i] = casted._v[i];
+=======
+                        default:
+                            if (!Type.isCustom(casted._type[i])) {
+                                _v[i] = casted._v[i];
+                            } else {
+                                if (casted._v[i] != null) {
+                                    _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
+                                }
+                            }
+>>>>>>> master
                             break;
                     }
                 }
@@ -719,7 +769,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
     }
 
-    private void internal_set(final int p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
+    private void internal_set(final int p_key, final int p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
         Object param_elem = null;
         //check the param type
         if (p_unsafe_elem != null) {
@@ -830,16 +880,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         param_elem = (LongLongArrayMap) p_unsafe_elem;
                         break;
-                    case Type.RELATION_INDEXED:
-                        param_elem = (RelationIndexed) p_unsafe_elem;
-                        break;
-                    case Type.NDTREE:
-                    case Type.KDTREE:
                     case Type.EGRAPH:
                         param_elem = (EGraph) p_unsafe_elem;
                         break;
                     default:
-                        throw new RuntimeException("Internal Exception, unknown type");
+                        param_elem = (EGraph) p_unsafe_elem;
+                        // throw new RuntimeException("Internal Exception, unknown type");
                 }
             } catch (Exception e) {
                 throw new RuntimeException("GreyCat usage error, set method called with type " + Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
@@ -854,7 +900,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             _capacity = Constants.MAP_INITIAL_CAPACITY;
             _k = new int[_capacity];
             _v = new Object[_capacity];
-            _type = new byte[_capacity];
+            _type = new int[_capacity];
             _k[0] = p_key;
             _v[0] = param_elem;
             _type[0] = p_type;
@@ -972,7 +1018,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         Object[] ex_v = new Object[newCapacity];
         System.arraycopy(_v, 0, ex_v, 0, _capacity);
         _v = ex_v;
-        byte[] ex_type = new byte[newCapacity];
+        int[] ex_type = new int[newCapacity];
         System.arraycopy(_type, 0, ex_type, 0, _capacity);
         _type = ex_type;
         _capacity = newCapacity;
@@ -1012,7 +1058,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             System.arraycopy(_v, 0, ex_v, 0, _capacity);
         }
         _v = ex_v;
-        byte[] ex_type = new byte[newCapacity];
+        int[] ex_type = new int[newCapacity];
         if (_type != null) {
             System.arraycopy(_type, 0, ex_type, 0, _capacity);
         }
@@ -1041,7 +1087,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             long previous = 0;
             long cursor = 0;
             byte state = LOAD_WAITING_ALLOC;
-            byte read_type = -1;
+            int read_type = -1;
             int read_key = -1;
             while (cursor < payloadSize) {
                 byte current = buffer.read(cursor);
@@ -1054,7 +1100,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             previous = cursor;
                             break;
                         case LOAD_WAITING_TYPE:
-                            read_type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                            read_type = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                             state = LOAD_WAITING_KEY;
                             cursor++;
                             previous = cursor;
@@ -1255,20 +1301,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                         }
                                     }
                                     break;
-                                case Type.RELATION_INDEXED:
-                                    HeapRelationIndexed relationIndexed = new HeapRelationIndexed(this, _space.graph());
-                                    cursor++;
-                                    cursor = relationIndexed.load(buffer, cursor, payloadSize);
-                                    internal_set(read_key, read_type, relationIndexed, true, initial);
-                                    if (cursor < payloadSize) {
-                                        current = buffer.read(cursor);
-                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
-                                            state = LOAD_WAITING_TYPE;
-                                            cursor++;
-                                            previous = cursor;
-                                        }
-                                    }
-                                    break;
                                 case Type.STRING_TO_INT_MAP:
                                     final int previousFound = internal_find(read_key);
                                     HeapStringIntMap s2lmap;
@@ -1289,8 +1321,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                         }
                                     }
                                     break;
-                                case Type.NDTREE:
+                                /*case Type.NDTREE:
                                 case Type.KDTREE:
+                                */
+                                    /*
                                 case Type.EGRAPH:
                                     HeapEGraph eGraph = new HeapEGraph(this, null, this.graph());
                                     cursor++;
@@ -1304,9 +1338,21 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                             previous = cursor;
                                         }
                                     }
-                                    break;
+                                    break;*/
                                 default:
-                                    throw new RuntimeException("Not implemented yet!!!");
+                                    HeapEGraph eGraphDef = new HeapEGraph(this, null, this.graph());
+                                    cursor++;
+                                    cursor = eGraphDef.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, eGraphDef, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
+                                    //throw new RuntimeException("Not implemented yet!!!");
                             }
                             break;
                         case LOAD_WAITING_VALUE:
@@ -1329,7 +1375,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
     }
 
-    private void load_primitive(final int read_key, final byte read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
+    private void load_primitive(final int read_key, final int read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
         if (previous == cursor) {
             internal_set(read_key, read_type, null, true, initial);
         } else {
@@ -1373,8 +1419,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public final RelationIndexed getRelationIndexed(String name) {
-        return (RelationIndexed) get(name);
+    public final Index getIndex(String name) {
+        return (Index) get(name);
     }
 
     @Override

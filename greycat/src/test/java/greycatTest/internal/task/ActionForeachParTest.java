@@ -22,9 +22,6 @@ import org.junit.Test;
 import greycat.TaskContext;
 import greycat.TaskResult;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.*;
 
@@ -52,7 +49,7 @@ public class ActionForeachParTest extends AbstractActionTest {
                 })
                 .execute(graph, null);
 
-        newTask().then(readGlobalIndex("nodes"))
+        newTask().then(readIndex("nodes"))
                 .forEachPar(
                         newTask().thenDo(new ActionFunction() {
                             @Override

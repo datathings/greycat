@@ -43,13 +43,12 @@ class CoreNodeRegistry implements NodeRegistry {
 
     @Override
     public final NodeDeclaration declaration(String name) {
-        return  backend.get(name);
+        return backend.get(name);
     }
 
     @Override
     public final NodeDeclaration declarationByHash(int hash) {
         return backend_hash.get(hash);
     }
-
-
+    
 }

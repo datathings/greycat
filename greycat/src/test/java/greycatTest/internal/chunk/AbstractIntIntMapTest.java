@@ -92,12 +92,12 @@ public abstract class AbstractIntIntMapTest {
 
         Buffer buffer = factory.newBuffer();
         chunk.save(buffer);
-        Assert.assertEquals("C|0|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer.toString());
+        Assert.assertEquals("C|s|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer.toString());
         StateChunk loaded = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 10, 10, 10);
         loaded.load(buffer);
         Buffer buffer2 = factory.newBuffer();
         chunk.save(buffer2);
-        Assert.assertEquals("C|0|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer2.toString());
+        Assert.assertEquals("C|s|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer2.toString());
 
         buffer.free();
         buffer2.free();

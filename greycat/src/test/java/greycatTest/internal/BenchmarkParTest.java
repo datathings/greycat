@@ -22,7 +22,6 @@ import greycat.Callback;
 import greycat.GraphBuilder;
 import greycat.TaskResult;
 
-import static greycat.internal.task.CoreActions.*;
 import static greycat.Tasks.cond;
 import static greycat.Tasks.newTask;
 
@@ -44,17 +43,17 @@ public class BenchmarkParTest {
             public void on(Boolean result) {
                 final long previous = System.currentTimeMillis();
                 final long previousCache = g.space().available();
-                newTask().loopPar("0", "9999",
+                newTask().declareIndex("nodes", "name").loopPar("0", "9999",
                         newTask()
-                                .then(createNode())
-                                .then(setAttribute("name", Type.STRING, "node_{{i}}"))
-                                .then(print("{{result}}"))
-                                .then(addToGlobalIndex("nodes", "name"))
+                                .createNode()
+                                .setAttribute("name", Type.STRING, "node_{{i}}")
+                                .print("{{result}}")
+                                .updateIndex("nodes")
                                 .loop("0", "999",
-                                        newTask().then(travelInTime("{{i}}")).then(setAttribute("val", Type.INT, "{{i}}")).then(clearResult()))
-                                .ifThen(cond("i % 100 == 0"), newTask().then(save()))
-                                .then(clearResult())
-                ).then(save()).then(readGlobalIndex("nodes")).execute(g, new Callback<TaskResult>() {
+                                        newTask().travelInTime("{{i}}").setAttribute("val", Type.INT, "{{i}}").clearResult())
+                                .ifThen(cond("i % 100 == 0"), newTask().save())
+                                .clearResult()
+                ).save().readIndex("nodes").execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         System.out.println("indexSize=" + result.size());

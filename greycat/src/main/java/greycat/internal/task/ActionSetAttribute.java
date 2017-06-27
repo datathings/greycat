@@ -28,7 +28,7 @@ class ActionSetAttribute implements Action {
 
     private final String _name;
     private final String _value;
-    private final byte _propertyType;
+    private final int _propertyType;
     private final boolean _force;
 
     ActionSetAttribute(final String name, final String propertyType, final String value, final boolean force) {
@@ -88,7 +88,7 @@ class ActionSetAttribute implements Action {
         ctx.continueTask();
     }
 
-    private Object loadArray(String valueAfterTemplate, byte type) throws NumberFormatException {
+    private Object loadArray(String valueAfterTemplate, int type) throws NumberFormatException {
         String arrayInString = valueAfterTemplate;
         if (arrayInString.charAt(0) == '[') {
             arrayInString = arrayInString.substring(1);

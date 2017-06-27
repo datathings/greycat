@@ -18,6 +18,6 @@ package greycat.plugin;
 @FunctionalInterface
 public interface NodeStateCallback {
 
-    void on(int attributeKey, byte elemType, Object elem);
+    void on(int attributeKey, int elemType, Object elem);
 
 }

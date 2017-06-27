@@ -19,26 +19,19 @@ import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
-import greycat.struct.DoubleArray;
 import greycat.struct.EGraph;
 
-/**
- * Created by assaad on 20/02/2017.
- */
 public class GaussianNode extends BaseNode {
     public final static String NAME = "GaussianNode";
-
 
     private static final String BACKEND = "backend";
 
     private EGraph egraph;
     private GaussianENode backend;
 
-
     public GaussianNode(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
     }
-
 
     public void learn(double[] values) {
         //this should be fine no need to fix here
@@ -53,16 +46,16 @@ public class GaussianNode extends BaseNode {
         }
     }
 
-    private void invalidate(){
-        egraph=null;
-        backend=null;
+    private void invalidate() {
+        egraph = null;
+        backend = null;
     }
 
     @Override
-    public Node set(String name, byte type, Object value) {
+    public Node set(String name, int type, Object value) {
         rephase();
         invalidate();
-        if(!load()){
+        if (!load()) {
             egraph = (EGraph) super.getOrCreate(BACKEND, Type.EGRAPH);
             backend = new GaussianENode(egraph.newNode());
         }

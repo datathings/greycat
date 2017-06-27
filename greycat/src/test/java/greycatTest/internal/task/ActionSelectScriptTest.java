@@ -29,7 +29,7 @@ public class ActionSelectScriptTest extends AbstractActionTest {
     public void test() {
         initGraph();
         newTask()
-                .readGlobalIndex("nodes")
+                .readIndex("nodes")
               //  .select((node, context) -> node.get("name").equals("root"))
                 .selectScript("node.get('name') == 'root'")
                 .thenDo(new ActionFunction() {
@@ -47,7 +47,7 @@ public class ActionSelectScriptTest extends AbstractActionTest {
     public void test2() {
         initGraph();
         newTask()
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .then(selectScript("false"))
                 .thenDo(new ActionFunction() {
                     @Override
@@ -63,7 +63,7 @@ public class ActionSelectScriptTest extends AbstractActionTest {
     public void test3() {
         initGraph();
         newTask()
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .then(selectScript("true"))
                 .thenDo(new ActionFunction() {
                     @Override

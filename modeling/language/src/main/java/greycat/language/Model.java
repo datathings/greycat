@@ -15,160 +15,308 @@
  */
 package greycat.language;
 
-import org.antlr.v4.runtime.ANTLRFileStream;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BufferedTokenStream;
-import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 public class Model {
 
-    private final Map<String, Classifier> classifierMap;
+    protected final Map<String, Class> classes;
+    protected final Map<String, Constant> constants;
+    protected final Map<String, Index> indexes;
+    private final Map<String, CustomType> customTypes;
 
     public Model() {
-        classifierMap = new HashMap<>();
+        classes = new HashMap<String, Class>();
+        constants = new HashMap<String, Constant>();
+        indexes = new HashMap<String, Index>();
+        customTypes = new HashMap<String, CustomType>();
     }
-
-    public Classifier[] classifiers() {
-        return classifierMap.values().toArray(new Classifier[classifierMap.size()]);
-    }
-
-    public void addClassifier(Classifier classifier) {
-        classifierMap.put(classifier.name(), classifier);
-    }
-
-    public Classifier get(String fqn) {
-        return classifierMap.get(fqn);
-    }
-
 
     public void parse(File content) throws Exception {
-        build(new ANTLRFileStream(content.getAbsolutePath()));
+        internal_parse(CharStreams.fromFileName(content.getAbsolutePath()), new Resolver() {
+            @Override
+            public CharStream resolver(String name) {
+                try {
+                    File subFile = new File(content.getParentFile().getCanonicalFile(), name);
+                    if (subFile.exists()) {
+                        return CharStreams.fromFileName(subFile.getAbsolutePath());
+                    } else {
+                        subFile = new File(content.getParentFile().getCanonicalFile(), name + ".gcm");
+                        if (subFile.exists()) {
+                            return CharStreams.fromFileName(subFile.getAbsolutePath());
+                        } else {
+                            return null;
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        });
     }
 
-    private void build(ANTLRInputStream in) {
+    public void parseResource(String name, ClassLoader classLoader) throws IOException {
+        InputStream is = classLoader.getResourceAsStream(name);
+        Resolver resolver = new Resolver() {
+            @Override
+            public CharStream resolver(String name) {
+                InputStream sub = classLoader.getResourceAsStream(name);
+                if (sub != null) {
+                    try {
+                        return CharStreams.fromStream(sub);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return null;
+            }
+        };
+        internal_parse(CharStreams.fromStream(is), resolver);
+    }
+
+    public Constant[] globalConstants() {
+        return constants.values().toArray(new Constant[constants.size()]);
+    }
+
+    public Index[] globalIndexes() {
+        return indexes.values().toArray(new Index[indexes.size()]);
+    }
+
+    public CustomType[] customTypes() {
+        return customTypes.values().toArray(new CustomType[customTypes.size()]);
+    }
+
+    public Class[] classes() {
+        return classes.values().toArray(new Class[classes.size()]);
+    }
+
+    private Set<String> alreadyLoaded = new HashSet<String>();
+
+    private MessageDigest md;
+
+    interface Resolver {
+        CharStream resolver(String name);
+    }
+
+    private static String convertToHex(byte[] data) {
+        StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < data.length; i++) {
+            int halfbyte = (data[i] >>> 4) & 0x0F;
+            int two_halfs = 0;
+            do {
+                if ((0 <= halfbyte) && (halfbyte <= 9))
+                    buf.append((char) ('0' + halfbyte));
+                else
+                    buf.append((char) ('a' + (halfbyte - 10)));
+                halfbyte = data[i] & 0x0F;
+            } while (two_halfs++ < 1);
+        }
+        return buf.toString();
+    }
+
+    private void internal_parse(CharStream in, Resolver resolver) {
+        if (md == null) {
+            try {
+                md = MessageDigest.getInstance("SHA-1");
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+        }
+        String sha1 = convertToHex(md.digest(in.getText(new Interval(0, in.size())).getBytes()));
+        if (alreadyLoaded.contains(sha1)) {
+            return;
+        } else {
+            //circular dependency protection
+            alreadyLoaded.add(sha1);
+        }
         BufferedTokenStream tokens = new CommonTokenStream(new GreyCatModelLexer(in));
         GreyCatModelParser parser = new GreyCatModelParser(tokens);
         GreyCatModelParser.ModelDclContext modelDclCtx = parser.modelDcl();
-
-        // enums
-        for (GreyCatModelParser.EnumDclContext enumDclCtx : modelDclCtx.enumDcl()) {
-            String fqn = enumDclCtx.name.getText();
-            final Enum enumClass = getOrCreateAndAddEnum(fqn);
-            for (TerminalNode literal : enumDclCtx.enumLiteralsDcl().IDENT()) {
-                enumClass.addLiteral(literal.getText());
+        //first subImport
+        modelDclCtx.importDcl().forEach(importDclContext -> {
+            String subPath = importDclContext.STRING().getText().replace("\"", "");
+            CharStream subStream = resolver.resolver(subPath);
+            if (subStream == null) {
+                throw new RuntimeException("Import not resolved " + subPath);
             }
+            try {
+                internal_parse(subStream, resolver);
+            } catch (Exception e) {
+                throw new RuntimeException("Parse Error while parsing " + subPath, e);
+            }
+        });
+        // constants
+        for (GreyCatModelParser.ConstDclContext constDclCtx : modelDclCtx.constDcl()) {
+            String const_name = constDclCtx.name.getText();
+            Constant c = constants.get(const_name);
+            if (c == null) {
+                c = new Constant(const_name);
+                constants.put(const_name, c);
+            }
+            c.setType(getType(constDclCtx.typeDcl()));
+            String value = null;
+            if (constDclCtx.constValueDcl() != null) {
+                if (constDclCtx.constValueDcl().simpleValueDcl() != null) {
+                    value = constDclCtx.constValueDcl().simpleValueDcl().getText();
+                } else if (constDclCtx.constValueDcl().taskValueDcl() != null) {
+                    GreyCatModelParser.TaskValueDclContext taskDcl = constDclCtx.constValueDcl().taskValueDcl();
+                    value = taskDcl.getText();
+                }
+            }
+            c.setValue(value);
         }
-
         // classes
-        for (GreyCatModelParser.ClassDclContext classDclCxt : modelDclCtx.classDcl()) {
-            String classFqn = classDclCxt.name.getText();;
-            final Class newClass = getOrCreateAndAddClass(classFqn);
-
+        for (GreyCatModelParser.ClassDclContext classDclCtx : modelDclCtx.classDcl()) {
+            String classFqn = classDclCtx.name.getText();
+            Class newClass = getOrAddClass(classFqn);
             // parents
-            if (classDclCxt.parentDcl() != null) {
-                final Class newClassTT = getOrCreateAndAddClass(classDclCxt.parentDcl().name.getText());
-                newClass.setParent(newClassTT);
+            if (classDclCtx.parentDcl() != null) {
+                final Class parentClass = getOrAddClass(classDclCtx.parentDcl().IDENT().getText());
+                newClass.setParent(parentClass);
             }
-
             // attributes
-            for (GreyCatModelParser.AttributeDclContext attDcl : classDclCxt.attributeDcl()) {
+            for (GreyCatModelParser.AttributeDclContext attDcl : classDclCtx.attributeDcl()) {
                 String name = attDcl.name.getText();
-                GreyCatModelParser.AttributeTypeDclContext attTypeDclCxt = attDcl.attributeTypeDcl();
-                String value = attTypeDclCxt.getText();
-                boolean isArray = false;
-                if (value.endsWith("[]")) {
-                    value = value.substring(0, value.length() - 2);
-                    isArray = true;
-                }
-
-                final Attribute attribute = new Attribute(name, value, isArray);
-                newClass.addProperty(attribute);
+                final Attribute attribute = newClass.getOrCreateAttribute(name);
+                attribute.setType(getType(attDcl.typeDcl()));
             }
-
             // relations
-            for (GreyCatModelParser.RelationDclContext relDclCxt : classDclCxt.relationDcl()) {
-                String name, type;
-                boolean isToOne = relDclCxt.toOneDcl() != null;
-                if (isToOne) {
-                    // toOne
-                    name = relDclCxt.toOneDcl().name.getText();
-                    type = relDclCxt.toOneDcl().type.getText();
-                } else {
-                    // toMany
-                    name = relDclCxt.toManyDcl().name.getText();
-                    type = relDclCxt.toManyDcl().type.getText();
+            for (GreyCatModelParser.RelationDclContext relDclCtx : classDclCtx.relationDcl()) {
+                newClass.getOrCreateRelation(relDclCtx.name.getText()).setType(relDclCtx.type.getText());
+            }
+            // references
+            for (GreyCatModelParser.ReferenceDclContext refDclCtx : classDclCtx.referenceDcl()) {
+                newClass.getOrCreateReference(refDclCtx.name.getText()).setType(refDclCtx.type.getText());
+            }
+            // local indexes
+            for (GreyCatModelParser.LocalIndexDclContext localIndexDclCtx : classDclCtx.localIndexDcl()) {
+                final Index index = newClass.getOrCreateIndex(localIndexDclCtx.name.getText());
+                index.setType(localIndexDclCtx.type.getText());
+                final Class indexedClass = getOrAddClass(index.type());
+                for (TerminalNode idxDclIdent : localIndexDclCtx.indexAttributesDcl().IDENT()) {
+                    index.addAttributeRef(new AttributeRef(indexedClass.getOrCreateAttribute(idxDclIdent.getText())));
                 }
-                final Relation relation = new Relation(name, type, isToOne);
-
-                if (!isToOne) {
-                    // relation keys
-                    if (relDclCxt.toManyDcl().relationIndexDcl() != null) {
-                        GreyCatModelParser.IndexedAttributesDclContext idxAttDclCtx =
-                                relDclCxt.toManyDcl().relationIndexDcl().indexedAttributesDcl();
-
-                        for (TerminalNode idxAttIdent : idxAttDclCtx.IDENT()) {
-                            relation.addIndexedAttribute(idxAttIdent.getText());
-                        }
+            }
+            // constants
+            for (GreyCatModelParser.ConstDclContext constDclCtx : classDclCtx.constDcl()) {
+                Constant constant = newClass.getOrCreateConstant(constDclCtx.name.getText());
+                constant.setType(getType(constDclCtx.typeDcl()));
+                String value = null;
+                if (constDclCtx.constValueDcl() != null) {
+                    if (constDclCtx.constValueDcl().simpleValueDcl() != null) {
+                        value = constDclCtx.constValueDcl().simpleValueDcl().getText();
+                    } else if (constDclCtx.constValueDcl().taskValueDcl() != null) {
+                        GreyCatModelParser.TaskValueDclContext taskDcl = constDclCtx.constValueDcl().taskValueDcl();
+                        value = taskDcl.getText();
                     }
                 }
-
-                newClass.addProperty(relation);
-            }
-
-            // global keys
-            for (int i = 0; i < classDclCxt.keyDcl().size(); i++) {
-                GreyCatModelParser.KeyDclContext keyDclCxt = classDclCxt.keyDcl().get(i);
-                String idxName = newClass.name() + "Key" + i;
-                if (keyDclCxt.name != null) {
-                    idxName = keyDclCxt.name.getText();
-                }
-                Key idx = new Key(idxName);
-                for (TerminalNode idxDclIdent : keyDclCxt.indexedAttributesDcl().IDENT()) {
-                    Property indexedProperty = getProperty(newClass, idxDclIdent.getText());
-                    Attribute att = (Attribute) indexedProperty;
-                    idx.addAttribute(att);
-                }
-                if (keyDclCxt.withTimeDcl() != null) {
-                    idx.setWithTime(true);
-                }
-                newClass.addKey(idx);
-
+                constant.setValue(value);
             }
         }
-    }
-
-    private Property getProperty(Class clazz, String propertyName) {
-        Property p = clazz.getProperty(propertyName);
-        if (p != null) {
-            return p;
-        } else {
-            return getProperty(clazz.parent(), propertyName);
+        // indexes
+        for (GreyCatModelParser.GlobalIndexDclContext globalIdxDclContext : modelDclCtx.globalIndexDcl()) {
+            final String name = globalIdxDclContext.name.getText();
+            final String type = globalIdxDclContext.type.getText();
+            final Index index = getOrAddGlobalIndex(name, type);
+            final Class indexedClass = getOrAddClass(index.type());
+            for (TerminalNode idxDclIdent : globalIdxDclContext.indexAttributesDcl().IDENT()) {
+                index.addAttributeRef(new AttributeRef(indexedClass.getOrCreateAttribute(idxDclIdent.getText())));
+            }
+        }
+        // custom types
+        for (GreyCatModelParser.CustomTypeDclContext customTypeDclCtx : modelDclCtx.customTypeDcl()) {
+            String customTypeName = customTypeDclCtx.name.getText();
+            final CustomType newCustomType = getOrAddCustomType(customTypeName);
+            // attributes
+            for (GreyCatModelParser.AttributeDclContext attDcl : customTypeDclCtx.attributeDcl()) {
+                Attribute att = newCustomType.getOrCreateAttribute(attDcl.name.getText());
+                if (attDcl.typeDcl().builtInTypeDcl() != null) {
+                    att.setType(attDcl.typeDcl().builtInTypeDcl().getText());
+                } else if (attDcl.typeDcl().customBuiltTypeDcl() != null) {
+                    att.setType(attDcl.typeDcl().customBuiltTypeDcl().getText());
+                }
+            }
+            // constants
+            for (GreyCatModelParser.ConstDclContext constDclCtx : customTypeDclCtx.constDcl()) {
+                Constant constant = newCustomType.getOrCreateConstant(constDclCtx.name.getText());
+                constant.setType(getType(constDclCtx.typeDcl()));
+                String value = null;
+                if (constDclCtx.constValueDcl() != null) {
+                    if (constDclCtx.constValueDcl().simpleValueDcl() != null) {
+                        value = constDclCtx.constValueDcl().simpleValueDcl().getText();
+                    } else if (constDclCtx.constValueDcl().taskValueDcl() != null) {
+                        GreyCatModelParser.TaskValueDclContext taskDcl = constDclCtx.constValueDcl().taskValueDcl();
+                        value = taskDcl.getText();
+                    }
+                }
+                constant.setValue(value);
+            }
         }
     }
 
-    private Class getOrCreateAndAddClass(String fqn) {
-        Class previous = (Class) this.get(fqn);
-        if (previous != null) {
-            return previous;
-        }
-        previous = new Class(fqn);
-        this.addClassifier(previous);
-        return previous;
+    public void consolidate() {
+        classes.values().forEach(aClass -> {
+            List<String> toRemove = new ArrayList<String>();
+            aClass.properties().forEach(o -> {
+                if (o instanceof Attribute) {
+                    Attribute attribute = (Attribute) o;
+                    Attribute parent = aClass.attributeFromParent(attribute.name());
+                    if (parent != null) {
+                        toRemove.add(attribute.name());
+                        attribute.references.forEach(attributeRef -> attributeRef.update(parent));
+                        attribute.references.clear();
+                    }
+                }
+            });
+            toRemove.forEach(s -> aClass.properties.remove(s));
+        });
     }
 
-    private Enum getOrCreateAndAddEnum(String fqn) {
-        Enum previous = (Enum) this.get(fqn);
-        if (previous != null) {
-            return previous;
+    private String getType(GreyCatModelParser.TypeDclContext typeDclContext) {
+        String type = null;
+        if (typeDclContext.builtInTypeDcl() != null) {
+            type = typeDclContext.builtInTypeDcl().getText();
+        } else if (typeDclContext.customBuiltTypeDcl() != null) {
+            type = typeDclContext.customBuiltTypeDcl().getText();
         }
-        previous = new Enum(fqn);
-        this.addClassifier(previous);
-        return previous;
+        return type;
+    }
+
+    private Class getOrAddClass(String fqn) {
+        Class c = classes.get(fqn);
+        if (c == null) {
+            c = new Class(fqn);
+            classes.put(fqn, c);
+        }
+        return c;
+    }
+
+    private Index getOrAddGlobalIndex(String name, String type) {
+        Index gi = indexes.get(name);
+        if (gi == null) {
+            gi = new Index(name);
+            gi.setType(type);
+            indexes.put(name, gi);
+        }
+        return gi;
+    }
+
+    private CustomType getOrAddCustomType(String name) {
+        CustomType ct = customTypes.get(name);
+        if (ct == null) {
+            ct = new CustomType(name);
+            customTypes.put(name, ct);
+        }
+        return ct;
     }
 
 }

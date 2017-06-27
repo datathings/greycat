@@ -73,6 +73,18 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
         hashs[i] = newValue;
     }
 
+    void internal_clear() {
+        synchronized (parent) {
+            mapSize = 0;
+            capacity = 0;
+            keys = null;
+            values = null;
+            nexts = null;
+            hashs = null;
+            parent.declareDirty();
+        }
+    }
+
     void reallocate(int newCapacity) {
         if (newCapacity > capacity) {
             //extend keys

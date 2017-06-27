@@ -15,17 +15,36 @@
  */
 package greycat.language;
 
-public class Attribute extends Property {
-    private final boolean isArray;
+import java.util.ArrayList;
+import java.util.List;
 
-    public Attribute(String name, String type, boolean isArray) {
-        super(name, type);
-        this.isArray = isArray;
+public class Attribute {
+
+    private final String name;
+    private final Container parent;
+    final List<AttributeRef> references = new ArrayList<AttributeRef>();
+
+    private String type;
+
+    Attribute(final String name, Container parent) {
+        this.name = name;
+        this.parent = parent;
     }
 
-    public boolean isArray() {
-        return this.isArray;
+    public final String name() {
+        return name;
     }
 
+    public final String type() {
+        return type;
+    }
+
+    public final Container parent() {
+        return parent;
+    }
+
+    final void setType(String type) {
+        this.type = type;
+    }
 
 }

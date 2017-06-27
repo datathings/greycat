@@ -20,9 +20,6 @@ import greycat.struct.DMatrix;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.VolatileDMatrix;
 
-/**
- * Created by assaad on 19/05/2017.
- */
 public class AbstractValue implements Loss {
     private static AbstractValue static_unit = null;
 

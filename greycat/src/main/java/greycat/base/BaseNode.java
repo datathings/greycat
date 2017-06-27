@@ -17,11 +17,14 @@ package greycat.base;
 
 import greycat.*;
 import greycat.chunk.StateChunk;
+<<<<<<< HEAD
+=======
+import greycat.struct.*;
+>>>>>>> master
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
 import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
-import greycat.struct.*;
 import greycat.struct.proxy.*;
 import greycat.utility.Tuple;
 
@@ -39,10 +42,10 @@ public class BaseNode implements Node {
      */
     private static sun.misc.Unsafe unsafe;
 
-    private final long _world;
-    private final long _time;
-    private final long _id;
-    private final Graph _graph;
+    protected final long _world;
+    protected final long _time;
+    protected final long _id;
+    protected final Graph _graph;
     protected final Resolver _resolver;
 
     //cache to enhance the resolving process
@@ -170,13 +173,13 @@ public class BaseNode implements Node {
     public final Object getRawAt(int propIndex) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            return resolved.getAt(propIndex);
+            return resolved.getRawAt(propIndex);
         }
         return null;
     }
 
     @Override
-    public final Object getTypedRawAt(final int propIndex, final byte type) {
+    public final Object getTypedRawAt(final int propIndex, final int type) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             return resolved.getTypedRawAt(propIndex, type);
@@ -190,7 +193,7 @@ public class BaseNode implements Node {
         if (resolvedTime == _time && resolvedWorld == _world) { //implement time sensitivity
             return elem;
         } else {
-            byte type = state.typeAt(index);
+            int type = state.typeAt(index);
             //temporary proxy
             switch (type) {
                 case Type.LMATRIX:
@@ -199,14 +202,12 @@ public class BaseNode implements Node {
                     return new DMatrixProxy(index, this, (DMatrix) elem);
                 case Type.RELATION:
                     return new RelationProxy(index, this, (Relation) elem);
-                case Type.RELATION_INDEXED:
-                    return new RelationIndexedProxy(index, this, (RelationIndexed) elem);
-                case Type.EGRAPH:
-                    return new EGraphProxy(index, this, (EGraph) elem);
-                case Type.KDTREE:
+               /* case Type.RELATION_INDEXED:
+                    return new RelationIndexedProxy(index, this, (RelationIndexed) elem);*/
+               /* case Type.KDTREE:
                     return new TreeProxy(index, this, (Tree) elem);
                 case Type.NDTREE:
-                    return new ProfileProxy(index, this, (Profile) elem);
+                    return new ProfileProxy(index, this, (Profile) elem);*/
                 case Type.LONG_TO_LONG_MAP:
                     return new LongLongMapProxy(index, this, (LongLongMap) elem);
                 case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -229,19 +230,27 @@ public class BaseNode implements Node {
                     return new IntIntMapProxy(index, this, (IntIntMap) elem);
                 case Type.INT_TO_STRING_MAP:
                     return new IntStringMapProxy(index, this, (IntStringMap) elem);
+                case Type.EGRAPH:
+                    return new EGraphProxy(index, this, (EGraph) elem);
                 default:
-                    return elem;
+                    if (Type.isCustom(type)) {
+                        final BaseCustomType ct = (BaseCustomType) elem;
+                        ct._backend = new EGraphProxy(index, this, ct._backend);
+                        return ct;
+                    } else {
+                        return elem;
+                    }
             }
         }
     }
 
     @Override
-    public final Object getOrCreate(String name, byte type) {
+    public final Object getOrCreate(String name, int type) {
         return this.getOrCreateAt(this._resolver.stringToHash(name, true), type);
     }
 
     @Override
-    public Object getOrCreateAt(int index, byte type) {
+    public Object getOrCreateAt(int index, int type) {
         final NodeState previousState = this._resolver.resolveState(this);
         final Object elem = previousState.getAt(index);
         if (elem != null) {
@@ -272,12 +281,12 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Node forceSet(String name, byte type, Object value) {
+    public Node forceSet(String name, int type, Object value) {
         return forceSetAt(this._resolver.stringToHash(name, true), type, value);
     }
 
     @Override
-    public Node forceSetAt(int index, byte type, Object value) {
+    public Node forceSetAt(int index, int type, Object value) {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
             preciseState.setAt(index, type, value);
@@ -288,7 +297,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Node setAt(int index, byte type, Object value) {
+    public Node setAt(int index, int type, Object value) {
         final NodeState unPhasedState = this._resolver.resolveState(this);
         boolean isDiff = (type != unPhasedState.typeAt(index));
         if (!isDiff) {
@@ -306,13 +315,13 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Node set(String name, byte type, Object value) {
+    public Node set(String name, int type, Object value) {
         //hash the property a single time
         final int hashed = this._resolver.stringToHash(name, true);
         return setAt(hashed, type, value);
     }
 
-    private boolean isEquals(Object obj1, Object obj2, byte type) {
+    private boolean isEquals(Object obj1, Object obj2, int type) {
         if (obj1 == null && obj2 == null) {
             return true;
         }
@@ -385,7 +394,7 @@ public class BaseNode implements Node {
                 return true;
                 */
             case Type.RELATION:
-            case Type.RELATION_INDEXED:
+                //case Type.RELATION_INDEXED:
             case Type.STRING_TO_INT_MAP:
             case Type.LONG_TO_LONG_MAP:
             case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -400,7 +409,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public byte type(String name) {
+    public int type(String name) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             return resolved.typeAt(this._resolver.stringToHash(name, false));
@@ -409,7 +418,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public byte typeAt(final int index) {
+    public int typeAt(final int index) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             return resolved.typeAt(index);
@@ -426,9 +435,9 @@ public class BaseNode implements Node {
     public final Node removeAt(final int index) {
         return setAt(index, Type.INT, null);
     }
-
+/*
     @Override
-    public final void relation(String relationName, final Callback<Node[]> callback) {
+    public final void traverse(String relationName, final Callback<Node[]> callback) {
         relationAt(this._resolver.stringToHash(relationName, false), callback);
     }
 
@@ -441,14 +450,14 @@ public class BaseNode implements Node {
         if (resolved != null) {
             switch (resolved.typeAt(relationIndex)) {
                 case Type.RELATION:
-                    final Relation relation = (Relation) resolved.getAt(relationIndex);
-                    if (relation == null || relation.size() == 0) {
+                    final Relation traverse = (Relation) resolved.getAt(relationIndex);
+                    if (traverse == null || traverse.size() == 0) {
                         callback.on(new Node[0]);
                     } else {
-                        final int relSize = relation.size();
+                        final int relSize = traverse.size();
                         final long[] ids = new long[relSize];
                         for (int i = 0; i < relSize; i++) {
-                            ids[i] = relation.get(i);
+                            ids[i] = traverse.get(i);
                         }
                         this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
                             @Override
@@ -528,7 +537,7 @@ public class BaseNode implements Node {
             }
         }
         return this;
-    }
+    }*/
 
     @Override
     public final void free() {
@@ -619,7 +628,7 @@ public class BaseNode implements Node {
         if (state != null) {
             state.each(new NodeStateCallback() {
                 @Override
-                public void on(int attributeKey, byte elemType, Object elem) {
+                public void on(int attributeKey, int elemType, Object elem) {
                     if (elem != null) {
                         String resolveName = _resolver.hashToString(attributeKey);
                         if (resolveName == null) {
@@ -828,7 +837,6 @@ public class BaseNode implements Node {
                                 builder.append("}");
                                 break;
                             }
-                            case Type.RELATION_INDEXED:
                             case Type.LONG_TO_LONG_ARRAY_MAP: {
                                 builder.append(",\"");
                                 builder.append(resolveName);
@@ -905,8 +913,8 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public final RelationIndexed getRelationIndexed(String name) {
-        return (RelationIndexed) get(name);
+    public final Index getIndex(String name) {
+        return (Index) get(name);
     }
 
     @Override
@@ -986,5 +994,106 @@ public class BaseNode implements Node {
         clonedStateChunk.loadFrom(currentStateChunk);
         return cloned;
     }
+
+    /* TODO check after */
+    @Override
+    public final <A> void traverse(String relationName, final Callback<A> callback) {
+        traverseAt(this._resolver.stringToHash(relationName, false), callback);
+    }
+
+    @Override
+    public final <A> void traverseAt(int indexToTraverse, Callback<A> callback) {
+        if (callback == null) {
+            return;
+        }
+        final int ftype = typeAt(indexToTraverse);
+        switch (ftype) {
+            case Type.RELATION:
+                final Relation relation = (Relation) getAt(indexToTraverse);
+                if (relation == null || relation.size() == 0) {
+                    callback.on((A) (Object) new Node[0]);
+                } else {
+                    final int relSize = relation.size();
+                    final long[] ids = new long[relSize];
+                    for (int i = 0; i < relSize; i++) {
+                        ids[i] = relation.get(i);
+                    }
+                    this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
+                        @Override
+                        public void on(Node[] result) {
+                            callback.on((A) (Object) result);
+                        }
+                    });
+                }
+                break;
+            case Type.INDEX:
+                final Index findex = (Index) getAt(indexToTraverse);
+                final long[] ids = findex.all();
+                this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        callback.on((A) (Object) result);
+                    }
+                });
+                break;
+            case Type.TASK:
+                final Task t = (Task) getAt(indexToTraverse);
+                final TaskContext tc = t.prepare(_graph, this, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+                        if (result.size() == 1) {
+                            callback.on((A) result.get(0));
+                        } else {
+                            callback.on((A) (Object) result);
+                        }
+                    }
+                });
+                t.executeUsing(tc);
+                break;
+            default:
+                callback.on(null);
+        }
+    }
+
+    @Override
+    public final Node addToRelation(String relationName, Node relatedNode) {
+        return addToRelationAt(this._resolver.stringToHash(relationName, true), relatedNode);
+    }
+
+    @Override
+    public Node addToRelationAt(int relationIndex, Node relatedNode) {
+        if (relatedNode != null) {
+            NodeState preciseState = this._resolver.alignState(this);
+            if (preciseState != null) {
+                Relation relationArray = (Relation) preciseState.getOrCreateAt(relationIndex, Type.RELATION);
+                relationArray.add(relatedNode.id());
+            } else {
+                throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public final Node removeFromRelation(String relationName, Node relatedNode) {
+        return removeFromRelationAt(this._resolver.stringToHash(relationName, false), relatedNode);
+    }
+
+    @Override
+    public final Node removeFromRelationAt(int relationIndex, Node relatedNode) {
+        if (relatedNode != null) {
+            final NodeState preciseState = this._resolver.alignState(this);
+            if (preciseState != null) {
+                final Relation relationObj = (Relation) preciseState.getAt(relationIndex);
+                if (relationObj != null) {
+                    relationObj.remove(relatedNode.id());
+                }
+            } else {
+                throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+            }
+        }
+        return this;
+    }
+
 
 }

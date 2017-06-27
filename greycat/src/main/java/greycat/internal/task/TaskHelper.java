@@ -60,13 +60,13 @@ public class TaskHelper {
                     System.arraycopy(innerNodes, 0, tmp, nodes.length, innerNodes.length);
                     nodes = tmp;
                 } else if (strict) {
-                    throw new RuntimeException("[ActionAddRemoveToGlobalIndex] The array in result contains an element with wrong type. " +
+                    throw new RuntimeException("[ActionUpdateIndex] The array in result contains an element with wrong type. " +
                             "Expected type: BaseNode. Actual type: " + resAsArray[i]);
                 }
             }
             return nodes;
         } else if (strict) {
-            throw new RuntimeException("[ActionAddRemoveToGlobalIndex] Wrong type of result. Expected type is BaseNode or an array of BaseNode." +
+            throw new RuntimeException("[ActionUpdateIndex] Wrong type of result. Expected type is BaseNode or an array of BaseNode." +
                     "Actual type is " + toFLat);
         }
         return new Node[0];
@@ -124,7 +124,7 @@ public class TaskHelper {
         }
     }
 
-    public static void serializeType(byte type, final Buffer builder) {
+    public static void serializeType(int type, final Buffer builder) {
         builder.writeString(Type.typeName(type));
     }
 

@@ -753,7 +753,7 @@ public abstract class AbstractStateChunkTest {
         return true;
     }
 
-    private void protectionMethod(StateChunk chunk, byte elemType, Object elem, boolean shouldCrash) {
+    private void protectionMethod(StateChunk chunk, int elemType, Object elem, boolean shouldCrash) {
         boolean hasCrash = false;
         try {
             chunk.setAt(0, elemType, elem);

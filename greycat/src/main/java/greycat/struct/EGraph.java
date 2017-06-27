@@ -15,6 +15,7 @@
  */
 package greycat.struct;
 
+import greycat.Container;
 import greycat.Graph;
 
 public interface EGraph {

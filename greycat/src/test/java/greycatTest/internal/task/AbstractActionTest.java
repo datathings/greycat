@@ -46,20 +46,22 @@ public abstract class AbstractActionTest {
                 root.addToRelation("children", n1);
 
                 //create some index
-                selfPointer.graph.index(0, Constants.BEGINNING_OF_TIME, "roots", new Callback<NodeIndex>() {
+                selfPointer.graph.declareIndex(0, "roots", new Callback<NodeIndex>() {
                     @Override
                     public void on(NodeIndex rootsIndex) {
-                        rootsIndex.addToIndex(root, "name");
+                        rootsIndex.update(root);
+                       // rootsIndex.free();
                     }
-                });
-                selfPointer.graph.index(0, Constants.BEGINNING_OF_TIME, "nodes", new Callback<NodeIndex>() {
+                }, "name");
+                selfPointer.graph.declareIndex(0, "nodes", new Callback<NodeIndex>() {
                     @Override
                     public void on(NodeIndex nodesIndex) {
-                        nodesIndex.addToIndex(n0, "name");
-                        nodesIndex.addToIndex(n1, "name");
-                        nodesIndex.addToIndex(root, "name");
+                        nodesIndex.update(n0);
+                        nodesIndex.update(n1);
+                        nodesIndex.update(root);
+                       // nodesIndex.free();
                     }
-                });
+                }, "name");
             }
         });
     }
@@ -91,16 +93,16 @@ public abstract class AbstractActionTest {
 
 
                 Node n5 = selfPointer.graph.newNode(0, Constants.BEGINNING_OF_TIME);
-                n5.set("name",Type.STRING, "n5");
+                n5.set("name", Type.STRING, "n5");
                 n3.addToRelation("child", n5);
 
                 Node n6 = selfPointer.graph.newNode(0, Constants.BEGINNING_OF_TIME);
-                n6.set("name",Type.STRING, "n6");
+                n6.set("name", Type.STRING, "n6");
                 n3.addToRelation("child", n6);
 
 
                 Node n7 = selfPointer.graph.newNode(0, Constants.BEGINNING_OF_TIME);
-                n7.set("name",Type.STRING, "n7");
+                n7.set("name", Type.STRING, "n7");
                 n6.addToRelation("child", n7);
 
                 Node n8 = selfPointer.graph.newNode(0, Constants.BEGINNING_OF_TIME);

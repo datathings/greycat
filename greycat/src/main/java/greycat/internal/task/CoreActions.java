@@ -147,7 +147,7 @@ public class CoreActions {
      * @param value will be interpreted as a template
      * @return the action to chain
      */
-    public static Action setAttribute(final String name, final byte type, final String value) {
+    public static Action setAttribute(final String name, final int type, final String value) {
         return new ActionSetAttribute(name, Type.typeName(type), value, false);
     }
 
@@ -168,7 +168,7 @@ public class CoreActions {
      * @param value will be interpreted as template
      * @return the action to chain
      */
-    public static Action forceAttribute(String name, byte type, String value) {
+    public static Action forceAttribute(String name, int type, String value) {
         return new ActionSetAttribute(name, Type.typeName(type), value, true);
     }
 
@@ -198,32 +198,30 @@ public class CoreActions {
      * @param filterType type of attributes to filter
      * @return the action to chain
      */
-    public static Action attributesWithTypes(byte filterType) {
+    public static Action attributesWithTypes(int filterType) {
         return new ActionAttributes(Type.typeName(filterType));
     }
 
     /**
-     * Adds nodes present in the named variable to the named relation in all nodes present in the current task result.
+     * Adds nodes present in the named variable to the named traverse in all nodes present in the current task result.
      *
-     * @param relName    name of the relation
-     * @param varName    the name of the variable containing the nodes to add. It can use templates "{{}}".
-     * @param attributes the attributes that should be used to index the nodes in the relation
+     * @param relName name of the traverse
+     * @param varName the name of the variable containing the nodes to add. It can use templates "{{}}".
      * @return the action to chain
      */
-    public static Action addVarToRelation(String relName, String varName, String... attributes) {
-        return new ActionAddRemoveVarToRelation(true, relName, varName, attributes);
+    public static Action addVarTo(String relName, String varName) {
+        return new ActionAddRemoveVarTo(true, relName, varName);
     }
 
     /**
-     * Removes nodes present in the named variable from the named relation in all nodes present in the current result.
+     * Removes nodes present in the named variable from the named traverse in all nodes present in the current result.
      *
-     * @param relName    name of the relation.
-     * @param varFrom    the name of the variable containing the nodes to remove. It can use templates "{{}}".
-     * @param attributes the attributes that should be used to find and remove the nodes from the relation
+     * @param relName name of the traverse.
+     * @param varFrom the name of the variable containing the nodes to remove. It can use templates "{{}}".
      * @return the action to chain
      */
-    public static Action removeVarFromRelation(String relName, String varFrom, String... attributes) {
-        return new ActionAddRemoveVarToRelation(false, relName, varFrom, attributes);
+    public static Action removeVarFrom(String relName, String varFrom) {
+        return new ActionAddRemoveVarTo(false, relName, varFrom);
     }
 
     /**
@@ -255,50 +253,40 @@ public class CoreActions {
      * @param query     query to filter nodes, such as 'name', 'FOO' to look for nodes with name == FOO
      * @return the action to chain
      */
-    public static Action readGlobalIndex(String indexName, String... query) {
-        return new ActionReadGlobalIndex(indexName, query);
-    }
-
-    public static Action globalIndex(String indexName) {
-        return new ActionGlobalIndex(indexName);
+    public static Action readIndex(String indexName, String... query) {
+        return new ActionReadIndex(indexName, query);
     }
 
     /**
-     * Adds node to the named global index.
+     * Adds node to the named global index; updates if the node is already indexed
      *
-     * @param name       of the index
-     * @param attributes Attributes of the node used for indexation
+     * @param name of the index
      * @return the action to chain
      */
-    public static Action addToGlobalIndex(String name, String... attributes) {
-        return new ActionAddRemoveToGlobalIndex(false, false, name, attributes);
-    }
-
-
-    public static Action addToGlobalTimedIndex(String name, String... attributes) {
-        return new ActionAddRemoveToGlobalIndex(false, true, name, attributes);
+    public static Action updateIndex(String name) {
+        return new ActionUpdateIndex(name, true);
     }
 
     /**
-     * Removes a node from the named global index.
+     * Removes the node from the named global index.
      *
-     * @param name       of the index
-     * @param attributes attributes to used to find the node in the index
+     * @param name of the index
      * @return the action to chain
      */
-    public static Action removeFromGlobalIndex(String name, String... attributes) {
-        return new ActionAddRemoveToGlobalIndex(true, false, name, attributes);
+    public static Action unindexFrom(String name) {
+        return new ActionUpdateIndex(name, false);
     }
 
-    /**
-     * Removes a node from the named global index.
-     *
-     * @param name       of the index
-     * @param attributes attributes to used to find the node in the index
-     * @return the action to chain
-     */
-    public static Action removeFromGlobalTimedIndex(String name, String... attributes) {
-        return new ActionAddRemoveToGlobalIndex(true, true, name, attributes);
+    public static Action declareIndex(String name, String... attributes) {
+        return new ActionDeclareIndex(false, name, attributes);
+    }
+
+    public static Action declareLocalIndex(String name, String... attributes) {
+        return new ActionDeclareLocalIndex(name, attributes);
+    }
+
+    public static Action declareTimedIndex(String name, String... attributes) {
+        return new ActionDeclareIndex(true, name, attributes);
     }
 
     /**

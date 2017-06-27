@@ -34,37 +34,37 @@ public class IndexTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-               graph.indexIfExists(0, 0, index, new Callback<NodeIndex>() {
-                   @Override
-                   public void on(NodeIndex result) {
-                       graph.save(new Callback<Boolean>() {
-                           @Override
-                           public void on(Boolean result) {
-                               graph.disconnect(new Callback<Boolean>() {
-                                   @Override
-                                   public void on(Boolean result) {
-                                       graph2.connect(new Callback<Boolean>() {
-                                           @Override
-                                           public void on(Boolean result) {
-                                               graph2.index(0, 0, index, new Callback<NodeIndex>() {
-                                                   @Override
-                                                   public void on(NodeIndex result) {
+                graph.declareIndex(0, index, new Callback<NodeIndex>() {
+                    @Override
+                    public void on(NodeIndex result) {
+                        graph.save(new Callback<Boolean>() {
+                            @Override
+                            public void on(Boolean result) {
+                                graph.disconnect(new Callback<Boolean>() {
+                                    @Override
+                                    public void on(Boolean result) {
+                                        graph2.connect(new Callback<Boolean>() {
+                                            @Override
+                                            public void on(Boolean result) {
+                                                graph2.index(0, 0, index, new Callback<NodeIndex>() {
+                                                    @Override
+                                                    public void on(NodeIndex result) {
                                                         result.find(new Callback<Node[]>() {
                                                             @Override
                                                             public void on(Node[] result) {
 
                                                             }
-                                                        });
-                                                   }
-                                               });
-                                           }
-                                       });
-                                   }
-                               });
-                           }
-                       });
-                   }
-               });
+                                                        }, result.world(), result.time());
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
             }
         });
 

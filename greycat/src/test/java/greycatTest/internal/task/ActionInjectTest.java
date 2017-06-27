@@ -106,7 +106,7 @@ public class ActionInjectTest extends AbstractActionTest {
                 }
 
                 Assert.assertEquals("root", name);
-            },"name","root");
+            },0,0,"root");
         });
 
         removeGraph();

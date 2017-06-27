@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import greycat.TaskContext;
 
-import static greycat.internal.task.CoreActions.readGlobalIndex;
+import static greycat.internal.task.CoreActions.readIndex;
 import static greycat.internal.task.CoreActions.inject;
 import static greycat.Tasks.newTask;
 
@@ -31,7 +31,7 @@ public class ActionFromIndexTest extends AbstractActionTest {
         initGraph();
         newTask()
                 .then(inject("uselessPayload"))
-                .then(readGlobalIndex("nodes", "name", "n0"))
+                .then(readIndex("nodes", "n0"))
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {

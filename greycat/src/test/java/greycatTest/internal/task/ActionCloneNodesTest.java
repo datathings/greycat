@@ -16,6 +16,7 @@
 package greycatTest.internal.task;
 
 import greycat.*;
+import greycat.struct.Relation;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,45 +32,48 @@ public class ActionCloneNodesTest extends AbstractActionTest {
     @Test
     public void testWithOneNode() {
 
-        long[] initialSpace = new long[1];
+        graph.save(null);
+        final long spaceSize = graph.space().available();
+
         newTask()
-                .globalIndex("nodes")
+                .readIndex("nodes")
                 .setAsVar("baseNodes")
-                .thenDo(ctx -> {
-                    initialSpace[0] = ctx.graph().space().available();
-                    ctx.continueTask();
-                })
                 .cloneNodes()
-                .save()
-                .thenDo(ctx -> {
-                    //Check all cloned
-                    TaskResult<Node> initialNodes = ctx.variable("baseNodes");
-                    TaskResult<Node> clones = ctx.resultAsNodes();
-                    Assert.assertEquals(initialNodes.size(), clones.size());
-
-                    //Assert no leak
-                    Assert.assertEquals(initialSpace[0], ctx.graph().space().available());
-
-                    //check != ids
-                    for (int i = 0; i < initialNodes.size(); i++) {
-                        Assert.assertNotEquals(initialNodes.get(i).id(), clones.get(i).id());
+                .thenDo(new ActionFunction() {
+                    @Override
+                    public void eval(TaskContext ctx) {
+                        //check clone result Size
+                        final TaskResult<Node> initialNodes = ctx.variable("baseNodes");
+                        final TaskResult<Node> clones = ctx.resultAsNodes();
+                        Assert.assertEquals(initialNodes.size(), clones.size());
+                        //check != ids
+                        for (int i = 0; i < initialNodes.size(); i++) {
+                            Assert.assertNotEquals(initialNodes.get(i).id(), clones.get(i).id());
+                        }
+                        //check == 'name'
+                        for (int i = 0; i < initialNodes.size(); i++) {
+                            Assert.assertEquals(initialNodes.get(i).get("name"), clones.get(i).get("name"));
+                        }
+                        //check == 'children'
+                        for (int i = 0; i < initialNodes.size(); i++) {
+                            Relation children = initialNodes.get(i).getRelation("children");
+                            if (children != null) {
+                                long[] sourceChildrenId = children.all();
+                                long[] clonedChildrenId = clones.get(i).getRelation("children").all();
+                                for(int j = 0; j < sourceChildrenId.length; j++) {
+                                    Assert.assertEquals(sourceChildrenId[j], clonedChildrenId[j]);
+                                }
+                            }
+                        }
+                        ctx.continueTask();
                     }
-
-                    //check == 'name'
-                    for (int i = 0; i < initialNodes.size(); i++) {
-                        Assert.assertEquals(initialNodes.get(i).get("name"), clones.get(i).get("name"));
-                    }
-
-                    //check == 'children'
-                    for (int i = 0; i < initialNodes.size(); i++) {
-                        Assert.assertEquals(initialNodes.get(i).get("children"), clones.get(i).get("children"));
-                    }
-                    ctx.continueTask();
                 })
+                .save()
                 .execute(graph, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         result.free();
+                        Assert.assertEquals(spaceSize, graph.space().available());
                     }
                 });
     }

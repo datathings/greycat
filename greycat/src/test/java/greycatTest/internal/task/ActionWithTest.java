@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import greycat.TaskContext;
 
-import static greycat.internal.task.CoreActions.readGlobalIndex;
+import static greycat.internal.task.CoreActions.readIndex;
 import static greycat.internal.task.CoreActions.selectWith;
 import static greycat.Tasks.newTask;
 
@@ -30,7 +30,7 @@ public class ActionWithTest extends AbstractActionTest {
     public void test() {
         initGraph();
         newTask()
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .then(selectWith("name", "n0"))
                 .thenDo(new ActionFunction() {
                     @Override
@@ -40,7 +40,7 @@ public class ActionWithTest extends AbstractActionTest {
                 })
                 .execute(graph, null);
 
-        newTask().then(readGlobalIndex("nodes"))
+        newTask().then(readIndex("nodes"))
                 .then(selectWith("name", "n.*"))
                 .thenDo(new ActionFunction() {
                     @Override

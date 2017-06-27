@@ -15,58 +15,136 @@
  */
 package greycat.language;
 
-
 import java.util.*;
 
-public class Class implements Classifier {
-    private final String name;
-    private final Map<String, Property> properties;
-    private final List<Key> keys;
+public class Class implements Container {
 
+    private final String name;
+    final Map<String, Object> properties;
     private Class parent;
 
-    public Class(String name) {
+    Class(String name) {
         this.name = name;
-        this.properties = new HashMap<>();
-        this.keys = new LinkedList<>();
+        this.properties = new HashMap<String, Object>();
     }
 
-    public Property[] properties() {
-        return properties.values().toArray(new Property[properties.size()]);
+    public final Class parent() {
+        return parent;
     }
 
-    public Property getProperty(String name) {
-        for (Property property : properties()) {
-            if (property.name().equals(name)) {
-                return property;
+    public final String name() {
+        return name;
+    }
+
+    public final Collection<Object> properties() {
+        return properties.values();
+    }
+
+    public final Collection<Object> allProperties() {
+        if (parent == null) {
+            return properties();
+        } else {
+            Map<String, Object> aggregator = new HashMap<String, Object>();
+            aggregator.putAll(this.properties);
+            Class loop_parent = parent;
+            while (loop_parent != null) {
+                loop_parent.properties.forEach((s, o) -> {
+                    if (!aggregator.containsKey(s)) {
+                        aggregator.put(s, o);
+                    }
+                });
+                loop_parent = loop_parent.parent;
             }
+            return aggregator.values();
+        }
+    }
+
+    Attribute getOrCreateAttribute(String name) {
+        Object att = properties.get(name);
+        if (att == null) {
+            att = new Attribute(name, this);
+            properties.put(name, att);
+        } else if (!(att instanceof Attribute)) {
+            throw new RuntimeException("Property name conflict attribute name conflict with " + att);
+        }
+        return (Attribute) att;
+    }
+
+    Constant getOrCreateConstant(String name) {
+        Object att = properties.get(name);
+        if (att == null) {
+            att = new Constant(name);
+            properties.put(name, att);
+        } else if (!(att instanceof Constant)) {
+            throw new RuntimeException("Property name conflict constant name conflict with " + att);
+        }
+        return (Constant) att;
+    }
+
+    Relation getOrCreateRelation(String name) {
+        Object att = properties.get(name);
+        if (att == null) {
+            att = new Relation(name);
+            properties.put(name, att);
+        } else if (!(att instanceof Relation)) {
+            throw new RuntimeException("Property name conflict relation name conflict with " + att);
+        }
+        return (Relation) att;
+    }
+
+    Reference getOrCreateReference(String name) {
+        Object att = properties.get(name);
+        if (att == null) {
+            att = new Reference(name);
+            properties.put(name, att);
+        } else if (!(att instanceof Relation)) {
+            throw new RuntimeException("Property name conflict relation name conflict with " + att);
+        }
+        return (Reference) att;
+    }
+
+    Index getOrCreateIndex(String name) {
+        Object att = properties.get(name);
+        if (att == null) {
+            att = new Index(name);
+            properties.put(name, att);
+        } else if (!(att instanceof Constant)) {
+            throw new RuntimeException("Property name conflict index name conflict with " + att);
+        }
+        return (Index) att;
+    }
+
+    void setParent(Class parent) {
+        //check parent cycle
+        Class loop_parent = parent;
+        while (loop_parent != null) {
+            if (loop_parent == this) {
+                throw new RuntimeException("Inheritance cycle " + parent + " and " + this);
+            }
+            loop_parent = loop_parent.parent;
+        }
+        this.parent = parent;
+    }
+
+    Attribute attributeFromParent(String name) {
+        Object found;
+        Class loop_parent = parent;
+        while (loop_parent != null) {
+            found = loop_parent.properties.get(name);
+            if (found != null) {
+                if (found instanceof Attribute) {
+                    return (Attribute) found;
+                } else {
+                    throw new RuntimeException("Inconsistency error in " + this.name + " -> " + found + " already present in parents with another type in " + this.name);
+                }
+            }
+            loop_parent = loop_parent.parent;
         }
         return null;
     }
 
-    public void addProperty(Property property) {
-        properties.put(property.name(), property);
-    }
-
-    public Class parent() {
-        return parent;
-    }
-
-    public void setParent(Class parent) {
-        this.parent = parent;
-    }
-
-    public void addKey(Key index) {
-        keys.add(index);
-    }
-
-    public Key[] keys() {
-        return keys.toArray(new Key[keys.size()]);
-    }
-
-
     @Override
-    public String name() {
-        return name;
+    public String toString() {
+        return "Class(" + name + ")";
     }
 }

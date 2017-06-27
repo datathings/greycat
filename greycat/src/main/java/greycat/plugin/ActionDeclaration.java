@@ -21,9 +21,9 @@ public interface ActionDeclaration {
 
     ActionDeclaration setFactory(ActionFactory factory);
 
-    byte[] params();
+    int[] params();
 
-    ActionDeclaration setParams(byte... params);
+    ActionDeclaration setParams(int... params);
 
     String description();
 

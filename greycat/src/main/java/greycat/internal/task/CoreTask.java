@@ -324,13 +324,31 @@ public class CoreTask implements Task {
         return this;
     }
 
+    private static ActionRegistry offlineParsing = null;
+
     @Override
     public final Task parse(final String flat, final Graph graph) {
         if (flat == null) {
             throw new RuntimeException("flat should not be null");
         }
         final Map<Integer, Task> contextTasks = new HashMap<Integer, Task>();
-        sub_parse(new CoreTaskReader(flat, 0), graph, contextTasks);
+
+        final boolean shouldCrashIfAbscent;
+        final ActionRegistry registry;
+        if (graph != null) {
+            registry = graph.actionRegistry();
+            shouldCrashIfAbscent = true;
+        } else {
+            if (offlineParsing == null) {
+                registry = new CoreActionRegistry();
+                CoreTask.fillDefault(registry);
+                offlineParsing = registry;
+            } else {
+                registry = offlineParsing;
+            }
+            shouldCrashIfAbscent = false;
+        }
+        sub_parse(new CoreTaskReader(flat, 0), registry, contextTasks, shouldCrashIfAbscent);
         return this;
     }
 
@@ -353,8 +371,7 @@ public class CoreTask implements Task {
         return buf.toString();
     }
 
-    private void sub_parse(final CoreTaskReader reader, final Graph graph, final Map<Integer, Task> contextTasks) {
-        final ActionRegistry registry = graph.actionRegistry();
+    private void sub_parse(final CoreTaskReader reader, final ActionRegistry registry, final Map<Integer, Task> contextTasks, boolean crashIfUndeclared) {
         int cursor = 0;
         int flatSize = reader.available();
         int previous = 0;
@@ -457,11 +474,7 @@ public class CoreTask implements Task {
                             params = shrinked;
                         }
                     }
-                    if (graph == null) {
-                        then(new ActionNamed(actionName, params));
-                    } else {
-                        then(loadAction(registry, actionName, params, contextTasks));
-                    }
+                    then(loadAction(registry, actionName, params, contextTasks, crashIfUndeclared));
                     actionName = null;
                     previous = cursor + 1;
                     isClosed = true;
@@ -514,7 +527,7 @@ public class CoreTask implements Task {
                         } else {
                             subTask = new CoreTask();
                         }
-                        subTask.sub_parse(subReader, graph, contextTasks);
+                        subTask.sub_parse(subReader, registry, contextTasks, crashIfUndeclared);
                         cursor = cursor + subReader.end() + 1;
                         previous = cursor + 1; //to skip the string param
                         Integer hash = subTask.hashCode();
@@ -536,13 +549,9 @@ public class CoreTask implements Task {
             final String getName = reader.extract(previous, flatSize);
             if (getName.length() > 0) {
                 if (actionName != null) {
-                    if (graph == null) {
-                        then(new ActionNamed(actionName, params));
-                    } else {
-                        final String[] singleParam = new String[1];
-                        singleParam[0] = getName;
-                        then(loadAction(registry, actionName, singleParam, contextTasks));
-                    }
+                    final String[] singleParam = new String[1];
+                    singleParam[0] = getName;
+                    then(loadAction(registry, actionName, singleParam, contextTasks, crashIfUndeclared));
                 } else {
                     then(new ActionTraverseOrAttribute(false, true, getName.trim()));//default action
                 }
@@ -550,23 +559,23 @@ public class CoreTask implements Task {
         }
     }
 
-    static Action loadAction(final ActionRegistry registry, final String actionName, final String[] params, final Map<Integer, Task> contextTasks) {
+    static Action loadAction(final ActionRegistry registry, final String actionName, final String[] params, final Map<Integer, Task> contextTasks, boolean crashIfUndeclared) {
         final ActionDeclaration declaration = registry.declaration(actionName);
         if (declaration == null || declaration.factory() == null) {
-            /*
-            final String[] varargs = params;
+            if (crashIfUndeclared) {
+                throw new RuntimeException("Action '" + actionName + "' not found in registry.");
+            }
+            final String[] varargs = params;//J2TS tricks
             return new ActionNamed(actionName, varargs);
-            */
-            throw new RuntimeException("Action '" + actionName + "' not found in registry.");
         } else {
             final ActionFactory factory = declaration.factory();
-            final byte[] declaredParams = declaration.params();
+            final int[] declaredParams = declaration.params();
             if (declaredParams != null && params != null) {
                 int resultSize = declaredParams.length;
                 Object[] parsedParams = new Object[resultSize];
                 int varargs_index = 0;
                 for (int i = 0; i < params.length; i++) {
-                    byte correspondingType;
+                    int correspondingType;
                     if (i < resultSize) {
                         correspondingType = declaredParams[i];
                     } else {
@@ -755,19 +764,13 @@ public class CoreTask implements Task {
                         return new ActionAddToVar((String) params[0]);
                     }
                 });
-        registry.getOrCreateDeclaration(CoreActionNames.ADD_VAR_TO_RELATION)
-                .setParams(Type.STRING, Type.STRING, Type.STRING_ARRAY)
-                .setDescription("Adds the content of the variable (2nd param) to the relation (1st param). Following parameters for indexation.")
+        registry.getOrCreateDeclaration(CoreActionNames.ADD_VAR_TO)
+                .setParams(Type.STRING, Type.STRING)
+                .setDescription("Adds the content of the variable (2nd param) to the relation (1st param).")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        final String[] varrags = (String[]) params[2];
-                        if (varrags != null) {
-                            return new ActionAddRemoveVarToRelation(true, (String) params[0], (String) params[1], varrags);
-                        } else {
-                            return new ActionAddRemoveVarToRelation(true, (String) params[0], (String) params[1]);
-                        }
-
+                        return new ActionAddRemoveVarTo(true, (String) params[0], (String) params[1]);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.TRAVERSE_TIMELINE)
@@ -780,19 +783,13 @@ public class CoreTask implements Task {
                         return new ActionTraverseTimeline((String) params[0], (String) params[1], (String) params[2]);
                     }
                 });
-        registry.getOrCreateDeclaration(CoreActionNames.REMOVE_VAR_TO_RELATION)
-                .setParams(Type.STRING, Type.STRING, Type.STRING_ARRAY)
-                .setDescription("Removes the content of the variable (2nd param) from the relation (1st param). Following parameters for indexed relations.")
+        registry.getOrCreateDeclaration(CoreActionNames.REMOVE_VAR_FROM)
+                .setParams(Type.STRING, Type.STRING)
+                .setDescription("Removes the content of the variable (2nd param) from the relation (1st param).")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        final String[] varrags = (String[]) params[2];
-                        if (varrags != null) {
-                            return new ActionAddRemoveVarToRelation(false, (String) params[0], (String) params[1], varrags);
-                        } else {
-                            return new ActionAddRemoveVarToRelation(false, (String) params[0], (String) params[1]);
-                        }
-
+                        return new ActionAddRemoveVarTo(false, (String) params[0], (String) params[1]);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.TRAVERSE)
@@ -962,7 +959,7 @@ public class CoreTask implements Task {
                         return new ActionExecuteExpression((String) params[0]);
                     }
                 });
-        registry.getOrCreateDeclaration(CoreActionNames.READ_GLOBAL_INDEX)
+        registry.getOrCreateDeclaration(CoreActionNames.READ_INDEX)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
                 .setDescription("Retrieves indexed nodes matching the query.")
                 .setFactory(new ActionFactory() {
@@ -970,19 +967,10 @@ public class CoreTask implements Task {
                     public Action create(Object[] params) {
                         final String[] varargs = (String[]) params[1];
                         if (varargs != null) {
-                            return new ActionReadGlobalIndex((String) params[0], varargs);
+                            return new ActionReadIndex((String) params[0], varargs);
                         } else {
-                            return new ActionReadGlobalIndex((String) params[0]);
+                            return new ActionReadIndex((String) params[0]);
                         }
-                    }
-                });
-        registry.getOrCreateDeclaration(CoreActionNames.GLOBAL_INDEX)
-                .setParams(Type.STRING)
-                .setDescription("Retrieve global index node")
-                .setFactory(new ActionFactory() {
-                    @Override
-                    public Action create(Object[] params) {
-                        return new ActionGlobalIndex((String) params[0]);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.INDEX_NAMES)
@@ -1029,48 +1017,54 @@ public class CoreTask implements Task {
                         return new ActionSetAttribute((String) params[0], (String) params[1], (String) params[2], true);
                     }
                 });
-
-        registry.getOrCreateDeclaration(CoreActionNames.ADD_TO_GLOBAL_INDEX)
+        registry.getOrCreateDeclaration(CoreActionNames.DECLARE_INDEX)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
-                .setDescription("Add to global index without time management")
+                .setDescription("Declare a new global index without time management")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
                         final String[] castedVarrargs = (String[]) params[1];
-                        return new ActionAddRemoveToGlobalIndex(false, false, (String) params[0], castedVarrargs);
+                        return new ActionDeclareIndex(false, (String) params[0], castedVarrargs);
                     }
                 });
-        registry.getOrCreateDeclaration(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX)
+        registry.getOrCreateDeclaration(CoreActionNames.DECLARE_LOCAL_INDEX)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
-                .setDescription("Add to global index with time management")
+                .setDescription("Declare a new local index")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
                         final String[] castedVarrargs = (String[]) params[1];
-                        return new ActionAddRemoveToGlobalIndex(false, true, (String) params[0], castedVarrargs);
+                        return new ActionDeclareLocalIndex((String) params[0], castedVarrargs);
                     }
                 });
-        /*
-        registry.getOrCreateDeclaration(CoreActionNames.REMOVE_TO_GLOBAL_INDEX)
+        registry.getOrCreateDeclaration(CoreActionNames.DECLARE_TIMED_INDEX)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
-                .setDescription("Add to global index without time management")
+                .setDescription("Declare a new global index with time management")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new ActionAddRemoveToGlobalIndex(false, false, (String) params[0], (String[]) params[1]);
+                        final String[] castedVarrargs = (String[]) params[1];
+                        return new ActionDeclareIndex(true, (String) params[0], castedVarrargs);
                     }
                 });
-        registry.getOrCreateDeclaration(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX)
-                .setParams(Type.STRING, Type.STRING_ARRAY)
-                .setDescription("Add to global index with time management")
+        registry.getOrCreateDeclaration(CoreActionNames.UPDATE_INDEX)
+                .setParams(Type.STRING)
+                .setDescription("Update global index with nodes present in current context")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new ActionAddRemoveToGlobalIndex(false, true, (String) params[0], (String[]) params[1]);
+                        return new ActionUpdateIndex((String) params[0], true);
                     }
                 });
-                */
-
+        registry.getOrCreateDeclaration(CoreActionNames.UNINDEX_FROM)
+                .setParams(Type.STRING)
+                .setDescription("Remove the nodes present in the current result from the global index given in parameter.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionUpdateIndex((String) params[0], false);
+                    }
+                });
 
         registry.getOrCreateDeclaration(CoreActionNames.LOOP)
                 .setParams(Type.STRING, Type.STRING, Type.TASK)
@@ -1360,7 +1354,7 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public final Task setAttribute(final String name, final byte type, final String value) {
+    public final Task setAttribute(final String name, final int type, final String value) {
         return then(CoreActions.setAttribute(name, type, value));
     }
 
@@ -1370,7 +1364,7 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public final Task forceAttribute(final String name, final byte type, final String value) {
+    public final Task forceAttribute(final String name, final int type, final String value) {
         return then(CoreActions.forceAttribute(name, type, value));
     }
 
@@ -1385,23 +1379,23 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public Task timepoints(String from, String to) {
+    public final Task timepoints(String from, String to) {
         return then(CoreActions.timepoints(from, to));
     }
 
     @Override
-    public Task attributesWithType(byte filterType) {
+    public final Task attributesWithType(int filterType) {
         return then(CoreActions.attributesWithTypes(filterType));
     }
 
     @Override
-    public final Task addVarToRelation(final String relName, final String varName, final String... attributes) {
-        return then(CoreActions.addVarToRelation(relName, varName, attributes));
+    public final Task addVarTo(final String relName, final String varName) {
+        return then(CoreActions.addVarTo(relName, varName));
     }
 
     @Override
-    public final Task removeVarFromRelation(final String relName, final String varFrom, final String... attributes) {
-        return then(CoreActions.removeVarFromRelation(relName, varFrom, attributes));
+    public final Task removeVarFrom(final String relName, final String varFrom) {
+        return then(CoreActions.removeVarFrom(relName, varFrom));
     }
 
     @Override
@@ -1415,33 +1409,33 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public final Task readGlobalIndex(final String name, final String... query) {
-        return then(CoreActions.readGlobalIndex(name, query));
+    public final Task readIndex(final String name, final String... query) {
+        return then(CoreActions.readIndex(name, query));
     }
 
     @Override
-    public Task globalIndex(String indexName) {
-        return then(CoreActions.globalIndex(indexName));
+    public final Task updateIndex(String name) {
+        return then(CoreActions.updateIndex(name));
     }
 
     @Override
-    public final Task addToGlobalIndex(final String name, final String... attributes) {
-        return then(CoreActions.addToGlobalIndex(name, attributes));
+    public final Task unindexFrom(String name) {
+        return then(CoreActions.unindexFrom(name));
     }
 
     @Override
-    public final Task addToGlobalTimedIndex(final String name, final String... attributes) {
-        return then(CoreActions.addToGlobalTimedIndex(name, attributes));
+    public final Task declareIndex(String name, String... attributes) {
+        return then(CoreActions.declareIndex(name, attributes));
     }
 
     @Override
-    public final Task removeFromGlobalIndex(final String name, final String... attributes) {
-        return then(CoreActions.removeFromGlobalIndex(name, attributes));
+    public final Task declareLocalIndex(String name, String... attributes) {
+        return then(CoreActions.declareLocalIndex(name, attributes));
     }
 
     @Override
-    public final Task removeFromGlobalTimedIndex(final String name, final String... attributes) {
-        return then(CoreActions.removeFromGlobalTimedIndex(name, attributes));
+    public final Task declareTimedIndex(String name, String... attributes) {
+        return then(CoreActions.declareTimedIndex(name, attributes));
     }
 
     @Override

@@ -18,24 +18,19 @@ package greycat.internal.task;
 public class CoreActionNames {
 
     public static String TRAVERSE_TIMELINE = "traverseTimeline";
-
-    public static String ADD_VAR_TO_RELATION = "addVarToRelation";
-    public static String REMOVE_VAR_TO_RELATION = "removeVarToRelation";
-
-    public static String ADD_TO_GLOBAL_INDEX = "addToGlobalIndex";
-    public static String ADD_TO_GLOBAL_TIMED_INDEX = "addToGlobalTimedIndex";
-    public static String REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
-    public static String REMOVE_FROM_GLOBAL_TIMED_INDEX = "removeFromGlobalTimedIndex";
-
+    public static String ADD_VAR_TO = "addVarTo";
+    public static String REMOVE_VAR_FROM = "removeVarFrom";
+    public static String UNINDEX_FROM = "unindexFrom";
+    public static String UPDATE_INDEX = "updateIndex";
+    public static String DECLARE_INDEX = "declareIndex";
+    public static String DECLARE_LOCAL_INDEX = "declareLocalIndex";
+    public static String DECLARE_TIMED_INDEX = "declareTimedIndex";
     public static String CREATE_NODE = "createNode";
     public static String CREATE_TYPED_NODE = "createTypedNode";
-
     public static String CLONE_NODES = "cloneNodes";
     public static String CLEAR_RESULT = "clearResult";
-
     public static String START_TRANSACTION = "startTransaction";
     public static String STOP_TRANSACTION = "stopTransaction";
-
     public static String ADD_TO_VAR = "addToVar";
     public static String ATTRIBUTES = "attributes";
     public static String ATTRIBUTES_WITH_TYPE = "attributesWithType";
@@ -51,8 +46,7 @@ public class CoreActionNames {
     public static String LOG = "log";
     public static String PRINT = "print";
     public static String PRINTLN = "println";
-    public static String READ_GLOBAL_INDEX = "readGlobalIndex";
-    public static String GLOBAL_INDEX = "globalIndex";
+    public static String READ_INDEX = "readIndex";
     public static String READ_VAR = "readVar";
     public static String REMOVE = "remove";
     public static String SAVE = "save";

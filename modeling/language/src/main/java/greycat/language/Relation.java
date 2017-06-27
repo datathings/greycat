@@ -15,33 +15,24 @@
  */
 package greycat.language;
 
+public class Relation {
+    private final String name;
+    private String type;
 
-import java.util.LinkedList;
-import java.util.List;
-
-public class Relation extends Property {
-    private final List<String> indexedAttributes;
-    private final boolean isToOne;
-
-    public Relation(String name, String type, boolean isToOne) {
-        super(name, type);
-        this.indexedAttributes = new LinkedList<>();
-        this.isToOne = isToOne;
+    Relation(String name) {
+        this.name = name;
     }
 
-    public void addIndexedAttribute(String att) {
-        this.indexedAttributes.add(att);
+    public String name() {
+        return name;
     }
 
-    public String[] indexedAttributes() {
-        return this.indexedAttributes.toArray(new String[indexedAttributes.size()]);
+    public String type() {
+        return type;
     }
 
-    public boolean isIndexedRelation() {
-        return (this.indexedAttributes != null && !this.indexedAttributes.isEmpty());
+    void setType(String type) {
+        this.type = type;
     }
 
-    public boolean isToOne() {
-        return this.isToOne;
-    }
 }

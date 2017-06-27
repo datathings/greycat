@@ -18,9 +18,6 @@ package greycat.ml.math.periodicity;
 import greycat.utility.distance.Distance;
 import greycat.utility.distance.PearsonDistance;
 
-/**
- * Created by assaad on 08/03/2017.
- */
 public class PearsonPeriodicity {
 
 

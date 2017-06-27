@@ -22,11 +22,8 @@ import greycat.Node;
 import greycat.TaskContext;
 import greycat.TaskResult;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static greycat.internal.task.CoreActions.inject;
-import static greycat.internal.task.CoreActions.readGlobalIndex;
+import static greycat.internal.task.CoreActions.readIndex;
 import static greycat.Tasks.newTask;
 
 public class ActionForeachTest extends AbstractActionTest {
@@ -61,7 +58,7 @@ public class ActionForeachTest extends AbstractActionTest {
                 .execute(graph, null);
 
         newTask()
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .forEach(
                         newTask()
                                 .thenDo(context -> context.continueTask())

@@ -98,6 +98,12 @@ public class CoreQuery implements Query {
         return this;
     }
 
+    @Override
+    public Query addRaw(int attributeNameHash, String value) {
+        internal_add(attributeNameHash, value);
+        return this;
+    }
+
     public long hash() {
         if (_hash == null) {
             compute();

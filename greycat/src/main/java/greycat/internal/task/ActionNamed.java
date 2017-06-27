@@ -39,7 +39,7 @@ class ActionNamed implements Action {
         }
         final Action subAction = actionFactory.create(ctx.templates(_params), null);
         */
-        final Action subAction = CoreTask.loadAction(ctx.graph().actionRegistry(), _name, _params, null);
+        final Action subAction = CoreTask.loadAction(ctx.graph().actionRegistry(), _name, _params, null, true);
         if (subAction != null) {
             subAction.eval(ctx);
         } else {

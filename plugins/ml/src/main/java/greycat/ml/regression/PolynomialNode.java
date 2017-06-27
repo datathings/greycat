@@ -65,7 +65,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
 
     //Override default Abstract node default setters and getters
     @Override
-    public final Node set(String propertyName, byte propertyType, Object propertyValue) {
+    public final Node set(String propertyName, int propertyType, Object propertyValue) {
         if (propertyName.equals(VALUE)) {
             learn(Double.parseDouble(propertyValue.toString()), null);
         } else if (propertyName.equals(PRECISION)) {
@@ -353,7 +353,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         final NodeState state = unphasedState();
         long timeOrigin = state.time();
         long step = state.getWithDefault(INTERNAL_STEP_KEY, 1l);
-        double[] weight = (double[]) state.get(INTERNAL_WEIGHT_KEY);
+        double[] weight = state.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
         if (weight != null) {
             builder.append("\",polynomial\":\"");
             for (int i = 0; i < weight.length; i++) {

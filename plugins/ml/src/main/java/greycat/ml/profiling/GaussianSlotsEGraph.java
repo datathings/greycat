@@ -20,9 +20,6 @@ import greycat.struct.EGraph;
 import greycat.struct.ENode;
 import greycat.struct.ERelation;
 
-/**
- * Created by assaad on 20/02/2017.
- */
 public class GaussianSlotsEGraph {
 
     public static final String NUMBER_OF_SLOTS = "numberOfSlots"; //Number of slots to create in the profile, default is 1

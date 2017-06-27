@@ -198,7 +198,7 @@ public interface Task {
      * @return this task to chain
      */
     Task pipeTo(Task subTask, String... vars);
-    
+
     Task traverseTimeline(String start, String end, String limit);
 
     /**
@@ -325,11 +325,11 @@ public interface Task {
 
     Task addToVar(String name);
 
-    Task setAttribute(String name, byte type, String value);
+    Task setAttribute(String name, int type, String value);
 
     Task timeSensitivity(String delta, String offset);
 
-    Task forceAttribute(String name, byte type, String value);
+    Task forceAttribute(String name, int type, String value);
 
     Task remove(String name);
 
@@ -337,27 +337,27 @@ public interface Task {
 
     Task timepoints(String from, String to);
 
-    Task attributesWithType(byte filterType);
+    Task attributesWithType(int filterType);
 
-    Task addVarToRelation(String relName, String varName, String... attributes);
+    Task addVarTo(String relName, String varName);
 
-    Task removeVarFromRelation(String relName, String varFrom, String... attributes);
+    Task removeVarFrom(String relName, String varFrom);
 
     Task traverse(String name, String... params);
 
     Task attribute(String name, String... params);
 
-    Task readGlobalIndex(String indexName, String... query);
+    Task readIndex(String indexName, String... query);
 
-    Task globalIndex(String indexName);
+    Task updateIndex(String name);
 
-    Task addToGlobalIndex(String name, String... attributes);
+    Task unindexFrom(String name);
 
-    Task addToGlobalTimedIndex(String name, String... attributes);
+    Task declareIndex(String indexName, String... indexedAttributesNames);
 
-    Task removeFromGlobalIndex(String name, String... attributes);
+    Task declareLocalIndex(String name, String... attributes);
 
-    Task removeFromGlobalTimedIndex(String name, String... attributes);
+    Task declareTimedIndex(String indexName, String... indexedAttributesNames);
 
     Task indexNames();
 

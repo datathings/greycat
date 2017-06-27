@@ -15,12 +15,8 @@
  */
 package greycat.struct;
 
-import greycat.struct.ProfileResult;
-
-/**
- * Created by assaad on 05/05/2017.
- */
 public interface NDIndexer {
+    
     void setDistance(int distanceType);
 
     void setResolution(double[] resolution);

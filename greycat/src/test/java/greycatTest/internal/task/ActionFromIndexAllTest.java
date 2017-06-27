@@ -22,7 +22,7 @@ import greycat.TaskContext;
 
 import static greycat.internal.task.CoreActions.inject;
 import static greycat.Tasks.newTask;
-import static greycat.internal.task.CoreActions.readGlobalIndex;
+import static greycat.internal.task.CoreActions.readIndex;
 
 public class ActionFromIndexAllTest extends AbstractActionTest {
 
@@ -31,7 +31,7 @@ public class ActionFromIndexAllTest extends AbstractActionTest {
         initGraph();
         newTask()
                 .then(inject("uselessPayload"))
-                .then(readGlobalIndex("nodes"))
+                .then(readIndex("nodes"))
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {

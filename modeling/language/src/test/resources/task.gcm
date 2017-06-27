@@ -1,0 +1,2 @@
+
+const myNestedTask : Task = readIndex("nodes").forEach({ log("name") }).log("end")

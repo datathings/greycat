@@ -46,17 +46,17 @@ public class TaskServerTest {
                 root.addToRelation("children", n1);
 
                 //create some index
-                graph.index(0, Constants.BEGINNING_OF_TIME, "roots", new Callback<NodeIndex>() {
+                graph.declareIndex(0, "roots", new Callback<NodeIndex>() {
                     @Override
                     public void on(NodeIndex rootsIndex) {
-                        rootsIndex.addToIndex(root, "name");
+                        rootsIndex.update(root);
 
                         graph.index(0, Constants.BEGINNING_OF_TIME, "nodes", new Callback<NodeIndex>() {
                             @Override
                             public void on(NodeIndex nodesIndex) {
-                                nodesIndex.addToIndex(n0, "name");
-                                nodesIndex.addToIndex(n1, "name");
-                                nodesIndex.addToIndex(root, "name");
+                                nodesIndex.update(n0);
+                                nodesIndex.update(n1);
+                                nodesIndex.update(root);
                                 WSServer srv = new WSServer(graph, 4000);
                                 srv.start();
                                 System.out.println("Server started 4000");
@@ -68,7 +68,7 @@ public class TaskServerTest {
                                         .build();
                                 emptyGraph.connect(result1 -> {
 
-                                    Task t = newTask().readGlobalIndex("nodes");
+                                    Task t = newTask().readIndex("nodes");
                                     t.execute(emptyGraph, new Callback<TaskResult>() {
                                         @Override
                                         public void on(TaskResult result) {
@@ -78,7 +78,7 @@ public class TaskServerTest {
                                                     .log("remotely logged: {{result}}")
                                                     .log("log: {{var_name}}")
                                                     .print("remotely printed: {{result}}")
-                                                    .readGlobalIndex("nodes")
+                                                    .readIndex("nodes")
                                                     .createNode()
                                                     .save();
                                             TaskContext prepare = tremote.prepare(emptyGraph, result.asArray(), new Callback<TaskResult>() {
@@ -119,8 +119,8 @@ public class TaskServerTest {
                                                                public void on(TaskResult result) {
                                                                }
                                                            },
-                                                    newTask().readGlobalIndex("nodes")
-                                                    //newTask().readGlobalIndex("roots")
+                                                    newTask().readIndex("nodes")
+                                                    //newTask().readIndex("roots")
                                                     //newTask().createNode().setAttribute("name", Type.STRING, "remotelyAdded").addToGlobalIndex("nodes", "name").save()
                                                     , null);*/
 
@@ -130,7 +130,7 @@ public class TaskServerTest {
                             }
                         });
                     }
-                });
+                }, "name");
             }
         });
     }

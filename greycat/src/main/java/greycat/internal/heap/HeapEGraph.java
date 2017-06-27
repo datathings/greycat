@@ -16,6 +16,7 @@
 package greycat.internal.heap;
 
 import greycat.Constants;
+import greycat.Container;
 import greycat.Graph;
 import greycat.struct.Buffer;
 import greycat.struct.EGraph;

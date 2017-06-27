@@ -16,7 +16,7 @@
 package greycatTest.internal.tree;
 
 import greycat.Callback;
-import greycat.internal.tree.HRect;
+import greycat.internal.custom.HRect;
 import greycat.utility.distance.Distance;
 
 public class KDTreeJava {

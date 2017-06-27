@@ -15,10 +15,9 @@
  */
 package greycat.generator;
 
+import greycat.language.Checker;
 import greycat.language.Model;
-import greycat.language.ModelChecker;
 import java2typescript.SourceTranslator;
-import jline.internal.Log;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.jboss.forge.roaster.model.source.JavaSource;
@@ -34,35 +33,24 @@ public class Generator {
     public static final String FILE_EXTENSION = ".gcm";
 
     private final Model model;
-    private final ModelChecker modelChecker;
 
     public Generator() {
         this.model = new Model();
-        this.modelChecker = new ModelChecker();
     }
 
-    public void scan(File target) throws Exception {
-        if (target.isDirectory()) {
-            String[] files = target.list();
-            if (files == null) {
-                throw new RuntimeException("no files to parse found");
-            } else {
-                for (String name : files) {
-                    if (name.trim().endsWith(FILE_EXTENSION)) {
-                        this.modelChecker.check(new File(target, name));
-                        this.model.parse(new File(target, name));
-                    }
-                }
-            }
+    static String upperCaseFirstChar(String init) {
+        return init.substring(0, 1).toUpperCase() + init.substring(1);
+    }
 
-        } else if (target.getName().endsWith(FILE_EXTENSION)) {
-            this.modelChecker.check(target);
+    public void parse(File target) throws Exception {
+        if (target.getName().endsWith(FILE_EXTENSION)) {
             this.model.parse(target);
         } else {
             throw new RuntimeException("no file with correct extension found");
         }
     }
 
+    /*
     public void deepScan(File target) throws Exception {
         if (target.isDirectory()) {
             String[] files = target.list();
@@ -71,7 +59,6 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
-                        this.modelChecker.check(new File(target, name));
                         this.model.parse(new File(target, name));
                     } else {
                         File current = new File(target, name);
@@ -83,21 +70,33 @@ public class Generator {
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
-            this.modelChecker.check(target);
             this.model.parse(target);
         }
-    }
+    }*/
 
     private void generateJava(String packageName, String pluginName, File target) {
         int index = 0;
-        JavaSource[] sources = new JavaSource[(model.classifiers().length) * 2 + 2];
+        int size = model.classes().length + model.customTypes().length + model.globalIndexes().length + 1;
+        JavaSource[] sources = new JavaSource[size * 2 + 2];
+
         sources[index] = PluginClassGenerator.generate(packageName, pluginName, model);
         index++;
 
-        JavaSource[] nodeTypes = NodeTypeGenerator.generate(packageName, pluginName, model);
-        System.arraycopy(nodeTypes, 0, sources, index, nodeTypes.length);
-        index += nodeTypes.length;
+        JavaSource[] classTypes = ClassTypeGenerator.generate(packageName, model);
+        System.arraycopy(classTypes, 0, sources, index, classTypes.length);
+        index += classTypes.length;
 
+        JavaSource[] customTypes = CustomTypeGenerator.generate(packageName, model);
+        System.arraycopy(customTypes, 0, sources, index, customTypes.length);
+        index += customTypes.length;
+
+        JavaSource[] globalIndexes = GlobalIndexGenerator.generate(packageName, model);
+        System.arraycopy(globalIndexes, 0, sources, index, globalIndexes.length);
+        index += globalIndexes.length;
+
+        JavaSource[] globalConstants = GlobalConstantGenerator.generate(packageName, model);
+        System.arraycopy(globalConstants, 0, sources, index, globalConstants.length);
+        index += globalConstants.length;
 
         for (int i = 0; i < index; i++) {
             if (sources[i] != null) {
@@ -121,12 +120,16 @@ public class Generator {
         }
     }
 
-    private void generateJS(String packageName, String pluginName, File target, String gcVersion, MavenProject mvnProject) {
-        // Generate TS
-
-
-        SourceTranslator transpiler = new SourceTranslator(Arrays.asList(target.getAbsolutePath()), target.getAbsolutePath() + "-ts", packageName);
-
+    private void generateJS(String packageName, String pluginName, File src, File target, String gcVersion, MavenProject mvnProject) {
+        File modelWeb = new File(target, "model");
+        if (!modelWeb.exists()) {
+            modelWeb.mkdirs();
+        }
+        File modelWebStarter = new File(target, "model-starter");
+        if (!modelWebStarter.exists()) {
+            modelWebStarter.mkdirs();
+        }
+        SourceTranslator transpiler = new SourceTranslator(Arrays.asList(src.getAbsolutePath()), modelWeb.getAbsolutePath(), packageName);
         if (mvnProject != null) {
             for (Artifact a : mvnProject.getArtifacts()) {
                 File file = a.getFile();
@@ -139,12 +142,11 @@ public class Generator {
         } else {
             addToTransClassPath(transpiler);
         }
-
         transpiler.process();
-        transpiler.addHeader("import * as greycat from 'greycat'");
+        transpiler.addHeader("import * as greycat from 'greycat';");
+        transpiler.addHeader("import {java} from 'j2ts-jre';");
         transpiler.generate();
-
-        File tsGen = new File(target.getAbsolutePath() + "-ts" + File.separator + packageName + ".ts");
+        File tsGen = new File(modelWeb, packageName + ".ts");
         try {
             Files.write(tsGen.toPath(), ("export = " + packageName).getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
@@ -166,16 +168,22 @@ public class Generator {
                 "  ]\n" +
                 "}";
         try {
-            File tsConfig = new File(target.getAbsolutePath() + "-ts" + File.separator + "tsconfig.json");
+            File tsConfig = new File(modelWeb, "tsconfig.json");
             tsConfig.createNewFile();
             Files.write(tsConfig.toPath(), tsConfigContent.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         boolean isSnaphot = (gcVersion.contains("SNAPSHOT"));
-        gcVersion = isSnaphot ? "../../../../../greycat/target/classes-npm" : "^" + gcVersion + ".0.0";
-
+        String tgzVersion = gcVersion.replace("-SNAPSHOT", "") + ".0.0";
+        File greycatTgz = null;
+        try {
+            greycatTgz = new File(new File(new File(src.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile().getCanonicalFile(), "greycat"), "target"), "greycat-" + tgzVersion + ".tgz");
+            greycatTgz = greycatTgz.getCanonicalFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        gcVersion = isSnaphot ? greycatTgz.getAbsolutePath() : tgzVersion;
         String packageJsonContent = "{\n" +
                 "  \"name\": \"" + packageName + "\",\n" +
                 "  \"version\": \"1.0.0\",\n" +
@@ -190,25 +198,21 @@ public class Generator {
                 "    \"greycat\": \"" + gcVersion + "\"\n" +
                 "  },\n" +
                 "  \"devDependencies\": {\n" +
-                "    \"typescript\": \"^2.1.5\"\n" +
+                "    \"typescript\": \"2.3.4\"\n" +
                 "  }" +
                 "}";
         try {
-            File packageJson = new File(target.getAbsolutePath() + "-ts" + File.separator + "package.json");
+            File packageJson = new File(modelWeb, "package.json");
             packageJson.createNewFile();
             Files.write(packageJson.toPath(), packageJsonContent.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
         // Generate a base of NPM project
-        File npmProject = new File(target.getAbsolutePath() + "-starter");
-        npmProject.mkdirs();
-        File mainJS = new File(npmProject, "main.js");
-        File packageJson2 = new File(npmProject, "package.json");
-        File readme = new File(npmProject, "readme.md");
-        File mainTS = new File(npmProject, "main2.ts");
+        File mainJS = new File(modelWebStarter, "main.js");
+        File packageJson2 = new File(modelWebStarter, "package.json");
+        File readme = new File(modelWebStarter, "readme.md");
+        File mainTS = new File(modelWebStarter, "main2.ts");
         try {
             mainJS.createNewFile();
             Files.write(mainJS.toPath(), ("var greycat = require(\"greycat\");\n" +
@@ -219,7 +223,7 @@ public class Generator {
                     "g.connect(function (isSucceed) {\n" +
                     "console.log(\"--- GreyCat ready ---\");\n" +
                     "    var n = g.newNode(0,0);\n" +
-                    "    n.set(\"name\",greycat.Type.STRING, \"myName\");\n" +
+                    "    n.set(\"name\",greycat.CustomType.STRING, \"myName\");\n" +
                     "    console.log(n.toString());\n" +
                     "});").getBytes());
 
@@ -231,15 +235,15 @@ public class Generator {
                     "  \"main\": \"main.js\",\n" +
                     "  \"author\": \"\",\n" +
                     "  \"description\":\"empty\",\n" +
-                            "  \"repository\":\"empty\",\n" +
-                            "  \"license\":\"UNLICENSED\","+
+                    "  \"repository\":\"empty\",\n" +
+                    "  \"license\":\"UNLICENSED\"," +
                     "  \"dependencies\": {\n" +
                     "    \"greycat\": \"" + gcVersion + "\",\n" +
-                    "    \"" + packageName + "\": \"../greycat-modeling-ts\"\n" +
+                    "    \"" + packageName + "\": \"" + new File(modelWeb, "model-1.0.0.tgz").getAbsolutePath() + "\"\n" +
                     "  },\n" +
                     "  \"devDependencies\": {\n" +
-                    "    \"typescript\": \"^2.1.5\",\n" +
-                    "    \"ts-node\": \"^3.0.4\"\n" +
+                    "    \"typescript\": \"2.3.4\",\n" +
+                    "    \"ts-node\": \"3.0.4\"\n" +
                     "  }" +
                     "}").getBytes());
 
@@ -264,7 +268,7 @@ public class Generator {
                     "g.connect(function (isSucceed) {\n" +
                     "    console.log(\"--- GreyCat ready ---\");\n" +
                     "    var n = g.newNode(0,0);\n" +
-                    "    n.set(\"name\",greycat.Type.STRING, \"myName\");\n" +
+                    "    n.set(\"name\",greycat.CustomType.STRING, \"myName\");\n" +
                     "    console.log(n.toString());\n" +
                     "})\n").getBytes());
 
@@ -272,37 +276,44 @@ public class Generator {
             e.printStackTrace();
         }
 
-        File workingDFir = new File(target.getAbsolutePath() + "-ts");
         // Install required package in TS
         ProcessBuilder processBuilder = new ProcessBuilder("npm", "install");
-        processBuilder.directory(workingDFir);
+        processBuilder.directory(modelWeb);
         processBuilder.inheritIO();
         // Run TSC
         ProcessBuilder processBuilder2 = new ProcessBuilder("node", "node_modules/typescript/lib/tsc.js");
-        processBuilder2.directory(workingDFir);
+        processBuilder2.directory(modelWeb);
         processBuilder2.inheritIO();
-        //Install required packaged in JS project
-        ProcessBuilder processBuilder3 = new ProcessBuilder("npm", "install");
-        processBuilder3.directory(npmProject);
+        // Pack Model
+        ProcessBuilder processBuilder3 = new ProcessBuilder("npm", "pack");
+        processBuilder3.directory(modelWeb);
         processBuilder3.inheritIO();
+        //Install required packaged in JS project
+        ProcessBuilder processBuilder4 = new ProcessBuilder("npm", "install");
+        processBuilder4.directory(modelWebStarter);
+        processBuilder4.inheritIO();
         try {
             processBuilder.start().waitFor();
             processBuilder2.start().waitFor();
             processBuilder3.start().waitFor();
+            processBuilder4.start().waitFor();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void mvnGenerate(String packageName, String pluginName, File target, boolean generateJava, boolean generateJS, String gcVersion, MavenProject project) {
+    public void mvnGenerate(String packageName, String pluginName, File target, File targetWeb, boolean generateJava, boolean generateJS, String gcVersion, MavenProject project) {
+        model.consolidate();
+        Checker.check(model);
         if (generateJava || generateJS) {
             generateJava(packageName, pluginName, target);
         }
         if (generateJS) {
-            generateJS(packageName, pluginName, target, gcVersion, project);
+            generateJS(packageName, pluginName, target, targetWeb, gcVersion, project);
         }
     }
 
+    /*
     public void generate(String packageName, String pluginName, File target, boolean generateJava, boolean generateJS, String gcVersion) {
         if (generateJava || generateJS) {
             generateJava(packageName, pluginName, target);
@@ -311,7 +322,7 @@ public class Generator {
         if (generateJS) {
             generateJS(packageName, pluginName, target, gcVersion, null);
         }
-    }
+    }*/
 
     private void addToTransClassPath(SourceTranslator transpiler) {
         String classPath = System.getProperty("java.class.path");

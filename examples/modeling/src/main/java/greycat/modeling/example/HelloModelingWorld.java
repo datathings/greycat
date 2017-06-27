@@ -1,11 +1,3 @@
-package greycat.modeling.example;
-
-import greycat.Callback;
-import greycat.Graph;
-import greycat.GraphBuilder;
-import model.Device;
-import model.ModelPlugin;
-
 /**
  * Copyright 2017 The GreyCat Authors.  All rights reserved.
  * <p>
@@ -21,6 +13,13 @@ import model.ModelPlugin;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package greycat.modeling.example;
+
+import greycat.*;
+import greycat.struct.LongLongArrayMap;
+import model.*;
+import model.Constants;
+
 public class HelloModelingWorld {
 
 
@@ -32,21 +31,76 @@ public class HelloModelingWorld {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                //Method 1
-                Device device = (Device) graph.newTypedNode(0, 0, Device.NODE_NAME);
-                device.setName("device");
-                device.setIdentifier(3);
-                //Method 2
-                Device device2 = graph.newTypedNode(0, 0, Device.NODE_NAME, Device.class);
-                device2.setName("device2");
-                //Method 3
-                Device device3 = Device.create(0, 0, graph);
-                device3.setName("device3");
 
-                System.out.println(device);
-                System.out.println(device2);
-                System.out.println(device3);
-                
+                // typed nodes
+                Building building = Building.create(0, 0, graph);
+                building.setName("building");
+                System.out.println("building name " + building.getName());
+
+                Room r1 = Room.create(0, 0, graph);
+                r1.setName("room_1");
+                Room r2 = Room.create(0, 0, graph);
+                r1.setName("room_2");
+                Room specialRoom = Room.create(0, 0, graph);
+                specialRoom.setName("specialRoom");
+
+                Room localIdxRoom = Room.create(0, 0, graph);
+                localIdxRoom.setName("localIdxRoom");
+
+                // relations
+                building.addToRooms(r1);
+                building.addToRooms(r2);
+                building.getRooms(rooms -> System.out.println("found " + rooms.length + " rooms"));
+
+                // references
+                building.setSpecialRoom(specialRoom);
+                building.getSpecialRoom(room -> System.out.println("special room " + specialRoom));
+
+                // custom types
+                SmartCity smartCity = SmartCity.create(0, 0, graph);
+                GPSPosition pos = smartCity.getLocation();
+                pos.setLng(5.43d);
+                pos.setLat(3.23d);
+                System.out.println(pos);
+
+                // local index
+                building.indexLocalIndex(localIdxRoom);
+                building.findLocalIndex("localIdxRoom", rooms -> {
+                    System.out.println("found " + rooms.length + " room with local index");
+                });
+
+                // global index
+                Buildings.declareIndex(graph, 0, new Callback<Boolean>() {
+                    @Override
+                    public void on(Boolean result) {
+                        Buildings.updateIndex(graph, 0, 0, building, new Callback<Boolean>() {
+                            @Override
+                            public void on(Boolean result) {
+                                Buildings.find(graph, 0, 0, "building", new Callback<Building[]>() {
+                                    @Override
+                                    public void on(Building[] result) {
+                                        System.out.println("find: found " + result.length + " building with global index");
+
+                                    }
+                                });
+                                Buildings.findAll(graph, 0, 0, new Callback<Building[]>() {
+                                    @Override
+                                    public void on(Building[] result) {
+                                        System.out.println("findAll: found " + result.length + " building with global index");
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+
+                // override constant
+                Constants.CONSTANT_TO_OVERRIDE = "new value";
+
+                // complex types
+                LongLongArrayMap llam = building.getLongToLongArrayMap();
+                llam.put(5, 5);
+                System.out.println(llam.get(5)[0]);
             }
         });
     }

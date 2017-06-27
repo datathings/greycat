@@ -1,0 +1,5 @@
+ const myConst : Int = 0
+
+ class MyClass {
+    att name : String
+ }

@@ -21,7 +21,7 @@ import greycat.plugin.ActionDeclaration;
 class CoreActionDeclaration implements ActionDeclaration {
 
     private ActionFactory _factory = null;
-    private byte[] _params = null;
+    private int[] _params = null;
     private String _description = null;
     private final String _name;
 
@@ -41,7 +41,7 @@ class CoreActionDeclaration implements ActionDeclaration {
     }
 
     @Override
-    public final byte[] params() {
+    public final int[] params() {
         return _params;
     }
 
@@ -51,7 +51,7 @@ class CoreActionDeclaration implements ActionDeclaration {
      * return this;
      */
     @Override
-    public final ActionDeclaration setParams(byte... params) {
+    public final ActionDeclaration setParams(int... params) {
         this._params = params;
         return this;
     }

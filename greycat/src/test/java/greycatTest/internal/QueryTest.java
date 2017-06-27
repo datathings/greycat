@@ -17,7 +17,6 @@ package greycatTest.internal;
 
 import greycat.*;
 import greycat.chunk.ChunkSpace;
-import greycat.internal.CoreNodeValue;
 import greycat.internal.CoreQuery;
 import greycat.internal.heap.HeapMemoryFactory;
 import greycat.plugin.*;
@@ -180,15 +179,19 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public void index(long world, long time, String name, Callback<NodeIndex> callback) {
+    public void declareIndex(long world, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
 
     }
 
     @Override
-    public void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback) {
+    public void declareTimedIndex(long world, long time, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
 
     }
 
+    @Override
+    public void index(long world, long time, String name, Callback<NodeIndex> callback) {
+
+    }
 
     @Override
     public void indexNames(long world, long time, Callback<String[]> callback) {
@@ -258,12 +261,22 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public TypeRegistry typeRegistry() {
+        return null;
+    }
+
+    @Override
     public Graph setMemoryFactory(MemoryFactory factory) {
         return null;
     }
 
     @Override
     public Graph addGlobalTaskHook(TaskHook taskHook) {
+        return null;
+    }
+
+    @Override
+    public Graph addConnectHook(Callback<Callback<Boolean>> onConnect) {
         return null;
     }
 

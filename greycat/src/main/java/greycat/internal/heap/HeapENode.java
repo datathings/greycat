@@ -15,10 +15,7 @@
  */
 package greycat.internal.heap;
 
-import greycat.Constants;
-import greycat.Container;
-import greycat.Graph;
-import greycat.Type;
+import greycat.*;
 import greycat.internal.CoreConstants;
 import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
@@ -48,7 +45,7 @@ class HeapENode implements ENode, HeapContainer {
             }
             //copy types
             if (origin._type != null) {
-                byte[] cloned_type = new byte[_capacity];
+                int[] cloned_type = new int[_capacity];
                 System.arraycopy(origin._type, 0, cloned_type, 0, _capacity);
                 _type = cloned_type;
             }
@@ -75,11 +72,6 @@ class HeapENode implements ENode, HeapContainer {
                         case Type.INT_TO_STRING_MAP:
                             if (origin._v[i] != null) {
                                 _v[i] = ((HeapIntStringMap) origin._v[i]).cloneFor(this);
-                            }
-                            break;
-                        case Type.RELATION_INDEXED:
-                            if (origin._v[i] != null) {
-                                _v[i] = ((HeapRelationIndexed) origin._v[i]).cloneIRelFor(this, _eGraph.graph());
                             }
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -154,7 +146,7 @@ class HeapENode implements ENode, HeapContainer {
     private int[] _k;
     private Object[] _v;
     private int[] _next_hash;
-    private byte[] _type;
+    private int[] _type;
     private boolean _dirty;
 
     @Override
@@ -216,7 +208,7 @@ class HeapENode implements ENode, HeapContainer {
             System.arraycopy(_v, 0, ex_v, 0, _capacity);
         }
         _v = ex_v;
-        byte[] ex_type = new byte[newCapacity];
+        int[] ex_type = new int[newCapacity];
         if (_type != null) {
             System.arraycopy(_type, 0, ex_type, 0, _capacity);
         }
@@ -266,7 +258,7 @@ class HeapENode implements ENode, HeapContainer {
         return null;
     }
 
-    private byte internal_type(final int p_key) {
+    private int internal_type(final int p_key) {
         //empty chunk, we return immediately
         if (_size == 0) {
             return -1;
@@ -278,7 +270,7 @@ class HeapENode implements ENode, HeapContainer {
         return -1;
     }
 
-    private void internal_set(final int p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
+    private void internal_set(final int p_key, final int p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
         Object param_elem = null;
         //check the param type
         if (p_unsafe_elem != null) {
@@ -352,9 +344,6 @@ class HeapENode implements ENode, HeapContainer {
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         param_elem = (LongLongArrayMap) p_unsafe_elem;
                         break;
-                    case Type.RELATION_INDEXED:
-                        param_elem = (RelationIndexed) p_unsafe_elem;
-                        break;
                     default:
                         throw new RuntimeException("Internal Exception, unknown type");
                 }
@@ -371,7 +360,7 @@ class HeapENode implements ENode, HeapContainer {
             _capacity = Constants.MAP_INITIAL_CAPACITY;
             _k = new int[_capacity];
             _v = new Object[_capacity];
-            _type = new byte[_capacity];
+            _type = new int[_capacity];
             _next_hash = new int[_capacity * 3];
             Arrays.fill(_next_hash, 0, _capacity * 3, -1);
             _k[0] = p_key;
@@ -480,7 +469,7 @@ class HeapENode implements ENode, HeapContainer {
         Object[] ex_v = new Object[newCapacity];
         System.arraycopy(_v, 0, ex_v, 0, _capacity);
         _v = ex_v;
-        byte[] ex_type = new byte[newCapacity];
+        int[] ex_type = new int[newCapacity];
         System.arraycopy(_type, 0, ex_type, 0, _capacity);
         _type = ex_type;
         _capacity = newCapacity;
@@ -507,13 +496,13 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
-    public ENode set(String name, byte type, Object value) {
+    public ENode set(String name, int type, Object value) {
         internal_set(_eGraph.graph().resolver().stringToHash(name, true), type, value, true, false);
         return this;
     }
 
     @Override
-    public ENode setAt(int key, byte type, Object value) {
+    public ENode setAt(int key, int type, Object value) {
         internal_set(key, type, value, true, false);
         return this;
     }
@@ -546,7 +535,7 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
-    public final Object getTypedRawAt(final int index, final byte type) {
+    public final Object getTypedRawAt(final int index, final int type) {
         if (_size == 0) {
             return null;
         }
@@ -558,12 +547,12 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
-    public byte type(String name) {
+    public int type(String name) {
         return internal_type(_eGraph.graph().resolver().stringToHash(name, false));
     }
 
     @Override
-    public byte typeAt(int key) {
+    public int typeAt(int key) {
         return internal_type(key);
     }
 
@@ -605,7 +594,7 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
-    public Object getOrCreate(String key, byte type) {
+    public Object getOrCreate(String key, int type) {
         Object previous = get(key);
         if (previous != null) {
             return previous;
@@ -615,7 +604,7 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
-    public final Object getOrCreateAt(final int key, final byte type) {
+    public final Object getOrCreateAt(final int key, final int type) {
         final int found = internal_find(key);
         if (found != -1) {
             if (_type[found] == type) {
@@ -641,9 +630,6 @@ class HeapENode implements ENode, HeapContainer {
                 break;
             case Type.RELATION:
                 toSet = new HeapRelation(this, null);
-                break;
-            case Type.RELATION_INDEXED:
-                toSet = new HeapRelationIndexed(this, _eGraph.graph());
                 break;
             case Type.DMATRIX:
                 toSet = new HeapDMatrix(this, null);
@@ -687,7 +673,7 @@ class HeapENode implements ENode, HeapContainer {
             final Object elem = _v[i];
             final Resolver resolver = _eGraph.graph().resolver();
             final int attributeKey = _k[i];
-            final byte elemType = _type[i];
+            final int elemType = _type[i];
             if (elem != null) {
                 if (isFirstField) {
                     isFirstField = false;
@@ -747,12 +733,12 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
-                        double[] castedArr = (double[]) elem;
-                        for (int j = 0; j < castedArr.length; j++) {
+                        DoubleArray castedArr = (DoubleArray) elem;
+                        for (int j = 0; j < castedArr.size(); j++) {
                             if (j != 0) {
                                 builder.append(",");
                             }
-                            builder.append(castedArr[j]);
+                            builder.append(castedArr.get(j));
                         }
                         builder.append("]");
                         break;
@@ -790,12 +776,12 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
-                        long[] castedArr2 = (long[]) elem;
-                        for (int j = 0; j < castedArr2.length; j++) {
+                        LongArray castedArr2 = (LongArray) elem;
+                        for (int j = 0; j < castedArr2.size(); j++) {
                             if (j != 0) {
                                 builder.append(",");
                             }
-                            builder.append(castedArr2[j]);
+                            builder.append(castedArr2.get(j));
                         }
                         builder.append("]");
                         break;
@@ -805,12 +791,12 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
-                        int[] castedArr3 = (int[]) elem;
-                        for (int j = 0; j < castedArr3.length; j++) {
+                        IntArray castedArr3 = (IntArray) elem;
+                        for (int j = 0; j < castedArr3.size(); j++) {
                             if (j != 0) {
                                 builder.append(",");
                             }
-                            builder.append(castedArr3[j]);
+                            builder.append(castedArr3.get(j));
                         }
                         builder.append("]");
                         break;
@@ -915,7 +901,6 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append("}");
                         break;
                     }
-                    case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP: {
                         builder.append("\"");
                         builder.append(resolveName);
@@ -1159,7 +1144,6 @@ class HeapENode implements ENode, HeapContainer {
                                 }
                             });
                             break;
-                        case Type.RELATION_INDEXED:
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
                             Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
@@ -1195,7 +1179,7 @@ class HeapENode implements ENode, HeapContainer {
         long cursor = currentCursor;
         long previous = cursor;
         byte state = LOAD_WAITING_ALLOC;
-        byte read_type = -1;
+        int read_type = -1;
         int read_key = -1;
         while (cursor < payloadSize) {
             byte current = buffer.read(cursor);
@@ -1211,7 +1195,7 @@ class HeapENode implements ENode, HeapContainer {
                         previous = cursor;
                         break;
                     case LOAD_WAITING_TYPE:
-                        read_type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                        read_type = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                         state = LOAD_WAITING_KEY;
                         cursor++;
                         previous = cursor;
@@ -1413,20 +1397,6 @@ class HeapENode implements ENode, HeapContainer {
                                     }
                                 }
                                 break;
-                            case Type.RELATION_INDEXED:
-                                HeapRelationIndexed relationIndexed = new HeapRelationIndexed(this, graph);
-                                cursor++;
-                                cursor = relationIndexed.load(buffer, cursor, payloadSize);
-                                internal_set(read_key, read_type, relationIndexed, true, initial);
-                                if (cursor < payloadSize) {
-                                    current = buffer.read(cursor);
-                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                        state = LOAD_WAITING_TYPE;
-                                        cursor++;
-                                        previous = cursor;
-                                    }
-                                }
-                                break;
                             case Type.STRING_TO_INT_MAP:
                                 HeapStringIntMap s2lmap = new HeapStringIntMap(this);
                                 cursor++;
@@ -1495,7 +1465,7 @@ class HeapENode implements ENode, HeapContainer {
         return cursor;
     }
 
-    private void load_primitive(final int read_key, final byte read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
+    private void load_primitive(final int read_key, final int read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
         switch (read_type) {
             case Type.BOOL:
                 internal_set(read_key, read_type, (((byte) Base64.decodeToIntWithBounds(buffer, previous, cursor)) == CoreConstants.BOOL_TRUE), true, initial);
@@ -1533,8 +1503,8 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
-    public final RelationIndexed getRelationIndexed(String name) {
-        return (RelationIndexed) get(name);
+    public final Index getIndex(String name) {
+        return (Index) get(name);
     }
 
     @Override

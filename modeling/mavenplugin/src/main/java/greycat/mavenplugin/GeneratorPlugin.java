@@ -37,14 +37,8 @@ public class GeneratorPlugin extends AbstractMojo {
      * <p>
      * File(s) should have the "{@value Generator#FILE_EXTENSION}".
      */
-    @Parameter(defaultValue = "${project.basedir}/src/main/resources")
-    private File srcFiles;
-
-    /**
-     * Defines if a sub directories should be considered or not
-     */
-    @Parameter(defaultValue = "false", alias = "deepScan")
-    private boolean doDeepScan;
+    @Parameter(defaultValue = "${project.basedir}/src/main/gcm/model.gcm")
+    private File input;
 
     /**
      * GreyCat plugin name
@@ -65,6 +59,12 @@ public class GeneratorPlugin extends AbstractMojo {
     @Parameter(defaultValue = "${project.build.directory}/generated-sources/greycat-modeling")
     private File targetGen;
 
+    /**
+     * Folder in which the files should be generated
+     */
+    @Parameter(defaultValue = "${project.build.directory}/generated-sources-web")
+    private File targetGenJS;
+
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     private MavenProject project;
 
@@ -84,14 +84,10 @@ public class GeneratorPlugin extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         Generator generator = new Generator();
         try {
-            if (doDeepScan) {
-                generator.deepScan(srcFiles);
-            } else {
-                generator.scan(srcFiles);
-            }
+            generator.parse(input);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new MojoExecutionException("Error during file scanning", e);
+            throw new MojoExecutionException("Error during GCM parse stage", e);
         }
         String gcVersion = "";
         for (int i = 0; i < project.getDependencies().size(); i++) {
@@ -101,7 +97,7 @@ public class GeneratorPlugin extends AbstractMojo {
                 break;
             }
         }
-        generator.mvnGenerate(packageName, pluginName, targetGen, generateJava, generateJS, gcVersion, project);
+        generator.mvnGenerate(packageName, pluginName, targetGen, targetGenJS, generateJava, generateJS, gcVersion, project);
         project.addCompileSourceRoot(targetGen.getAbsolutePath());
     }
 }

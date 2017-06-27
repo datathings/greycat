@@ -1,0 +1,13 @@
+class Building {
+    rel rooms : Room
+    rel furnitures : Furniture
+}
+
+class Room {
+    ref building : Building oppositeOf rooms
+
+}
+
+class Furniture {
+    rel buildings : Building oppositeOf furnitures
+}

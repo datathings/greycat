@@ -30,7 +30,7 @@ public interface Container {
 
     Relation getRelation(String name);
 
-    RelationIndexed getRelationIndexed(String name);
+    Index getIndex(String name);
 
     DMatrix getDMatrix(String name);
 
@@ -72,7 +72,7 @@ public interface Container {
 
     Object getRawAt(int index);
 
-    Object getTypedRawAt(int index, byte type);
+    Object getTypedRawAt(int index, int type);
 
     /**
      * Returns the type of an attribute. The returned value is one of {@link Type}.
@@ -80,9 +80,9 @@ public interface Container {
      * @param name The name of the attribute for which the type is asked.
      * @return The type of the attribute inform of an int belonging to {@link Type}.
      */
-    byte type(String name);
+    int type(String name);
 
-    byte typeAt(int index);
+    int typeAt(int index);
 
     /**
      * Sets the value of an attribute of this container (for its current world and time for Node container).<br>
@@ -92,7 +92,7 @@ public interface Container {
      * @param value Must be consistent with the propertyType.
      * @return The node for fluent API.
      */
-    Container set(String name, byte type, Object value);
+    Container set(String name, int type, Object value);
 
     /**
      * Sets the value of an attribute of this container (for its current world and time for Node container).<br>
@@ -102,7 +102,7 @@ public interface Container {
      * @param value Must be consistent with the propertyType.
      * @return The node for fluent API.
      */
-    Container setAt(int index, byte type, Object value);
+    Container setAt(int index, int type, Object value);
 
     /**
      * Removes an attribute from the container.
@@ -121,7 +121,7 @@ public interface Container {
      * @param type The type of the attribute. Must be one of {@link Type} int value.
      * @return An instance that can be altered at the current world and time.
      */
-    Object getOrCreate(String name, byte type);
+    Object getOrCreate(String name, int type);
 
     /**
      * Gets or creates atomically a complex mutable attribute (e.g. Maps).<br>
@@ -130,8 +130,8 @@ public interface Container {
      * @param type  The type of the attribute. Must be one of {@link Type} int value.
      * @return An instance that can be altered at the current world and time.
      */
-    Object getOrCreateAt(int index, byte type);
-
+    Object getOrCreateAt(int index, int type);
+    
     <A> A getWithDefault(String key, A defaultValue);
 
     <A> A getAtWithDefault(int key, A defaultValue);

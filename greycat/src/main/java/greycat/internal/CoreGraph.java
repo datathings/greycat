@@ -17,14 +17,10 @@ package greycat.internal;
 
 import greycat.*;
 import greycat.chunk.*;
+import greycat.internal.custom.*;
 import greycat.internal.heap.HeapMemoryFactory;
-import greycat.internal.tree.KDTreeNode;
-import greycat.internal.tree.NDTreeNode;
 import greycat.plugin.*;
-import greycat.struct.Buffer;
-import greycat.struct.BufferIterator;
-import greycat.struct.LongLongMap;
-import greycat.struct.LongLongMapCallBack;
+import greycat.struct.*;
 import greycat.utility.HashHelper;
 import greycat.base.BaseNode;
 import greycat.internal.task.CoreActionRegistry;
@@ -33,6 +29,8 @@ import greycat.TaskHook;
 import greycat.utility.Base64;
 import greycat.utility.KeyHelper;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CoreGraph implements Graph {
@@ -52,19 +50,23 @@ public class CoreGraph implements Graph {
 
     private final ActionRegistry _actionRegistry;
     private final NodeRegistry _nodeRegistry;
+    private final TypeRegistry _typeRegistry;
     private MemoryFactory _memoryFactory;
     private TaskHook[] _taskHooks;
+    private List<Callback<Callback<Boolean>>> _connectHooks;
 
     public CoreGraph(final Storage p_storage, final long memorySize, final long batchSize, final Scheduler p_scheduler, final Plugin[] p_plugins, final boolean deepPriority) {
         //initiate the two registry
         _actionRegistry = new CoreActionRegistry();
         _nodeRegistry = new CoreNodeRegistry();
+        _typeRegistry = new CoreTypeRegistry();
         _memoryFactory = new HeapMemoryFactory();
         this._isConnected = new AtomicBoolean(false);
         this._lock = new AtomicBoolean(false);
         this._plugins = p_plugins;
         final Graph selfPointer = this;
         //First round, find relevant
+        _connectHooks = new ArrayList<Callback<Callback<Boolean>>>();
         TaskHook[] temp_hooks = new TaskHook[0];
         if (p_plugins != null) {
             for (int i = 0; i < p_plugins.length; i++) {
@@ -72,14 +74,35 @@ public class CoreGraph implements Graph {
                 loopPlugin.start(this);
             }
         }
-        //Second round, initialize all mandatory elements
+        //Third round, initialize all mandatory elements
         _taskHooks = temp_hooks;
         _storage = p_storage;
         _space = _memoryFactory.newSpace(memorySize, batchSize, selfPointer, deepPriority);
         _resolver = new MWResolver(_storage, _space, selfPointer);
         _scheduler = p_scheduler;
-        //Third round, initialize all taskActions and nodeTypes
+        //Fourth round, initialize all taskActions and nodeTypes
         CoreTask.fillDefault(this._actionRegistry);
+
+        //Register default Custom Types
+        this._typeRegistry.getOrCreateDeclaration(CoreIndexAttribute.NAME).setFactory(new TypeFactory() {
+            @Override
+            public Object wrap(final EGraph backend) {
+                return new CoreIndexAttribute(backend);
+            }
+        });
+        this._typeRegistry.getOrCreateDeclaration(KDTree.NAME).setFactory(new TypeFactory() {
+            @Override
+            public Object wrap(final EGraph backend) {
+                return new KDTree(backend);
+            }
+        });
+        this._typeRegistry.getOrCreateDeclaration(NDTree.NAME).setFactory(new TypeFactory() {
+            @Override
+            public Object wrap(final EGraph backend) {
+                return new NDTree(backend, new IndexManager());
+            }
+        });
+
         this._nodeRegistry.getOrCreateDeclaration(CoreNodeIndex.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
@@ -108,14 +131,14 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public long fork(long world) {
+    public final long fork(long world) {
         long childWorld = this._worldKeyCalculator.newKey();
         this._resolver.initWorld(world, childWorld);
         return childWorld;
     }
 
     @Override
-    public Node newNode(long world, long time) {
+    public final Node newNode(long world, long time) {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
@@ -125,7 +148,7 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public Node newTypedNode(long world, long time, String nodeType) {
+    public final Node newTypedNode(long world, long time, String nodeType) {
         if (nodeType == null) {
             throw new RuntimeException("nodeType should not be null");
         }
@@ -149,12 +172,12 @@ public class CoreGraph implements Graph {
      * @ignore ts
      */
     @Override
-    public <A extends Node> A newTypedNode(long world, long time, String nodeType, Class<A> type) {
+    public final <A extends Node> A newTypedNode(long world, long time, String nodeType, Class<A> type) {
         return (A) newTypedNode(world, time, nodeType);
     }
 
     @Override
-    public Node cloneNode(Node origin) {
+    public final Node cloneNode(Node origin) {
         if (origin == null) {
             throw new RuntimeException("origin node should not be null");
         }
@@ -194,7 +217,7 @@ public class CoreGraph implements Graph {
         }
     }
 
-    NodeFactory factoryByCode(int code) {
+    final NodeFactory factoryByCode(int code) {
         NodeDeclaration declaration = _nodeRegistry.declarationByHash(code);
         if (declaration != null) {
             return declaration.factory();
@@ -218,6 +241,11 @@ public class CoreGraph implements Graph {
     }
 
     @Override
+    public final TypeRegistry typeRegistry() {
+        return _typeRegistry;
+    }
+
+    @Override
     public final Graph setMemoryFactory(MemoryFactory factory) {
         if (_isConnected.get()) {
             throw new RuntimeException("Memory factory cannot be changed after connection !");
@@ -237,6 +265,12 @@ public class CoreGraph implements Graph {
             temp_temp_hooks[_taskHooks.length] = newTaskHook;
             _taskHooks = temp_temp_hooks;
         }
+        return this;
+    }
+
+    @Override
+    public final Graph addConnectHook(Callback<Callback<Boolean>> onConnect) {
+        _connectHooks.add(onConnect);
         return this;
     }
 
@@ -322,7 +356,7 @@ public class CoreGraph implements Graph {
             selfPointer._storage.connect(selfPointer, new Callback<Boolean>() {
                 @Override
                 public void on(Boolean connection) {
-                    if(connection) {
+                    if (connection) {
                         selfPointer._storage.lock(new Callback<Buffer>() {
                             @Override
                             public void on(Buffer prefixBuf) {
@@ -380,7 +414,29 @@ public class CoreGraph implements Graph {
                                             payloads.free();
                                             selfPointer._lock.set(true);
                                             if (HashHelper.isDefined(callback)) {
-                                                callback.on(noError);
+                                                if (_connectHooks == null || _connectHooks.size() == 0) {
+                                                    callback.on(noError);
+                                                } else {
+                                                    final Boolean finalNoError = noError;
+                                                    final int cbs_size = _connectHooks.size();
+                                                    final int[] cursor = new int[1];
+                                                    cursor[0] = 0;
+                                                    final Callback[] cbs = new Callback[1];
+                                                    cbs[0] = new Callback<Boolean>() {
+                                                        @Override
+                                                        public void on(final Boolean result) {
+                                                            cursor[0]++;
+                                                            if (cursor[0] < cbs_size) {
+                                                                final Callback<Callback<Boolean>> cb = _connectHooks.get(cursor[0]);
+                                                                cb.on(cbs[0]);
+                                                            } else {
+                                                                callback.on(finalNoError);
+                                                            }
+                                                        }
+                                                    };
+                                                    final Callback<Callback<Boolean>> cb = _connectHooks.get(cursor[0]);
+                                                    cb.on(cbs[0]);
+                                                }
                                             }
                                         } else {
                                             selfPointer._lock.set(true);
@@ -475,12 +531,42 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public final synchronized void index(long world, long time, String name, Callback<NodeIndex> callback) {
-        internal_index(world, time, name, false, callback);
+    public final void declareIndex(long world, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
+        internal_index(world, Constants.BEGINNING_OF_TIME, name, false, new Callback<NodeIndex>() {
+            @Override
+            public void on(final NodeIndex nodeIndex) {
+                nodeIndex.setTimeSensitivity(-1, 0);
+                nodeIndex.declareAttributes(new Callback() {
+                    @Override
+                    public void on(Object result) {
+                        if (callback != null) {
+                            callback.on(nodeIndex);
+                        }
+                    }
+                }, indexedAttributes);
+            }
+        });
     }
 
     @Override
-    public final synchronized void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback) {
+    public final void declareTimedIndex(long world, long originTime, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
+        internal_index(world, originTime, name, false, new Callback<NodeIndex>() {
+            @Override
+            public void on(final NodeIndex nodeIndex) {
+                nodeIndex.declareAttributes(new Callback() {
+                    @Override
+                    public void on(Object ignore) {
+                        if (callback != null) {
+                            callback.on(nodeIndex);
+                        }
+                    }
+                }, indexedAttributes);
+            }
+        });
+    }
+
+    @Override
+    public final synchronized void index(long world, long time, String name, Callback<NodeIndex> callback) {
         internal_index(world, time, name, true, callback);
     }
 
@@ -497,9 +583,9 @@ public class CoreGraph implements Graph {
                     if (globalIndexNodeUnsafe == null) {
                         globalIndexNodeUnsafe = new BaseNode(world, CoreConstants.BEGINNING_OF_TIME, CoreConstants.END_OF_TIME, selfPointer);
                         selfPointer._resolver.initNode(globalIndexNodeUnsafe, CoreConstants.NULL_LONG);
-                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.LONG_TO_LONG_MAP);
+                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getOrCreateAt(0, Type.LONG_TO_LONG_MAP);
                     } else {
-                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.get(CoreConstants.INDEX_ATTRIBUTE);
+                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getAt(0);
                     }
                     long indexId = globalIndexContent.get(indexNameCoded);
                     if (indexId == CoreConstants.NULL_LONG) {
@@ -508,7 +594,7 @@ public class CoreGraph implements Graph {
                             globalIndexNodeUnsafe.free();
                             callback.on(null);
                         } else {
-                            NodeIndex newIndexNode = (NodeIndex) selfPointer.newTypedNode(world, time, CoreNodeIndex.NAME);
+                            final NodeIndex newIndexNode = (NodeIndex) selfPointer.newTypedNode(world, time, CoreNodeIndex.NAME);
                             //newIndexNode.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.RELATION_INDEXED);
                             indexId = newIndexNode.id();
                             globalIndexContent.put(indexNameCoded, indexId);
@@ -533,7 +619,7 @@ public class CoreGraph implements Graph {
                 if (globalIndexNodeUnsafe == null) {
                     callback.on(new String[0]);
                 } else {
-                    LongLongMap globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.get(CoreConstants.INDEX_ATTRIBUTE);
+                    LongLongMap globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getAt(0);
                     if (globalIndexContent == null) {
                         globalIndexNodeUnsafe.free();
                         callback.on(new String[0]);

@@ -60,7 +60,7 @@ public interface Node extends Container {
      * @param value Must be consistent with the propertyType.
      * @return The node for fluent API.
      */
-    Node forceSet(String name, byte type, Object value);
+    Node forceSet(String name, int type, Object value);
 
     /**
      * Sets the value of an attribute of this node for its current world and time.<br>
@@ -70,65 +70,7 @@ public interface Node extends Container {
      * @param value Must be consistent with the propertyType.
      * @return The node for fluent API.
      */
-    Node forceSetAt(int index, byte type, Object value);
-
-    /**
-     * Retrieves the named relation.
-     *
-     * @param relationName name of the relation to retrieve
-     * @param callback     callback to be notified when the relation has been resolved
-     */
-    void relation(String relationName, Callback<Node[]> callback);
-
-    /**
-     * Retrieves a relation using an index.
-     *
-     * @param relationIndex index of the relation
-     * @param callback      callback to be notified when the relation has been resolved
-     */
-    void relationAt(int relationIndex, Callback<Node[]> callback);
-
-    /**
-     * Adds a node to a relation.<br>
-     * If the relation doesn't exist, it is created on the fly.<br>
-     *
-     * @param relationName      The name of the relation in which the node is added.
-     * @param relatedNode       The node to insert in the relation.
-     * @param indexedAttributes The attributes' names to be used for indexing the relatedNode. The relation is not indexed if this parameter is null.
-     * @return The node for fluent API.
-     */
-    Node addToRelation(String relationName, Node relatedNode, String... indexedAttributes);
-
-    /**
-     * Adds a node to a relation using the relation index.<br>
-     * If the relation doesn't exist, it is created on the fly.<br>
-     *
-     * @param relationIndex     The index number of the relation in the current node, in which the relatedNode is added.
-     * @param relatedNode       The node to insert in the relation.
-     * @param indexedAttributes The attributes' names to be used for indexing the relatedNode. The relation is not indexed if this parameter is null.
-     * @return The node for fluent API.
-     */
-    Node addToRelationAt(int relationIndex, Node relatedNode, String... indexedAttributes);
-
-    /**
-     * Removes a node from a relation.
-     *
-     * @param relationName      The name of the relation.
-     * @param relatedNode       The node to remove.
-     * @param indexedAttributes The attributes' names to be used for finding and removing the relatedNode from the index. This is mandatory if the relation is indexed.
-     * @return The node for fluent API.
-     */
-    Node removeFromRelation(String relationName, Node relatedNode, String... indexedAttributes);
-
-    /**
-     * Removes a node from a relation.
-     *
-     * @param relationIndex     The name of the relation.
-     * @param relatedNode       The node to remove.
-     * @param indexedAttributes The attributes' names to be used for finding and removing the relatedNode from the index. This is mandatory if the relation is indexed.
-     * @return The node for fluent API.
-     */
-    Node removeFromRelationAt(int relationIndex, Node relatedNode, String... indexedAttributes);
+    Node forceSetAt(int index, int type, Object value);
 
     /**
      * Computes the time dephasing of this node, i.e. the difference between last modification and the timepoint of the current node.
@@ -235,4 +177,15 @@ public interface Node extends Container {
      */
     void drop(Callback callback);
 
+    <A> void traverse(String relationName, Callback<A> callback);
+
+    <A> void traverseAt(int relationIndex, Callback<A> callback);
+
+    Node addToRelation(String relationName, Node relatedNode);
+
+    Node addToRelationAt(int relationIndex, Node relatedNode);
+
+    Node removeFromRelation(String relationName, Node relatedNode);
+
+    Node removeFromRelationAt(int relationIndex, Node relatedNode);
 }

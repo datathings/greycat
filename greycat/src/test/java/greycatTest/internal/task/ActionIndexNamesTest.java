@@ -38,9 +38,9 @@ public class ActionIndexNamesTest {
 
                 String[] indexes = new String[]{"idx1", "idx2", "idx3"};
                 for (int i = 0; i < indexes.length; i++) {
-                    graph.index(0, Constants.BEGINNING_OF_TIME, indexes[i], indexNode -> {
-                        indexNode.addToIndex(root1, "name");
-                    });
+                    graph.declareIndex(0, indexes[i], indexNode -> {
+                        indexNode.update(root1);
+                    }, "name");
                 }
 
                 newTask()
