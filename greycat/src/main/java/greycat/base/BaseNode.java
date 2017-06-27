@@ -17,14 +17,11 @@ package greycat.base;
 
 import greycat.*;
 import greycat.chunk.StateChunk;
-<<<<<<< HEAD
-=======
-import greycat.struct.*;
->>>>>>> master
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
 import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
+import greycat.struct.*;
 import greycat.struct.proxy.*;
 import greycat.utility.Tuple;
 

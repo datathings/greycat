@@ -108,6 +108,16 @@ public class BaseCustomType implements Container {
     }
 
     @Override
+    public LongSet getLongSet(String name) {
+        return (LongSet) get(name);
+    }
+
+    @Override
+    public IntSet getIntSet(String name) {
+        return (IntSet) get(name);
+    }
+
+    @Override
     public Object getAt(int index) {
         return null;
     }

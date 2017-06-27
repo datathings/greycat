@@ -119,20 +119,18 @@ public class Type {
                 return "INT_TO_INT_MAP";
             case Type.INT_TO_STRING_MAP:
                 return "INT_TO_STRING_MAP";
-<<<<<<< HEAD
             case Type.INT_SET:
                 return "INT_SET";
             case Type.LONG_SET:
                 return "LONG_SET";
-=======
-                /* default custom Types*/
+     /* default custom Types*/
             case Type.INDEX:
                 return "INDEX";
             case Type.KDTREE:
                 return "KDTREE";
             case Type.NDTREE:
                 return "NDTREE";
->>>>>>> master
+
             default:
                 return "Custom";
         }
@@ -184,12 +182,10 @@ public class Type {
                 return Type.INT_TO_INT_MAP;
             case "INT_TO_STRING_MAP":
                 return Type.INT_TO_STRING_MAP;
-<<<<<<< HEAD
             case "INT_SET":
                 return Type.INT_SET;
             case "LONG_SET":
                 return Type.LONG_SET;
-=======
                 /* default custom Types*/
             case "KDTREE":
                 return Type.KDTREE;
@@ -197,7 +193,6 @@ public class Type {
                 return Type.NDTREE;
             case "INDEX":
                 return Type.INDEX;
->>>>>>> master
             default:
                 return -1;
         }

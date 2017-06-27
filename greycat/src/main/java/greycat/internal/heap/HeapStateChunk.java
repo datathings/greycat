@@ -671,14 +671,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 _v[i] = ((HeapLongLongMap) casted._v[i]).cloneFor(this);
                             }
                             break;
-<<<<<<< HEAD
-                        case Type.RELATION_INDEXED:
-                            if (casted._v[i] != null) {
-                                _v[i] = ((HeapRelationIndexed) casted._v[i]).cloneIRelFor(this, casted.graph());
-                            }
-                            break;
-=======
->>>>>>> master
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             if (casted._v[i] != null) {
                                 _v[i] = ((HeapLongLongArrayMap) casted._v[i]).cloneFor(this);
@@ -739,7 +731,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 _v[i] = ((HeapStringArray) casted._v[i]).cloneFor(this);
                             }
                             break;
-<<<<<<< HEAD
                         case Type.INT_SET:
                             if (casted._v[i] != null) {
                                 _v[i] = ((HeapIntSet) casted._v[i]).cloneFor(this);
@@ -750,9 +741,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 _v[i] = ((HeapLongSet) casted._v[i]).cloneFor(this);
                             }
                             break;
-                        default:
-                            _v[i] = casted._v[i];
-=======
+
                         default:
                             if (!Type.isCustom(casted._type[i])) {
                                 _v[i] = casted._v[i];
@@ -761,7 +750,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
                                 }
                             }
->>>>>>> master
+
                             break;
                     }
                 }
