@@ -39,12 +39,24 @@ class ClassTypeGenerator {
         final JavaClassSource javaClass = Roaster.create(JavaClassSource.class);
         javaClass.setPackage(packageName);
         javaClass.setName(classType.name());
-
         if (classType.parent() != null) {
             javaClass.setSuperType(packageName + "." + classType.parent().name());
         } else {
             javaClass.setSuperType("greycat.base.BaseNode");
         }
+
+        StringBuilder TS_GET_SET = new StringBuilder();
+        classType.properties().forEach(o -> {
+            if(o instanceof Attribute){
+                Attribute attribute = (Attribute) o;
+                if(TypeManager.isPrimitive(attribute.type())){
+                    TS_GET_SET.append("get "+attribute.name()+"() : "+TypeManager.cassTsName(attribute.type())+" {return this.get"+Generator.upperCaseFirstChar(attribute.name())+"();}\n");
+                    TS_GET_SET.append("set "+attribute.name()+"(p : "+TypeManager.cassTsName(attribute.type())+"){ this.set"+Generator.upperCaseFirstChar(attribute.name())+"(p);}\n");
+                }
+            }
+        });
+        //generate TS getter and setter
+        javaClass.getJavaDoc().setFullText("<pre>{@extend ts\n"+TS_GET_SET+"\n}\n</pre>");
 
         // create method
         MethodSource<JavaClassSource> create = javaClass.addMethod()
@@ -126,9 +138,6 @@ class ClassTypeGenerator {
                     getter.setBody("return (" + TypeManager.cassName(att.type()) + ") super.getOrCreate(" + att.name().toUpperCase() + ", " + att.name().toUpperCase() + "_TYPE);");
 
                 }
-
-                // TS getter
-
 
                 // setter
                 if (TypeManager.isPrimitive(att.type())) {
@@ -343,34 +352,52 @@ class ClassTypeGenerator {
                     find.addParameter("String", indexedAtt.ref().name());
                 }
                 find.addParameter("greycat.Callback<" + li.type() + "[]>", "callback");
-                StringBuilder findBodyBuilder = new StringBuilder();
-                findBodyBuilder.append("greycat.Index index = this.getIndex(" + indexConstant + ");\n");
-                findBodyBuilder.append("if (index != null) {");
-                findBodyBuilder.append("index.find(new Callback<greycat.Node[]>() {");
-                findBodyBuilder.append("@Override\n");
-                findBodyBuilder.append("public void on(greycat.Node[] result) {");
-                findBodyBuilder.append(li.type() + "[] typedResult = new " + li.type() + "[result.length];");
-                findBodyBuilder.append("java.lang.System.arraycopy(result, 0, typedResult, 0, result.length);");
-                findBodyBuilder.append("callback.on(typedResult);");
-                findBodyBuilder.append("}");
-                findBodyBuilder.append("},");
-                findBodyBuilder.append("this.world(), this.time(),");
+                StringBuilder paramsBuilder = new StringBuilder();
                 for (AttributeRef indexedAtt : li.attributes()) {
-                    findBodyBuilder.append(indexedAtt.ref().name() + ",");
+                    paramsBuilder.append(indexedAtt.ref().name() + ",");
                 }
-                findBodyBuilder.deleteCharAt(findBodyBuilder.length() - 1);
-                findBodyBuilder.append(");");
-                findBodyBuilder.append("}");
-                findBodyBuilder.append("else {");
-                findBodyBuilder.append("callback.on(null);");
-                findBodyBuilder.append("}");
-
+                paramsBuilder.deleteCharAt(paramsBuilder.length() - 1);
+                StringBuilder findBodyBuilder = createFindMethodBody(li, indexConstant, paramsBuilder);
                 find.setBody(findBodyBuilder.toString());
+
+                // findAll method
+                MethodSource<JavaClassSource> findAll = javaClass.addMethod();
+                findAll.setVisibility(Visibility.PUBLIC).setFinal(true);
+                findAll.setName("findAll" + Generator.upperCaseFirstChar(indexName));
+                findAll.setReturnTypeVoid();
+                findAll.addParameter("greycat.Callback<" + li.type() + "[]>", "callback");
+                paramsBuilder = new StringBuilder("null");
+                StringBuilder findAllBodyBuilder = createFindMethodBody(li, indexConstant, paramsBuilder);
+                findAll.setBody(findAllBodyBuilder.toString());
             }
 
         });
 
         return javaClass;
+    }
+
+    private static StringBuilder createFindMethodBody(Index li, String indexConstant, StringBuilder paramsBuilder) {
+        StringBuilder findBodyBuilder = new StringBuilder();
+
+        findBodyBuilder.append("greycat.Index index = this.getIndex(" + indexConstant + ");\n");
+        findBodyBuilder.append("if (index != null) {");
+        findBodyBuilder.append("index.find(new Callback<greycat.Node[]>() {");
+        findBodyBuilder.append("@Override\n");
+        findBodyBuilder.append("public void on(greycat.Node[] result) {");
+        findBodyBuilder.append(li.type() + "[] typedResult = new " + li.type() + "[result.length];");
+        findBodyBuilder.append("java.lang.System.arraycopy(result, 0, typedResult, 0, result.length);");
+        findBodyBuilder.append("callback.on(typedResult);");
+        findBodyBuilder.append("}");
+        findBodyBuilder.append("},");
+        findBodyBuilder.append("this.world(), this.time(),");
+        findBodyBuilder.append(paramsBuilder.toString());
+        findBodyBuilder.append(");");
+        findBodyBuilder.append("}");
+        findBodyBuilder.append("else {");
+        findBodyBuilder.append("callback.on(null);");
+        findBodyBuilder.append("}");
+
+        return findBodyBuilder;
     }
 
 }

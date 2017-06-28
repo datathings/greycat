@@ -45,6 +45,20 @@ public class CustomTypeGenerator {
 
         javaClass.setSuperType("greycat.base.BaseCustomTypeSingle");
 
+        StringBuilder TS_GET_SET = new StringBuilder();
+        customType.properties().forEach(o -> {
+            if(o instanceof Attribute){
+                Attribute attribute = (Attribute) o;
+                if(TypeManager.isPrimitive(attribute.type())){
+                    TS_GET_SET.append("get "+attribute.name()+"() : "+TypeManager.cassTsName(attribute.type())+" {return this.get"+Generator.upperCaseFirstChar(attribute.name())+"();}\n");
+                    TS_GET_SET.append("set "+attribute.name()+"(p : "+TypeManager.cassTsName(attribute.type())+"){ this.set"+Generator.upperCaseFirstChar(attribute.name())+"(p);}\n");
+                }
+            }
+        });
+        //generate TS getter and setter
+        javaClass.getJavaDoc().setFullText("<pre>{@extend ts\n"+TS_GET_SET+"\n}\n</pre>");
+
+
         // field for type name
         javaClass.addField()
                 .setVisibility(Visibility.PUBLIC)

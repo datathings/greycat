@@ -30,7 +30,6 @@ public class TypeManager {
 
     public static String typeName(String type) {
         String typeName;
-
         switch (type) {
             case "Boolean":
                 typeName = "Type.BOOL";
@@ -112,6 +111,23 @@ public class TypeManager {
         }
 
         return typeName;
+    }
+
+    public static String cassTsName(String type) {
+        String className;
+        switch (type) {
+            case "Bool":
+            case "Boolean":
+                return "boolean";
+            case "String":
+                return "string";
+            case "Long":
+            case "Double":
+            case "Int":
+            case "Integer":
+                return "number";
+        }
+        return "any";
     }
 
     public static String cassName(String type) {

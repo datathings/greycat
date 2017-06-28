@@ -20,6 +20,7 @@ import greycat.language.Model;
 import java2typescript.SourceTranslator;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.source.JavaSource;
 
 import java.io.File;
@@ -111,7 +112,7 @@ public class Generator {
                 File targetSrc = new File(targetPkg, src.getName() + ".java");
                 try {
                     FileWriter writer = new FileWriter(targetSrc);
-                    writer.write(src.toString());
+                    writer.write(src.toString().replace("<pre>","").replace("</pre>",""));
                     writer.close();
                 } catch (IOException e) {
                     e.printStackTrace();

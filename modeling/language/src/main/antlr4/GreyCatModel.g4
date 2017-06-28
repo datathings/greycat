@@ -49,7 +49,7 @@ relationDcl: 'rel' name=IDENT ':' type=IDENT (oppositeDcl)?;
 referenceDcl: 'ref' name=IDENT ':' type=IDENT (oppositeDcl)?;
 oppositeDcl: 'oppositeOf' name=IDENT;
 
-localIndexDcl: 'index' name=IDENT ':' type=IDENT 'using' indexAttributesDcl;
+localIndexDcl: 'index' name=IDENT ':' type=IDENT 'using' indexAttributesDcl (oppositeDcl)?;
 indexAttributesDcl: IDENT (',' IDENT)*;
 
 globalIndexDcl: 'index' name=IDENT ':' type=IDENT 'using' indexAttributesDcl;

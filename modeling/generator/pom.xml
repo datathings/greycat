@@ -31,7 +31,6 @@
     <properties>
         <header.path>${basedir}/../../HEADER</header.path>
         <roaster.version>2.20.0.Final</roaster.version>
-        <j2ts.version>88</j2ts.version>
         <maven.core.version>3.3.9</maven.core.version>
     </properties>
 
@@ -65,7 +64,7 @@
         <dependency>
             <groupId>com.datathings</groupId>
             <artifactId>j2ts-transpiler</artifactId>
-            <version>${j2ts.version}</version>
+            <version>${java2typescript.plugin.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>

@@ -10,6 +10,11 @@ For any questions please contact us via our Gitter:
 
 # Changelog
 - Version 9 (~end of June 2017)
+    - introduction of model environment (grammar, IDEA plugin, generator Java and TS)
+    - introduction of custom types
+    - unified index API, declareIndex mandatory now
+    - new find method (no need to repeat indexed attribute names, for add to index and find methods)
+    - new J2TS (90) and TypeScript version (2.4.1)
     - New DValueNode for high speed time-series
     - Fix lower bound for travel in times
     - Simplified update methods for index

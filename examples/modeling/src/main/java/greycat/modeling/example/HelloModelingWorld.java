@@ -69,6 +69,13 @@ public class HelloModelingWorld {
                     System.out.println("found " + rooms.length + " room with local index");
                 });
 
+                building.findAllLocalIndex(new Callback<Room[]>() {
+                    @Override
+                    public void on(Room[] result) {
+                        System.out.println("findAll local index: " + result.length);
+                    }
+                });
+
                 // global index
                 Buildings.declareIndex(graph, 0, new Callback<Boolean>() {
                     @Override
