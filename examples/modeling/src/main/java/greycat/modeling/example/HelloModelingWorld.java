@@ -101,6 +101,35 @@ public class HelloModelingWorld {
                 LongLongArrayMap llam = building.getLongToLongArrayMap();
                 llam.put(5, 5);
                 System.out.println(llam.get(5)[0]);
+
+                LongLongArrayMap llam2 = building.getLongToLongArrayMap();
+                System.out.println(llam2.get(5)[0]);
+
+                // opposite relations
+                A a1 = A.create(0, 0, graph);
+                a1.setName("a1");
+                B b1 = B.create(0, 0, graph);
+                b1.setName("b1");
+
+                B b2 = B.create(0, 0, graph);
+                b2.setName("b2");
+
+                a1.addToBRel(b1);
+                b1.getARef(new Callback<A>() {
+                    @Override
+                    public void on(A result) {
+                        System.out.println("opposite found: " + result.getName());
+                    }
+                });
+
+                b2.setARef(a1);
+                a1.getBRel(new Callback<B[]>() {
+                    @Override
+                    public void on(B[] result) {
+                        System.out.println("number of elems in rel: " + result.length);
+                    }
+                });
+
             }
         });
     }

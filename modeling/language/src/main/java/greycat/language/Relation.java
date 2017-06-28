@@ -18,6 +18,7 @@ package greycat.language;
 public class Relation {
     private final String name;
     private String type;
+    private Opposite opposite;
 
     Relation(String name) {
         this.name = name;
@@ -31,8 +32,16 @@ public class Relation {
         return type;
     }
 
+    public Opposite opposite() {
+        return opposite;
+    }
+
     void setType(String type) {
         this.type = type;
+    }
+
+    void setOpposite(Opposite opposite) {
+        this.opposite = opposite;
     }
 
 }

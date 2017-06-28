@@ -11,3 +11,4 @@ class Room {
 class Furniture {
     rel buildings : Building oppositeOf furnitures
 }
+

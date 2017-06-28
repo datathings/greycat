@@ -97,7 +97,7 @@ public class Class implements Container {
         if (att == null) {
             att = new Reference(name);
             properties.put(name, att);
-        } else if (!(att instanceof Relation)) {
+        } else if (!(att instanceof Reference)) {
             throw new RuntimeException("Property name conflict relation name conflict with " + att);
         }
         return (Reference) att;
@@ -108,7 +108,7 @@ public class Class implements Container {
         if (att == null) {
             att = new Index(name);
             properties.put(name, att);
-        } else if (!(att instanceof Constant)) {
+        } else if (!(att instanceof Index)) {
             throw new RuntimeException("Property name conflict index name conflict with " + att);
         }
         return (Index) att;

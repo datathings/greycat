@@ -222,6 +222,48 @@ public class Model {
                 constant.setValue(value);
             }
         }
+
+        // opposite management
+        for (GreyCatModelParser.ClassDclContext classDclCtx : modelDclCtx.classDcl()) {
+            String classFqn = classDclCtx.name.getText();
+            Class classType = classes.get(classFqn);
+
+            // relations
+            for (GreyCatModelParser.RelationDclContext relDclCtx : classDclCtx.relationDcl()) {
+                if (relDclCtx.oppositeDcl() != null) {
+                    Relation rel = (Relation) classType.properties.get(relDclCtx.name.getText());
+                    Class oppositeClass = classes.get(rel.type());
+                    Object oppositeProperty = oppositeClass.properties.get(relDclCtx.oppositeDcl().name.getText());
+                    if (oppositeProperty instanceof Relation) {
+                        Relation oppositeRel = (Relation) oppositeProperty;
+                        rel.setOpposite(new Opposite(oppositeRel));
+                        oppositeRel.setOpposite(new Opposite(rel));
+                    } else if (oppositeProperty instanceof Reference) {
+                        Reference oppositeRef = (Reference) oppositeProperty;
+                        rel.setOpposite(new Opposite(oppositeRef));
+                        oppositeRef.setOpposite(new Opposite(rel));
+                    }
+                }
+            }
+            // references
+            for (GreyCatModelParser.ReferenceDclContext refDclCtx : classDclCtx.referenceDcl()) {
+                if (refDclCtx.oppositeDcl() != null) {
+                    Reference ref = (Reference) classType.properties.get(refDclCtx.name.getText());
+                    Class oppositeClass = classes.get(ref.type());
+                    Object oppositeProperty = oppositeClass.properties.get(refDclCtx.oppositeDcl().name.getText());
+                    if (oppositeProperty instanceof Relation) {
+                        Relation oppositeRel = (Relation) oppositeProperty;
+                        ref.setOpposite(new Opposite(oppositeRel));
+                        oppositeRel.setOpposite(new Opposite(ref));
+                    } else if (oppositeProperty instanceof Reference) {
+                        Reference oppositeRef = (Reference) oppositeProperty;
+                        ref.setOpposite(new Opposite(oppositeRef));
+                        oppositeRef.setOpposite(new Opposite(ref));
+                    }
+                }
+            }
+        }
+
         // indexes
         for (GreyCatModelParser.GlobalIndexDclContext globalIdxDclContext : modelDclCtx.globalIndexDcl()) {
             final String name = globalIdxDclContext.name.getText();

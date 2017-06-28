@@ -6,7 +6,7 @@
   "main": "test.js",
   "typings": "test.d.ts",
   "devDependencies": {
-    "typescript": "^2.1.5"
+    "typescript": "2.4.1"
   },
   "dependencies": {
     "j2ts-jre": "^J2TS_VERSION",

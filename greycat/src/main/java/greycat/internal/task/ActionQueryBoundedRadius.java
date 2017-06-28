@@ -53,16 +53,19 @@ public class ActionQueryBoundedRadius implements Action {
                         for (int i = 0; i < tr.size(); i++) {
                             nodeIds[i] = tr.value(i);
                         }
-                        ctx.graph().lookupAll(ctx.world(), ctx.time(), nodeIds, result -> {
-                            for (int j = 0; j < result.length; j++) {
-                                TaskResult<Object> line = ctx.newResult();
-                                line.add(tr.keys(j));
-                                line.add(result[j]);
-                                line.add(tr.distance(j));
-                                nextResult.add(line);
+                        ctx.graph().lookupAll(ctx.world(), ctx.time(), nodeIds, new Callback<Node[]>() {
+                            @Override
+                            public void on(Node[] result) {
+                                for (int j = 0; j < result.length; j++) {
+                                    TaskResult<Object> line = ctx.newResult();
+                                    line.add(tr.keys(j));
+                                    line.add(result[j]);
+                                    line.add(tr.distance(j));
+                                    nextResult.add(line);
+                                }
+                                tr.free();
+                                defer.count();
                             }
-                            tr.free();
-                            defer.count();
                         });
                     } else {
                         for (int i = 0; i < tr.size(); i++) {

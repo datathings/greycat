@@ -15,33 +15,32 @@
  */
 package greycat.language;
 
-public class Reference {
+public class Opposite {
+    private Relation rel;
+    private Reference ref;
 
-    private final String name;
-    private String type;
-    private Opposite opposite;
-
-    Reference(String name) {
-        this.name = name;
+    public Opposite(Relation rel) {
+        this.rel = rel;
     }
 
-    public String name() {
-        return name;
+    public Opposite(Reference ref) {
+        this.ref = ref;
     }
 
-    public String type() {
-        return type;
+    public Relation relation() {
+        return rel;
     }
 
-    public Opposite opposite() {
-        return opposite;
+    public Reference reference() {
+        return ref;
     }
 
-    void setType(String type) {
-        this.type = type;
+    public boolean isReference() {
+        return ref != null;
     }
 
-    void setOpposite(Opposite opposite) {
-        this.opposite = opposite;
+    public boolean isRelation() {
+        return rel != null;
     }
+
 }

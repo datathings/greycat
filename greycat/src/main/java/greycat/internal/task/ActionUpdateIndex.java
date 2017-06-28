@@ -15,14 +15,10 @@
  */
 package greycat.internal.task;
 
-import greycat.Constants;
-import greycat.DeferCounter;
+import greycat.*;
 import greycat.internal.CoreDeferCounter;
 import greycat.plugin.Job;
-import greycat.Action;
 import greycat.base.BaseNode;
-import greycat.TaskContext;
-import greycat.TaskResult;
 import greycat.struct.Buffer;
 
 class ActionUpdateIndex implements Action {
@@ -45,14 +41,17 @@ class ActionUpdateIndex implements Action {
             if (loop instanceof BaseNode) {
                 BaseNode loopBaseNode = (BaseNode) loop;
                 long indexTime = ctx.time();
-                ctx.graph().index(loopBaseNode.world(), indexTime, templatedIndexName, indexNode -> {
-                    if(this._update) {
-                        indexNode.update(loopBaseNode);
-                    } else {
-                        indexNode.unindex(loopBaseNode);
+                ctx.graph().index(loopBaseNode.world(), indexTime, templatedIndexName, new Callback<NodeIndex>() {
+                    @Override
+                    public void on(NodeIndex indexNode) {
+                        if (ActionUpdateIndex.this._update) {
+                            indexNode.update(loopBaseNode);
+                        } else {
+                            indexNode.unindex(loopBaseNode);
+                        }
+                        indexNode.free();
+                        counter.count();
                     }
-                    indexNode.free();
-                    counter.count();
                 });
             } else {
                 counter.count();

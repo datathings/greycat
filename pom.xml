@@ -47,9 +47,9 @@
     </parent>
 
     <properties>
-        <java2typescript.plugin.version>88</java2typescript.plugin.version>
+        <java2typescript.plugin.version>89</java2typescript.plugin.version>
         <header.path>${basedir}/HEADER</header.path>
-        <undertow.version>1.4.10.Final</undertow.version>
+        <undertow.version>1.4.17.Final</undertow.version>
     </properties>
 
     <developers>

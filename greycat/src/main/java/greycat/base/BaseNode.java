@@ -161,7 +161,12 @@ public class BaseNode implements Node {
     public Object getAt(int propIndex) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            return proxyIfNecessary(resolved, propIndex, resolved.getAt(propIndex));
+            Object rawObj = resolved.getAt(propIndex);
+            if (rawObj != null) {
+                return proxyIfNecessary(resolved, propIndex, rawObj);
+            } else {
+                return null;
+            }
         }
         return null;
     }

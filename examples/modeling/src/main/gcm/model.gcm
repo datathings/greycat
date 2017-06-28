@@ -29,6 +29,18 @@ type GPSPosition {
     att lng : Double
 }
 
+class A {
+    att name : String
+    rel bRel : B
+    rel bRel2 : B oppositeOf aRel2
+}
+
+class B {
+    att name : String
+    ref aRef : A oppositeOf bRel
+    rel aRel2 : A oppositeOf bRel2
+}
+
 index Buildings : Building using name
 
 const GLOBAL_CONSTANT : Double = "4.5d"
