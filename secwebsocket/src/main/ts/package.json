@@ -16,6 +16,6 @@
     "url": "https://github.com/datathings/greycat/issues"
   },
   "devDependencies": {
-    "typescript": "^2.1.5"
+    "typescript": "2.3.4"
   }
 }
