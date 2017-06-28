@@ -146,7 +146,7 @@ public class RocksDBStorage implements Storage {
         }
         WriteOptions options = new WriteOptions();
         options.setSync(false);
-        options.setDisableWAL(true);
+        //options.setDisableWAL(true);
         try {
             _db.write(options, batch);
             for (int i = 0; i < updates.size(); i++) {
@@ -190,7 +190,7 @@ public class RocksDBStorage implements Storage {
         }
         WriteOptions options = new WriteOptions();
         options.setSync(false);
-        options.setDisableWAL(true);
+        //options.setDisableWAL(true);
         try {
             _db.write(options, batch);
             for (int i = 0; i < updates.size(); i++) {
@@ -264,7 +264,7 @@ public class RocksDBStorage implements Storage {
         //by default activate snappy compression of bytes
         _options = new Options()
                 .setCreateIfMissing(true)
-                .setWalSizeLimitMB(1)
+                //.setWalSizeLimitMB(1)
                 .setCompressionType(CompressionType.SNAPPY_COMPRESSION);
 
         File location = new File(_storagePath);
