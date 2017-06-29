@@ -144,12 +144,29 @@
                 </executions>
             </plugin>
         </plugins>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>2.12</version>
+            </extension>
+        </extensions>
     </build>
 
     <repositories>
         <repository>
             <id>OSS-public</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>datathings.private.read</id>
+            <url>https://maven.datathings.com</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -170,6 +187,27 @@
                 <enabled>true</enabled>
             </snapshots>
         </pluginRepository>
+        <pluginRepository>
+            <id>datathings.private.read</id>
+            <url>https://maven.datathings.com</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
     </pluginRepositories>
+
+    <distributionManagement>
+        <repository>
+            <id>datathings.private.release</id>
+            <url>scp://maven.datathings.com/home/dtdeploy/.m2/repository</url>
+        </repository>
+        <snapshotRepository>
+            <id>datathings.private.snapshots</id>
+            <url>scp://maven.datathings.com/home/dtdeploy/.m2/repository</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>
