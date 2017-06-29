@@ -234,14 +234,10 @@ public class Model {
                     Relation rel = (Relation) classType.properties.get(relDclCtx.name.getText());
                     Class oppositeClass = classes.get(rel.type());
                     Object oppositeProperty = oppositeClass.properties.get(relDclCtx.oppositeDcl().name.getText());
-                    if (oppositeProperty instanceof Relation) {
-                        Relation oppositeRel = (Relation) oppositeProperty;
-                        rel.setOpposite(new Opposite(oppositeRel));
-                        oppositeRel.setOpposite(new Opposite(rel));
-                    } else if (oppositeProperty instanceof Reference) {
-                        Reference oppositeRef = (Reference) oppositeProperty;
-                        rel.setOpposite(new Opposite(oppositeRef));
-                        oppositeRef.setOpposite(new Opposite(rel));
+                    if (oppositeProperty instanceof Edge) {
+                        Edge opposite = (Edge) oppositeProperty;
+                        rel.setOpposite(new Opposite(opposite));
+                        opposite.setOpposite(new Opposite(rel));
                     }
                 }
             }
@@ -251,14 +247,23 @@ public class Model {
                     Reference ref = (Reference) classType.properties.get(refDclCtx.name.getText());
                     Class oppositeClass = classes.get(ref.type());
                     Object oppositeProperty = oppositeClass.properties.get(refDclCtx.oppositeDcl().name.getText());
-                    if (oppositeProperty instanceof Relation) {
-                        Relation oppositeRel = (Relation) oppositeProperty;
-                        ref.setOpposite(new Opposite(oppositeRel));
-                        oppositeRel.setOpposite(new Opposite(ref));
-                    } else if (oppositeProperty instanceof Reference) {
-                        Reference oppositeRef = (Reference) oppositeProperty;
-                        ref.setOpposite(new Opposite(oppositeRef));
-                        oppositeRef.setOpposite(new Opposite(ref));
+                    if (oppositeProperty instanceof Edge) {
+                        Edge opposite = (Edge) oppositeProperty;
+                        ref.setOpposite(new Opposite(opposite));
+                        opposite.setOpposite(new Opposite(ref));
+                    }
+                }
+            }
+            // local indexes
+            for (GreyCatModelParser.LocalIndexDclContext idxDclCtx : classDclCtx.localIndexDcl()) {
+                if (idxDclCtx.oppositeDcl() != null) {
+                    Index idx = (Index) classType.properties.get(idxDclCtx.name.getText());
+                    Class oppositeClass = classes.get(idx.type());
+                    Object oppositeProperty = oppositeClass.properties.get(idxDclCtx.oppositeDcl().name.getText());
+                    if (oppositeProperty instanceof Edge) {
+                        Edge opposite = (Edge) oppositeProperty;
+                        idx.setOpposite(new Opposite(opposite));
+                        opposite.setOpposite(new Opposite(idx));
                     }
                 }
             }
@@ -301,6 +306,7 @@ public class Model {
                     }
                 }
                 constant.setValue(value);
+
             }
         }
     }

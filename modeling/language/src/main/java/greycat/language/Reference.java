@@ -15,7 +15,7 @@
  */
 package greycat.language;
 
-public class Reference {
+public class Reference implements Edge {
 
     private final String name;
     private String type;
@@ -33,15 +33,17 @@ public class Reference {
         return type;
     }
 
-    public Opposite opposite() {
-        return opposite;
-    }
-
     void setType(String type) {
         this.type = type;
     }
 
-    void setOpposite(Opposite opposite) {
+    @Override
+    public Opposite opposite() {
+        return opposite;
+    }
+
+    @Override
+    public void setOpposite(Opposite opposite) {
         this.opposite = opposite;
     }
 }

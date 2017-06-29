@@ -15,7 +15,7 @@
  */
 package greycat.language;
 
-public class Relation {
+public class Relation implements Edge {
     private final String name;
     private String type;
     private Opposite opposite;
@@ -32,15 +32,17 @@ public class Relation {
         return type;
     }
 
-    public Opposite opposite() {
-        return opposite;
-    }
-
     void setType(String type) {
         this.type = type;
     }
 
-    void setOpposite(Opposite opposite) {
+    @Override
+    public Opposite opposite() {
+        return opposite;
+    }
+
+    @Override
+    public void setOpposite(Opposite opposite) {
         this.opposite = opposite;
     }
 

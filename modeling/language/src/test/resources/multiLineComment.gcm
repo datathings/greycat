@@ -1,0 +1,22 @@
+/* MySuperComment */
+
+// My Single Line Comment
+
+class SayHello {
+    //say Hello attribute
+    att name : String
+    /* internal multi line */
+    att version : String
+    /*
+        Real multi line comment
+    */
+    att forName : String
+}
+
+/*
+
+* Hello
+* Hello
+* Java Style Comment
+
+*/

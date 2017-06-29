@@ -133,7 +133,9 @@ public class HelloModelingWorld {
                 a1.getBRel(new Callback<B[]>() {
                     @Override
                     public void on(B[] result) {
-                        System.out.println("number of elems in rel: " + result.length);
+                        for (B b : result) {
+                            System.out.println(b.getName());
+                        }
                     }
                 });
 

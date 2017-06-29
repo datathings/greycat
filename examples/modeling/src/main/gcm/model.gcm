@@ -12,8 +12,17 @@ class Building extends ASuperType {
     rel rooms : Room
     ref specialRoom : Room
     index localIndex : Room using name
+    index floors : Floor using name oppositeOf building
+
+    rel aaa : Floor
 }
 
+class Floor {
+    att name : String
+    ref building : Building oppositeOf floors
+
+    index oi : Building using name oppositeOf aaa
+}
 
 class Room {
     att name : String

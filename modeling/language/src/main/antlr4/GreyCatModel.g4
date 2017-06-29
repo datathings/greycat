@@ -22,8 +22,9 @@ fragment HEX : [0-9a-fA-F] ;
 STRING :  '"' (ESC | ~["\\])* '"' | '\'' (ESC | ~["\\])* '\'' ;
 IDENT : [a-zA-Z_][a-zA-Z_0-9]*;
 NUMBER : [\-]?[0-9]+'.'?[0-9]*;
-WS : ([ \t\r\n]+ | SL_COMMENT) -> skip ; // skip spaces, tabs, newlines
+WS : ([ \t\r\n]+ | SL_COMMENT | ML_COMMENT) -> skip ; // skip spaces, tabs, newlines
 SL_COMMENT :  '//' ~('\r' | '\n')* ;
+ML_COMMENT : '/*' .*? '*/' -> skip;
 
 modelDcl: (constDcl | classDcl | globalIndexDcl | customTypeDcl | importDcl)*;
 importDcl: 'import' STRING;

@@ -1,6 +1,13 @@
 class Building {
     rel rooms : Room
     rel furnitures : Furniture
+    index floors : Floor using name oppositeOf building
+}
+
+
+class Floor {
+    att name : String
+    ref building : Building oppositeOf floors
 }
 
 class Room {

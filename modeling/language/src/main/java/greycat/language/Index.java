@@ -19,10 +19,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
-public class Index {
+public class Index implements Edge {
 
     private final String name;
     private final Collection<AttributeRef> attributes;
+    private Opposite opposite;
 
     private String type;
 
@@ -37,6 +38,16 @@ public class Index {
 
     public String type() {
         return this.type;
+    }
+
+    @Override
+    public Opposite opposite() {
+        return opposite;
+    }
+
+    @Override
+    public void setOpposite(Opposite opposite) {
+        this.opposite = opposite;
     }
 
     public Collection<AttributeRef> attributes() {

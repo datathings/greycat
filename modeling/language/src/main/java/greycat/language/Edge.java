@@ -15,14 +15,9 @@
  */
 package greycat.language;
 
-public class Opposite {
-    private Edge edge;
+public interface Edge {
+    Opposite opposite();
 
-    public Opposite(Edge edge) {
-        this.edge = edge;
-    }
+    void setOpposite(Opposite opposite);
 
-    public Edge edge() {
-        return edge;
-    }
 }
