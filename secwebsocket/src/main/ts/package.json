@@ -8,14 +8,10 @@
   "dependencies": {
     "greycat-websocket":"^GREYCAT_VERSION"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/datathings/greycat.git"
-  },
-  "bugs": {
-    "url": "https://github.com/datathings/greycat/issues"
-  },
   "devDependencies": {
     "typescript": "2.3.4"
+  },
+  "publishConfig": {
+    "registry": "https://npm.datathings.com"
   }
 }
