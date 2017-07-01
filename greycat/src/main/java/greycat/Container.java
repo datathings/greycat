@@ -36,7 +36,7 @@ public interface Container {
 
     LMatrix getLMatrix(String name);
 
-    EGraph getEGraph(String name);
+    EStructArray getEGraph(String name);
 
     LongArray getLongArray(String name);
 
@@ -132,6 +132,10 @@ public interface Container {
      */
     Object getOrCreateAt(int index, int type);
     
+    Object getOrCreateCustom(String name, String typeName);
+
+    Object getOrCreateCustomAt(int index, String typeName);
+
     <A> A getWithDefault(String key, A defaultValue);
 
     <A> A getAtWithDefault(int key, A defaultValue);

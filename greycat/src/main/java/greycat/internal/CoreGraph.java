@@ -86,19 +86,19 @@ public class CoreGraph implements Graph {
         //Register default Custom Types
         this._typeRegistry.getOrCreateDeclaration(CoreIndexAttribute.NAME).setFactory(new TypeFactory() {
             @Override
-            public Object wrap(final EGraph backend) {
+            public Object wrap(final EStructArray backend) {
                 return new CoreIndexAttribute(backend);
             }
         });
         this._typeRegistry.getOrCreateDeclaration(KDTree.NAME).setFactory(new TypeFactory() {
             @Override
-            public Object wrap(final EGraph backend) {
+            public Object wrap(final EStructArray backend) {
                 return new KDTree(backend);
             }
         });
         this._typeRegistry.getOrCreateDeclaration(NDTree.NAME).setFactory(new TypeFactory() {
             @Override
-            public Object wrap(final EGraph backend) {
+            public Object wrap(final EStructArray backend) {
                 return new NDTree(backend, new IndexManager());
             }
         });

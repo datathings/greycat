@@ -23,6 +23,7 @@ public class Attribute {
     private final String name;
     private final Container parent;
     final List<AttributeRef> references = new ArrayList<AttributeRef>();
+    private List<List<Object>> value;
 
     private String type;
 
@@ -45,6 +46,14 @@ public class Attribute {
 
     final void setType(String type) {
         this.type = type;
+    }
+
+    public final void setValue(List<List<Object>> value) {
+        this.value = value;
+    }
+
+    public final List<List<Object>> value() {
+        return this.value;
     }
 
 }

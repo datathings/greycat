@@ -20,12 +20,12 @@ import greycat.Type;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 
 class GradientDescent extends AbstractOptimiser {
 
-    GradientDescent(ENode backend) {
+    GradientDescent(EStruct backend) {
         super(backend);
     }
     

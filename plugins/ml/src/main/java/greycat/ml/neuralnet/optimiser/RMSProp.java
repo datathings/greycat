@@ -19,7 +19,7 @@ import greycat.Type;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 
 class RMSProp extends AbstractOptimiser {
 
@@ -38,7 +38,7 @@ class RMSProp extends AbstractOptimiser {
     private double gradientClip;
 
 
-    public RMSProp(ENode backend) {
+    public RMSProp(EStruct backend) {
         super(backend);
         smoothEpsilon = backend.getWithDefault(SMOOTH_EPSILON, SMOOTH_EPSILON_DEF);
         decayRate = backend.getWithDefault(DECAY_RATE, DECAY_RATE_DEF);

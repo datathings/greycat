@@ -15,11 +15,11 @@
  */
 package greycat.plugin;
 
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 
 /**
  * Type plugin allows to propose alternative implementations for basic Types.<br>
- * Custom types are wrapper of EGraph and should leverage them as backend.
+ * Custom types are wrapper of EStructArray and should leverage them as backend.
  */
 @FunctionalInterface
 public interface TypeFactory {
@@ -30,6 +30,6 @@ public interface TypeFactory {
      * @param backend backend
      * @return newly created Type object
      */
-    Object wrap(EGraph backend);
+    Object wrap(EStructArray backend);
 
 }

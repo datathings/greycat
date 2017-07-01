@@ -19,7 +19,7 @@ import greycat.Type;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 
 class Nesterov extends AbstractOptimiser {
@@ -27,7 +27,7 @@ class Nesterov extends AbstractOptimiser {
     static final String DECAY_RATE = "decayrate";
     static final double DECAY_RATE_DEF = 0.9;
     double decayRate;
-    Nesterov(ENode backend) {
+    Nesterov(EStruct backend) {
         super(backend);
         decayRate = backend.getWithDefault(DECAY_RATE, DECAY_RATE_DEF);
     }

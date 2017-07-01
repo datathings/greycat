@@ -17,7 +17,7 @@ package greycat.ml.neuralnet.optimiser;
 
 import greycat.Type;
 import greycat.ml.neuralnet.layer.Layer;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 
 
 // The abstract class here manages all three cases between full online learning,
@@ -45,10 +45,10 @@ abstract class AbstractOptimiser implements Optimiser {
     int steps;
     private int batchSize;
     private int maxSteps;
-    protected ENode _backend;
+    protected EStruct _backend;
 
 
-    AbstractOptimiser(ENode backend) {
+    AbstractOptimiser(EStruct backend) {
         this._backend = backend;
         learningRate = backend.getWithDefault(LEARNING_RATE, LEARNING_RATE_DEF);
         regularization = backend.getWithDefault(REGULARIZATION_RATE, REGULARIZATION_RATE_DEF);

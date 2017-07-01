@@ -52,12 +52,12 @@ public class NDTree extends BaseCustomType implements NDIndexer {
 
     private final NDManager manager;
 
-    public NDTree(final EGraph eGraph, final NDManager manager) {
-        super(eGraph);
+    public NDTree(final EStructArray eStructArray, final NDManager manager) {
+        super(eStructArray);
         this.manager = manager;
-        if (eGraph.root() == null) {
-            ENode root = eGraph.newNode();
-            eGraph.setRoot(root);
+        if (eStructArray.root() == null) {
+            EStruct root = eStructArray.newEStruct();
+            eStructArray.setRoot(root);
         }
     }
 
@@ -153,7 +153,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
     }
 
 
-    private static double[][] getRootSpace(ENode root) {
+    private static double[][] getRootSpace(EStruct root) {
         double[][] space = new double[3][];
         space[MIN] = ((DoubleArray) root.getAt(BOUND_MIN)).extract();
         space[MAX] = ((DoubleArray) root.getAt(BOUND_MAX)).extract();
@@ -161,7 +161,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
         return space;
     }
 
-    private static double[][] getRootMinMax(ENode root) {
+    private static double[][] getRootMinMax(EStruct root) {
         double[][] space = new double[2][];
         space[MIN] = ((DoubleArray) root.getAt(BOUND_MIN)).extract();
         space[MAX] = ((DoubleArray) root.getAt(BOUND_MAX)).extract();
@@ -183,23 +183,23 @@ public class NDTree extends BaseCustomType implements NDIndexer {
         }
     }
 
-    private static ENode createNewNode(final ENode parent, final ENode root, final int index) {
-        ENode node = parent.egraph().newNode();
+    private static EStruct createNewNode(final EStruct parent, final EStruct root, final int index) {
+        EStruct node = parent.egraph().newEStruct();
 
         node.setAt(E_TOTAL, Type.LONG, 0);
         node.setAt(E_SUBNODES, Type.LONG, 0);
 
-        parent.setAt(index, Type.ENODE, node);
+        parent.setAt(index, Type.ESTRUCT, node);
         parent.setAt(E_SUBNODES, Type.LONG, (long) parent.getAt(E_SUBNODES) + 1);
-        parent.setAt(index, Type.ENODE, node);
+        parent.setAt(index, Type.ESTRUCT, node);
 
         return node;
     }
 
-    private static boolean subInsert(final ENode parent, final double[] key, final Object value, final double[][] space, final double[] resolution, final int buffersize, final ENode root, boolean bufferupdate, final NDManager manager) {
+    private static boolean subInsert(final EStruct parent, final double[] key, final Object value, final double[][] space, final double[] resolution, final int buffersize, final EStruct root, boolean bufferupdate, final NDManager manager) {
         int index = getRelationId(space, key);
 
-        ENode child = (ENode) parent.getAt(index);
+        EStruct child = (EStruct) parent.getAt(index);
         if (child == null) {
             child = createNewNode(parent, root, index);
         }
@@ -219,7 +219,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
     }
 
 
-    private static boolean internalInsert(final ENode node, final double[] key, final Object value, final boolean bufferupdate, final double[][] space, final double[] resolution, final int buffersize, final ENode root, final NDManager manager) {
+    private static boolean internalInsert(final EStruct node, final double[] key, final Object value, final boolean bufferupdate, final double[][] space, final double[] resolution, final int buffersize, final EStruct root, final NDManager manager) {
         if ((long) node.getAt(E_SUBNODES) != 0) {
             return subInsert(node, key, value, space, resolution, buffersize, root, false, manager);
         } else if (checkCreateLevels(space, resolution)) {
@@ -357,7 +357,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
 
     @Override
     public void insert(final double[] keys, final long value) {
-        ENode root = _backend.root();
+        EStruct root = _backend.root();
         double[][] space = getRootSpace(root);
         check(keys, space[MIN], space[MAX]);
         double[] resolution = ((DoubleArray) root.getAt(RESOLUTION)).extract();
@@ -388,7 +388,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
 
     @Override
     public final ProfileResult queryBoundedRadius(final double[] keys, final double radius, final int max) {
-        ENode root = _backend.root();
+        EStruct root = _backend.root();
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             return null;
         }
@@ -396,8 +396,8 @@ public class NDTree extends BaseCustomType implements NDIndexer {
 
         check(keys, space[MIN], space[MAX]);
         Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT), null);
-        EGraph calcZone = _backend.graph().space().newVolatileGraph();
-        VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newNode(), max);
+        EStructArray calcZone = _backend.graph().space().newVolatileGraph();
+        VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newEStruct(), max);
         reccursiveTraverse(root, calcZone, nnl, distance, keys, null, null, radius, space);
         nnl.sort(true);
         return nnl;
@@ -406,7 +406,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
 
     @Override
     public final ProfileResult queryArea(final double[] min, final double[] max) {
-        ENode root = _backend.root();
+        EStruct root = _backend.root();
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             return null;
         }
@@ -415,8 +415,8 @@ public class NDTree extends BaseCustomType implements NDIndexer {
         for (int i = 0; i < center.length; i++) {
             center[i] = (min[i] + max[i]) / 2;
         }
-        EGraph calcZone = _backend.graph().space().newVolatileGraph();
-        VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newNode(), -1);
+        EStructArray calcZone = _backend.graph().space().newVolatileGraph();
+        VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newEStruct(), -1);
         double[][] space = getRootMinMax(root);
 
         reccursiveTraverse(root, calcZone, nnl, distance, center, min, max, -1, space);
@@ -426,7 +426,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
 
     @Override
     public long size() {
-        ENode root = _backend.root();
+        EStruct root = _backend.root();
         return root.getAtWithDefault(E_TOTAL, 0L);
     }
 
@@ -436,7 +436,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
     }
 
 
-    private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileTreeResult nnl, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double radius, final double[][] space) {
+    private static void reccursiveTraverse(final EStruct node, final EStructArray calcZone, final VolatileTreeResult nnl, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double radius, final double[][] space) {
 
         if (node.getAtWithDefault(E_SUBNODES, 0L) == 0) {
             //Leave node
@@ -466,7 +466,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
             final double worst = nnl.getWorstDistance();
             if (targetmin == null || targetmax == null) {
                 if (!nnl.isCapacityReached() || TreeHelper.getclosestDistance(target, space[MIN], space[MAX], distance) <= worst) {
-                    final ENode tempList = calcZone.newNode();
+                    final EStruct tempList = calcZone.newEStruct();
                     final VolatileTreeResult childPriority = new VolatileTreeResult(tempList, -1);
 
 
@@ -482,7 +482,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
                     childPriority.sort(true);
 
                     for (int i = 0; i < childPriority.size(); i++) {
-                        ENode child = (ENode) node.getAt((int) childPriority.value(i));
+                        EStruct child = (EStruct) node.getAt((int) childPriority.value(i));
                         double[][] childSpace = getChildMinMax(space, (int) childPriority.value(i));
                         reccursiveTraverse(child, calcZone, nnl, distance, target, targetmin, targetmax, radius, childSpace);
                     }
@@ -493,7 +493,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
                     @Override
                     public void on(int attributeKey, int elemType, Object elem) {
                         if (attributeKey >= E_OFFSET_REL) {
-                            ENode child = (ENode) node.getAt(attributeKey);
+                            EStruct child = (EStruct) node.getAt(attributeKey);
                             double[][] childSpace = getChildMinMax(space, attributeKey);
 
                             if (TreeHelper.checkBoundsIntersection(targetmin, targetmax, childSpace[MIN], childSpace[MAX])) {

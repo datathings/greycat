@@ -44,11 +44,11 @@ public class KDTree extends BaseCustomType implements Tree {
     private static int STRATEGY = 12;
     private static int DIM = 13;
 
-    public KDTree(final EGraph eGraph) {
-        super(eGraph);
-        if (eGraph.root() == null) {
-            ENode root = eGraph.newNode();
-            eGraph.setRoot(root);
+    public KDTree(final EStructArray eStructArray) {
+        super(eStructArray);
+        if (eStructArray.root() == null) {
+            EStruct root = eStructArray.newEStruct();
+            eStructArray.setRoot(root);
         }
     }
 
@@ -70,7 +70,7 @@ public class KDTree extends BaseCustomType implements Tree {
     }
 
     // Method rangeSearch translated from 352.range.c of Gonnet & Baeza-Yates
-    private static void rangeSearch(final double[] lowk, final double[] uppk, final double[] center, final Distance distance, final ENode node, final int lev, final int dim, final VolatileTreeResult nnl) {
+    private static void rangeSearch(final double[] lowk, final double[] uppk, final double[] center, final Distance distance, final EStruct node, final int lev, final int dim, final VolatileTreeResult nnl) {
 
         if (node == null)
             return;
@@ -78,7 +78,7 @@ public class KDTree extends BaseCustomType implements Tree {
         double[] key = ((DoubleArray) node.getAt(E_KEY)).extract();
 
         if (lowk[lev] <= key[lev]) {
-            rangeSearch(lowk, uppk, center, distance, (ENode) node.getAt(E_LEFT), (lev + 1) % dim, dim, nnl);
+            rangeSearch(lowk, uppk, center, distance, (EStruct) node.getAt(E_LEFT), (lev + 1) % dim, dim, nnl);
         }
         int j;
         j = 0;
@@ -90,11 +90,11 @@ public class KDTree extends BaseCustomType implements Tree {
             nnl.insert(key, (long) node.getAt(E_VALUE), distance.measure(key, center));
         }
         if (uppk[lev] > key[lev]) {
-            rangeSearch(lowk, uppk, center, distance, (ENode) node.getAt(E_RIGHT), (lev + 1) % dim, dim, nnl);
+            rangeSearch(lowk, uppk, center, distance, (EStruct) node.getAt(E_RIGHT), (lev + 1) % dim, dim, nnl);
         }
     }
 
-    private static void recursiveTraverse(final ENode node, final VolatileTreeResult nnl, final Distance distance, final double[] target, HRect hr, final int lev, final int dim, double max_dist_sqd, final double radius) {
+    private static void recursiveTraverse(final EStruct node, final VolatileTreeResult nnl, final Distance distance, final double[] target, HRect hr, final int lev, final int dim, double max_dist_sqd, final double radius) {
         // 1. if kd is empty exit.
         if (node == null) {
             return;
@@ -116,17 +116,17 @@ public class KDTree extends BaseCustomType implements Tree {
         right_hr.min[s] = pivot[s];
         // 5. target-in-left := target_s <= pivot_s
         boolean target_in_left = target[s] < pivot[s];
-        ENode nearer_kd;
+        EStruct nearer_kd;
         HRect nearer_hr;
-        ENode further_kd;
+        EStruct further_kd;
         HRect further_hr;
         // 6. if target-in-left then
         // 6.1. nearer-kd := left field of kd and nearer-hr := left-hr
         // 6.2. further-kd := right field of kd and further-hr := right-hr
         if (target_in_left) {
-            nearer_kd = (ENode) node.getAt(E_LEFT);
+            nearer_kd = (EStruct) node.getAt(E_LEFT);
             nearer_hr = left_hr;
-            further_kd = (ENode) node.getAt(E_RIGHT);
+            further_kd = (EStruct) node.getAt(E_RIGHT);
             further_hr = right_hr;
         }
         //
@@ -134,9 +134,9 @@ public class KDTree extends BaseCustomType implements Tree {
         // 7.1. nearer-kd := right field of kd and nearer-hr := right-hr
         // 7.2. further-kd := left field of kd and further-hr := left-hr
         else {
-            nearer_kd = (ENode) node.getAt(E_RIGHT);
+            nearer_kd = (EStruct) node.getAt(E_RIGHT);
             nearer_hr = right_hr;
-            further_kd = (ENode) node.getAt(E_LEFT);
+            further_kd = (EStruct) node.getAt(E_LEFT);
             further_hr = left_hr;
         }
         // 8. Recursively call Nearest Neighbor with paramters
@@ -184,7 +184,7 @@ public class KDTree extends BaseCustomType implements Tree {
         }
     }
 
-    private static boolean internalInsert(final ENode node, final double[] key, final long value, final int strategyType, final int lev, final double[] resolution) {
+    private static boolean internalInsert(final EStruct node, final double[] key, final long value, final int strategyType, final int lev, final double[] resolution) {
         DoubleArray pka = (DoubleArray) node.getAt(E_KEY);
         double[] pKey = null;
         if (pka != null) {
@@ -222,14 +222,14 @@ public class KDTree extends BaseCustomType implements Tree {
             }
             return false;
         } else {
-            ENode child;
+            EStruct child;
             if (key[lev] > pKey[lev]) {
-                child = (ENode) node.getAt(E_RIGHT);
+                child = (EStruct) node.getAt(E_RIGHT);
                 if (child == null) {
                     child = createNode(node, true);
                 }
             } else {
-                child = (ENode) node.getAt(E_LEFT);
+                child = (EStruct) node.getAt(E_LEFT);
                 if (child == null) {
                     child = createNode(node, false);
                 }
@@ -250,12 +250,12 @@ public class KDTree extends BaseCustomType implements Tree {
         }
     }
 
-    private static ENode createNode(final ENode parent, final boolean right) {
-        ENode child = parent.egraph().newNode();
+    private static EStruct createNode(final EStruct parent, final boolean right) {
+        EStruct child = parent.egraph().newEStruct();
         if (right) {
-            parent.setAt(E_RIGHT, Type.ENODE, child);
+            parent.setAt(E_RIGHT, Type.ESTRUCT, child);
         } else {
-            parent.setAt(E_LEFT, Type.ENODE, child);
+            parent.setAt(E_LEFT, Type.ESTRUCT, child);
         }
 
         return child;
@@ -283,7 +283,7 @@ public class KDTree extends BaseCustomType implements Tree {
 
     @Override
     public final void insert(final double[] keys, final long value) {
-        ENode root = _backend.root();
+        EStruct root = _backend.root();
         int strategy = TreeStrategy.INDEX;
         if (root.getAt(E_KEY) == null) {
             root.setAt(STRATEGY, Type.INT, strategy);
@@ -300,7 +300,7 @@ public class KDTree extends BaseCustomType implements Tree {
     @Override
     public final void profile(final double[] keys, final long occurrence) {
         int strategy = TreeStrategy.PROFILE;
-        ENode root = eGraph.root();
+        EStruct root = eGraph.root();
         if (root.getAt(E_KEY) == null) {
             root.setAt(STRATEGY, Type.INT, strategy);
             root.setAt(DIM, Type.INT, keys.length);
@@ -324,7 +324,7 @@ public class KDTree extends BaseCustomType implements Tree {
 
     @Override
     public final TreeResult queryBoundedRadius(final double[] keys, final double radius, final int max) {
-        final ENode root = _backend.root();
+        final EStruct root = _backend.root();
         if (root.getAt(E_KEY) == null) {
             return null;
         }
@@ -332,8 +332,8 @@ public class KDTree extends BaseCustomType implements Tree {
         if (keys.length != ((DoubleArray) root.getAt(E_KEY)).size()) {
             throw new RuntimeException("Keys are not of the same size");
         }
-        EGraph calcZone = _backend.graph().space().newVolatileGraph();
-        VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newNode(), max);
+        EStructArray calcZone = _backend.graph().space().newVolatileGraph();
+        VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newEStruct(), max);
         recursiveTraverse(root, nnl, distance, keys, HRect.infiniteHRect(keys.length), 0, keys.length, Double.MAX_VALUE, radius);
         nnl.sort(true);
         return nnl;
@@ -341,7 +341,7 @@ public class KDTree extends BaseCustomType implements Tree {
 
     @Override
     public final TreeResult queryArea(double[] min, double[] max) {
-        ENode root = _backend.root();
+        EStruct root = _backend.root();
         if (root.getAt(E_KEY) == null) {
             return null;
         }
@@ -350,8 +350,8 @@ public class KDTree extends BaseCustomType implements Tree {
         for (int i = 0; i < center.length; i++) {
             center[i] = (min[i] + max[i]) / 2;
         }
-        EGraph calcZone = _backend.graph().space().newVolatileGraph();
-        VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newNode(), -1);
+        EStructArray calcZone = _backend.graph().space().newVolatileGraph();
+        VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newEStruct(), -1);
         rangeSearch(min, max, center, distance, root, 0, min.length, nnl);
         nnl.sort(true);
         return nnl;

@@ -16,10 +16,10 @@
 package greycat.ml.neuralnet.optimiser;
 
 import greycat.ml.neuralnet.layer.Layer;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 
 public class AdaDelta extends AbstractOptimiser {
-    AdaDelta(ENode backend) {
+    AdaDelta(EStruct backend) {
         super(backend);
     }
 

@@ -18,7 +18,7 @@ package greycat.ml.neuralnet.layer;
 import greycat.Type;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 
@@ -28,12 +28,12 @@ import greycat.struct.matrix.RandomGenerator;
 
 class Linear implements Layer {
     private static String WEIGHTS = "weights";
-    private ENode host;
+    private EStruct host;
 
     private ExMatrix weights;
     private ExMatrix[] params = null;
 
-    Linear(ENode hostnode) {
+    Linear(EStruct hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }

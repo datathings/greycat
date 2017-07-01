@@ -16,6 +16,7 @@
 package greycat.internal.heap;
 
 import greycat.Constants;
+import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.struct.LongLongMap;
 import greycat.struct.LongLongMapCallBack;
@@ -283,6 +284,20 @@ class HeapLongLongMap implements LongLongMap {
         }
     }
 
+    public final void save(final Buffer buffer) {
+        if (mapSize != 0) {
+            Base64.encodeIntToBuffer(mapSize, buffer);
+            for (int j = 0; j < mapSize; j++) {
+                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                Base64.encodeLongToBuffer(keys[j], buffer);
+                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                Base64.encodeLongToBuffer(values[j], buffer);
+            }
+        } else {
+            Base64.encodeIntToBuffer(0, buffer);
+        }
+    }
+
     public final long load(final Buffer buffer, final long offset, final long max) {
         long cursor = offset;
         byte current = buffer.read(cursor);
@@ -290,7 +305,7 @@ class HeapLongLongMap implements LongLongMap {
         long previous = offset;
         long previousKey = -1;
         boolean waitingVal = false;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.BLOCK_CLOSE) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));

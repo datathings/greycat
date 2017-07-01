@@ -20,8 +20,8 @@ import greycat.GraphBuilder;
 import greycat.Node;
 import greycat.Type;
 import greycat.scheduler.NoopScheduler;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStructArray;
+import greycat.struct.EStruct;
 import greycat.struct.Relation;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,12 +51,12 @@ public class ProxyTest {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
         g.connect(result -> {
             Node n = g.newNode(0, 0);
-            EGraph eg = (EGraph) n.getOrCreate("eg", Type.EGRAPH);
-            eg.newNode();
+            EStructArray eg = (EStructArray) n.getOrCreate("eg", Type.ESTRUCT_ARRAY);
+            eg.newEStruct();
             Assert.assertEquals(1, eg.size());
             n.travelInTime(10, n_t10 -> {
-                EGraph eg_10 = (EGraph) n_t10.get("eg");
-                eg_10.newNode();//mutable operation, here we expect an automatic clone
+                EStructArray eg_10 = (EStructArray) n_t10.get("eg");
+                eg_10.newEStruct();//mutable operation, here we expect an automatic clone
                 Assert.assertEquals(1, eg.size());
                 Assert.assertEquals(2, eg_10.size());
             });
@@ -68,13 +68,13 @@ public class ProxyTest {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
         g.connect(result -> {
             Node n = g.newNode(0, 0);
-            EGraph eg = (EGraph) n.getOrCreate("eg", Type.EGRAPH);
-            ENode egn = eg.newNode();
+            EStructArray eg = (EStructArray) n.getOrCreate("eg", Type.ESTRUCT_ARRAY);
+            EStruct egn = eg.newEStruct();
             Relation egn_r = (Relation) egn.getOrCreate("myrel", Type.RELATION);
             egn_r.add(42);
             n.travelInTime(10, n_t10 -> {
-                EGraph eg10 = (EGraph) n_t10.get("eg");
-                ENode eg10n = eg10.node(0);
+                EStructArray eg10 = (EStructArray) n_t10.get("eg");
+                EStruct eg10n = eg10.estruct(0);
                 Relation eg10n_r = (Relation) eg10n.get("myrel");
                 eg10n_r.add(43);
                 Assert.assertEquals(1, egn_r.size());
@@ -84,8 +84,8 @@ public class ProxyTest {
             /*
             Assert.assertEquals(1, eg.size());
             n.travelInTime(10, n_t10 -> {
-                EGraph eg_10 = (EGraph) n_t10.get("eg");
-                eg_10.newNode();//mutable operation, here we expect an automatic clone
+                EStructArray eg_10 = (EStructArray) n_t10.get("eg");
+                eg_10.newEStruct();//mutable operation, here we expect an automatic clone
                 Assert.assertEquals(1, eg.size());
                 Assert.assertEquals(2, eg_10.size());
             });

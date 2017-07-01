@@ -15,7 +15,7 @@
  */
 package greycat.ml.neuralnet.optimiser;
 
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 
 public class Optimisers {
     public static final int GRADIENT_DESCENT = 0;
@@ -27,7 +27,7 @@ public class Optimisers {
     public static final int DEFAULT = GRADIENT_DESCENT;
 
 
-    public static Optimiser getUnit(int learnerUnit, ENode root) {
+    public static Optimiser getUnit(int learnerUnit, EStruct root) {
         switch (learnerUnit) {
             case GRADIENT_DESCENT:
                 return new GradientDescent(root);

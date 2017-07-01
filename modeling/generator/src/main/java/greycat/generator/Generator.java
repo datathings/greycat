@@ -18,9 +18,6 @@ package greycat.generator;
 import greycat.language.Checker;
 import greycat.language.Model;
 import java2typescript.SourceTranslator;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.project.MavenProject;
-import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.source.JavaSource;
 
 import java.io.File;
@@ -29,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.List;
 
 public class Generator {
     public static final String FILE_EXTENSION = ".gcm";
@@ -75,7 +73,7 @@ public class Generator {
         }
     }*/
 
-    private void generateJava(String packageName, String pluginName, File target) {
+    private void generateJava(String packageName, String pluginName, File target, List<File> classPath) {
         int index = 0;
         int size = model.classes().length + model.customTypes().length + model.globalIndexes().length + 1;
         JavaSource[] sources = new JavaSource[size * 2 + 2];
@@ -112,7 +110,7 @@ public class Generator {
                 File targetSrc = new File(targetPkg, src.getName() + ".java");
                 try {
                     FileWriter writer = new FileWriter(targetSrc);
-                    writer.write(src.toString().replace("<pre>","").replace("</pre>",""));
+                    writer.write(src.toString().replace("<pre>", "").replace("</pre>", ""));
                     writer.close();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -121,7 +119,7 @@ public class Generator {
         }
     }
 
-    private void generateJS(String packageName, String pluginName, File src, File target, String gcVersion, MavenProject mvnProject) {
+    private void generateJS(String packageName, String pluginName, File src, File target, String gcVersion, List<File> classPath) {
         File modelWeb = new File(target, "model");
         if (!modelWeb.exists()) {
             modelWeb.mkdirs();
@@ -131,6 +129,15 @@ public class Generator {
             modelWebStarter.mkdirs();
         }
         SourceTranslator transpiler = new SourceTranslator(Arrays.asList(src.getAbsolutePath()), modelWeb.getAbsolutePath(), packageName);
+        if (classPath != null) {
+            for (int i = 0; i < classPath.size(); i++) {
+                transpiler.addToClasspath(classPath.get(i).getAbsolutePath());
+            }
+        } else {
+            addToTransClassPath(transpiler);
+        }
+
+        /*
         if (mvnProject != null) {
             for (Artifact a : mvnProject.getArtifacts()) {
                 File file = a.getFile();
@@ -140,9 +147,8 @@ public class Generator {
                     }
                 }
             }
-        } else {
-            addToTransClassPath(transpiler);
         }
+        */
         transpiler.process();
         transpiler.addHeader("import * as greycat from 'greycat';");
         transpiler.addHeader("import {java} from 'j2ts-jre';");
@@ -303,27 +309,16 @@ public class Generator {
         }
     }
 
-    public void mvnGenerate(String packageName, String pluginName, File target, File targetWeb, boolean generateJava, boolean generateJS, String gcVersion, MavenProject project) {
+    public void generate(String packageName, String pluginName, File target, File targetWeb, boolean generateJava, boolean generateJS, String gcVersion, List<File> classPath) {
         model.consolidate();
         Checker.check(model);
         if (generateJava || generateJS) {
-            generateJava(packageName, pluginName, target);
+            generateJava(packageName, pluginName, target, classPath);
         }
         if (generateJS) {
-            generateJS(packageName, pluginName, target, targetWeb, gcVersion, project);
+            generateJS(packageName, pluginName, target, targetWeb, gcVersion, classPath);
         }
     }
-
-    /*
-    public void generate(String packageName, String pluginName, File target, boolean generateJava, boolean generateJS, String gcVersion) {
-        if (generateJava || generateJS) {
-            generateJava(packageName, pluginName, target);
-        }
-
-        if (generateJS) {
-            generateJS(packageName, pluginName, target, gcVersion, null);
-        }
-    }*/
 
     private void addToTransClassPath(SourceTranslator transpiler) {
         String classPath = System.getProperty("java.class.path");

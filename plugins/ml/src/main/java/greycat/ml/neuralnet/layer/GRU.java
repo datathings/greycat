@@ -20,7 +20,7 @@ import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 
@@ -51,11 +51,11 @@ class GRU implements Layer {
     private Activation fNew = Activations.getUnit(Activations.TANH, null);
 
 
-    private ENode host;
+    private EStruct host;
     private ExMatrix[] params = null;
 
 
-    GRU(ENode hostnode) {
+    GRU(EStruct hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }

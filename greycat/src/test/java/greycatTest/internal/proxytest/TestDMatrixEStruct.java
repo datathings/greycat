@@ -17,15 +17,15 @@ package greycatTest.internal.proxytest;
 
 import greycat.*;
 import greycat.struct.DMatrix;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStructArray;
+import greycat.struct.EStruct;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * Created by assaad on 18/04/2017.
  */
-public class TestDMatrixENode {
+public class TestDMatrixEStruct {
     @Test
     public void testMatrixEnode() {
         Graph graph= GraphBuilder
@@ -37,8 +37,8 @@ public class TestDMatrixENode {
 
                 Node node = graph.newNode(0,0);
 
-                EGraph eg= (EGraph) node.getOrCreate("egraph", Type.EGRAPH);
-                ENode en =eg.newNode();
+                EStructArray eg= (EStructArray) node.getOrCreate("egraph", Type.ESTRUCT_ARRAY);
+                EStruct en =eg.newEStruct();
                 eg.setRoot(en);
 
                 DMatrix matrix= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
@@ -55,8 +55,8 @@ public class TestDMatrixENode {
                 node.travelInTime(1, new Callback<Node>() {
                     @Override
                     public void on(Node result1) {
-                        EGraph eg= (EGraph) result1.getOrCreate("egraph", Type.EGRAPH);
-                        ENode en =eg.root();
+                        EStructArray eg= (EStructArray) result1.getOrCreate("egraph", Type.ESTRUCT_ARRAY);
+                        EStruct en =eg.root();
                         DMatrix matrix_t1= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
                         Assert.assertTrue(matrix_t1.get(0,0)==0);
                         Assert.assertTrue(matrix_t1.get(1,1)==1);
@@ -70,8 +70,8 @@ public class TestDMatrixENode {
                         result1.travelInTime(0, new Callback<Node>() {
                             @Override
                             public void on(Node result2) {
-                                EGraph eg= (EGraph) result2.getOrCreate("egraph", Type.EGRAPH);
-                                ENode en =eg.root();
+                                EStructArray eg= (EStructArray) result2.getOrCreate("egraph", Type.ESTRUCT_ARRAY);
+                                EStruct en =eg.root();
                                 DMatrix matrix_t2= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
                                 Assert.assertTrue(matrix_t2.get(0,0)==0);
                                 Assert.assertTrue(matrix_t2.get(1,1)==1);
@@ -79,8 +79,8 @@ public class TestDMatrixENode {
                                 result2.travelInTime(1, new Callback<Node>() {
                                     @Override
                                     public void on(Node result3) {
-                                        EGraph eg= (EGraph) result3.getOrCreate("egraph", Type.EGRAPH);
-                                        ENode en =eg.root();
+                                        EStructArray eg= (EStructArray) result3.getOrCreate("egraph", Type.ESTRUCT_ARRAY);
+                                        EStruct en =eg.root();
                                         DMatrix matrix_t3= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
                                         Assert.assertTrue(matrix_t3.get(0,0)==10);
                                         Assert.assertTrue(matrix_t3.get(1,1)==11);

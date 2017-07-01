@@ -19,7 +19,7 @@ import greycat.Type;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 
 class Momentum extends AbstractOptimiser {
@@ -29,7 +29,7 @@ class Momentum extends AbstractOptimiser {
 
     double decayRate;
 
-    Momentum(ENode backend) {
+    Momentum(EStruct backend) {
         super(backend);
         decayRate = backend.getWithDefault(DECAY_RATE, DECAY_RATE_DEF);
     }

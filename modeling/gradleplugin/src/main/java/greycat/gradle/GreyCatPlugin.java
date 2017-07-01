@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycatTest.internal.heap;
+package greycat.gradle;
 
-import greycat.internal.heap.HeapMemoryFactory;
-import greycatTest.internal.chunk.AbstractEGraphTest;
+import org.gradle.api.Project;
 
-public class HeapEGraphTest extends AbstractEGraphTest {
-
-    public HeapEGraphTest() {
-        super(new HeapMemoryFactory());
+public class GreyCatPlugin implements org.gradle.api.Plugin<Project> {
+    @Override
+    public void apply(Project project) {
+        project.getExtensions().create("greycat", GreyCatExtension.class);
+        project.getTasks().create("greycatGenerate", GenerateTask.class);
     }
 }

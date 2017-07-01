@@ -78,11 +78,11 @@ public abstract class AbstractStateChunkTest {
         System.gc();
 
         StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-        EGraph eGraph = (EGraph) chunk2.getOrCreateAt(0, Type.EGRAPH);
-        ENode eNode = eGraph.newNode();
+        EStructArray eStructArray = (EStructArray) chunk2.getOrCreateAt(0, Type.ESTRUCT_ARRAY);
+        EStruct eStruct = eStructArray.newEStruct();
         long before5 = System.currentTimeMillis();
         for (int i = -nb; i < nb; i++) {
-            eNode.setAt(i, Type.LONG, i);
+            eStruct.setAt(i, Type.LONG, i);
         }
         long after5 = System.currentTimeMillis();
 
@@ -91,7 +91,7 @@ public abstract class AbstractStateChunkTest {
         int counter3 = 0;
         long before6 = System.currentTimeMillis();
         for (int i = -nb; i < nb; i++) {
-            counter3 += (Long) eNode.getAt(i);
+            counter3 += (Long) eStruct.getAt(i);
         }
         long after6 = System.currentTimeMillis();
 

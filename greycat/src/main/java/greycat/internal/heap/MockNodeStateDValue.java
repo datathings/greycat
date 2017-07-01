@@ -123,7 +123,7 @@ public class MockNodeStateDValue implements StateChunk {
     }
 
     @Override
-    public final EGraph getEGraph(String name) {
+    public final EStructArray getEGraph(String name) {
         return null;
     }
 
@@ -236,6 +236,16 @@ public class MockNodeStateDValue implements StateChunk {
 
     @Override
     public final Object getOrCreateAt(int index, int type) {
+        return null;
+    }
+
+    @Override
+    public Object getOrCreateCustom(String name, String typeName) {
+        return null;
+    }
+
+    @Override
+    public Object getOrCreateCustomAt(int index, String typeName) {
         return null;
     }
 

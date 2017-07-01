@@ -16,8 +16,8 @@
 package greycat.struct.proxy;
 
 import greycat.Container;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStructArray;
+import greycat.struct.EStruct;
 import greycat.struct.ERelation;
 
 public final class ERelationProxy implements ERelation {
@@ -40,7 +40,7 @@ public final class ERelationProxy implements ERelation {
     }
 
     @Override
-    public final ENode[] nodes() {
+    public final EStruct[] nodes() {
         return _relation.nodes();
     }
 
@@ -50,11 +50,11 @@ public final class ERelationProxy implements ERelation {
     }
 
     @Override
-    public final ENode node(final int index) {
+    public final EStruct node(final int index) {
         if (_target != null) {
-            EGraph eg = ((ENode) _target).egraph();
-            if (eg instanceof EGraphProxy) {
-                return new ENodeProxy((EGraphProxy) eg, _relation.node(index), index);
+            EStructArray eg = ((EStruct) _target).egraph();
+            if (eg instanceof EStructArrayProxy) {
+                return new EStructProxy((EStructArrayProxy) eg, _relation.node(index), index);
             } else {
                 return _relation.node(index);
             }
@@ -64,15 +64,15 @@ public final class ERelationProxy implements ERelation {
     }
 
     @Override
-    public final ERelation add(final ENode eNode) {
+    public final ERelation add(final EStruct eStruct) {
         check();
-        return _relation.add(eNode);
+        return _relation.add(eStruct);
     }
 
     @Override
-    public final ERelation addAll(final ENode[] eNodes) {
+    public final ERelation addAll(final EStruct[] eStructs) {
         check();
-        return _relation.addAll(eNodes);
+        return _relation.addAll(eStructs);
     }
 
     @Override

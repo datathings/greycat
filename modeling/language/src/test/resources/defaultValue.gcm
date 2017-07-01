@@ -1,0 +1,11 @@
+
+class Value {
+    att intAtt : Int = 4
+    att stringAtt : String = "bla"
+    att doubleAtt : Double = 3.1415
+    att intArrayAtt : IntArray = (3,4,1)
+
+    att test : String = (3, (3,1), 1)
+
+
+}

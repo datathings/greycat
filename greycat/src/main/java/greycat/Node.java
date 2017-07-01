@@ -150,17 +150,7 @@ public interface Node extends Container {
      * @param <A>         Generic parameter that define the type of the result, should be a sub-type of Node
      */
     <A extends Node> void travel(long targetWorld, long targetTime, Callback<A> callback);
-
-    /*
-    long initialTime();
-
-    long lastTime();
-
-    long previousTime();
-
-    long nextTime();
-*/
-
+    
     Node setTimeSensitivity(long deltaTime, long offset);
 
     Tuple<Long, Long> timeSensitivity();

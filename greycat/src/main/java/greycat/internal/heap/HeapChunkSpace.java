@@ -21,7 +21,7 @@ import greycat.Graph;
 import greycat.chunk.*;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 import greycat.utility.HashHelper;
 import greycat.utility.KeyHelper;
 import greycat.utility.LMap;
@@ -589,8 +589,8 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public EGraph newVolatileGraph() {
-        return new HeapEGraph(null, null, _graph);
+    public EStructArray newVolatileGraph() {
+        return new HeapEStructArray(null, null, _graph);
     }
 
     @Override

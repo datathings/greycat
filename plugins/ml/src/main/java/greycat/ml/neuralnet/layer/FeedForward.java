@@ -22,7 +22,7 @@ import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
 import greycat.struct.DoubleArray;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 
@@ -36,12 +36,12 @@ class FeedForward implements Layer {
     private ExMatrix weights;
     private ExMatrix bias;
     private Activation activation;
-    private ENode host;
+    private EStruct host;
     private ExMatrix[] params = null;
 
     //Returns ActivationFct( Weights*Input + Bias )
     //Can be seen as simple fully-functional perceptron or neuron
-    FeedForward(ENode hostnode) {
+    FeedForward(EStruct hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }

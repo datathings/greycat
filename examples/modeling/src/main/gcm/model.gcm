@@ -1,3 +1,14 @@
+index Buildings : Building using name
+
+const GLOBAL_CONSTANT : Double = "4.5d"
+const ANOTHER_GLOBAL_CONSTANT : String = "my_constant"
+const CONSTANT_TO_OVERRIDE : String
+const TASK_CONSTANT : Task
+
+const listNodeNames : Task = readIndex("nodes").name
+
+const isStatic : Boolean
+
 
 class SmartCity {
     att location : GPSPosition
@@ -7,7 +18,20 @@ class Building extends ASuperType {
     const BUILDING_CONSTANT : String = "bla"
 
     att name : String
-    att height : Double
+    att houseNumber : Int = 5
+    att height : Double = 3.12
+    att description : String = "my_description"
+    att intArr : IntArray = (3,2,3)
+    att stringArr : StringArray = ("a", "b", "c", "d")
+
+    att l2lMap : LongToLongMap = ((1,1),(2,2),(3,3))
+    att l2laMap : LongToLongArrayMap = ((1,1),(1,2),(1,3))
+    att i2strMap : IntToStringMap = ((1,"1"),(2,"2"))
+
+    att dm : DMatrix = ((0,0,1),(0,1,1))
+
+    att ndTree : NDTree = ((0,1,2,3),1)
+
     att longToLongArrayMap : LongToLongArrayMap
     rel rooms : Room
     ref specialRoom : Room
@@ -36,6 +60,9 @@ class ASuperType {
 type GPSPosition {
     att lat : Double
     att lng : Double
+
+    att i2strMap : IntToStringMap = ((1,"1"),(2,"2"))
+
 }
 
 class A {
@@ -50,13 +77,3 @@ class B {
     rel aRel2 : A oppositeOf bRel2
 }
 
-index Buildings : Building using name
-
-const GLOBAL_CONSTANT : Double = "4.5d"
-const ANOTHER_GLOBAL_CONSTANT : String = "my_constant"
-const CONSTANT_TO_OVERRIDE : String
-const TASK_CONSTANT : Task
-
-const listNodeNames : Task = readIndex("nodes").name
-
-const isStatic : Boolean

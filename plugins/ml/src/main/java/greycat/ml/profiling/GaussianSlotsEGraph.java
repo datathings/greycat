@@ -16,8 +16,8 @@
 package greycat.ml.profiling;
 
 import greycat.Type;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStructArray;
+import greycat.struct.EStruct;
 import greycat.struct.ERelation;
 
 public class GaussianSlotsEGraph {
@@ -26,23 +26,23 @@ public class GaussianSlotsEGraph {
 
     private static final String SLOTS = "slots";
     private static final String GENERIC_SLOT = "generic_slot";
-    private EGraph backend = null;
+    private EStructArray backend = null;
 
-    private ENode root = null;
+    private EStruct root = null;
     private GaussianENode[] slots = null;
     private GaussianENode generic_slot = null;
 
 
-    public GaussianSlotsEGraph(EGraph backend) {
+    public GaussianSlotsEGraph(EStructArray backend) {
         if (backend == null) {
             throw new RuntimeException("backend can't be null for Gaussian Slot nodes!");
         }
         this.backend = backend;
         if (!load()) {
-            root = backend.newNode();
+            root = backend.newEStruct();
             backend.setRoot(root);
             ERelation rel = (ERelation) root.getOrCreate(GENERIC_SLOT, Type.ERELATION);
-            rel.add(backend.newNode());
+            rel.add(backend.newEStruct());
             generic_slot = new GaussianENode(rel.node(0));
         }
 
@@ -56,10 +56,10 @@ public class GaussianSlotsEGraph {
 
         ERelation relation = (ERelation) root.getOrCreate(SLOTS, Type.ERELATION);
         relation.clear();
-        ENode temp;
+        EStruct temp;
         slots = new GaussianENode[number];
         for (int i = 0; i < number; i++) {
-            temp = root.egraph().newNode();
+            temp = root.egraph().newEStruct();
             relation.add(temp);
             slots[i] = new GaussianENode(temp);
         }

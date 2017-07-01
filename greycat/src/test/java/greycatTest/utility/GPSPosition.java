@@ -17,7 +17,7 @@ package greycatTest.utility;
 
 import greycat.Type;
 import greycat.base.BaseCustomTypeSingle;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 import greycat.utility.HashHelper;
 
 public class GPSPosition extends BaseCustomTypeSingle {
@@ -27,11 +27,13 @@ public class GPSPosition extends BaseCustomTypeSingle {
     private static final String LNG = "lng";
     private static final int LNG_H = HashHelper.hash(LNG);
 
-    public GPSPosition(final EGraph e) {
-        super(e);
-        if (this._backend.node(DEF_NODE).typeAt(LAT_H) != Type.DOUBLE) {
-            this._backend.node(DEF_NODE).setAt(LAT_H, Type.DOUBLE, 1.5d).setAt(LNG_H, Type.DOUBLE, 1.5d);
-        }
+    public GPSPosition(EStructArray p_backend) {
+        super(p_backend);
+    }
+
+    @Override
+    public void init() {
+        setAt(LAT_H, Type.DOUBLE, 1.5d).setAt(LNG_H, Type.DOUBLE, 1.5d);
     }
 
     public final double lat() {
@@ -43,7 +45,7 @@ public class GPSPosition extends BaseCustomTypeSingle {
     }
 
     public final void setPosition(final double lat, final double lng) {
-        this._backend.node(DEF_NODE).setAt(LAT_H, Type.DOUBLE, lat).setAt(LNG_H, Type.DOUBLE, lng);
+        this._backend.estruct(DEF_NODE).setAt(LAT_H, Type.DOUBLE, lat).setAt(LNG_H, Type.DOUBLE, lng);
     }
 
     @Override

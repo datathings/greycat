@@ -23,6 +23,8 @@ import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
 import org.jboss.forge.roaster.model.source.*;
 
+import java.util.List;
+
 class ClassTypeGenerator {
 
     static JavaSource[] generate(String packageName, Model model) {
@@ -50,13 +52,21 @@ class ClassTypeGenerator {
             if (o instanceof Attribute) {
                 Attribute attribute = (Attribute) o;
                 if (TypeManager.isPrimitive(attribute.type())) {
-                    TS_GET_SET.append("get " + attribute.name() + "() : " + TypeManager.cassTsName(attribute.type()) + " {return this.get" + Generator.upperCaseFirstChar(attribute.name()) + "();}\n");
-                    TS_GET_SET.append("set " + attribute.name() + "(p : " + TypeManager.cassTsName(attribute.type()) + "){ this.set" + Generator.upperCaseFirstChar(attribute.name()) + "(p);}\n");
+                    TS_GET_SET.append("get " + attribute.name() + "() : " + TypeManager.classTsName(attribute.type()) + " {return this.get" + Generator.upperCaseFirstChar(attribute.name()) + "();}\n");
+                    TS_GET_SET.append("set " + attribute.name() + "(p : " + TypeManager.classTsName(attribute.type()) + "){ this.set" + Generator.upperCaseFirstChar(attribute.name()) + "(p);}\n");
                 }
             }
         });
         //generate TS getter and setter
         javaClass.getJavaDoc().setFullText("<pre>{@extend ts\n" + TS_GET_SET + "\n}\n</pre>");
+
+        // init method
+        MethodSource<JavaClassSource> init = javaClass.addMethod()
+                .setName("init")
+                .setVisibility(Visibility.PUBLIC)
+                .setReturnTypeVoid();
+        StringBuilder initBodyBuilder = new StringBuilder();
+
 
         // create method
         MethodSource<JavaClassSource> create = javaClass.addMethod()
@@ -103,7 +113,7 @@ class ClassTypeGenerator {
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
                         .setName(constant.name())
-                        .setType(TypeManager.cassName(constant.type()))
+                        .setType(TypeManager.className(constant.type()))
                         .setLiteralInitializer(value)
                         .setStatic(true);
             } else if (o instanceof Attribute) {
@@ -128,14 +138,14 @@ class ClassTypeGenerator {
                 // getter
                 MethodSource<JavaClassSource> getter = javaClass.addMethod();
                 getter.setVisibility(Visibility.PUBLIC).setFinal(true);
-                getter.setReturnType(TypeManager.cassName(att.type()));
+                getter.setReturnType(TypeManager.className(att.type()));
                 getter.setName("get" + Generator.upperCaseFirstChar(att.name()));
 
                 if (TypeManager.isPrimitive(att.type())) {
-                    getter.setBody("return (" + TypeManager.cassName(att.type()) + ") super.get(" + att.name().toUpperCase() + ");");
+                    getter.setBody("return (" + TypeManager.className(att.type()) + ") super.get(" + att.name().toUpperCase() + ");");
 
                 } else {
-                    getter.setBody("return (" + TypeManager.cassName(att.type()) + ") super.getOrCreate(" + att.name().toUpperCase() + ", " + att.name().toUpperCase() + "_TYPE);");
+                    getter.setBody("return (" + TypeManager.className(att.type()) + ") super.getOrCreate(" + att.name().toUpperCase() + ", " + att.name().toUpperCase() + "_TYPE);");
 
                 }
 
@@ -148,8 +158,14 @@ class ClassTypeGenerator {
                             .setBody("super.set(" + att.name().toUpperCase() + ", " + att.name().toUpperCase()
                                     + "_TYPE,value);\nreturn this;"
                             )
-                            .addParameter(TypeManager.cassName(att.type()), "value");
+                            .addParameter(TypeManager.className(att.type()), "value");
                 }
+
+                // init
+                if (att.value() != null) {
+                    initBodyBuilder.append(DefaultValueGenerator.createMethodBody(att).toString());
+                }
+
             } else if (o instanceof Relation) {
                 Relation rel = (Relation) o;
                 // field
@@ -369,12 +385,13 @@ class ClassTypeGenerator {
                 findAll.setName("findAll" + Generator.upperCaseFirstChar(indexName));
                 findAll.setReturnTypeVoid();
                 findAll.addParameter("greycat.Callback<" + li.type() + "[]>", "callback");
-                paramsBuilder = new StringBuilder("null");
-                StringBuilder findAllBodyBuilder = createFindMethodBody(li, indexConstant, paramsBuilder);
+                StringBuilder findAllBodyBuilder = createFindMethodBody(li, indexConstant, null);
                 findAll.setBody(findAllBodyBuilder.toString());
             }
 
         });
+
+        init.setBody(initBodyBuilder.toString());
 
         return javaClass;
     }
@@ -392,8 +409,10 @@ class ClassTypeGenerator {
         findBodyBuilder.append("callback.on(typedResult);");
         findBodyBuilder.append("}");
         findBodyBuilder.append("},");
-        findBodyBuilder.append("this.world(), this.time(),");
-        findBodyBuilder.append(paramsBuilder.toString());
+        findBodyBuilder.append("this.world(), this.time()");
+        if (paramsBuilder != null) {
+            findBodyBuilder.append(", " + paramsBuilder.toString());
+        }
         findBodyBuilder.append(");");
         findBodyBuilder.append("}");
         findBodyBuilder.append("else {");
@@ -456,6 +475,8 @@ class ClassTypeGenerator {
         }
         return oppositeBodyBuilder;
     }
+
+
 
 }
 

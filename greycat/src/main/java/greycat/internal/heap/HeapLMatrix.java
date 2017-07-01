@@ -16,6 +16,7 @@
 package greycat.internal.heap;
 
 import greycat.Constants;
+import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.struct.LMatrix;
 import greycat.utility.Base64;
@@ -31,14 +32,14 @@ class HeapLMatrix implements LMatrix {
     private static final int INDEX_OFFSET = 3;
 
     private final HeapContainer parent;
-    private long[] backend = null;
+    private long[] _backend = null;
     private boolean aligned = true;
 
     HeapLMatrix(final HeapContainer p_parent, final HeapLMatrix origin) {
         parent = p_parent;
         if (origin != null) {
             aligned = false;
-            backend = origin.backend;
+            _backend = origin._backend;
         }
     }
 
@@ -52,11 +53,11 @@ class HeapLMatrix implements LMatrix {
     }
 
     private void internal_init(final int rows, final int columns) {
-        //clean backend for OffHeap version
-        backend = new long[rows * columns + INDEX_OFFSET];
-        backend[INDEX_ROWS] = rows;
-        backend[INDEX_COLUMNS] = columns;
-        backend[INDEX_MAX_COLUMN] = columns;//direct allocation
+        //clean _backend for OffHeap version
+        _backend = new long[rows * columns + INDEX_OFFSET];
+        _backend[INDEX_ROWS] = rows;
+        _backend[INDEX_COLUMNS] = columns;
+        _backend[INDEX_MAX_COLUMN] = columns;//direct allocation
         aligned = true;
     }
 
@@ -73,39 +74,39 @@ class HeapLMatrix implements LMatrix {
         int nbRows;
         int nbColumns;
         int nbMaxColumn;
-        if (backend == null) {
+        if (_backend == null) {
             nbRows = newColumn.length;
             nbColumns = Constants.MAP_INITIAL_CAPACITY;
             nbMaxColumn = 0;
-            backend = new long[nbRows * nbColumns + INDEX_OFFSET];
-            backend[INDEX_ROWS] = nbRows;
-            backend[INDEX_COLUMNS] = nbColumns;
-            backend[INDEX_MAX_COLUMN] = nbMaxColumn;
+            _backend = new long[nbRows * nbColumns + INDEX_OFFSET];
+            _backend[INDEX_ROWS] = nbRows;
+            _backend[INDEX_COLUMNS] = nbColumns;
+            _backend[INDEX_MAX_COLUMN] = nbMaxColumn;
         } else {
-            nbColumns = (int) backend[INDEX_COLUMNS];
-            nbRows = (int) backend[INDEX_ROWS];
-            nbMaxColumn = (int) backend[INDEX_MAX_COLUMN];
+            nbColumns = (int) _backend[INDEX_COLUMNS];
+            nbRows = (int) _backend[INDEX_ROWS];
+            nbMaxColumn = (int) _backend[INDEX_MAX_COLUMN];
         }
         if (!aligned || nbMaxColumn == nbColumns) {
             if (nbMaxColumn == nbColumns) {
                 nbColumns = nbColumns * 2;
-                backend[INDEX_COLUMNS] = nbColumns;
+                _backend[INDEX_COLUMNS] = nbColumns;
                 final int newLength = nbColumns * nbRows + INDEX_OFFSET;
                 long[] next_backend = new long[newLength];
-                System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                backend = next_backend;
+                System.arraycopy(_backend, 0, next_backend, 0, _backend.length);
+                _backend = next_backend;
                 aligned = true;
             } else {
                 //direct copy
-                long[] next_backend = new long[backend.length];
-                System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                backend = next_backend;
+                long[] next_backend = new long[_backend.length];
+                System.arraycopy(_backend, 0, next_backend, 0, _backend.length);
+                _backend = next_backend;
                 aligned = true;
             }
         }
         //just insert
-        System.arraycopy(newColumn, 0, backend, (nbMaxColumn * nbRows) + INDEX_OFFSET, newColumn.length);
-        backend[INDEX_MAX_COLUMN] = nbMaxColumn + 1;
+        System.arraycopy(newColumn, 0, _backend, (nbMaxColumn * nbRows) + INDEX_OFFSET, newColumn.length);
+        _backend[INDEX_MAX_COLUMN] = nbMaxColumn + 1;
     }
 
     @Override
@@ -117,15 +118,15 @@ class HeapLMatrix implements LMatrix {
     }
 
     private void internal_fill(long value) {
-        if (backend != null) {
+        if (_backend != null) {
             if (!aligned) {
-                long[] next_backend = new long[backend.length];
-                System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                backend = next_backend;
+                long[] next_backend = new long[_backend.length];
+                System.arraycopy(_backend, 0, next_backend, 0, _backend.length);
+                _backend = next_backend;
                 aligned = true;
             }
-            Arrays.fill(backend, INDEX_OFFSET, backend.length - INDEX_OFFSET, value);
-            backend[INDEX_MAX_COLUMN] = backend[INDEX_COLUMNS];
+            Arrays.fill(_backend, INDEX_OFFSET, _backend.length - INDEX_OFFSET, value);
+            _backend[INDEX_MAX_COLUMN] = _backend[INDEX_COLUMNS];
             parent.declareDirty();
         }
     }
@@ -139,15 +140,15 @@ class HeapLMatrix implements LMatrix {
     }
 
     private void internal_fillWith(long[] values) {
-        if (backend != null) {
+        if (_backend != null) {
             if (!aligned) {
-                long[] next_backend = new long[backend.length];
-                System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                backend = next_backend;
+                long[] next_backend = new long[_backend.length];
+                System.arraycopy(_backend, 0, next_backend, 0, _backend.length);
+                _backend = next_backend;
                 aligned = true;
             }
             //reInit ?
-            System.arraycopy(values, 0, backend, INDEX_OFFSET, values.length);
+            System.arraycopy(values, 0, _backend, INDEX_OFFSET, values.length);
             parent.declareDirty();
         }
     }
@@ -163,15 +164,15 @@ class HeapLMatrix implements LMatrix {
     private void internal_fillWithRandom(long min, long max, long seed) {
         Random rand = new Random();
         rand.setSeed(seed);
-        if (backend != null) {
+        if (_backend != null) {
             if (!aligned) {
-                long[] next_backend = new long[backend.length];
-                System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                backend = next_backend;
+                long[] next_backend = new long[_backend.length];
+                System.arraycopy(_backend, 0, next_backend, 0, _backend.length);
+                _backend = next_backend;
                 aligned = true;
             }
-            for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
-                backend[i + INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
+            for (int i = 0; i < _backend[INDEX_ROWS] * _backend[INDEX_COLUMNS]; i++) {
+                _backend[i + INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
             }
             parent.declareDirty();
         }
@@ -182,8 +183,8 @@ class HeapLMatrix implements LMatrix {
     public final int rows() {
         int result = 0;
         synchronized (parent) {
-            if (backend != null) {
-                result = (int) backend[INDEX_ROWS];
+            if (_backend != null) {
+                result = (int) _backend[INDEX_ROWS];
             }
         }
         return result;
@@ -194,8 +195,8 @@ class HeapLMatrix implements LMatrix {
     public final int columns() {
         int result = 0;
         synchronized (parent) {
-            if (backend != null) {
-                result = (int) backend[INDEX_MAX_COLUMN];
+            if (_backend != null) {
+                result = (int) _backend[INDEX_MAX_COLUMN];
             }
         }
         return result;
@@ -205,9 +206,9 @@ class HeapLMatrix implements LMatrix {
     public final long[] column(int index) {
         long[] result;
         synchronized (parent) {
-            final int nbRows = (int) backend[INDEX_ROWS];
+            final int nbRows = (int) _backend[INDEX_ROWS];
             result = new long[nbRows];
-            System.arraycopy(backend, INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
+            System.arraycopy(_backend, INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
         }
         return result;
     }
@@ -216,9 +217,9 @@ class HeapLMatrix implements LMatrix {
     public final long get(int rowIndex, int columnIndex) {
         long result = 0;
         synchronized (parent) {
-            if (backend != null) {
-                final int nbRows = (int) backend[INDEX_ROWS];
-                result = backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+            if (_backend != null) {
+                final int nbRows = (int) _backend[INDEX_ROWS];
+                result = _backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
             }
         }
         return result;
@@ -233,15 +234,15 @@ class HeapLMatrix implements LMatrix {
     }
 
     private void internal_set(int rowIndex, int columnIndex, long value) {
-        if (backend != null) {
+        if (_backend != null) {
             if (!aligned) {
-                long[] next_backend = new long[backend.length];
-                System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                backend = next_backend;
+                long[] next_backend = new long[_backend.length];
+                System.arraycopy(_backend, 0, next_backend, 0, _backend.length);
+                _backend = next_backend;
                 aligned = true;
             }
-            final int nbRows = (int) backend[INDEX_ROWS];
-            backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
+            final int nbRows = (int) _backend[INDEX_ROWS];
+            _backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
             parent.declareDirty();
         }
     }
@@ -255,15 +256,15 @@ class HeapLMatrix implements LMatrix {
     }
 
     private void internal_add(int rowIndex, int columnIndex, long value) {
-        if (backend != null) {
+        if (_backend != null) {
             if (!aligned) {
-                long[] next_backend = new long[backend.length];
-                System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                backend = next_backend;
+                long[] next_backend = new long[_backend.length];
+                System.arraycopy(_backend, 0, next_backend, 0, _backend.length);
+                _backend = next_backend;
                 aligned = true;
             }
-            final int nbRows = (int) backend[INDEX_ROWS];
-            backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+            final int nbRows = (int) _backend[INDEX_ROWS];
+            _backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + _backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
             parent.declareDirty();
         }
     }
@@ -272,9 +273,9 @@ class HeapLMatrix implements LMatrix {
     public final long[] data() {
         long[] copy = null;
         synchronized (parent) {
-            if (backend != null) {
-                copy = new long[backend.length - INDEX_OFFSET];
-                System.arraycopy(backend, INDEX_OFFSET, copy, 0, backend.length - INDEX_OFFSET);
+            if (_backend != null) {
+                copy = new long[_backend.length - INDEX_OFFSET];
+                System.arraycopy(_backend, INDEX_OFFSET, copy, 0, _backend.length - INDEX_OFFSET);
             }
         }
         return copy;
@@ -282,18 +283,18 @@ class HeapLMatrix implements LMatrix {
 
     @Override
     public int leadingDimension() {
-        if (backend == null) {
+        if (_backend == null) {
             return 0;
         }
-        return (int) Math.max(backend[INDEX_COLUMNS], backend[INDEX_ROWS]);
+        return (int) Math.max(_backend[INDEX_COLUMNS], _backend[INDEX_ROWS]);
     }
 
     @Override
     public long unsafeGet(int index) {
         long result = 0;
         synchronized (parent) {
-            if (backend != null) {
-                result = backend[INDEX_OFFSET + index];
+            if (_backend != null) {
+                result = _backend[INDEX_OFFSET + index];
             }
         }
         return result;
@@ -308,31 +309,43 @@ class HeapLMatrix implements LMatrix {
     }
 
     private void internal_unsafeSet(int index, long value) {
-        if (backend != null) {
+        if (_backend != null) {
             if (!aligned) {
-                long[] next_backend = new long[backend.length];
-                System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                backend = next_backend;
+                long[] next_backend = new long[_backend.length];
+                System.arraycopy(_backend, 0, next_backend, 0, _backend.length);
+                _backend = next_backend;
                 aligned = true;
             }
-            backend[INDEX_OFFSET + index] = value;
+            _backend[INDEX_OFFSET + index] = value;
             parent.declareDirty();
         }
     }
 
     long[] unsafe_data() {
-        return backend;
+        return _backend;
     }
 
     void unsafe_init(int size) {
-        backend = new long[size];
-        backend[INDEX_ROWS] = 0;
-        backend[INDEX_COLUMNS] = 0;
+        _backend = new long[size];
+        _backend[INDEX_ROWS] = 0;
+        _backend[INDEX_COLUMNS] = 0;
         aligned = true;
     }
 
     void unsafe_set(long index, long value) {
-        backend[(int) index] = value;
+        _backend[(int) index] = value;
+    }
+
+    public final void save(final Buffer buffer) {
+        if (_backend != null) {
+            Base64.encodeIntToBuffer(_backend.length, buffer);
+            for (int j = 0; j < _backend.length; j++) {
+                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                Base64.encodeLongToBuffer(_backend[j], buffer);
+            }
+        } else {
+            Base64.encodeIntToBuffer(0, buffer);
+        }
     }
 
     public final long load(final Buffer buffer, final long offset, final long max) {
@@ -341,7 +354,7 @@ class HeapLMatrix implements LMatrix {
         boolean isFirst = true;
         long previous = offset;
         long elemIndex = 0;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.BLOCK_CLOSE) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     unsafe_init(Base64.decodeToIntWithBounds(buffer, previous, cursor));
@@ -357,7 +370,7 @@ class HeapLMatrix implements LMatrix {
                 current = buffer.read(cursor);
             }
         }
-        if(previous == cursor) {
+        if (previous == cursor) {
             unsafe_init(0);
         } else if (isFirst) {
             unsafe_init(Base64.decodeToIntWithBounds(buffer, previous, cursor));

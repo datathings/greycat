@@ -20,7 +20,7 @@ import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
 import greycat.plugin.NodeState;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 import greycat.utility.Enforcer;
 
 public class GaussianSlotsNode extends BaseNode {
@@ -54,8 +54,8 @@ public class GaussianSlotsNode extends BaseNode {
         enforcer.check(name, type, value);
 
         if (!load()) {
-            EGraph eg = (EGraph) super.getOrCreate(GSEGRAPH, Type.EGRAPH);
-            super.set(GSEGRAPH, Type.EGRAPH, eg);
+            EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
+            super.set(GSEGRAPH, Type.ESTRUCT_ARRAY, eg);
             gsgraph = new GaussianSlotsEGraph(eg);
         }
         switch (name) {
@@ -124,7 +124,7 @@ public class GaussianSlotsNode extends BaseNode {
         if (gsgraph != null) {
             return true;
         } else {
-            EGraph eg = (EGraph) super.get(GSEGRAPH);
+            EStructArray eg = (EStructArray) super.get(GSEGRAPH);
             if (eg != null) {
                 gsgraph = new GaussianSlotsEGraph(eg);
                 return true;

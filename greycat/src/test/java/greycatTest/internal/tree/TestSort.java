@@ -17,8 +17,8 @@ package greycatTest.internal.tree;
 
 import greycat.*;
 import greycat.internal.custom.VolatileTreeResult;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStructArray;
+import greycat.struct.EStruct;
 import org.junit.Test;
 
 import java.util.Random;
@@ -42,8 +42,8 @@ public class TestSort {
                 for (int i = 0; i < max; i++) {
                     int capacity = i + 50;
                     Node kmf = graph.newNode(0, 0);
-                    EGraph egraph = (EGraph) kmf.getOrCreate("test", Type.EGRAPH);
-                    ENode root = egraph.newNode();
+                    EStructArray egraph = (EStructArray) kmf.getOrCreate("test", Type.ESTRUCT_ARRAY);
+                    EStruct root = egraph.newEStruct();
                     egraph.setRoot(root);
                     VolatileTreeResult vr = new VolatileTreeResult(root, capacity);
 

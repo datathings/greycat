@@ -18,7 +18,7 @@ package greycat.ml.profiling;
 import greycat.Type;
 import greycat.struct.DMatrix;
 import greycat.struct.DoubleArray;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.VolatileDMatrix;
 
@@ -27,14 +27,14 @@ public class GaussianENode {
     public final static String NAME = "GaussianENode";
 
 
-    private ENode backend;
+    private EStruct backend;
     //can be used for normalization
     private double[] avg = null;
     private double[] std = null;
     private DMatrix cov = null;
 
 
-    public GaussianENode(ENode backend) {
+    public GaussianENode(EStruct backend) {
         if (backend == null) {
             throw new RuntimeException("backend can't be null for Gaussian node!");
         }

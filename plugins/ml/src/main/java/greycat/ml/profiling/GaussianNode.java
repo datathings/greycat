@@ -19,14 +19,14 @@ import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 
 public class GaussianNode extends BaseNode {
     public final static String NAME = "GaussianNode";
 
     private static final String BACKEND = "backend";
 
-    private EGraph egraph;
+    private EStructArray egraph;
     private GaussianENode backend;
 
     public GaussianNode(long p_world, long p_time, long p_id, Graph p_graph) {
@@ -56,8 +56,8 @@ public class GaussianNode extends BaseNode {
         rephase();
         invalidate();
         if (!load()) {
-            egraph = (EGraph) super.getOrCreate(BACKEND, Type.EGRAPH);
-            backend = new GaussianENode(egraph.newNode());
+            egraph = (EStructArray) super.getOrCreate(BACKEND, Type.ESTRUCT_ARRAY);
+            backend = new GaussianENode(egraph.newEStruct());
         }
         switch (name) {
             case Gaussian.VALUES:
@@ -103,7 +103,7 @@ public class GaussianNode extends BaseNode {
             if (super.get(BACKEND) == null) {
                 return false;
             } else {
-                egraph = (EGraph) super.get(BACKEND);
+                egraph = (EStructArray) super.get(BACKEND);
                 if (egraph.root() == null) {
                     return false;
                 }

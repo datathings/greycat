@@ -76,13 +76,12 @@ public class CoreProgressReport implements TaskProgressReport {
     }
 
     public void loadFromBuffer(Buffer buffer) {
-
         int cursor = 0;
         int previous = 0;
         int index = 0;
         while (cursor < buffer.length()) {
             byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_ESEP || cursor + 1 == buffer.length()) {
+            if (current == Constants.CHUNK_SEP || cursor + 1 == buffer.length()) {
                 switch (index) {
                     case 0:
                         _actionPath = Base64.decodeToStringWithBounds(buffer, previous, cursor);
@@ -110,11 +109,11 @@ public class CoreProgressReport implements TaskProgressReport {
 
     public void saveToBuffer(Buffer buffer) {
         Base64.encodeStringToBuffer(this._actionPath, buffer);
-        buffer.write(CoreConstants.CHUNK_ESEP);
+        buffer.write(CoreConstants.CHUNK_SEP);
         Base64.encodeStringToBuffer(this._actionSumPath, buffer);
-        buffer.write(CoreConstants.CHUNK_ESEP);
+        buffer.write(CoreConstants.CHUNK_SEP);
         Base64.encodeDoubleToBuffer(this._progress, buffer);
-        buffer.write(CoreConstants.CHUNK_ESEP);
+        buffer.write(CoreConstants.CHUNK_SEP);
         if (this._comment != null) {
             Base64.encodeStringToBuffer(this._comment, buffer);
         }

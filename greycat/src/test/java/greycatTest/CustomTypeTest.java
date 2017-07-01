@@ -21,7 +21,7 @@ import greycat.GraphBuilder;
 import greycat.Node;
 import greycat.plugin.TypeFactory;
 import greycat.scheduler.NoopScheduler;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 import greycat.utility.HashHelper;
 import greycatTest.internal.MockStorage;
 import greycatTest.utility.GPSPosition;
@@ -31,12 +31,31 @@ import org.junit.Test;
 public class CustomTypeTest {
 
     @Test
+    public void initTest() {
+        MockStorage storage = new MockStorage();
+        Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
+        g.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
+            @Override
+            public Object wrap(final EStructArray backend) {
+                return new GPSPosition(backend);
+            }
+        });
+        g.connect(null);
+
+        Node n = g.newNode(0, 0);
+        GPSPosition position = (GPSPosition) n.getOrCreate("complexAtt", HashHelper.hash("GPSPosition"));
+        Assert.assertEquals("position(1.5,1.5)", position.toString());
+        GPSPosition position1 = (GPSPosition) n.getOrCreate("complexAtt", HashHelper.hash("GPSPosition"));
+        Assert.assertEquals("position(1.5,1.5)", position1.toString());
+    }
+
+    @Test
     public void autoProxyTest() {
         MockStorage storage = new MockStorage();
         Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
         g.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
             @Override
-            public Object wrap(final EGraph backend) {
+            public Object wrap(final EStructArray backend) {
                 return new GPSPosition(backend);
             }
         });
@@ -66,7 +85,7 @@ public class CustomTypeTest {
         Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
         g.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
             @Override
-            public Object wrap(EGraph backend) {
+            public Object wrap(EStructArray backend) {
                 return new GPSPosition(backend);
             }
         });
@@ -85,7 +104,7 @@ public class CustomTypeTest {
         Graph g2 = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
         g2.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
             @Override
-            public Object wrap(EGraph backend) {
+            public Object wrap(EStructArray backend) {
                 return new GPSPosition(backend);
             }
         });

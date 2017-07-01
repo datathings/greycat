@@ -30,7 +30,7 @@ public class CoreIndexAttribute extends BaseCustomTypeSingle implements Index {
 
     public static final String NAME = "INDEX";
 
-    public CoreIndexAttribute(final EGraph p_backend) {
+    public CoreIndexAttribute(final EStructArray p_backend) {
         super(p_backend);
     }
 

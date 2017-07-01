@@ -25,7 +25,7 @@ public class VolatileTreeResult implements ProfileResult {
     private static int _VALUES = 2;
     private static int _DISTANCES = 3;
 
-    private ENode node;
+    private EStruct node;
     private int capacity;
     private int count;
     private double worst;
@@ -35,7 +35,7 @@ public class VolatileTreeResult implements ProfileResult {
     private LMatrix _values;
     private DMatrix _distances;
 
-    public VolatileTreeResult(ENode node, int capacity) {
+    public VolatileTreeResult(EStruct node, int capacity) {
         this.node = node;
         this.count = 0;
         _keys = (DMatrix) node.getOrCreateAt(_KEYS, Type.DMATRIX);
@@ -322,7 +322,7 @@ public class VolatileTreeResult implements ProfileResult {
 
     @Override
     public void free() {
-        EGraph g = node.egraph();
+        EStructArray g = node.egraph();
         node.drop();
         if (g.size() == 0) {
             g.free();

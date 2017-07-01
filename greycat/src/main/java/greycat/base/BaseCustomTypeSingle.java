@@ -17,57 +17,56 @@ package greycat.base;
 
 import greycat.Container;
 import greycat.struct.*;
-import greycat.utility.HashHelper;
 
 public class BaseCustomTypeSingle extends BaseCustomType {
 
     protected static final int DEF_NODE = 0;
 
-    public BaseCustomTypeSingle(EGraph p_backend) {
+    public BaseCustomTypeSingle(EStructArray p_backend) {
         super(p_backend);
         if (p_backend.size() == 0) {
-            p_backend.newNode();
+            p_backend.newEStruct();
         }
     }
 
     @Override
     public final Object getAt(int index) {
-        return _backend.node(DEF_NODE).getAt(index);
+        return _backend.estruct(DEF_NODE).getAt(index);
     }
 
     @Override
     public final Object getRawAt(int index) {
-        return _backend.node(DEF_NODE).getRawAt(index);
+        return _backend.estruct(DEF_NODE).getRawAt(index);
     }
 
     @Override
     public final Object getTypedRawAt(int index, int type) {
-        return _backend.node(DEF_NODE).getTypedRawAt(index, type);
+        return _backend.estruct(DEF_NODE).getTypedRawAt(index, type);
     }
 
     @Override
     public final int typeAt(int index) {
-        return _backend.node(DEF_NODE).typeAt(index);
+        return _backend.estruct(DEF_NODE).typeAt(index);
     }
 
     @Override
     public final Container setAt(int index, int type, Object value) {
-        return _backend.node(DEF_NODE).setAt(index, type, value);
+        return _backend.estruct(DEF_NODE).setAt(index, type, value);
     }
 
     @Override
     public final Container removeAt(int index) {
-        return _backend.node(DEF_NODE).removeAt(index);
+        return _backend.estruct(DEF_NODE).removeAt(index);
     }
 
     @Override
     public final Object getOrCreateAt(int index, int type) {
-        return _backend.node(DEF_NODE).getOrCreateAt(index, type);
+        return _backend.estruct(DEF_NODE).getOrCreateAt(index, type);
     }
 
     @Override
     public final <A> A getAtWithDefault(int key, A defaultValue) {
-        return _backend.node(DEF_NODE).getAtWithDefault(key, defaultValue);
+        return _backend.estruct(DEF_NODE).getAtWithDefault(key, defaultValue);
     }
 
 }

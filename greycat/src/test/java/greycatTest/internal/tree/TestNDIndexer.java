@@ -18,7 +18,7 @@ package greycatTest.internal.tree;
 import greycat.*;
 import greycat.internal.custom.NDTree;
 import greycat.internal.custom.IndexManager;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 import greycat.struct.NDManager;
 
 import java.util.Random;
@@ -36,7 +36,7 @@ public class TestNDIndexer {
             public void on(Boolean result) {
 
                 Node n=graph.newNode(0,0);
-                EGraph egraph= (EGraph) n.getOrCreate("egraph", Type.EGRAPH);
+                EStructArray egraph= (EStructArray) n.getOrCreate("egraph", Type.ESTRUCT_ARRAY);
                 NDManager manager=new IndexManager();
 
                 NDTree ntree=new NDTree(egraph,manager);

@@ -16,34 +16,37 @@
 package greycat.internal.heap;
 
 import greycat.Constants;
-import greycat.struct.ENode;
+import greycat.internal.CoreConstants;
+import greycat.struct.Buffer;
+import greycat.struct.EStruct;
 import greycat.struct.ERelation;
+import greycat.utility.Base64;
 
 class HeapERelation implements ERelation {
 
-    private ENode[] _back;
+    private EStruct[] _backend;
     private int _size;
     private int _capacity;
-    private final HeapContainer parent;
+    private final HeapEStruct parent;
 
-    HeapERelation(final HeapContainer p_parent, final HeapERelation origin) {
+    HeapERelation(final HeapEStruct p_parent, final HeapERelation origin) {
         parent = p_parent;
         if (origin != null) {
-            _back = new ENode[origin._capacity];
-            System.arraycopy(origin._back, 0, _back, 0, origin._capacity);
+            _backend = new EStruct[origin._capacity];
+            System.arraycopy(origin._backend, 0, _backend, 0, origin._capacity);
             _size = origin._size;
             _capacity = origin._capacity;
         } else {
-            _back = null;
+            _backend = null;
             _size = 0;
             _capacity = 0;
         }
     }
 
-    final void rebase(HeapEGraph newGraph) {
+    final void rebase(HeapEStructArray newGraph) {
         for (int i = 0; i < _size; i++) {
-            final HeapENode previous = (HeapENode) _back[i];
-            _back[i] = newGraph._nodes[previous._id];
+            final HeapEStruct previous = (HeapEStruct) _backend[i];
+            _backend[i] = newGraph._nodes[previous._id];
         }
     }
 
@@ -53,19 +56,19 @@ class HeapERelation implements ERelation {
     }
 
     @Override
-    public final ENode[] nodes() {
-        ENode[] copy = new ENode[_size];
-        System.arraycopy(_back, 0, copy, 0, _size);
+    public final EStruct[] nodes() {
+        EStruct[] copy = new EStruct[_size];
+        System.arraycopy(_backend, 0, copy, 0, _size);
         return copy;
     }
 
     @Override
-    public final ENode node(int index) {
-        return _back[index];
+    public final EStruct node(int index) {
+        return _backend[index];
     }
 
     @Override
-    public final ERelation add(ENode eNode) {
+    public final ERelation add(EStruct eStruct) {
         if (_capacity == _size) {
             if (_capacity == 0) {
                 allocate(Constants.MAP_INITIAL_CAPACITY);
@@ -73,7 +76,7 @@ class HeapERelation implements ERelation {
                 allocate(_capacity * 2);
             }
         }
-        _back[_size] = eNode;
+        _backend[_size] = eStruct;
         _size++;
         if (parent != null) {
             parent.declareDirty();
@@ -82,9 +85,9 @@ class HeapERelation implements ERelation {
     }
 
     @Override
-    public final ERelation addAll(final ENode[] eNodes) {
-        allocate(eNodes.length + _size);
-        System.arraycopy(eNodes, 0, _back, _size, eNodes.length);
+    public final ERelation addAll(final EStruct[] eStructs) {
+        allocate(eStructs.length + _size);
+        System.arraycopy(eStructs, 0, _backend, _size, eStructs.length);
         if (parent != null) {
             parent.declareDirty();
         }
@@ -94,7 +97,7 @@ class HeapERelation implements ERelation {
     @Override
     public final ERelation clear() {
         _size = 0;
-        _back = null;
+        _backend = null;
         if (parent != null) {
             parent.declareDirty();
         }
@@ -109,7 +112,7 @@ class HeapERelation implements ERelation {
             if (i != 0) {
                 buffer.append(",");
             }
-            buffer.append(((HeapENode) _back[i])._id);
+            buffer.append(((HeapEStruct) _backend[i])._id);
         }
         buffer.append("]");
         return buffer.toString();
@@ -118,13 +121,53 @@ class HeapERelation implements ERelation {
     final void allocate(int newCapacity) {
         final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
         if (closePowerOfTwo > _capacity) {
-            ENode[] new_back = new ENode[closePowerOfTwo];
-            if (_back != null) {
-                System.arraycopy(_back, 0, new_back, 0, _size);
+            EStruct[] new_back = new EStruct[closePowerOfTwo];
+            if (_backend != null) {
+                System.arraycopy(_backend, 0, new_back, 0, _size);
             }
-            _back = new_back;
+            _backend = new_back;
             _capacity = closePowerOfTwo;
         }
+    }
+
+    public final void save(final Buffer buffer) {
+        Base64.encodeIntToBuffer(_size, buffer);
+        for (int j = 0; j < _size; j++) {
+            buffer.write(CoreConstants.CHUNK_VAL_SEP);
+            if (_backend[j] != null) {
+                Base64.encodeIntToBuffer(_backend[j].id(), buffer);
+            }
+        }
+    }
+
+    public final long load(final Buffer buffer, final long offset, final long max) {
+
+        HeapEStructArray container = (HeapEStructArray) parent.egraph();
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.BLOCK_CLOSE) {
+            if (current == Constants.CHUNK_VAL_SEP) {
+                if (isFirst) {
+                    allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    add(container.nodeByIndex((int) Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            if (cursor < max) {
+                current = buffer.read(cursor);
+            }
+        }
+        if (isFirst) {
+            allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+        } else {
+            add(container.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
+        }
+        return cursor;
     }
 
 }

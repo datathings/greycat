@@ -16,7 +16,7 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 
 public class Layers {
     public final static String TYPE = "type";
@@ -28,7 +28,7 @@ public class Layers {
     public final static int RNN_LAYER = 4;
 
 
-    public static Layer loadLayer(ENode node) {
+    public static Layer loadLayer(EStruct node) {
         switch ((int) node.get(TYPE)) {
             case FEED_FORWARD_LAYER:
                 return new FeedForward(node);
@@ -45,7 +45,7 @@ public class Layers {
     }
 
 
-    public static Layer createLayer(ENode node, int type) {
+    public static Layer createLayer(EStruct node, int type) {
         node.set(Layers.TYPE, Type.INT, type);
 
         switch (type) {

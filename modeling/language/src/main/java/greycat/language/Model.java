@@ -188,6 +188,9 @@ public class Model {
                 String name = attDcl.name.getText();
                 final Attribute attribute = newClass.getOrCreateAttribute(name);
                 attribute.setType(getType(attDcl.typeDcl()));
+                if (attDcl.attributeValueDcl() != null) {
+                    attribute.setValue(getAttributeValue(attDcl.attributeValueDcl()));
+                }
             }
             // relations
             for (GreyCatModelParser.RelationDclContext relDclCtx : classDclCtx.relationDcl()) {
@@ -291,6 +294,9 @@ public class Model {
                 } else if (attDcl.typeDcl().customBuiltTypeDcl() != null) {
                     att.setType(attDcl.typeDcl().customBuiltTypeDcl().getText());
                 }
+                if (attDcl.attributeValueDcl() != null) {
+                    att.setValue(getAttributeValue(attDcl.attributeValueDcl()));
+                }
             }
             // constants
             for (GreyCatModelParser.ConstDclContext constDclCtx : customTypeDclCtx.constDcl()) {
@@ -365,6 +371,51 @@ public class Model {
             customTypes.put(name, ct);
         }
         return ct;
+    }
+
+    private List<List<Object>> getAttributeValue(GreyCatModelParser.AttributeValueDclContext attValueDclCtx) {
+        List<List<Object>> attValues = new ArrayList<List<Object>>();
+
+        if (attValueDclCtx.complexAttributeValueDcl() != null) {
+            for (GreyCatModelParser.ComplexValueDclContext cvDclCtx : attValueDclCtx.complexAttributeValueDcl().complexValueDcl()) {
+                if (cvDclCtx.ntupleValueDlc() != null) {
+
+                    List<Object> tuple = new ArrayList<Object>();
+                    for (GreyCatModelParser.NtupleElementDlcContext tnupleElemDcl : cvDclCtx.ntupleValueDlc().ntupleElementDlc()) {
+
+                        if (tnupleElemDcl.IDENT() != null) {
+                            tuple.add(tnupleElemDcl.IDENT().getText());
+
+                        } else if (tnupleElemDcl.STRING() != null) {
+                            tuple.add(tnupleElemDcl.STRING().getText());
+
+                        } else if (tnupleElemDcl.NUMBER() != null) {
+                            tuple.add(tnupleElemDcl.NUMBER().getText());
+                        }
+                    }
+                    attValues.add(tuple);
+
+                } else if (cvDclCtx.IDENT() != null) {
+                    attValues.add(Arrays.asList(cvDclCtx.IDENT().getText()));
+
+                } else if (cvDclCtx.STRING() != null) {
+                    attValues.add(Arrays.asList(cvDclCtx.STRING().getText()));
+
+                } else if (cvDclCtx.NUMBER() != null) {
+                    attValues.add(Arrays.asList(cvDclCtx.NUMBER().getText()));
+                }
+            }
+
+        } else if (attValueDclCtx.IDENT() != null) {
+            attValues.add(Arrays.asList(attValueDclCtx.IDENT().getText()));
+
+        } else if (attValueDclCtx.STRING() != null) {
+            attValues.add(Arrays.asList(attValueDclCtx.STRING().getText()));
+
+        } else if (attValueDclCtx.NUMBER() != null) {
+            attValues.add(Arrays.asList(attValueDclCtx.NUMBER().getText()));
+        }
+        return attValues;
     }
 
 }

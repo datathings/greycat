@@ -18,8 +18,8 @@ package greycatMLTest.profiling;
 import greycat.*;
 import greycat.ml.HelperForTest;
 import greycat.ml.profiling.GaussianENode;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStructArray;
+import greycat.struct.EStruct;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,10 +39,10 @@ public class TestGmmEnode {
 
                 Node node = graph.newNode(0,0);
 
-                EGraph eg= (EGraph) node.getOrCreate("graph", Type.EGRAPH);
-                ENode en=eg.newNode();
-                ENode en2=eg.newNode();
-                ENode en3=eg.newNode();
+                EStructArray eg= (EStructArray) node.getOrCreate("graph", Type.ESTRUCT_ARRAY);
+                EStruct en=eg.newEStruct();
+                EStruct en2=eg.newEStruct();
+                EStruct en3=eg.newEStruct();
 
                 GaussianENode gaussian= new GaussianENode(en);
                 GaussianENode gaussian2= new GaussianENode(en2);

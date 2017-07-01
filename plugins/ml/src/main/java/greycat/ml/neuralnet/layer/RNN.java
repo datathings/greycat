@@ -21,7 +21,7 @@ import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DoubleArray;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 
@@ -38,10 +38,10 @@ class RNN implements Layer {
     private ExMatrix context;
 
     private Activation activation;
-    private ENode host;
+    private EStruct host;
     private ExMatrix[] params = null;
 
-    RNN(ENode hostnode) {
+    RNN(EStruct hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }

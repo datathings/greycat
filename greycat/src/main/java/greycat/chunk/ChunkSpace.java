@@ -17,7 +17,7 @@ package greycat.chunk;
 
 import greycat.Graph;
 import greycat.struct.Buffer;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 import greycat.Callback;
 import greycat.utility.LMap;
 
@@ -135,11 +135,11 @@ public interface ChunkSpace {
     long dirties();
 
     /**
-     * Create a temporary EGraph object, not related to the main Graph and without the purpose to be serialized. This object has to be free at end.
+     * Create a temporary EStructArray object, not related to the main Graph and without the purpose to be serialized. This object has to be free at end.
      *
-     * @return the newly created EGraph.
+     * @return the newly created EStructArray.
      */
-    EGraph newVolatileGraph();
+    EStructArray newVolatileGraph();
 
     Interceptor[] interceptors();
 

@@ -1,0 +1,13 @@
+buildscript {
+    repositories {
+        mavenLocal()
+    }
+    dependencies {
+        classpath group: 'com.datathings', name: 'greycat-gradleplugin', version: '9-SNAPSHOT'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'greycat'
+
+defaultTasks 'clean', "greycatGenerate", 'compileJava'

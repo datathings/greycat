@@ -17,15 +17,15 @@ package greycat.struct;
 
 public interface ERelation {
 
-    ENode[] nodes();
+    EStruct[] nodes();
 
-    ENode node(int index);
+    EStruct node(int index);
 
     int size();
 
-    ERelation add(ENode eNode);
+    ERelation add(EStruct eStruct);
 
-    ERelation addAll(ENode[] eNodes);
+    ERelation addAll(EStruct[] eStructs);
 
     ERelation clear();
 

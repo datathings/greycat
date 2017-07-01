@@ -17,17 +17,16 @@ package greycat.struct.proxy;
 
 import greycat.Container;
 import greycat.Graph;
-import greycat.Node;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStructArray;
+import greycat.struct.EStruct;
 
-public final class EGraphProxy implements EGraph {
+public final class EStructArrayProxy implements EStructArray {
 
     private final int _index;
     private Container _target;
-    private EGraph _elem;
+    private EStructArray _elem;
 
-    public EGraphProxy(final int _relationIndex, final Container _target, final EGraph _relation) {
+    public EStructArrayProxy(final int _relationIndex, final Container _target, final EStructArray _relation) {
         this._index = _relationIndex;
         this._target = _target;
         this._elem = _relation;
@@ -35,7 +34,7 @@ public final class EGraphProxy implements EGraph {
 
     private void check() {
         if (_target != null) {
-            _elem = (EGraph) _target.rephase().getRawAt(_index);
+            _elem = (EStructArray) _target.rephase().getRawAt(_index);
             _target = null;
         }
     }
@@ -56,20 +55,20 @@ public final class EGraphProxy implements EGraph {
     }
 
     @Override
-    public final ENode newNode() {
+    public final EStruct newEStruct() {
         check();
-        return _elem.newNode();
+        return _elem.newEStruct();
     }
 
     @Override
-    public final ENode root() {
+    public final EStruct root() {
         final Container _host = _target;
         if (_host != null) {
-            ENode noProxy = _elem.root();
+            EStruct noProxy = _elem.root();
             if (noProxy == null) {
                 return null;
             } else {
-                return new ENodeProxy(this, noProxy, noProxy.id());
+                return new EStructProxy(this, noProxy, noProxy.id());
             }
         } else {
             return _elem.root();
@@ -77,28 +76,28 @@ public final class EGraphProxy implements EGraph {
     }
 
     @Override
-    public final ENode node(int index) {
+    public final EStruct estruct(int index) {
         final Container _host = _target;
         if (_host != null) {
-            return new ENodeProxy(this, _elem.node(index), index);
+            return new EStructProxy(this, _elem.estruct(index), index);
         } else {
-            return _elem.node(index);
+            return _elem.estruct(index);
         }
     }
 
     @Override
-    public final EGraph setRoot(ENode eNode) {
+    public final EStructArray setRoot(EStruct eStruct) {
         check();
-        return _elem.setRoot(eNode);
+        return _elem.setRoot(eStruct);
     }
 
     @Override
-    public final EGraph drop(ENode eNode) {
+    public final EStructArray drop(EStruct eStruct) {
         check();
-        return _elem.drop(eNode);
+        return _elem.drop(eStruct);
     }
 
-    EGraph rephase() {
+    EStructArray rephase() {
         check();
         return _elem;
     }

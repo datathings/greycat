@@ -25,8 +25,8 @@ import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStructArray;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.VolatileDMatrix;
 
@@ -39,8 +39,8 @@ public class NeuralNet {
     private static final String STD = "std";
     private static final double STD_DEF = 0.08;
 
-    private EGraph backend;
-    private ENode root;
+    private EStructArray backend;
+    private EStruct root;
     private Layer[] layers;
     private Loss tarinLoss;
     private Loss testLoss;
@@ -49,13 +49,13 @@ public class NeuralNet {
     private RandomGenerator random;
     private double std;
 
-    public NeuralNet(EGraph p_backend) {
+    public NeuralNet(EStructArray p_backend) {
         backend = p_backend;
         int nb = backend.size() - 1;
 
         if (nb < 0) {
             //create configuration node
-            root = p_backend.newNode();
+            root = p_backend.newEStruct();
             p_backend.setRoot(root);
             nb = 0;
         } else {
@@ -76,7 +76,7 @@ public class NeuralNet {
             //load all layers
             layers = new Layer[nb];
             for (int i = 0; i < layers.length; i++) {
-                layers[i] = Layers.loadLayer(backend.node(i+1));
+                layers[i] = Layers.loadLayer(backend.estruct(i+1));
             }
         } else {
             layers = new Layer[0];
@@ -123,7 +123,7 @@ public class NeuralNet {
                 throw new RuntimeException("Layers last output size is different that current layer input");
             }
         }
-        Layer ff = Layers.createLayer(backend.newNode(), layerType);
+        Layer ff = Layers.createLayer(backend.newEStruct(), layerType);
         ff.init(inputs, outputs, activationUnit, activationParams, random, std);
         internal_add(ff);
         return this;

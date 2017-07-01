@@ -16,6 +16,7 @@
 package greycat.internal.heap;
 
 import greycat.*;
+import greycat.base.BaseCustomType;
 import greycat.chunk.ChunkType;
 import greycat.chunk.StateChunk;
 import greycat.internal.CoreConstants;
@@ -175,8 +176,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.RELATION:
                     case Type.DMATRIX:
                     case Type.LMATRIX:
-                    case Type.EGRAPH:
-                    case Type.ENODE:
+                    case Type.ESTRUCT_ARRAY:
+                    case Type.ESTRUCT:
                     case Type.ERELATION:
                     case Type.TASK:
                     case Type.TASK_ARRAY:
@@ -187,9 +188,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         return result;
                         /*
                     case Type.NDTREE:
-                        return new NDTree((EGraph) result, new IndexManager());
+                        return new NDTree((EStructArray) result, new IndexManager());
                     case Type.KDTREE:
-                        return new KDTree((EGraph) result);
+                        return new KDTree((EStructArray) result);
                         */
                     default:
                         if (p_raw) {
@@ -199,7 +200,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             if (declaration == null) {
                                 return result;
                             } else {
-                                return declaration.factory().wrap((EGraph) result);
+                                return declaration.factory().wrap((EStructArray) result);
                             }
                         }
                 }
@@ -293,6 +294,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
+    public final Object getOrCreateCustom(final String name, final String typeName) {
+        return getOrCreateAt(HashHelper.hash(name), HashHelper.hash(typeName));
+    }
+
+    @Override
+    public final Object getOrCreateCustomAt(final int index, final String typeName) {
+        return getOrCreateAt(index, HashHelper.hash(typeName));
+    }
+
+    @Override
     public synchronized final Object getOrCreateAt(final int p_key, final int p_type) {
         final int found = internal_find(p_key);
         if (found != -1) {
@@ -362,18 +373,18 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 toSet = new HeapLongLongArrayMap(this);
                 toGet = toSet;
                 break;
-            case Type.EGRAPH:
-                toSet = new HeapEGraph(this, null, _space.graph());
+            case Type.ESTRUCT_ARRAY:
+                toSet = new HeapEStructArray(this, null, _space.graph());
                 toGet = toSet;
                 break;
                 /*
             case Type.KDTREE:
-                EGraph tempKD = new HeapEGraph(this, null, _space.graph());
+                EStructArray tempKD = new HeapEStructArray(this, null, _space.graph());
                 toSet = tempKD;
                 toGet = new KDTree(tempKD);
                 break;
             case Type.NDTREE:
-                EGraph tempND = new HeapEGraph(this, null, _space.graph());
+                EStructArray tempND = new HeapEStructArray(this, null, _space.graph());
                 toSet = tempND;
                 toGet = new NDTree(tempND, new IndexManager());
                 break;
@@ -381,13 +392,14 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
         //Default, custom Type
         if (toSet == null) {
-            EGraph tempND = new HeapEGraph(this, null, _space.graph());
+            final EStructArray tempND = new HeapEStructArray(this, null, _space.graph());
             toSet = tempND;
             final TypeDeclaration typeDeclaration = graph().typeRegistry().declarationByHash(p_type);
             if (typeDeclaration == null) {
                 toGet = toSet;
             } else {
                 toGet = typeDeclaration.factory().wrap(tempND);
+                ((BaseCustomType) toGet).init();
             }
         }
         internal_set(p_key, p_type, toSet, true, false);
@@ -415,7 +427,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         for (int i = 0; i < _size; i++) {
             final Object loopValue = _v[i]; //there is a real value
             buffer.write(CoreConstants.CHUNK_SEP);
-            Base64.encodeIntToBuffer((int) _type[i], buffer);
+            Base64.encodeIntToBuffer(_type[i], buffer);
             buffer.write(CoreConstants.CHUNK_SEP);
             Base64.encodeIntToBuffer(_k[i], buffer);
             buffer.write(CoreConstants.CHUNK_SEP);
@@ -441,36 +453,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         Base64.encodeIntToBuffer((Integer) loopValue, buffer);
                         break;
                     case Type.DOUBLE_ARRAY:
-                        HeapDoubleArray doubleArray = (HeapDoubleArray) loopValue;
-                        Base64.encodeIntToBuffer(doubleArray.size(), buffer);
-                        for (int j = 0; j < doubleArray.size(); j++) {
-                            buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                            Base64.encodeDoubleToBuffer(doubleArray.get(j), buffer);
-                        }
+                        ((HeapDoubleArray) loopValue).save(buffer);
                         break;
                     case Type.LONG_ARRAY:
-                        HeapLongArray longArray = (HeapLongArray) loopValue;
-                        Base64.encodeIntToBuffer(longArray.size(), buffer);
-                        for (int j = 0; j < longArray.size(); j++) {
-                            buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                            Base64.encodeLongToBuffer(longArray.get(j), buffer);
-                        }
+                        ((HeapLongArray) loopValue).save(buffer);
                         break;
                     case Type.INT_ARRAY:
-                        HeapIntArray intArray = (HeapIntArray) loopValue;
-                        Base64.encodeIntToBuffer(intArray.size(), buffer);
-                        for (int j = 0; j < intArray.size(); j++) {
-                            buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                            Base64.encodeIntToBuffer(intArray.get(j), buffer);
-                        }
+                        ((HeapIntArray) loopValue).save(buffer);
                         break;
                     case Type.STRING_ARRAY:
-                        HeapStringArray stringArray = (HeapStringArray) loopValue;
-                        Base64.encodeIntToBuffer(stringArray.size(), buffer);
-                        for (int j = 0; j < stringArray.size(); j++) {
-                            buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                            Base64.encodeStringToBuffer(stringArray.get(j), buffer);
-                        }
+                        ((HeapStringArray) loopValue).save(buffer);
                         break;
                     case Type.INT_SET:
                         HeapIntSet castedIntSet = new HeapIntSet(this);
@@ -489,123 +481,31 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         }
                         break;
                     case Type.RELATION:
-                        HeapRelation castedLongArrRel = (HeapRelation) loopValue;
-                        Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
-                        for (int j = 0; j < castedLongArrRel.size(); j++) {
-                            buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                            Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
-                        }
+                        ((HeapRelation) loopValue).save(buffer);
                         break;
                     case Type.DMATRIX:
-                        HeapDMatrix castedMatrix = (HeapDMatrix) loopValue;
-                        final double[] unsafeContent = castedMatrix.unsafe_data();
-                        if (unsafeContent != null) {
-                            Base64.encodeIntToBuffer(unsafeContent.length, buffer);
-                            for (int j = 0; j < unsafeContent.length; j++) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeDoubleToBuffer(unsafeContent[j], buffer);
-                            }
-                        }
+                        ((HeapDMatrix) loopValue).save(buffer);
                         break;
                     case Type.LMATRIX:
-                        HeapLMatrix castedLMatrix = (HeapLMatrix) loopValue;
-                        final long[] unsafeLContent = castedLMatrix.unsafe_data();
-                        if (unsafeLContent != null) {
-                            Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
-                            for (int j = 0; j < unsafeLContent.length; j++) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
-                            }
-                        }
+                        ((HeapLMatrix) loopValue).save(buffer);
                         break;
                     case Type.STRING_TO_INT_MAP:
-                        HeapStringIntMap castedStringLongMap = (HeapStringIntMap) loopValue;
-                        Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
-                        castedStringLongMap.unsafe_each(new StringLongMapCallBack() {
-                            @Override
-                            public void on(final String key, final long value) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeStringToBuffer(key, buffer);
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeLongToBuffer(value, buffer);
-                            }
-                        });
+                        ((HeapStringIntMap) loopValue).save(buffer);
                         break;
                     case Type.LONG_TO_LONG_MAP:
-                        HeapLongLongMap castedLongLongMap = (HeapLongLongMap) loopValue;
-                        Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
-                        castedLongLongMap.unsafe_each(new LongLongMapCallBack() {
-                            @Override
-                            public void on(final long key, final long value) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeLongToBuffer(key, buffer);
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeLongToBuffer(value, buffer);
-                            }
-                        });
+                        ((HeapLongLongMap) loopValue).save(buffer);
                         break;
                     case Type.INT_TO_INT_MAP:
-                        HeapIntIntMap castedIntIntMap = (HeapIntIntMap) loopValue;
-                        Base64.encodeIntToBuffer(castedIntIntMap.size(), buffer);
-                        castedIntIntMap.unsafe_each(new IntIntMapCallBack() {
-                            @Override
-                            public void on(final int key, final int value) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeIntToBuffer(key, buffer);
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeIntToBuffer(value, buffer);
-                            }
-                        });
+                        ((HeapIntIntMap) loopValue).save(buffer);
                         break;
                     case Type.INT_TO_STRING_MAP:
-                        HeapIntStringMap castedIntStringMap = (HeapIntStringMap) loopValue;
-                        Base64.encodeIntToBuffer(castedIntStringMap.size(), buffer);
-                        castedIntStringMap.unsafe_each(new IntStringMapCallBack() {
-                            @Override
-                            public void on(final int key, final String value) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeIntToBuffer(key, buffer);
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeStringToBuffer(value, buffer);
-                            }
-                        });
+                        ((HeapIntStringMap) loopValue).save(buffer);
                         break;
                     case Type.LONG_TO_LONG_ARRAY_MAP:
-                        HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
-                        Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
-                        castedLongLongArrayMap.unsafe_each(new LongLongArrayMapCallBack() {
-                            @Override
-                            public void on(final long key, final long value) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeLongToBuffer(key, buffer);
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeLongToBuffer(value, buffer);
-                            }
-                        });
+                        ((HeapLongLongArrayMap) loopValue).save(buffer);
                         break;
-                   /* case Type.NDTREE:
-                    case Type.KDTREE:*/
-                    /*case Type.EGRAPH:
-                        HeapEGraph castedEGraph = (HeapEGraph) loopValue;
-                        HeapENode[] eNodes = castedEGraph._nodes;
-                        int eGSize = castedEGraph.size();
-                        Base64.encodeIntToBuffer(eGSize, buffer);
-                        for (int j = 0; j < eGSize; j++) {
-                            buffer.write(CoreConstants.CHUNK_ENODE_SEP);
-                            eNodes[j].save(buffer);
-                        }
-                        castedEGraph._dirty = false;
-                        break;*/
                     default:
-                        HeapEGraph castedEGraph = (HeapEGraph) loopValue;
-                        HeapENode[] eNodes = castedEGraph._nodes;
-                        int eGSize = castedEGraph.size();
-                        Base64.encodeIntToBuffer(eGSize, buffer);
-                        for (int j = 0; j < eGSize; j++) {
-                            buffer.write(CoreConstants.CHUNK_ENODE_SEP);
-                            eNodes[j].save(buffer);
-                        }
-                        castedEGraph._dirty = false;
+                        ((HeapEStructArray) loopValue).save(buffer);
                         break;
                 }
             }
@@ -706,9 +606,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 _v[i] = new HeapLMatrix(this, (HeapLMatrix) casted._v[i]);
                             }
                             break;
-                        case Type.EGRAPH:
+                        case Type.ESTRUCT_ARRAY:
                             if (casted._v[i] != null) {
-                                _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
+                                _v[i] = new HeapEStructArray(this, (HeapEStructArray) casted._v[i], _space.graph());
                             }
                             break;
                         case Type.LONG_ARRAY:
@@ -747,7 +647,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 _v[i] = casted._v[i];
                             } else {
                                 if (casted._v[i] != null) {
-                                    _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
+                                    _v[i] = new HeapEStructArray(this, (HeapEStructArray) casted._v[i], _space.graph());
                                 }
                             }
 
@@ -869,11 +769,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         param_elem = (LongLongArrayMap) p_unsafe_elem;
                         break;
-                    case Type.EGRAPH:
-                        param_elem = (EGraph) p_unsafe_elem;
+                    case Type.ESTRUCT_ARRAY:
+                        param_elem = (EStructArray) p_unsafe_elem;
                         break;
                     default:
-                        param_elem = (EGraph) p_unsafe_elem;
+                        param_elem = (EStructArray) p_unsafe_elem;
                         // throw new RuntimeException("Internal Exception, unknown type");
                 }
             } catch (Exception e) {
@@ -1314,8 +1214,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.KDTREE:
                                 */
                                     /*
-                                case Type.EGRAPH:
-                                    HeapEGraph eGraph = new HeapEGraph(this, null, this.graph());
+                                case Type.ESTRUCT_ARRAY:
+                                    HeapEStructArray eGraph = new HeapEStructArray(this, null, this.graph());
                                     cursor++;
                                     cursor = eGraph.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, eGraph, true, initial);
@@ -1329,7 +1229,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     }
                                     break;*/
                                 default:
-                                    HeapEGraph eGraphDef = new HeapEGraph(this, null, this.graph());
+                                    HeapEStructArray eGraphDef = new HeapEStructArray(this, null, this.graph());
                                     cursor++;
                                     cursor = eGraphDef.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, eGraphDef, true, initial);
@@ -1341,7 +1241,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                             previous = cursor;
                                         }
                                     }
-                                    //throw new RuntimeException("Not implemented yet!!!");
                             }
                             break;
                         case LOAD_WAITING_VALUE:
@@ -1423,8 +1322,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public final EGraph getEGraph(String name) {
-        return (EGraph) get(name);
+    public final EStructArray getEGraph(String name) {
+        return (EStructArray) get(name);
     }
 
     @Override
@@ -1433,7 +1332,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public IntArray getIntArray(String name) {
+    public final IntArray getIntArray(String name) {
         return (IntArray) get(name);
     }
 
@@ -1458,12 +1357,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public IntIntMap getIntIntMap(String name) {
+    public final IntIntMap getIntIntMap(String name) {
         return (IntIntMap) get(name);
     }
 
     @Override
-    public IntStringMap getIntStringMap(String name) {
+    public final IntStringMap getIntStringMap(String name) {
         return (IntStringMap) get(name);
     }
 

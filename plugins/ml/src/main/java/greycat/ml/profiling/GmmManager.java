@@ -15,25 +15,25 @@
  */
 package greycat.ml.profiling;
 
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStructArray;
+import greycat.struct.EStruct;
 import greycat.struct.NDManager;
 
 public class GmmManager implements NDManager {
 
-    EGraph _backend;
-    public GmmManager(EGraph eGraph){
-        _backend=eGraph;
+    EStructArray _backend;
+    public GmmManager(EStructArray eStructArray){
+        _backend= eStructArray;
     }
 
     @Override
     public Object get(long id) {
-        return _backend.node((int) id);
+        return _backend.estruct((int) id);
     }
 
     @Override
     public long updateExistingLeafNode(long oldKey, double[] key, Object valueToInsert) {
-        ENode node= _backend.node((int) oldKey);
+        EStruct node= _backend.estruct((int) oldKey);
         GaussianENode gn= new GaussianENode(node);
         gn.learnWithOccurence(key,(int)(long)valueToInsert);
         return oldKey;
@@ -56,7 +56,7 @@ public class GmmManager implements NDManager {
 
     @Override
     public long getNewLeafNode(double[] key, Object valueToInsert) {
-        ENode node= _backend.newNode();
+        EStruct node= _backend.newEStruct();
         GaussianENode gn= new GaussianENode(node);
         gn.learnWithOccurence(key,(int)(long)valueToInsert);
         return node.id();
@@ -64,13 +64,13 @@ public class GmmManager implements NDManager {
 
     @Override
     public long getNewParentNode() {
-        ENode node= _backend.newNode();
+        EStruct node= _backend.newEStruct();
         return node.id();
     }
 
     @Override
     public long updateParent(long parentkey, double[] key, Object valueToInsert) {
-        ENode node= _backend.node((int) parentkey);
+        EStruct node= _backend.estruct((int) parentkey);
         GaussianENode gn= new GaussianENode(node);
         gn.learnWithOccurence(key,(int)(long)valueToInsert);
         return parentkey;

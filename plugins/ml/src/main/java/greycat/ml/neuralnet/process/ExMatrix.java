@@ -17,7 +17,7 @@ package greycat.ml.neuralnet.process;
 
 import greycat.Type;
 import greycat.struct.DMatrix;
-import greycat.struct.ENode;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.VolatileDMatrix;
 
 public class ExMatrix implements DMatrix {
@@ -28,10 +28,10 @@ public class ExMatrix implements DMatrix {
     private DMatrix w;
     private DMatrix dw;
     private DMatrix stepCache;
-    private ENode backend;
+    private EStruct backend;
     private String att;
 
-    public ExMatrix(ENode node, String attribute) {
+    public ExMatrix(EStruct node, String attribute) {
         if (node != null) {
             w = (DMatrix) node.getOrCreate(attribute, Type.DMATRIX);
             dw = (DMatrix) node.getOrCreate(attribute + DW_KEY, Type.DMATRIX);

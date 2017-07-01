@@ -48,7 +48,7 @@ public class GlobalConstantGenerator {
             FieldSource field = javaClass.addField()
                     .setVisibility(Visibility.PUBLIC)
                     .setName(constant.name())
-                    .setType(TypeManager.cassName(constant.type()))
+                    .setType(TypeManager.className(constant.type()))
                     .setLiteralInitializer(value)
                     .setStatic(true);
             if (value != null) {

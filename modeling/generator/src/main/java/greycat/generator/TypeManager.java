@@ -27,6 +27,11 @@ import java.util.Set;
 
 public class TypeManager {
     private static Set<String> primitives = new HashSet<String>(Arrays.asList("Bool", "Boolean", "String", "Long", "Int", "Integer", "Double"));
+    private static Set<String> primitiveArrays = new HashSet<String>(Arrays.asList("BoolArray", "BooleanArray", "StringArray", "LongArray", "IntArray", "IntegerArray", "DoubleArray"));
+    private static Set<String> maps = new HashSet<String>(Arrays.asList("LongToLongMap", "LongToLongArrayMap", "StringToIntMap", "IntToIntMap", "IntToStringMap"));
+    private static Set<String> matrices = new HashSet<String>(Arrays.asList("DMatrix", "LMatrix"));
+    private static Set<String> trees = new HashSet<String>(Arrays.asList("KDTree", "NDTree"));
+
 
     public static String typeName(String type) {
         String typeName;
@@ -79,11 +84,11 @@ public class TypeManager {
             case "LMatrix":
                 typeName = "Type.LMATRIX";
                 break;
-            case "EGraph":
-                typeName = "Type.EGRAPH";
+            case "EStructArray":
+                typeName = "Type.ESTRUCT_ARRAY";
                 break;
-            case "ENode":
-                typeName = "Type.ENODE";
+            case "EStruct":
+                typeName = "Type.ESTRUCT";
                 break;
             case "KDTree":
                 typeName = "Type.KDTREE";
@@ -113,8 +118,7 @@ public class TypeManager {
         return typeName;
     }
 
-    public static String cassTsName(String type) {
-        String className;
+    static String classTsName(String type) {
         switch (type) {
             case "Bool":
             case "Boolean":
@@ -130,7 +134,7 @@ public class TypeManager {
         return "any";
     }
 
-    public static String cassName(String type) {
+    public static String className(String type) {
         String className;
 
         switch (type) {
@@ -176,11 +180,11 @@ public class TypeManager {
             case "LMatrix":
                 className = LMatrix.class.getCanonicalName();
                 break;
-            case "EGraph":
-                className = EGraph.class.getCanonicalName();
+            case "EStructArray":
+                className = EStructArray.class.getCanonicalName();
                 break;
-            case "ENode":
-                className = ENode.class.getCanonicalName();
+            case "EStruct":
+                className = EStruct.class.getCanonicalName();
                 break;
             case "KDTree":
                 className = KDTree.class.getCanonicalName();
@@ -214,6 +218,21 @@ public class TypeManager {
         return primitives.contains(type);
     }
 
+    public static boolean isPrimitiveArray(String type) {
+        return primitiveArrays.contains(type);
+    }
+
+    public static boolean isMap(String type) {
+        return maps.contains(type);
+    }
+
+    public static boolean isMatrix(String type) {
+        return matrices.contains(type);
+    }
+
+    public static boolean isTree(String type) {
+        return trees.contains(type);
+    }
 }
 
 

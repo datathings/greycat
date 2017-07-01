@@ -18,12 +18,12 @@ package greycat.struct;
 import greycat.Container;
 import greycat.plugin.NodeStateCallback;
 
-public interface ENode extends Container {
+public interface EStruct extends Container {
 
     /*
-    ENode set(String name, byte type, Object value);
+    EStruct set(String name, byte type, Object value);
 
-    ENode setAt(int key, byte type, Object value);
+    EStruct setAt(int key, byte type, Object value);
 
     Object get(String name);
 
@@ -40,11 +40,11 @@ public interface ENode extends Container {
 
     void drop();
 
-    EGraph egraph();
+    EStructArray egraph();
 
     void each(final NodeStateCallback callBack);
 
-    ENode clear();
+    EStruct clear();
 
     int id();
 

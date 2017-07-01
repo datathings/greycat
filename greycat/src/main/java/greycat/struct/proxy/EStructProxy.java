@@ -20,14 +20,15 @@ import greycat.Index;
 import greycat.Type;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.*;
+import greycat.utility.HashHelper;
 
-public final class ENodeProxy implements ENode {
+public final class EStructProxy implements EStruct {
 
-    EGraphProxy _parent;
-    ENode _node;
+    EStructArrayProxy _parent;
+    EStruct _node;
     final int _index;
 
-    public ENodeProxy(EGraphProxy _parent, ENode _node, int _index) {
+    public EStructProxy(EStructArrayProxy _parent, EStruct _node, int _index) {
         this._parent = _parent;
         this._node = _node;
         this._index = _index;
@@ -38,7 +39,7 @@ public final class ENodeProxy implements ENode {
             if (_index == -1) {
                 _node = _parent.rephase().root();
             } else {
-                _node = _parent.rephase().node(_index);
+                _node = _parent.rephase().estruct(_index);
             }
             _parent = null;
         }
@@ -70,8 +71,8 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
-    public final EGraph getEGraph(String name) {
-        return (EGraph) get(name);
+    public final EStructArray getEGraph(String name) {
+        return (EStructArray) get(name);
     }
 
     @Override
@@ -160,6 +161,16 @@ public final class ENodeProxy implements ENode {
         }
     }
 
+    @Override
+    public Object getOrCreateCustom(String name, String typeName) {
+        return getOrCreateAt(HashHelper.hash(name), HashHelper.hash(typeName));
+    }
+
+    @Override
+    public Object getOrCreateCustomAt(int index, String typeName) {
+        return getOrCreateAt(index, HashHelper.hash(typeName));
+    }
+
     private Object proxifyIfNeeded(Object elem, int index) {
         if (elem == null || _parent == null) { //implement time sensitivity
             return elem;
@@ -227,7 +238,7 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
-    public final EGraph egraph() {
+    public final EStructArray egraph() {
         if (_parent != null) {
             return _parent;
         } else {
@@ -269,7 +280,7 @@ public final class ENodeProxy implements ENode {
         if (_index == -1) {
             return _parent.rephase().root();
         } else {
-            return _parent.rephase().node(_index);
+            return _parent.rephase().estruct(_index);
         }
     }
 
@@ -280,7 +291,7 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
-    public final ENode clear() {
+    public final EStruct clear() {
         check();
         return _node.clear();
     }

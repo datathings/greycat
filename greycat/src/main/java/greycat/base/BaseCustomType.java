@@ -22,13 +22,16 @@ import greycat.utility.HashHelper;
 
 public class BaseCustomType implements Container {
 
-    public EGraph _backend;
+    public EStructArray _backend;
 
-    public BaseCustomType(final EGraph p_backend) {
+    public void init() {
+    }
+
+    public BaseCustomType(final EStructArray p_backend) {
         this._backend = p_backend;
     }
 
-    public final EGraph backend() {
+    public final EStructArray backend() {
         return this._backend;
     }
 
@@ -58,8 +61,8 @@ public class BaseCustomType implements Container {
     }
 
     @Override
-    public final EGraph getEGraph(String name) {
-        return (EGraph) get(name);
+    public final EStructArray getEGraph(String name) {
+        return (EStructArray) get(name);
     }
 
     @Override
@@ -172,6 +175,16 @@ public class BaseCustomType implements Container {
     @Override
     public Object getOrCreateAt(int index, int type) {
         return null;
+    }
+
+    @Override
+    public final Object getOrCreateCustom(String name, String typeName) {
+        return getOrCreateAt(HashHelper.hash(name), HashHelper.hash(typeName));
+    }
+
+    @Override
+    public final Object getOrCreateCustomAt(int index, String typeName) {
+        return getOrCreateAt(index, HashHelper.hash(typeName));
     }
 
     @Override

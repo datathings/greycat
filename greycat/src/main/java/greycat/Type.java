@@ -43,8 +43,8 @@ public class Type {
     public static final int DMATRIX = 14;
     public static final int LMATRIX = 15;
 
-    public static final int EGRAPH = 16;
-    public static final int ENODE = 17;
+    public static final int ESTRUCT = 17;
+    public static final int ESTRUCT_ARRAY = 16;
     public static final int ERELATION = 18;
 
     public static final int TASK = 19;
@@ -105,10 +105,10 @@ public class Type {
                 return "DMATRIX";
             case Type.LMATRIX:
                 return "LMATRIX";
-            case Type.EGRAPH:
-                return "EGRAPH";
-            case Type.ENODE:
-                return "ENODE";
+            case Type.ESTRUCT_ARRAY:
+                return "ESTRUCT_ARRAY";
+            case Type.ESTRUCT:
+                return "ESTRUCT";
             case Type.ERELATION:
                 return "ERELATION";
             case Type.TASK:
@@ -168,10 +168,10 @@ public class Type {
                 return Type.DMATRIX;
             case "LMATRIX":
                 return Type.LMATRIX;
-            case "EGRAPH":
-                return Type.EGRAPH;
-            case "ENODE":
-                return Type.ENODE;
+            case "ESTRUCT_ARRAY":
+                return Type.ESTRUCT_ARRAY;
+            case "ESTRUCT":
+                return Type.ESTRUCT;
             case "ERELATION":
                 return Type.ERELATION;
             case "TASK":

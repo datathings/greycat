@@ -19,9 +19,8 @@ import greycat.*;
 import greycat.internal.custom.NDTree;
 import greycat.ml.profiling.GaussianENode;
 import greycat.ml.profiling.GmmManager;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 import greycat.struct.ProfileResult;
-import org.junit.Test;
 
 import java.util.Random;
 
@@ -41,8 +40,8 @@ public class TestGmmManager {
 
                 Node host = graph.newNode(0, 0);
 
-                EGraph ndTree = (EGraph) host.getOrCreate("graphNDTree", Type.EGRAPH);
-               // EGraph gmmTree = (EGraph) host.getOrCreate("graphgmm", Type.EGRAPH);
+                EStructArray ndTree = (EStructArray) host.getOrCreate("graphNDTree", Type.ESTRUCT_ARRAY);
+               // EStructArray gmmTree = (EStructArray) host.getOrCreate("graphgmm", Type.ESTRUCT_ARRAY);
 
                 GmmManager manager = new GmmManager(ndTree);
 
@@ -72,7 +71,7 @@ public class TestGmmManager {
                 for(int i=0;i<res.size();i++){
                     int ind= (int)res.value(i);
                     //System.out.println(ind);
-                    GaussianENode gn= new GaussianENode(ndTree.node(ind));
+                    GaussianENode gn= new GaussianENode(ndTree.estruct(ind));
                     double[] av1=gn.getAvg();
                     double[] k1=res.keys(i);
                     System.out.println("Id: "+ind+" distance: "+res.distance(i)+" keys: ["+k1[0]+" "+k1[1]+" "+k1[2]+" "+k1[3]+" "+"] gmm avg:["+av1[0]+" "+av1[1]+" "+av1[2]+" "+av1[3]+" "+"] gmm Total: "+gn.getTotal());

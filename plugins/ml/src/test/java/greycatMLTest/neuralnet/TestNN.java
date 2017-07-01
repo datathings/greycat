@@ -22,7 +22,7 @@ import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.struct.DMatrix;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,7 +47,7 @@ public class TestNN {
                 double regularisation = 0;
 
                 Node node = g.newNode(0, 0);
-                EGraph egraph = (EGraph) node.getOrCreate("nn", Type.EGRAPH);
+                EStructArray egraph = (EStructArray) node.getOrCreate("nn", Type.ESTRUCT_ARRAY);
 
                 NeuralNet net = new NeuralNet(egraph);
                 net.setRandom(1234, 0.1);

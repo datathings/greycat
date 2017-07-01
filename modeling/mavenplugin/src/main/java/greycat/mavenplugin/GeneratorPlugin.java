@@ -16,6 +16,7 @@
 package greycat.mavenplugin;
 
 import greycat.generator.Generator;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -27,6 +28,8 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class GeneratorPlugin extends AbstractMojo {
@@ -97,7 +100,18 @@ public class GeneratorPlugin extends AbstractMojo {
                 break;
             }
         }
-        generator.mvnGenerate(packageName, pluginName, targetGen, targetGenJS, generateJava, generateJS, gcVersion, project);
+        final List<File> cps = new ArrayList<File>();
+        if (project != null) {
+            for (Artifact a : project.getArtifacts()) {
+                File file = a.getFile();
+                if (file != null) {
+                    if (file.isFile()) {
+                        cps.add(file);
+                    }
+                }
+            }
+        }
+        generator.generate(packageName, pluginName, targetGen, targetGenJS, generateJava, generateJS, gcVersion, cps);
         project.addCompileSourceRoot(targetGen.getAbsolutePath());
     }
 }

@@ -28,10 +28,10 @@ public class Constants {
     public static final int PREFIX_SIZE = 16;
 
     public static final long BEGINNING_OF_TIME = -0x001FFFFFFFFFFFFEl;
-    public static final String BEGINNING_OF_TIME_STR = -0x001FFFFFFFFFFFFEl+"";
+    public static final String BEGINNING_OF_TIME_STR = -0x001FFFFFFFFFFFFEl + "";
 
     public static final long END_OF_TIME = 0x001FFFFFFFFFFFFEl;
-    public static final String END_OF_TIME_STR = 0x001FFFFFFFFFFFFEl+"";
+    public static final String END_OF_TIME_STR = 0x001FFFFFFFFFFFFEl + "";
 
     public static final long NULL_LONG = 0x001FFFFFFFFFFFFFl;
 
@@ -65,19 +65,19 @@ public class Constants {
      */
     public static final byte CHUNK_SEP = '|';
 
-    /**
+    /*
      * {@native ts
      * public static CHUNK_ENODE_SEP : number = "$".charCodeAt(0);
      * }
      */
-    public static final byte CHUNK_ENODE_SEP = '$';
+    //public static final byte CHUNK_ENODE_SEP = '$';
 
-    /**
+    /*
      * {@native ts
      * public static CHUNK_ESEP : number = "%".charCodeAt(0);
      * }
      */
-    public static final byte CHUNK_ESEP = '%';
+    //public static final byte CHUNK_ESEP = '%';
 
     /**
      * {@native ts

@@ -37,6 +37,9 @@ public class HelloModelingWorld {
                 building.setName("building");
                 System.out.println("building name " + building.getName());
 
+                // default values
+                System.out.println("houseNumber " + building.getHouseNumber());
+
                 Room r1 = Room.create(0, 0, graph);
                 r1.setName("room_1");
                 Room r2 = Room.create(0, 0, graph);

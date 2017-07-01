@@ -15,27 +15,26 @@
  */
 package greycat.struct;
 
-import greycat.Container;
 import greycat.Graph;
 
-public interface EGraph {
+public interface EStructArray {
 
-    ENode root();
+    EStruct root();
 
-    ENode newNode();
+    EStruct newEStruct();
 
-    ENode node(int index);
+    EStruct estruct(int index);
 
-    EGraph setRoot(ENode eNode);
+    EStructArray setRoot(EStruct eStruct);
 
-    EGraph drop(ENode eNode);
+    EStructArray drop(EStruct eStruct);
 
     int size();
 
     /**
      * Tag the object to be freed from the memory.
-     * Warning this method is not a clear EGraph and is not supposed to be called manually in case of EGraph attached to a GreyCat Node.
-     * This method is mainly for volatile EGraph usages.
+     * Warning this method is not a clear EStructArray and is not supposed to be called manually in case of EStructArray attached to a GreyCat Node.
+     * This method is mainly for volatile EStructArray usages.
      */
     void free();
 

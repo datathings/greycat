@@ -19,9 +19,9 @@ import greycat.language.Attribute;
 import greycat.language.Constant;
 import greycat.language.CustomType;
 import greycat.language.Model;
-import greycat.utility.HashHelper;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
+import org.jboss.forge.roaster.model.source.FieldSource;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaSource;
 import org.jboss.forge.roaster.model.source.MethodSource;
@@ -47,16 +47,16 @@ public class CustomTypeGenerator {
 
         StringBuilder TS_GET_SET = new StringBuilder();
         customType.properties().forEach(o -> {
-            if(o instanceof Attribute){
+            if (o instanceof Attribute) {
                 Attribute attribute = (Attribute) o;
-                if(TypeManager.isPrimitive(attribute.type())){
-                    TS_GET_SET.append("get "+attribute.name()+"() : "+TypeManager.cassTsName(attribute.type())+" {return this.get"+Generator.upperCaseFirstChar(attribute.name())+"();}\n");
-                    TS_GET_SET.append("set "+attribute.name()+"(p : "+TypeManager.cassTsName(attribute.type())+"){ this.set"+Generator.upperCaseFirstChar(attribute.name())+"(p);}\n");
+                if (TypeManager.isPrimitive(attribute.type())) {
+                    TS_GET_SET.append("get " + attribute.name() + "() : " + TypeManager.classTsName(attribute.type()) + " {return this.get" + Generator.upperCaseFirstChar(attribute.name()) + "();}\n");
+                    TS_GET_SET.append("set " + attribute.name() + "(p : " + TypeManager.classTsName(attribute.type()) + "){ this.set" + Generator.upperCaseFirstChar(attribute.name()) + "(p);}\n");
                 }
             }
         });
         //generate TS getter and setter
-        javaClass.getJavaDoc().setFullText("<pre>{@extend ts\n"+TS_GET_SET+"\n}\n</pre>");
+        javaClass.getJavaDoc().setFullText("<pre>{@extend ts\n" + TS_GET_SET + "\n}\n</pre>");
 
 
         // field for type name
@@ -77,6 +77,13 @@ public class CustomTypeGenerator {
                 .setName("TYPE_HASH")
                 .setLiteralInitializer("greycat.utility.HashHelper.hash(TYPE_NAME)");
 
+        // init method
+        MethodSource<JavaClassSource> init = javaClass.addMethod()
+                .setName("init")
+                .setVisibility(Visibility.PUBLIC)
+                .setReturnTypeVoid();
+        StringBuilder initBodyBuilder = new StringBuilder();
+
         customType.properties().forEach(o -> {
             // constants
             if (o instanceof Constant) {
@@ -89,7 +96,7 @@ public class CustomTypeGenerator {
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
                         .setName(constant.name())
-                        .setType(TypeManager.cassName(constant.type()))
+                        .setType(TypeManager.className(constant.type()))
                         .setLiteralInitializer(value)
                         .setStatic(true);
             } else if (o instanceof Attribute) {
@@ -102,6 +109,15 @@ public class CustomTypeGenerator {
                         .setType(String.class)
                         .setStringInitializer(att.name())
                         .setStatic(true);
+
+                // field attribute type
+                FieldSource<JavaClassSource> typeField = javaClass.addField()
+                        .setVisibility(Visibility.PUBLIC)
+                        .setFinal(true)
+                        .setName(att.name().toUpperCase() + "_TYPE")
+                        .setType(int.class)
+                        .setStatic(true);
+                typeField.setLiteralInitializer("greycat." + TypeManager.typeName(att.type()));
 
                 // field attribute hash
                 javaClass.addField()
@@ -117,18 +133,23 @@ public class CustomTypeGenerator {
                         .setName("get" + Generator.upperCaseFirstChar(att.name()))
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
-                        .setReturnType(TypeManager.cassName(att.type()))
-                        .setBody("return (" + TypeManager.cassName(att.type()) + ") getAt(" + att.name().toUpperCase() + "_H" + ");");
+                        .setReturnType(TypeManager.className(att.type()))
+                        .setBody("return (" + TypeManager.className(att.type()) + ") getAt(" + att.name().toUpperCase() + "_H" + ");");
 
                 // setter
                 javaClass.addMethod()
                         .setName("set" + Generator.upperCaseFirstChar(att.name()))
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
-                        .setReturnTypeVoid()
+                        .setReturnType(customType.name())
                         .setBody("setAt(" + att.name().toUpperCase() + "_H," +
-                                "greycat." + TypeManager.typeName(att.type()) + "," + att.name() + ");")
-                        .addParameter(TypeManager.cassName(att.type()), att.name());
+                                "greycat." + TypeManager.typeName(att.type()) + "," + att.name() + ");\nreturn this;")
+                        .addParameter(TypeManager.className(att.type()), att.name());
+
+                // init
+                if (att.value() != null) {
+                    initBodyBuilder.append(DefaultValueGenerator.createMethodBody(att).toString());
+                }
 
             }
         });
@@ -136,7 +157,7 @@ public class CustomTypeGenerator {
 
         // constructor
         MethodSource<JavaClassSource> constructor = javaClass.addMethod().setConstructor(true);
-        constructor.addParameter("greycat.struct.EGraph", "e");
+        constructor.addParameter("greycat.struct.EStructArray", "e");
         StringBuilder constructorBody = new StringBuilder();
         constructorBody.append("super(e);");
         constructor.setBody(constructorBody.toString());
@@ -161,6 +182,8 @@ public class CustomTypeGenerator {
         }
         finalToString += ")\";";
         toString.setBody(finalToString);
+
+        init.setBody(initBodyBuilder.toString());
 
         return javaClass;
     }

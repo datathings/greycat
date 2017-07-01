@@ -24,8 +24,8 @@ import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
+import greycat.struct.EStructArray;
+import greycat.struct.EStruct;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Test;
 
@@ -38,9 +38,9 @@ public class TestFeedForward {
             @Override
             public void on(Boolean result) {
                 Node node = g.newNode(0, 0);
-                EGraph nngraph = (EGraph) node.getOrCreate("nn", Type.EGRAPH);
-                ENode l1node = nngraph.newNode();
-                ENode l2node = nngraph.newNode();
+                EStructArray nngraph = (EStructArray) node.getOrCreate("nn", Type.ESTRUCT_ARRAY);
+                EStruct l1node = nngraph.newEStruct();
+                EStruct l2node = nngraph.newEStruct();
                 l1node.set("activation", Type.INT, Activations.SIGMOID);
                 l2node.set("activation", Type.INT, Activations.SIGMOID);
 
