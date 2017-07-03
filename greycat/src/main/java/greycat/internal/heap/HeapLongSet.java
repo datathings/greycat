@@ -16,6 +16,7 @@
 package greycat.internal.heap;
 
 import greycat.Constants;
+import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.struct.LongSet;
 import greycat.utility.Base64;
@@ -177,7 +178,7 @@ public class HeapLongSet implements LongSet {
         int result = -1;
         synchronized (parent) {
             if (keys != null) {
-                final int hashIndex = (int)HashHelper.longHash(requestKey, capacity * 2);
+                final int hashIndex = (int) HashHelper.longHash(requestKey, capacity * 2);
                 int m = hash(hashIndex);
                 while (m >= 0) {
                     if (requestKey == key(m)) {
@@ -277,12 +278,21 @@ public class HeapLongSet implements LongSet {
         return result;
     }
 
+    public final void save(final Buffer buffer) {
+        Base64.encodeIntToBuffer(mapSize, buffer);
+        for (int j = 0; j < mapSize; j++) {
+            buffer.write(CoreConstants.CHUNK_VAL_SEP);
+            Base64.encodeLongToBuffer(keys[j], buffer);
+        }
+    }
+
+
     public final long load(final Buffer buffer, final long offset, final long max) {
         long cursor = offset;
         byte current = buffer.read(cursor);
         boolean isFirst = true;
         long previous = offset;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.BLOCK_CLOSE) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));

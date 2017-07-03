@@ -1052,20 +1052,10 @@ class HeapEStruct implements EStruct, HeapContainer {
                             ((HeapStringArray) loopValue).save(buffer);
                             break;
                         case Type.INT_SET:
-                            HeapIntSet castedIntSet = new HeapIntSet(this);
-                            Base64.encodeIntToBuffer(castedIntSet.size(), buffer);
-                            for (int j = 0; j < castedIntSet.size(); j++) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeIntToBuffer(castedIntSet.key(j), buffer);
-                            }
+                            ((HeapIntSet) loopValue).save(buffer);
                             break;
                         case Type.LONG_SET:
-                            HeapLongSet castedLongSet = new HeapLongSet(this);
-                            Base64.encodeIntToBuffer(castedLongSet.size(), buffer);
-                            for (int j = 0; j < castedLongSet.size(); j++) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeLongToBuffer(castedLongSet.key(j), buffer);
-                            }
+                            ((HeapLongSet) loopValue).save(buffer);
                             break;
                         case Type.DMATRIX:
                             ((HeapDMatrix) loopValue).save(buffer);
@@ -1209,7 +1199,7 @@ class HeapEStruct implements EStruct, HeapContainer {
                                 internal_set(read_key, read_type, is, true, initial);
                                 if (cursor < payloadSize) {
                                     current = buffer.read(cursor);
-                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                    if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                         state = LOAD_WAITING_TYPE;
                                         cursor++;
                                         previous = cursor;
@@ -1223,7 +1213,7 @@ class HeapEStruct implements EStruct, HeapContainer {
                                 internal_set(read_key, read_type, ls, true, initial);
                                 if (cursor < payloadSize) {
                                     current = buffer.read(cursor);
-                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                    if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                         state = LOAD_WAITING_TYPE;
                                         cursor++;
                                         previous = cursor;
