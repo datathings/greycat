@@ -286,6 +286,11 @@ public class Model {
         for (GreyCatModelParser.CustomTypeDclContext customTypeDclCtx : modelDclCtx.customTypeDcl()) {
             String customTypeName = customTypeDclCtx.name.getText();
             final CustomType newCustomType = getOrAddCustomType(customTypeName);
+            // parents
+            if (customTypeDclCtx.parentDcl() != null) {
+                final CustomType parentCustomType = getOrAddCustomType(customTypeDclCtx.parentDcl().IDENT().getText());
+                newCustomType.setParent(parentCustomType);
+            }
             // attributes
             for (GreyCatModelParser.AttributeDclContext attDcl : customTypeDclCtx.attributeDcl()) {
                 Attribute att = newCustomType.getOrCreateAttribute(attDcl.name.getText());
@@ -318,7 +323,11 @@ public class Model {
     }
 
     public void consolidate() {
-        classes.values().forEach(aClass -> {
+        Set<Type> types = new HashSet<>();
+        types.addAll(classes.values());
+        types.addAll(customTypes.values());
+
+        types.forEach(aClass -> {
             List<String> toRemove = new ArrayList<String>();
             aClass.properties().forEach(o -> {
                 if (o instanceof Attribute) {

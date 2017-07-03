@@ -63,5 +63,5 @@ indexAttributesDcl: IDENT (',' IDENT)*;
 
 globalIndexDcl: 'index' name=IDENT ':' type=IDENT 'using' indexAttributesDcl;
 
-customTypeDcl: 'type' name=IDENT '{' (attributeDcl | constDcl)* '}';
+customTypeDcl: 'type' name=IDENT parentDcl? '{' (attributeDcl | constDcl)* '}';
 

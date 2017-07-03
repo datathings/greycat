@@ -71,6 +71,28 @@ public class DefaultValueGenerator {
             List<Object> keys = att.value().get(0);
             Object value = att.value().get(1).get(0);
 
+            if (TypeManager.isNDTree(att.type())) {
+                List<Object> minBound = att.value().get(2);
+                List<Object> maxBound = att.value().get(3);
+                List<Object> resolution = att.value().get(4);
+
+                builder.append(att.name()).append(".setMinBound(").
+                        append("new double[] {").
+                        append(minBound.toString().replace("[", "").replace("]", "")).
+                        append("}").append(");");
+
+                builder.append(att.name()).append(".setMaxBound(").
+                        append("new double[] {").
+                        append(maxBound.toString().replace("[", "").replace("]", "")).
+                        append("}").append(");");
+
+                builder.append(att.name()).append(".setResolution(").
+                        append("new double[] {").
+                        append(resolution.toString().replace("[", "").replace("]", "")).
+                        append("}").append(");");
+
+            }
+
             builder.append(att.name()).append(".insert(").
                     append("new double[] {").
                     append(keys.toString().replace("[", "").replace("]", "")).

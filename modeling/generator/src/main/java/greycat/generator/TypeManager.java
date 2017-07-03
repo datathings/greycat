@@ -233,6 +233,15 @@ public class TypeManager {
     public static boolean isTree(String type) {
         return trees.contains(type);
     }
+
+    public static boolean isNDTree(String type) {
+        return type.equals("NDTree");
+    }
+
+    public static boolean isKDTree(String type) {
+        return type.equals("KDTree");
+    }
+
 }
 
 

@@ -15,48 +15,17 @@
  */
 package greycat.language;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 
-public class CustomType implements Container {
-
-    private final String name;
-    private final Map<String, Object> properties;
+public class CustomType extends Type {
 
     CustomType(String name) {
         this.name = name;
         this.properties = new HashMap<String, Object>();
     }
 
-    public final Collection<Object> properties() {
-        return properties.values();
+    @Override
+    public String toString() {
+        return "CustomType(" + name + ")";
     }
-
-    public final String name() {
-        return name;
-    }
-
-    Attribute getOrCreateAttribute(String name) {
-        Object att = properties.get(name);
-        if (att == null) {
-            att = new Attribute(name, this);
-            properties.put(name, att);
-        } else if (!(att instanceof Attribute)) {
-            throw new RuntimeException("Property name conflict attribute name conflict with " + att);
-        }
-        return (Attribute) att;
-    }
-
-    Constant getOrCreateConstant(String name) {
-        Object att = properties.get(name);
-        if (att == null) {
-            att = new Constant(name);
-            properties.put(name, att);
-        } else if (!(att instanceof Constant)) {
-            throw new RuntimeException("Property name conflict constant name conflict with " + att);
-        }
-        return (Constant) att;
-    }
-
 }

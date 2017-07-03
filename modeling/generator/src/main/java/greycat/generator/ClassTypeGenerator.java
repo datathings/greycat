@@ -16,6 +16,7 @@
 package greycat.generator;
 
 import greycat.*;
+import greycat.Type;
 import greycat.language.*;
 import greycat.language.Class;
 import greycat.language.Index;
@@ -106,7 +107,9 @@ class ClassTypeGenerator {
             if (o instanceof Constant) {
                 Constant constant = (Constant) o;
                 String value = constant.value();
-                if (!constant.type().equals("String")) {
+                if (constant.type().equals("Task") && value != null) {
+                    value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null);";
+                } else if (!constant.type().equals("String") && value != null) {
                     value = value.replaceAll("\"", "");
                 }
                 javaClass.addField()

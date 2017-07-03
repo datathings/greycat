@@ -43,7 +43,11 @@ public class CustomTypeGenerator {
         javaClass.setPackage(packageName);
         javaClass.setName(customType.name());
 
-        javaClass.setSuperType("greycat.base.BaseCustomTypeSingle");
+        if (customType.parent() != null) {
+            javaClass.setSuperType(packageName + "." + customType.parent().name());
+        } else {
+            javaClass.setSuperType("greycat.base.BaseCustomTypeSingle");
+        }
 
         StringBuilder TS_GET_SET = new StringBuilder();
         customType.properties().forEach(o -> {
@@ -89,7 +93,9 @@ public class CustomTypeGenerator {
             if (o instanceof Constant) {
                 Constant constant = (Constant) o;
                 String value = constant.value();
-                if (!constant.type().equals("String")) {
+                if (constant.type().equals("Task") && value != null) {
+                    value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null);";
+                } else if (!constant.type().equals("String") && value != null) {
                     value = value.replaceAll("\"", "");
                 }
                 javaClass.addField()
