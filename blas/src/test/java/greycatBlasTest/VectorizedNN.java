@@ -12,7 +12,7 @@ import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.struct.DMatrix;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.VolatileDMatrix;
@@ -53,7 +53,7 @@ public class VectorizedNN {
                 //System.out.println(outputDimensions.rows() + " , " + outputDimensions.columns());
 
                 Node node1 = g.newNode(0, 0);
-                EGraph egraph1 = (EGraph) node1.getOrCreate("nn1", Type.EGRAPH);
+                EStructArray egraph1 = (EStructArray) node1.getOrCreate("nn1", Type.ESTRUCT_ARRAY);
                 NeuralNet net1 = new NeuralNet(egraph1);
                 net1.setRandom(1234, 0.1);
                 net1.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
@@ -62,7 +62,7 @@ public class VectorizedNN {
 
 
                 Node node2 = g.newNode(0, 0);
-                EGraph egraph2 = (EGraph) node2.getOrCreate("nn2", Type.EGRAPH);
+                EStructArray egraph2 = (EStructArray) node2.getOrCreate("nn2", Type.ESTRUCT_ARRAY);
                 NeuralNet net2 = new NeuralNet(egraph2);
                 net2.setRandom(1234, 0.1);
                 net2.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
