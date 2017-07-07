@@ -26,7 +26,8 @@ public class GCSecurityHandler implements HttpHandler {
     @Override
     public void handleRequest(HttpServerExchange httpServerExchange) throws Exception {
         Deque<String> tokens = httpServerExchange.getQueryParameters().get("gc-auth-key");
-        if (tokens.size() == 1) {
+
+        if (tokens != null && tokens.size() == 1) {
             this.identityManager.verifySession(tokens.getFirst(), account -> {
                 if (account != null) {
                     try {
