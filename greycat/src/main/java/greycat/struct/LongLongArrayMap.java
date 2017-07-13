@@ -25,7 +25,7 @@ public interface LongLongArrayMap extends Map {
      */
     long[] get(long key);
 
-    void putNoCheck(long insertKey, long insertValue);
+    LongLongArrayMap putNoCheck(long insertKey, long insertValue);
 
     /**
      * Add the tuple key/value to the getOrCreateMap.

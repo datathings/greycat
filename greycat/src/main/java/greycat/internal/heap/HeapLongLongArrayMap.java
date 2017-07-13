@@ -288,10 +288,11 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     }
 
     @Override
-    public final void putNoCheck(final long insertKey, final long insertValue){
+    public final LongLongArrayMap putNoCheck(final long insertKey, final long insertValue){
         synchronized (parent) {
             internal_put(insertKey, insertValue, false,false);
         }
+        return this;
     }
 
     @Override
