@@ -28,7 +28,7 @@ ML_COMMENT : '/*' .*? '*/' -> skip;
 
 modelDcl: (constDcl | classDcl | globalIndexDcl | customTypeDcl | importDcl)*;
 importDcl: 'import' STRING;
-constDcl: 'const' name=IDENT ':' typeDcl ('=' constValueDcl)?;
+constDcl: 'const' name=IDENT ':' valueTypeDcl ('=' constValueDcl)?;
 constValueDcl: (simpleValueDcl | taskValueDcl);
 simpleValueDcl: (IDENT | STRING | NUMBER);
 taskValueDcl: actionValueDcl ('.' actionValueDcl)*;
@@ -36,11 +36,15 @@ actionValueDcl: IDENT ('(' actionParam* ')')?;
 actionParam: STRING | NUMBER | subTask;
 subTask: '{' taskValueDcl '}';
 
-classDcl: 'class' name=IDENT parentDcl? '{' (constDcl | attributeDcl | relationDcl | referenceDcl | localIndexDcl)* '}';
-parentDcl: 'extends' IDENT;
-attributeDcl: 'att' name=IDENT ':' typeDcl ('=' attributeValueDcl)?;
+classDcl: 'class' name=IDENT parentDcl? '{' (annotationDcl | constDcl | attributeDcl | relationDcl | referenceDcl | localIndexDcl)* '}';
+customTypeDcl: 'type' name=IDENT parentDcl? '{' (constDcl | attributeDcl)* '}';
 
-typeDcl: (builtInTypeDcl | customBuiltTypeDcl);
+parentDcl: 'extends' IDENT;
+attributeDcl: 'att' name=IDENT ':' valueTypeDcl ('=' attributeValueDcl)?;
+
+annotationDcl: '@' name=IDENT ('=' value=attributeValueDcl)?;
+
+valueTypeDcl: (builtInTypeDcl | customBuiltTypeDcl);
 customBuiltTypeDcl: IDENT;
 builtInTypeDcl: ('Bool' | 'Boolean' | 'String' | 'Long' | 'Int' | 'Integer' | 'Double' |
                 'DoubleArray' | 'LongArray' | 'IntArray' | 'StringArray' |
@@ -63,5 +67,4 @@ indexAttributesDcl: IDENT (',' IDENT)*;
 
 globalIndexDcl: 'index' name=IDENT ':' type=IDENT 'using' indexAttributesDcl;
 
-customTypeDcl: 'type' name=IDENT parentDcl? '{' (attributeDcl | constDcl)* '}';
 

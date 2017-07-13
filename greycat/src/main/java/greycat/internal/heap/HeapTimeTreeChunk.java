@@ -45,6 +45,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     private volatile long _magic;
     private volatile int _size;
 
+    private long _max;
+
     HeapTimeTreeChunk(final HeapChunkSpace p_space, final long p_index) {
         _space = p_space;
         _index = p_index;
@@ -63,6 +65,11 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     @Override
     public final void setCapacity(long v) {
         _capacity = v;
+    }
+
+    @Override
+    public long max() {
+        return _max;
     }
 
     @Override
@@ -327,7 +334,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setLeft(int p_currentIndex, int p_paramIndex) {
-            _back_meta[p_currentIndex * META_SIZE] = p_paramIndex;
+        _back_meta[p_currentIndex * META_SIZE] = p_paramIndex;
 
     }
 
@@ -339,7 +346,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setRight(int p_currentIndex, int p_paramIndex) {
-            _back_meta[(p_currentIndex * META_SIZE) + 1] = p_paramIndex;
+        _back_meta[(p_currentIndex * META_SIZE) + 1] = p_paramIndex;
     }
 
     private int parent(int p_currentIndex) {
@@ -350,7 +357,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setParent(int p_currentIndex, int p_paramIndex) {
-            _back_meta[(p_currentIndex * META_SIZE) + 2] = p_paramIndex;
+        _back_meta[(p_currentIndex * META_SIZE) + 2] = p_paramIndex;
     }
 
     private boolean color(int p_currentIndex) {
@@ -361,7 +368,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setColor(int p_currentIndex, boolean p_paramIndex) {
-            _colors[p_currentIndex] = p_paramIndex;
+        _colors[p_currentIndex] = p_paramIndex;
 
     }
 
@@ -572,6 +579,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @SuppressWarnings("Duplicates")
     private Tuple<Boolean, Integer> internal_insert(long p_key) {
+        if (p_key > _max) {
+            _max = p_key;
+        }
         if (_k == null || _k.length == _size) {
             int length = _size;
             if (length == 0) {

@@ -22,9 +22,7 @@ import greycat.chunk.*;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.struct.EStructArray;
-import greycat.utility.HashHelper;
-import greycat.utility.KeyHelper;
-import greycat.utility.LMap;
+import greycat.utility.*;
 
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
@@ -152,7 +150,7 @@ public class HeapChunkSpace implements ChunkSpace {
     @Override
     public final Chunk get(final long index) {
         final int casted = (int) index;
-        if(casted == -1){
+        if (casted == -1) {
             return null;
         }
         boolean valid = true;
@@ -289,6 +287,42 @@ public class HeapChunkSpace implements ChunkSpace {
         if (before == 1 && after == 0) {
             //was at zero before, risky operation, check selectWith LRU
             this._lru.enqueue(index);
+        }
+    }
+
+    @Override
+    public synchronized final void delete(final byte type, final long world, final long time, final long id) {
+        final int index;
+        if (_deep_priority) {
+            index = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+        } else {
+            index = (int) HashHelper.simpleTripleHash(type, world, time, id, this._hashEntries);
+        }
+        int m = this._hash.get(index);
+        int found = -1;
+        while (m != -1) {
+            if (_chunkTypes.get(m) == type
+                    && _chunkWorlds.get(m) == world
+                    && _chunkTimes.get(m) == time
+                    && _chunkIds.get(m) == id) {
+                found = m;
+                break;
+            } else {
+                m = this._hashNext.get(m);
+            }
+        }
+        if (found != -1) {
+            _chunkValues.set(found, null);
+            long markBefore = _chunkMarks.get(found);
+            if (markBefore != 0) {
+                //System.err.println("Still mark deleted chunk " + markBefore);
+                do {
+                    markBefore = _chunkMarks.get(found);
+                } while (!_chunkMarks.compareAndSet(found, markBefore, 0));
+                if (markBefore != 0) {
+                    this._lru.enqueue(found);
+                }
+            }
         }
     }
 
@@ -435,13 +469,15 @@ public class HeapChunkSpace implements ChunkSpace {
 
     @Override
     public final synchronized void save(final boolean silent, final boolean partial, final LMap filter, final Callback<Buffer> callback) {
+
+        java.util.Map<Long, Tuple<Listeners, LArray>> events = null;
+
         final Buffer stream = this._graph.newBuffer();
         boolean isFirst = true;
         int counter = 0;
         while (_dirtiesStack.size() != 0 && (!partial || _batchSize == -1 || counter <= _batchSize)) {
             int tail = (int) _dirtiesStack.dequeueTail();
             counter++;
-
             boolean filtered = false;
             if (filter != null) {
                 if (!filter.contains(_chunkIds.get(tail))) {
@@ -455,7 +491,31 @@ public class HeapChunkSpace implements ChunkSpace {
                 } else {
                     stream.write(Constants.BUFFER_SEP);
                 }
-                KeyHelper.keyToBuffer(stream, _chunkTypes.get(tail), _chunkWorlds.get(tail), _chunkTimes.get(tail), _chunkIds.get(tail));
+                long chunkId = _chunkIds.get(tail);
+                byte chunkType = _chunkTypes.get(tail);
+                long chunkTime = _chunkTimes.get(tail);
+                KeyHelper.keyToBuffer(stream, chunkType, _chunkWorlds.get(tail), chunkTime, chunkId);
+                //we prepare the notifier
+                if (chunkType == ChunkType.STATE_CHUNK) {
+                    if (events != null && events.get(chunkId) != null) {
+                        events.get(chunkId).right().add(chunkTime);
+                    } else {
+                        final WorldOrderChunk wo = (WorldOrderChunk) getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, chunkId);
+                        if (wo != null) {
+                            final Listeners l = wo.listeners();
+                            unmark(wo.index());
+                            if (l != null) {
+                                if (events == null) {
+                                    events = new java.util.HashMap<Long, Tuple<Listeners, LArray>>();
+                                }
+                                LArray collector = new LArray();
+                                collector.add(chunkTime);
+                                events.put(chunkId, new Tuple<Listeners, LArray>(l, collector));
+                            }
+                        }
+                    }
+                }
+
                 //Save chunk payload
                 stream.write(Constants.BUFFER_SEP);
                 try {
@@ -467,6 +527,14 @@ public class HeapChunkSpace implements ChunkSpace {
                 }
             } else {
                 _dirtiesStack.enqueue(tail);
+            }
+        }
+        //call nocal notifier
+        if (events != null) {
+            final Tuple[] tuples = events.values().toArray(new Tuple[events.size()]);
+            for (int i = 0; i < tuples.length; i++) {
+                Tuple<Listeners, LArray> tt = tuples[i];
+                tt.left().dispatch(tt.right().all());
             }
         }
         if (silent) {

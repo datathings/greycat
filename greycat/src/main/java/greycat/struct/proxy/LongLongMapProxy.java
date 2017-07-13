@@ -54,9 +54,9 @@ public final class LongLongMapProxy implements LongLongMap {
     }
 
     @Override
-    public final void put(final long key, final long value) {
+    public final LongLongMap put(final long key, final long value) {
         check();
-        _elem.put(key, value);
+        return _elem.put(key, value);
     }
 
     @Override

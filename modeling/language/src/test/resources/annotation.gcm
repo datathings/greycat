@@ -1,0 +1,4 @@
+class Sensor {
+   @timeSensitivity = (1000,0)
+   att name : String = "defaultName"
+}

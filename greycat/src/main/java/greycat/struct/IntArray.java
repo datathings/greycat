@@ -29,7 +29,7 @@ public interface IntArray extends ArrayStruct {
 
     boolean removeElementbyIndex(int index);
 
-    void addElement(int value);
+    IntArray addElement(int value);
 
     boolean insertElementAt(int position, int value);
 

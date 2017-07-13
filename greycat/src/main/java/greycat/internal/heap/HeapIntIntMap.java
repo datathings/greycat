@@ -233,7 +233,7 @@ public class HeapIntIntMap implements IntIntMap {
         }
     }
 
-    public final void put(final int insertKey, final int insertValue) {
+    public final IntIntMap put(final int insertKey, final int insertValue) {
         synchronized (parent) {
             if (keys == null) {
                 reallocate(Constants.MAP_INITIAL_CAPACITY);
@@ -277,6 +277,7 @@ public class HeapIntIntMap implements IntIntMap {
                 }
             }
         }
+        return this;
     }
 
     public final void save(final Buffer buffer) {

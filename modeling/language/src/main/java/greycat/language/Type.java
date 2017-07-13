@@ -15,14 +15,14 @@
  */
 package greycat.language;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class Type implements Container {
     protected String name;
 
     protected Type parent;
-    protected Map<String, Object> properties;
+    public Map<String, Object> properties;
 
     Attribute getOrCreateAttribute(String name) {
         Object att = properties.get(name);
@@ -33,6 +33,17 @@ public abstract class Type implements Container {
             throw new RuntimeException("Property name conflict attribute name conflict with " + att);
         }
         return (Attribute) att;
+    }
+
+    Annotation getOrCreateAnnotation(String name) {
+        Object annotation = properties.get(name);
+        if (annotation == null) {
+            annotation = new Annotation(name);
+            properties.put(name, annotation);
+        } else if (!(annotation instanceof Annotation)) {
+            throw new RuntimeException("Property name conflict annotation name conflict with " + annotation);
+        }
+        return (Annotation) annotation;
     }
 
     Constant getOrCreateConstant(String name) {
@@ -63,6 +74,39 @@ public abstract class Type implements Container {
         return null;
     }
 
+    Relation getOrCreateRelation(String name) {
+        Object att = properties.get(name);
+        if (att == null) {
+            att = new Relation(name);
+            properties.put(name, att);
+        } else if (!(att instanceof Relation)) {
+            throw new RuntimeException("Property name conflict relation name conflict with " + att);
+        }
+        return (Relation) att;
+    }
+
+    Reference getOrCreateReference(String name) {
+        Object att = properties.get(name);
+        if (att == null) {
+            att = new Reference(name);
+            properties.put(name, att);
+        } else if (!(att instanceof Reference)) {
+            throw new RuntimeException("Property name conflict relation name conflict with " + att);
+        }
+        return (Reference) att;
+    }
+
+    Index getOrCreateIndex(String name) {
+        Object att = properties.get(name);
+        if (att == null) {
+            att = new Index(name);
+            properties.put(name, att);
+        } else if (!(att instanceof Index)) {
+            throw new RuntimeException("Property name conflict index name conflict with " + att);
+        }
+        return (Index) att;
+    }
+
     void setParent(Type parent) {
         //check parent cycle
         Type loop_parent = parent;
@@ -87,6 +131,20 @@ public abstract class Type implements Container {
         return properties.values();
     }
 
+    public final Map<String, Object> allProperties() {
+        final Map<String, Object> allProperties = new HashMap<String, Object>();
+        allProperties.putAll(properties);
+        Type loop_parent = parent;
+        while (loop_parent != null) {
+            loop_parent.properties.forEach((s, o) -> {
+                if (!allProperties.containsKey(s)) {
+                    allProperties.put(s, o);
+                }
+            });
+            loop_parent = loop_parent.parent;
+        }
+        return allProperties;
+    }
 
 
 }

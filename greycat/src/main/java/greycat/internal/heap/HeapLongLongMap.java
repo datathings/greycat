@@ -238,7 +238,7 @@ class HeapLongLongMap implements LongLongMap {
     }
 
     @Override
-    public final void put(final long insertKey, final long insertValue) {
+    public final LongLongMap put(final long insertKey, final long insertValue) {
         synchronized (parent) {
             if (keys == null) {
                 reallocate(Constants.MAP_INITIAL_CAPACITY);
@@ -282,6 +282,7 @@ class HeapLongLongMap implements LongLongMap {
                 }
             }
         }
+        return this;
     }
 
     public final void save(final Buffer buffer) {

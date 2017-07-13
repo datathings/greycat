@@ -31,7 +31,7 @@ public interface IntStringMap extends Map {
      * @param key to insert key
      * @param value to insert value
      */
-    void put(int key, String  value);
+    IntStringMap put(int key, String  value);
 
     /**
      * Remove the key passed as parameter fromVar the getOrCreateMap

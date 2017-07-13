@@ -129,7 +129,7 @@ final class HeapStringArray implements StringArray {
     }
 
     @Override
-    public final synchronized void addElement(String value) {
+    public final synchronized StringArray addElement(String value) {
         if (_backend == null) {
             _backend = new String[]{value};
         } else {
@@ -139,6 +139,7 @@ final class HeapStringArray implements StringArray {
             _backend = newBackend;
         }
         _parent.declareDirty();
+        return this;
     }
 
     @Override

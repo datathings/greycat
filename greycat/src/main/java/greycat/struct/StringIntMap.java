@@ -30,7 +30,7 @@ public interface StringIntMap extends Map {
      * @param key   to insert key
      * @param value to insert value
      */
-    void put(String key, int value);
+    StringIntMap put(String key, int value);
 
     /**
      * Remove the corresponding key from the getOrCreateMap

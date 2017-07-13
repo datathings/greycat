@@ -132,14 +132,32 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
             byte firstCodeView = codeView.read(0);
             //compute resp prefix
             switch (firstCodeView) {
-                case WSConstants.HEART_BEAT_PING:{
+                case WSConstants.HEART_BEAT_PING:
                     final Buffer concat = graph.newBuffer();
                     concat.write(WSConstants.HEART_BEAT_PONG);
                     concat.writeString("ok");
                     WSServer.this.send_resp(concat, channel);
-                }break;
-                case WSConstants.HEART_BEAT_PONG:{//Ignore
-                }break;
+                    break;
+                case WSConstants.HEART_BEAT_PONG:
+                    //Ignore
+                    break;
+                case WSConstants.REQ_REMOVE:
+                    final List<ChunkKey> rkeys = new ArrayList<ChunkKey>();
+                    while (it.hasNext()) {
+                        rkeys.add(ChunkKey.build(it.next()));
+                    }
+                    process_remove(rkeys.toArray(new ChunkKey[rkeys.size()]), new Callback() {
+                        @Override
+                        public void on(Object o) {
+                            final Buffer concatRM = graph.newBuffer();
+                            concatRM.write(WSConstants.RESP_REMOVE);
+                            concatRM.write(Constants.BUFFER_SEP);
+                            concatRM.writeAll(callbackCodeView.data());
+                            payload.free();
+                            WSServer.this.send_resp(concatRM, channel);
+                        }
+                    });
+                    break;
                 case WSConstants.REQ_GET:
                     //build keys list
                     final List<ChunkKey> keys = new ArrayList<ChunkKey>();
@@ -149,15 +167,15 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                     process_get(keys.toArray(new ChunkKey[keys.size()]), new Callback<Buffer>() {
                         @Override
                         public void on(Buffer streamResult) {
-                            final Buffer concat = graph.newBuffer();
-                            concat.write(WSConstants.RESP_GET);
-                            concat.write(Constants.BUFFER_SEP);
-                            concat.writeAll(callbackCodeView.data());
-                            concat.write(Constants.BUFFER_SEP);
-                            concat.writeAll(streamResult.data());
+                            final Buffer concatGet = graph.newBuffer();
+                            concatGet.write(WSConstants.RESP_GET);
+                            concatGet.write(Constants.BUFFER_SEP);
+                            concatGet.writeAll(callbackCodeView.data());
+                            concatGet.write(Constants.BUFFER_SEP);
+                            concatGet.writeAll(streamResult.data());
                             streamResult.free();
                             payload.free();
-                            WSServer.this.send_resp(concat, channel);
+                            WSServer.this.send_resp(concatGet, channel);
                         }
                     });
                     break;
@@ -166,15 +184,15 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                         final Callback<TaskResult> end = new Callback<TaskResult>() {
                             @Override
                             public void on(TaskResult result) {
-                                final Buffer concat = graph.newBuffer();
-                                concat.write(WSConstants.RESP_TASK);
-                                concat.write(Constants.BUFFER_SEP);
-                                concat.writeAll(callbackCodeView.data());
-                                concat.write(Constants.BUFFER_SEP);
-                                result.saveToBuffer(concat);
+                                final Buffer concatTask = graph.newBuffer();
+                                concatTask.write(WSConstants.RESP_TASK);
+                                concatTask.write(Constants.BUFFER_SEP);
+                                concatTask.writeAll(callbackCodeView.data());
+                                concatTask.write(Constants.BUFFER_SEP);
+                                result.saveToBuffer(concatTask);
                                 result.free();
                                 payload.free();
-                                WSServer.this.send_resp(concat, channel);
+                                WSServer.this.send_resp(concatTask, channel);
                             }
                         };
                         Task t = Tasks.newTask();
@@ -183,6 +201,10 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                             TaskContext ctx = t.prepare(graph, null, new Callback<TaskResult>() {
                                 @Override
                                 public void on(TaskResult result) {
+                                    //we also dispatch locally
+                                    if (result.notifications() != null && result.notifications().length() > 0) {
+                                        graph.remoteNotify(result.notifications());
+                                    }
                                     end.on(result);
                                 }
                             });
@@ -210,16 +232,16 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                                 if (progressHookCodeView.length() > 0) {
                                     progressHookCode = greycat.utility.Base64.decodeToIntWithBounds(progressHookCodeView, 0, progressHookCodeView.length());
                                     ctx.setProgressHook(report -> {
-                                        final Buffer concat = graph.newBuffer();
-                                        concat.write(WSConstants.NOTIFY_PROGRESS);
-                                        concat.write(Constants.BUFFER_SEP);
-                                        Base64.encodeIntToBuffer(progressHookCode, concat);
-                                        concat.write(Constants.BUFFER_SEP);
-                                        ((CoreProgressReport) report).saveToBuffer(concat);
-                                        WSServer.this.send_resp(concat, channel);
+                                        final Buffer concatProgress = graph.newBuffer();
+                                        concatProgress.write(WSConstants.NOTIFY_PROGRESS);
+                                        concatProgress.write(Constants.BUFFER_SEP);
+                                        Base64.encodeIntToBuffer(progressHookCode, concatProgress);
+                                        concatProgress.write(Constants.BUFFER_SEP);
+                                        ((CoreProgressReport) report).saveToBuffer(concatProgress);
+                                        WSServer.this.send_resp(concatProgress, channel);
                                     });
                                 }
-                                ctx.loadFromBuffer(it.next(), loaded->{
+                                ctx.loadFromBuffer(it.next(), loaded -> {
                                     t.executeUsing(ctx);
                                 });
                             } else {
@@ -323,6 +345,25 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                 }
             });
         }
+    }
+
+    private void process_remove(ChunkKey[] keys, final Callback callback) {
+        Buffer buffer = graph.newBuffer();
+        for (int i = 0; i < keys.length; i++) {
+            if (i != 0) {
+                buffer.write(Constants.BUFFER_SEP);
+            }
+            ChunkKey tuple = keys[i];
+            KeyHelper.keyToBuffer(buffer, tuple.type, tuple.world, tuple.time, tuple.id);
+            graph.space().delete(tuple.type, tuple.world, tuple.time, tuple.id);
+        }
+        graph.storage().remove(buffer, new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                buffer.free();
+                callback.on(null);
+            }
+        });
     }
 
     private void process_get(ChunkKey[] keys, final Callback<Buffer> callback) {

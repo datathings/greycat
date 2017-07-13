@@ -1,0 +1,28 @@
+class Hello {
+    att name : String
+    att point : GPSPoint
+    const defaultSize : Int
+    const defaultSize2 : Int = 5
+    att price : Int
+    rel sub : Hello
+    ref sub2: Hello
+    index myIndex : Hello using name
+    att defaultValue : Int = 4
+}
+
+class Hello2 {
+    att defArray : IntArray = (3,4,5)
+    att defMap : LongToLongMap = ((1,2),(3,4))
+    att defMatrix : LMatrix = ((1,2,3),(4,5,6))
+    @timeSensitivity = "1000"
+}
+
+type GPSPoint {
+    att lat : Double
+    att lng : Double
+}
+
+const SUPER_SIZE : Int = 42
+const defTask : Task
+
+index Nodes : Hello using name

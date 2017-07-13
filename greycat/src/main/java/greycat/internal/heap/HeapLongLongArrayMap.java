@@ -295,10 +295,11 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     }
 
     @Override
-    public final void put(final long insertKey, final long insertValue) {
+    public final LongLongArrayMap put(final long insertKey, final long insertValue) {
         synchronized (parent) {
             internal_put(insertKey, insertValue, false,true);
         }
+        return this;
     }
 
     private void internal_put(final long insertKey, final long insertValue, final boolean initial,final boolean check) {

@@ -35,7 +35,7 @@ public interface LongLongArrayMap extends Map {
      * @param key   to insert key
      * @param value to insert value
      */
-    void put(long key, long value);
+    LongLongArrayMap put(long key, long value);
 
     /**
      * Remove the current K/V tuple fromVar the getOrCreateMap

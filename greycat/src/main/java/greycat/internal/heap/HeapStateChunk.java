@@ -186,12 +186,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.INT_TO_INT_MAP:
                     case Type.INT_TO_STRING_MAP:
                         return result;
-                        /*
-                    case Type.NDTREE:
-                        return new NDTree((EStructArray) result, new IndexManager());
-                    case Type.KDTREE:
-                        return new KDTree((EStructArray) result);
-                        */
                     default:
                         if (p_raw) {
                             return result;
@@ -373,6 +367,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 toSet = new HeapLongLongArrayMap(this);
                 toGet = toSet;
                 break;
+                /*
+            case Type.ESTRUCT:
+                toSet = new HeapEStruct(this, null, _space.graph());
+                toGet = toSet;
+                break;*/
             case Type.ESTRUCT_ARRAY:
                 toSet = new HeapEStructArray(this, null, _space.graph());
                 toGet = toSet;

@@ -1,0 +1,19 @@
+{
+  "name": "greycat-gencli-test",
+  "version": "0.0.1",
+  "description": "GreyCat Generator CLI demo",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/datathings/greycat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/datathings/greycat/issues"
+  },
+  "devDependencies": {
+    "greycatCli": "/Users/duke/Documents/datathings/greycat/modeling/gencli/target/greycat-gencli-9.0.0.tgz"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "greycat-gencli": "file:../../modeling/gencli/target/greycat-gencli-9.0.0.tgz"
+  }
+}

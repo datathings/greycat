@@ -32,7 +32,7 @@ public interface IntIntMap extends Map {
      * @param key to insert key
      * @param value to insert value
      */
-    void put(int key, int  value);
+    IntIntMap put(int key, int  value);
 
     /**
      * Remove the key passed as parameter fromVar the getOrCreateMap

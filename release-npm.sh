@@ -28,3 +28,7 @@ cd "$basedir"
 cd plugins/ml/target/classes-npm
 npm publish ./
 cd "$basedir"
+
+cd modelling/gencli/target/classes-npm
+npm publish ./
+cd "$basedir"

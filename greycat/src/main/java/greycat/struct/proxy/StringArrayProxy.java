@@ -90,9 +90,9 @@ public final class StringArrayProxy implements StringArray {
     }
 
     @Override
-    public void addElement(String value) {
+    public StringArray addElement(String value) {
         check();
-        _elem.addElement(value);
+        return _elem.addElement(value);
     }
 
     @Override

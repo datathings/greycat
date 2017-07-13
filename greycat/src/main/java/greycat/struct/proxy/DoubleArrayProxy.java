@@ -90,9 +90,9 @@ public final class DoubleArrayProxy implements DoubleArray {
     }
 
     @Override
-    public void addElement(double value) {
+    public DoubleArray addElement(double value) {
         check();
-        _elem.addElement(value);
+        return _elem.addElement(value);
     }
 
     @Override

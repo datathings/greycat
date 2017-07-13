@@ -130,7 +130,7 @@ final class HeapDoubleArray implements DoubleArray {
     }
 
     @Override
-    public final synchronized void addElement(double value) {
+    public final synchronized DoubleArray addElement(double value) {
         if (_backend == null) {
             _backend = new double[]{value};
         } else {
@@ -140,6 +140,7 @@ final class HeapDoubleArray implements DoubleArray {
             _backend = newBackend;
         }
         _parent.declareDirty();
+        return this;
     }
 
     @Override

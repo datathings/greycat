@@ -66,9 +66,9 @@ public final class StringIntMapProxy implements StringIntMap {
     }
 
     @Override
-    public final void put(final String key, final int value) {
+    public final StringIntMap put(final String key, final int value) {
         check();
-        _elem.put(key, value);
+        return _elem.put(key, value);
     }
 
     @Override

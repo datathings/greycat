@@ -59,20 +59,15 @@ public class WSServerTest {
                     @Override
                     public void on(NodeIndex indexNode) {
                         indexNode.update(root);
-
                         System.out.println(indexNode.toString());
-
                         StateChunk chunk = (StateChunk) graph.space().get(((BaseNode) indexNode)._index_stateChunk);
-
                         Buffer buffer = graph.newBuffer();
                         chunk.save(buffer);
 
                         System.out.println(new String(buffer.data()));
                         System.out.println(chunk.index());
-
                     }
                 }, "name");
-
             }
         });
     }
@@ -119,7 +114,6 @@ public class WSServerTest {
                 graph2.connect(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result1) {
-
                         graph2.index(0, 0, "nodes", new Callback<NodeIndex>() {
                             @Override
                             public void on(NodeIndex indexNodes) {
@@ -145,8 +139,6 @@ public class WSServerTest {
                                                 }, graph2Nodes.world(), graph2Nodes.time());
                                             }
                                         }, "name");
-
-
                                         graph2.save(new Callback<Boolean>() {
                                             @Override
                                             public void on(Boolean result) {
@@ -182,7 +174,6 @@ public class WSServerTest {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
             }
         });
 

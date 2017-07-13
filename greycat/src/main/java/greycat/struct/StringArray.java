@@ -29,7 +29,7 @@ public interface StringArray extends ArrayStruct {
 
     boolean removeElementbyIndex(int index);
 
-    void addElement(String value);
+    StringArray addElement(String value);
 
     boolean insertElementAt(int position, String value);
 

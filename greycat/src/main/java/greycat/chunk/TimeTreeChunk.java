@@ -39,4 +39,6 @@ public interface TimeTreeChunk extends Chunk {
 
     void setCapacity(long v);
 
+    long max();
+
 }

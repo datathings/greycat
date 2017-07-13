@@ -130,7 +130,7 @@ final class HeapIntArray implements IntArray {
     }
 
     @Override
-    public final synchronized void addElement(int value) {
+    public final synchronized IntArray addElement(int value) {
         if (_backend == null) {
             _backend = new int[]{value};
         } else {
@@ -140,6 +140,7 @@ final class HeapIntArray implements IntArray {
             _backend = newBackend;
         }
         _parent.declareDirty();
+        return this;
     }
 
     @Override

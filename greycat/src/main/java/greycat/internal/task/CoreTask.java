@@ -1558,4 +1558,9 @@ public class CoreTask implements Task {
         return then(CoreActions.flat());
     }
 
+    @Override
+    public final Task delete() {
+        return then(CoreActions.delete());
+    }
+
 }

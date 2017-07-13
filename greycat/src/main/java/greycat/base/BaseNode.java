@@ -17,6 +17,8 @@ package greycat.base;
 
 import greycat.*;
 import greycat.chunk.StateChunk;
+import greycat.chunk.WorldOrderChunk;
+import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
 import greycat.plugin.NodeStateCallback;
@@ -1106,6 +1108,16 @@ public class BaseNode implements Node {
             }
         }
         return this;
+    }
+
+    @Override
+    public final int listen(final NodeListener listener) {
+        return ((WorldOrderChunk) this._graph.space().get(_index_worldOrder)).listen(listener);
+    }
+
+    @Override
+    public final void unlisten(final int registrationID) {
+        ((WorldOrderChunk) this._graph.space().get(_index_worldOrder)).unlisten(registrationID);
     }
 
 

@@ -53,9 +53,9 @@ public class IntStringMapProxy implements IntStringMap {
     }
 
     @Override
-    public final void put(final int key, final String value) {
+    public final IntStringMap put(final int key, final String value) {
         check();
-        _elem.put(key, value);
+        return _elem.put(key, value);
     }
 
     @Override

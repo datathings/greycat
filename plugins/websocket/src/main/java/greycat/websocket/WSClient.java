@@ -17,11 +17,12 @@ package greycat.websocket;
 
 import greycat.*;
 import greycat.base.BaseTaskResult;
+import greycat.chunk.ChunkType;
+import greycat.chunk.WorldOrderChunk;
 import greycat.internal.task.CoreProgressReport;
 import greycat.plugin.TaskExecutor;
 import greycat.struct.BufferIterator;
-import greycat.utility.L3GMap;
-import greycat.utility.Tuple;
+import greycat.utility.*;
 import io.undertow.connector.ByteBufferPool;
 import io.undertow.server.DefaultByteBufferPool;
 import io.undertow.websockets.client.WebSocketClient;
@@ -29,13 +30,13 @@ import io.undertow.websockets.core.*;
 import greycat.chunk.Chunk;
 import greycat.plugin.Storage;
 import greycat.struct.Buffer;
-import greycat.utility.Base64;
 import org.xnio.*;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -192,7 +193,6 @@ public class WSClient implements Storage, TaskExecutor {
             } else {
                 hashProgress = -1;
             }
-
             buffer.write(Constants.BUFFER_SEP);
             prepared.saveToBuffer(buffer);
         } else {
@@ -202,18 +202,17 @@ public class WSClient implements Storage, TaskExecutor {
         send_rpc_req(WSConstants.REQ_TASK, buffer, new Callback<Buffer>() {
             @Override
             public void on(final Buffer bufferResult) {
-                if(hashPrint != -1){
+                if (hashPrint != -1) {
                     _callbacks.remove(hashPrint);
                 }
-                if(hashProgress != -1){
+                if (hashProgress != -1) {
                     _callbacks.remove(hashProgress);
                 }
                 buffer.free();
                 final BaseTaskResult baseTaskResult = new BaseTaskResult(null, false);
-
-                L3GMap<List<Tuple<Object[], Integer>>> collector = new L3GMap<List<Tuple<Object[], Integer>>>(true);
+                final L3GMap<List<Tuple<Object[], Integer>>> collector = new L3GMap<List<Tuple<Object[], Integer>>>(true);
                 baseTaskResult.load(bufferResult, 0, _graph, collector);
-                process_notify(baseTaskResult.notifications());
+                _graph.remoteNotify(baseTaskResult.notifications());
                 baseTaskResult.loadRefs(_graph, collector, new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
@@ -240,7 +239,7 @@ public class WSClient implements Storage, TaskExecutor {
         }
     }
 
-    private void send_rpc_req(byte operationId, Buffer payload, Callback callback) {
+    private void send_rpc_req(final byte operationId, final Buffer payload, final Callback callback) {
         if (_channel == null) {
             throw new RuntimeException(WSConstants.DISCONNECTED_ERROR);
         }
@@ -254,7 +253,7 @@ public class WSClient implements Storage, TaskExecutor {
             buffer.write(Constants.BUFFER_SEP);
             buffer.writeAll(payload.data());
         }
-        ByteBuffer wrapped = ByteBuffer.wrap(buffer.data());
+        final ByteBuffer wrapped = ByteBuffer.wrap(buffer.data());
         buffer.free();
         WebSockets.sendBinary(wrapped, _channel, new WebSocketCallback<Void>() {
             @Override
@@ -269,7 +268,9 @@ public class WSClient implements Storage, TaskExecutor {
         });
     }
 
+    /*
     private void process_notify(Buffer buffer) {
+        Map<Long, Tuple<Listeners, LArray>> events = null;
         if (buffer != null) {
             byte type = 0;
             long world = 0;
@@ -305,7 +306,19 @@ public class WSClient implements Storage, TaskExecutor {
                         step = 0;
                         final Chunk ch = _graph.space().getAndMark(type, world, time, id);
                         if (ch != null) {
-                            ch.sync(hash);
+                            if (!ch.sync(hash)) {
+                                if (events != null && events.get(id) != null) {
+                                    events.get(id).right().add(time);
+                                } else {
+                                    final WorldOrderChunk wo = (WorldOrderChunk) _graph.space().getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id);
+                                    final Listeners l = wo.listeners();
+                                    if (l != null) {
+                                        LArray collector = new LArray();
+                                        collector.add(time);
+                                        events.put(id, new Tuple<Listeners, LArray>(l, collector));
+                                    }
+                                }
+                            }
                             _graph.space().unmark(ch.index());
                         }
                     } else {
@@ -335,12 +348,31 @@ public class WSClient implements Storage, TaskExecutor {
                 //invalidate
                 final Chunk ch = _graph.space().getAndMark(type, world, time, id);
                 if (ch != null) {
-                    ch.sync(hash);
+                    if (!ch.sync(hash)) {
+                        if (events != null && events.get(id) != null) {
+                            events.get(id).right().add(time);
+                        } else {
+                            final WorldOrderChunk wo = (WorldOrderChunk) _graph.space().getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id);
+                            final Listeners l = wo.listeners();
+                            if (l != null) {
+                                LArray collector = new LArray();
+                                collector.add(time);
+                                events.put(id, new Tuple<Listeners, LArray>(l, collector));
+                            }
+                        }
+                    }
                     _graph.space().unmark(ch.index());
                 }
             }
+            //dispatch notification
+            if (events != null) {
+                events.values().forEach(tuple -> {
+                    tuple.left().dispatch(tuple.right().all());
+                });
+            }
         }
     }
+    */
 
     private void process_rpc_resp(byte[] payload) {
         Buffer payloadBuf = _graph.newBuffer();
@@ -351,8 +383,9 @@ public class WSClient implements Storage, TaskExecutor {
             final byte firstCode = codeView.read(0);
             switch (firstCode) {
                 case WSConstants.NOTIFY_UPDATE:
+                    //todo duplicate
                     while (it.hasNext()) {
-                        process_notify(it.next());
+                        _graph.remoteNotify(it.next());
                     }
                     //todo optimize this
                     if (_listeners.size() > 0) {
@@ -369,7 +402,7 @@ public class WSClient implements Storage, TaskExecutor {
                     final Buffer printContentView = it.next();
                     final int callbackPrintCode = Base64.decodeToIntWithBounds(callbackPrintCodeView, 0, callbackPrintCodeView.length());
                     final String printContent = Base64.decodeToStringWithBounds(printContentView, 0, printContentView.length());
-                    Callback printCallback = _callbacks.get(callbackPrintCode);
+                    final Callback printCallback = _callbacks.get(callbackPrintCode);
                     printCallback.on(printContent);
                     break;
                 case WSConstants.NOTIFY_PROGRESS:
@@ -386,8 +419,8 @@ public class WSClient implements Storage, TaskExecutor {
                 case WSConstants.RESP_TASK:
                     final Buffer callBackCodeView = it.next();
                     final int callbackCode = Base64.decodeToIntWithBounds(callBackCodeView, 0, callBackCodeView.length());
-                    Callback resolvedCallback = _callbacks.get(callbackCode);
-                    Buffer newBuf = _graph.newBuffer();//will be free by the core
+                    final Callback resolvedCallback = _callbacks.get(callbackCode);
+                    final Buffer newBuf = _graph.newBuffer();//will be free by the core
                     boolean isFirst = true;
                     while (it.hasNext()) {
                         if (isFirst) {

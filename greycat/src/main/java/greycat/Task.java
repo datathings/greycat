@@ -409,4 +409,6 @@ public interface Task {
 
     Task remote(Task sub);
 
+    Task delete();
+
 }

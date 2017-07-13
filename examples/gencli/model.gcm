@@ -1,0 +1,4 @@
+class MyClass {
+    att name : String
+}
+

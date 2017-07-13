@@ -31,8 +31,8 @@
 
     <properties>
         <header.path>${basedir}/../../HEADER</header.path>
-        <roaster.version>2.20.0.Final</roaster.version>
         <maven.core.version>3.3.9</maven.core.version>
+        <javapoet.version>1.9.0</javapoet.version>
     </properties>
 
     <dependencies>
@@ -47,14 +47,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jboss.forge.roaster</groupId>
-            <artifactId>roaster-api</artifactId>
-            <version>${roaster.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.forge.roaster</groupId>
-            <artifactId>roaster-jdt</artifactId>
-            <version>${roaster.version}</version>
+            <groupId>com.squareup</groupId>
+            <artifactId>javapoet</artifactId>
+            <version>${javapoet.version}</version>
         </dependency>
         <dependency>
             <groupId>com.datathings</groupId>
@@ -79,7 +74,7 @@
                     <source>1.8</source>
                     <target>1.8</target>
                     <compilerArguments>
-                        <profile>compact1</profile>
+                        <profile>compact3</profile>
                     </compilerArguments>
                 </configuration>
             </plugin>

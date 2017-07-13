@@ -25,6 +25,10 @@ public class CoreActions {
         return new ActionFlat();
     }
 
+    public static Action delete() {
+        return new ActionDelete();
+    }
+
     /**
      * Sets the task context to a particular world.
      *

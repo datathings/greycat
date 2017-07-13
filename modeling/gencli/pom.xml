@@ -1,0 +1,114 @@
+<!--
+
+    Copyright 2017 The GreyCat Authors.  All rights reserved.
+    <p>
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    <p>
+    http://www.apache.org/licenses/LICENSE-2.0
+    <p>
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>greycat-gencli</artifactId>
+    <version>9-SNAPSHOT</version>
+    <name>greycat-gencli</name>
+    <packaging>jar</packaging>
+
+    <parent>
+        <artifactId>greycat-parent</artifactId>
+        <groupId>com.datathings</groupId>
+        <version>9-SNAPSHOT</version>
+        <relativePath>../..</relativePath>
+    </parent>
+
+    <properties>
+        <header.path>${basedir}/../../HEADER</header.path>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.datathings</groupId>
+            <artifactId>greycat-generator</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>greycat.GeneratorMain</mainClass>
+                                </transformer>
+                            </transformers>
+                            <outputFile>${basedir}/target/classes-npm/generator.jar</outputFile>
+                            <!--<minimizeJar>true</minimizeJar>-->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <id>main.ts.compile</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                def ant = new AntBuilder()
+                                ant.copy(file: "${basedir}/src/main/js/package.json", todir: "${basedir}/target/classes-npm")
+                                def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
+                                while (project_version.split('\\.').length != 3) {
+                                    project_version += '.0'
+                                }
+                                def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
+                                while (j2ts_version.split('\\.').length != 3) {
+                                    j2ts_version += '.0'
+                                }
+                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
+                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
+                                ant.copy(file: "${basedir}/src/main/js/gencli.js", todir: "${basedir}/target/classes-npm")
+                                def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/classes-npm"))
+                                npmInstallProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmInstallProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                def npmPackProcess = "npm pack classes-npm/".execute(null, new File("${basedir}/target/"))
+                                npmPackProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmPackProcess.exitValue() != 0) {
+                                    exit
+                                }
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

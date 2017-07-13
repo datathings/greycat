@@ -29,7 +29,7 @@ public interface LongArray extends ArrayStruct {
 
     boolean removeElementbyIndex(int index);
 
-    void addElement(long value);
+    LongArray addElement(long value);
 
     void addAll(long[] values);
 

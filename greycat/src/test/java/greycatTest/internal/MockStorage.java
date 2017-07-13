@@ -132,6 +132,12 @@ public class MockStorage implements Storage {
 
     @Override
     public final void remove(Buffer keys, Callback<Boolean> callback) {
+        final BufferIterator it = keys.iterator();
+        while (it.hasNext()) {
+            //do nothing with the view, redirect to BlackHole...
+            byte[] key = it.next().data();
+            backend.remove(keyToString(key));
+        }
         callback.on(true);
     }
 

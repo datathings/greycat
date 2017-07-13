@@ -90,9 +90,9 @@ public final class LongArrayProxy implements LongArray {
     }
 
     @Override
-    public void addElement(long value) {
+    public LongArray addElement(long value) {
         check();
-        _elem.addElement(value);
+        return _elem.addElement(value);
     }
 
     @Override

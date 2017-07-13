@@ -21,16 +21,14 @@ import greycat.internal.custom.*;
 import greycat.internal.heap.HeapMemoryFactory;
 import greycat.plugin.*;
 import greycat.struct.*;
-import greycat.utility.HashHelper;
+import greycat.utility.*;
 import greycat.base.BaseNode;
 import greycat.internal.task.CoreActionRegistry;
 import greycat.internal.task.CoreTask;
 import greycat.TaskHook;
 import greycat.utility.Base64;
-import greycat.utility.KeyHelper;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CoreGraph implements Graph {
@@ -207,6 +205,7 @@ public class CoreGraph implements Graph {
             //Init the cloned node with clonee resolver cache
             newNode._index_stateChunk = casted._index_stateChunk;
             newNode._index_timeTree = casted._index_timeTree;
+            newNode._index_timeTree_offset = casted._index_timeTree_offset;
             newNode._index_superTimeTree = casted._index_superTimeTree;
             newNode._index_worldOrder = casted._index_worldOrder;
             newNode._world_magic = casted._world_magic;
@@ -348,7 +347,9 @@ public class CoreGraph implements Graph {
     public final void connect(final Callback<Boolean> callback) {
         final CoreGraph selfPointer = this;
         //negociate a lock
-        while (selfPointer._lock.compareAndSet(false, true)) ;
+        while (selfPointer._lock.compareAndSet(false, true)) {
+            //noop
+        }
         //ok we have it, let's go
         if (_isConnected.compareAndSet(false, true)) {
             //first connect the scheduler
@@ -465,7 +466,9 @@ public class CoreGraph implements Graph {
 
     @Override
     public final void disconnect(final Callback callback) {
-        while (this._lock.compareAndSet(false, true)) ;
+        while (this._lock.compareAndSet(false, true)) {
+            //noop
+        }
         //ok we have the lock
         if (_isConnected.compareAndSet(true, false)) {
             //JS workaround for closure encapsulation and this variable
@@ -681,4 +684,108 @@ public class CoreGraph implements Graph {
             }
         }
     }
+
+    private void remoteNotifyElement(final byte type, final long world, final long time, final long id, final long hash, final java.util.Map<Long, Tuple<Listeners, LArray>> events) {
+        final Chunk ch = _space.getAndMark(type, world, time, id);
+        if (ch != null) {
+            //if already in sync we do nothing
+            if (!ch.sync(hash)) {
+                _space.unmark(ch.index());
+                return;
+            }
+        }
+        //not found, or not in sync
+        if (type == ChunkType.STATE_CHUNK) {
+            final WorldOrderChunk wo = (WorldOrderChunk) _space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id);
+            if (wo != null) {
+                if (events != null && events.get(id) != null) {
+                    events.get(id).right().add(time);
+                } else {
+                    final Listeners l = wo.listeners();
+                    if (l != null) {
+                        LArray collector = new LArray();
+                        collector.add(time);
+                        events.put(id, new Tuple<Listeners, LArray>(l, collector));
+                    }
+                }
+                _space.unmark(wo.index());
+            }
+        }
+    }
+
+    @Override
+    public final void remoteNotify(final Buffer buffer) {
+        java.util.Map<Long, Tuple<Listeners, LArray>> events = new java.util.HashMap<Long, Tuple<Listeners, LArray>>();
+        if (buffer != null && buffer.length() > 0) {
+            byte type = 0;
+            long world = 0;
+            long time = 0;
+            long id = 0;
+            long hash = 0;
+            int step = 0;
+            long cursor = 0;
+            long previous = 0;
+            int end = (int) buffer.length();
+            while (cursor < end) {
+                byte current = buffer.read(cursor);
+                if (current == Constants.KEY_SEP) {
+                    switch (step) {
+                        case 0:
+                            type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                            break;
+                        case 1:
+                            world = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 2:
+                            time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 3:
+                            id = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 4:
+                            hash = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                    }
+                    previous = cursor + 1;
+                    if (step == 4) {
+                        step = 0;
+                        remoteNotifyElement(type, world, time, id, hash, events);
+                    } else {
+                        step++;
+                    }
+                }
+                cursor++;
+            }
+            switch (step) {
+                case 0:
+                    type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                    break;
+                case 1:
+                    world = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 2:
+                    time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 3:
+                    id = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 4:
+                    hash = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+            }
+            if (step == 4) {
+                //invalidate
+                remoteNotifyElement(type, world, time, id, hash, events);
+            }
+            //dispatch notification to local listener
+            if (events.size() > 0) {
+                final Tuple[] tuples = events.values().toArray(new Tuple[events.size()]);
+                for (int i = 0; i < tuples.length; i++) {
+                    Tuple<Listeners, LArray> tt = tuples[i];
+                    tt.left().dispatch(tt.right().all());
+                }
+            }
+        }
+    }
+
 }

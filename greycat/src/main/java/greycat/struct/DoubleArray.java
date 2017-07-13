@@ -29,7 +29,7 @@ public interface DoubleArray extends ArrayStruct {
 
     boolean removeElementbyIndex(int index);
 
-    void addElement(double value);
+    DoubleArray addElement(double value);
 
     boolean insertElementAt(int position, double value);
 

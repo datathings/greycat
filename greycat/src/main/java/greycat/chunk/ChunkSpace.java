@@ -73,6 +73,8 @@ public interface ChunkSpace {
      */
     void unmark(final long index);
 
+    void delete(byte type, long world, long time, long id);
+
     /**
      * Marks the chunk at the given index
      *

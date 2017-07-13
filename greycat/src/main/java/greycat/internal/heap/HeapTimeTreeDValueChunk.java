@@ -44,6 +44,8 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
     private volatile long _magic;
     private volatile int _size;
 
+    private long _max;
+
     HeapTimeTreeDValueChunk(final HeapChunkSpace p_space, final long p_index) {
         _space = p_space;
         _index = p_index;
@@ -62,6 +64,11 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
     @Override
     public final void setCapacity(long v) {
         _capacity = v;
+    }
+
+    @Override
+    public long max() {
+        return _max;
     }
 
     @Override
@@ -589,6 +596,9 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
 
     @SuppressWarnings("Duplicates")
     private Tuple<Boolean, Integer> internal_insert(long p_key, double value) {
+        if (p_key > _max) {
+            _max = p_key;
+        }
         if (_k == null || _k.length == _size) {
             int length = _size;
             if (length == 0) {

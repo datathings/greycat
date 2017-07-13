@@ -152,7 +152,7 @@ public class HeapIntStringMap implements IntStringMap {
     }
 
     @Override
-    public void put(int insertKey, String insertValue) {
+    public IntStringMap put(int insertKey, String insertValue) {
         synchronized (parent) {
             if (keys == null) {
                 reallocate(Constants.MAP_INITIAL_CAPACITY);
@@ -196,6 +196,7 @@ public class HeapIntStringMap implements IntStringMap {
                 }
             }
         }
+        return this;
     }
 
     @Override

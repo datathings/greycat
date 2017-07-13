@@ -24,43 +24,9 @@ public class Class extends Type {
         this.properties = new HashMap<String, Object>();
     }
 
-
-    Relation getOrCreateRelation(String name) {
-        Object att = properties.get(name);
-        if (att == null) {
-            att = new Relation(name);
-            properties.put(name, att);
-        } else if (!(att instanceof Relation)) {
-            throw new RuntimeException("Property name conflict relation name conflict with " + att);
-        }
-        return (Relation) att;
-    }
-
-    Reference getOrCreateReference(String name) {
-        Object att = properties.get(name);
-        if (att == null) {
-            att = new Reference(name);
-            properties.put(name, att);
-        } else if (!(att instanceof Reference)) {
-            throw new RuntimeException("Property name conflict relation name conflict with " + att);
-        }
-        return (Reference) att;
-    }
-
-    Index getOrCreateIndex(String name) {
-        Object att = properties.get(name);
-        if (att == null) {
-            att = new Index(name);
-            properties.put(name, att);
-        } else if (!(att instanceof Index)) {
-            throw new RuntimeException("Property name conflict index name conflict with " + att);
-        }
-        return (Index) att;
-    }
-
-
     @Override
     public String toString() {
         return "Class(" + name + ")";
     }
+
 }

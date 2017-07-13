@@ -15,7 +15,9 @@
  */
 package greycat.chunk;
 
+import greycat.NodeListener;
 import greycat.struct.LongLongMap;
+import greycat.utility.Listeners;
 
 public interface WorldOrderChunk extends Chunk, LongLongMap {
 
@@ -32,5 +34,11 @@ public interface WorldOrderChunk extends Chunk, LongLongMap {
     long type();
 
     void setType(long extraValue);
+
+    int listen(NodeListener listener);
+
+    void unlisten(int registrationID);
+
+    Listeners listeners();
 
 }

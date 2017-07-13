@@ -15,104 +15,128 @@
  */
 package greycat.generator;
 
-import greycat.Node;
-import greycat.Task;
+import com.squareup.javapoet.ArrayTypeName;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
+import greycat.*;
 import greycat.internal.custom.KDTree;
 import greycat.internal.custom.NDTree;
 import greycat.struct.*;
+import greycat.utility.HashHelper;
+import greycat.utility.Meta;
+import greycat.utility.MetaConst;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class TypeManager {
+public class Helper {
+
+    static final ClassName gCallback = ClassName.get(Callback.class);
+    static final ClassName gNode = ClassName.get(Node.class);
+    static final TypeName gNodeArray = ArrayTypeName.of(ClassName.get(Node.class));
+    static final ClassName gMeta = ClassName.get(Meta.class);
+    static final ClassName gMetaConst = ClassName.get(MetaConst.class);
+    static final ClassName gGraph = ClassName.get(Graph.class);
+    static final ClassName gIndex = ClassName.get(Index.class);
+    static final ClassName gNodeIndex = ClassName.get(NodeIndex.class);
+    static final ClassName jlSystem = ClassName.get(java.lang.System.class);
+
     private static Set<String> primitives = new HashSet<String>(Arrays.asList("Bool", "Boolean", "String", "Long", "Int", "Integer", "Double"));
     private static Set<String> primitiveArrays = new HashSet<String>(Arrays.asList("BoolArray", "BooleanArray", "StringArray", "LongArray", "IntArray", "IntegerArray", "DoubleArray"));
     private static Set<String> maps = new HashSet<String>(Arrays.asList("LongToLongMap", "LongToLongArrayMap", "StringToIntMap", "IntToIntMap", "IntToStringMap"));
     private static Set<String> matrices = new HashSet<String>(Arrays.asList("DMatrix", "LMatrix"));
     private static Set<String> trees = new HashSet<String>(Arrays.asList("KDTree", "NDTree"));
 
-
     public static String typeName(String type) {
         String typeName;
         switch (type) {
             case "Boolean":
-                typeName = "Type.BOOL";
+                typeName = "greycat.Type.BOOL";
                 break;
             case "Bool":
-                typeName = "Type.BOOL";
+                typeName = "greycat.Type.BOOL";
                 break;
             case "String":
-                typeName = "Type.STRING";
+                typeName = "greycat.Type.STRING";
                 break;
             case "Long":
-                typeName = "Type.LONG";
+                typeName = "greycat.Type.LONG";
                 break;
             case "Integer":
-                typeName = "Type.INT";
+                typeName = "greycat.Type.INT";
                 break;
             case "Int":
-                typeName = "Type.INT";
+                typeName = "greycat.Type.INT";
                 break;
             case "Double":
-                typeName = "Type.DOUBLE";
+                typeName = "greycat.Type.DOUBLE";
                 break;
             case "DoubleArray":
-                typeName = "Type.DOUBLE_ARRAY";
+                typeName = "greycat.Type.DOUBLE_ARRAY";
                 break;
             case "LongArray":
-                typeName = "Type.LONG_ARRAY";
+                typeName = "greycat.Type.LONG_ARRAY";
                 break;
             case "IntArray":
-                typeName = "Type.INT_ARRAY";
+                typeName = "greycat.Type.INT_ARRAY";
                 break;
             case "StringArray":
-                typeName = "Type.STRING_ARRAY";
+                typeName = "greycat.Type.STRING_ARRAY";
                 break;
             case "LongToLongMap":
-                typeName = "Type.LONG_TO_LONG_MAP";
+                typeName = "greycat.Type.LONG_TO_LONG_MAP";
                 break;
             case "LongToLongArrayMap":
-                typeName = "Type.LONG_TO_LONG_ARRAY_MAP";
+                typeName = "greycat.Type.LONG_TO_LONG_ARRAY_MAP";
                 break;
             case "StringToIntMap":
-                typeName = "Type.STRING_TO_INT_MAP";
+                typeName = "greycat.Type.STRING_TO_INT_MAP";
                 break;
             case "DMatrix":
-                typeName = "Type.DMATRIX";
+                typeName = "greycat.Type.DMATRIX";
                 break;
             case "LMatrix":
-                typeName = "Type.LMATRIX";
+                typeName = "greycat.Type.LMATRIX";
                 break;
             case "EStructArray":
-                typeName = "Type.ESTRUCT_ARRAY";
+                typeName = "greycat.Type.ESTRUCT_ARRAY";
                 break;
             case "EStruct":
-                typeName = "Type.ESTRUCT";
+                typeName = "greycat.Type.ESTRUCT";
                 break;
             case "KDTree":
-                typeName = "Type.KDTREE";
+                typeName = "greycat.Type.KDTREE";
                 break;
             case "NDTree":
-                typeName = "Type.NDTREE";
+                typeName = "greycat.Type.NDTREE";
                 break;
             case "IntToIntMap":
-                typeName = "Type.INT_TO_INT_MAP";
+                typeName = "greycat.Type.INT_TO_INT_MAP";
                 break;
             case "IntToStringMap":
-                typeName = "Type.INT_TO_STRING_MAP";
+                typeName = "greycat.Type.INT_TO_STRING_MAP";
                 break;
             case "Task":
-                typeName = "Type.TASK";
+                typeName = "greycat.Type.TASK";
                 break;
             case "TaskArray":
-                typeName = "Type.TASK_ARRAY";
+                typeName = "greycat.Type.TASK_ARRAY";
                 break;
             case "Node":
-                typeName = "Type.NODE";
+                typeName = "greycat.Type.NODE";
+                break;
+            case "Index":
+                typeName = "greycat.Type.INDEX";
+                break;
+            case "Relation":
+                typeName = "greycat.Type.RELATION";
+                break;
+            case "Reference":
+                typeName = "greycat.Type.REFERENCE";
                 break;
             default:
-                typeName = type + ".TYPE_HASH";
+                typeName = "" + HashHelper.hash(type);
         }
 
         return typeName;
@@ -134,24 +158,23 @@ public class TypeManager {
         return "any";
     }
 
-    public static String className(String type) {
+    static String className(String type) {
         String className;
-
         switch (type) {
             case "Bool":
-                className = boolean.class.getCanonicalName();
+                className = Boolean.class.getCanonicalName();
                 break;
             case "String":
                 className = String.class.getCanonicalName();
                 break;
             case "Long":
-                className = long.class.getCanonicalName();
+                className = Long.class.getCanonicalName();
                 break;
             case "Int":
-                className = int.class.getCanonicalName();
+                className = Integer.class.getCanonicalName();
                 break;
             case "Double":
-                className = double.class.getCanonicalName();
+                className = Double.class.getCanonicalName();
                 break;
             case "DoubleArray":
                 className = DoubleArray.class.getCanonicalName();
@@ -213,6 +236,60 @@ public class TypeManager {
 
         return className;
     }
+
+    static TypeName clazz(String type) {
+        switch (type) {
+            case "Bool":
+                return TypeName.BOOLEAN.box();
+            case "String":
+                return ClassName.get(String.class);
+            case "Long":
+                return TypeName.LONG.box();
+            case "Int":
+                return TypeName.INT.box();
+            case "Double":
+                return TypeName.DOUBLE.box();
+            case "DoubleArray":
+                return ClassName.get(DoubleArray.class);
+            case "LongArray":
+                return ClassName.get(LongArray.class);
+            case "IntArray":
+                return ClassName.get(IntArray.class);
+            case "StringArray":
+                return ClassName.get(StringArray.class);
+            case "LongToLongMap":
+                return ClassName.get(LongLongMap.class);
+            case "LongToLongArrayMap":
+                return ClassName.get(LongLongArrayMap.class);
+            case "StringToIntMap":
+                return ClassName.get(StringIntMap.class);
+            case "DMatrix":
+                return ClassName.get(DMatrix.class);
+            case "LMatrix":
+                return ClassName.get(LMatrix.class);
+            case "EStructArray":
+                return ClassName.get(EStructArray.class);
+            case "EStruct":
+                return ClassName.get(EStruct.class);
+            case "KDTree":
+                return ClassName.get(KDTree.class);
+            case "NDTree":
+                return ClassName.get(NDTree.class);
+            case "IntToIntMap":
+                return ClassName.get(IntIntMap.class);
+            case "IntToStringMap":
+                return ClassName.get(IntStringMap.class);
+            case "Task":
+                return ClassName.get(Task.class);
+            case "TaskArray":
+                return ClassName.get(Task[].class);
+            case "Node":
+                return ClassName.get(Node.class);
+            default:
+                return ClassName.bestGuess(type);
+        }
+    }
+
 
     public static boolean isPrimitive(String type) {
         return primitives.contains(type);

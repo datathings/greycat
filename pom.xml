@@ -47,7 +47,7 @@
     </parent>
 
     <properties>
-        <java2typescript.plugin.version>90</java2typescript.plugin.version>
+        <java2typescript.plugin.version>91</java2typescript.plugin.version>
         <header.path>${basedir}/HEADER</header.path>
         <undertow.version>1.4.17.Final</undertow.version>
     </properties>
@@ -107,7 +107,7 @@
         <module>modeling/generator</module>
         <module>modeling/mavenplugin</module>
         <module>modeling/gradleplugin</module>
-        <module>modeling/cli</module>
+        <module>modeling/gencli</module>
 
         <!--Examples-->
 
@@ -150,6 +150,8 @@
                 <configuration>
                     <header>${header.path}</header>
                     <excludes>
+                        <exclude>**/examples/**</exclude>
+                        <exclude>**/gencli.js</exclude>
                         <exclude>**/README</exclude>
                         <exclude>**/README.md</exclude>
                         <exclude>src/test/resources/**</exclude>

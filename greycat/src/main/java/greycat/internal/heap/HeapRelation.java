@@ -53,7 +53,7 @@ class HeapRelation implements Relation {
     }
 
     @Override
-    public long[] all() {
+    public final long[] all() {
         long[] ids;
         synchronized (parent) {
             if (_backend == null) {
@@ -90,9 +90,10 @@ class HeapRelation implements Relation {
         }
     }
 
+    /*
     final long unsafe_get(int index) {
         return _backend[index];
-    }
+    }*/
 
     @Override
     public final Relation addNode(Node node) {
@@ -134,7 +135,7 @@ class HeapRelation implements Relation {
     }
 
     @Override
-    public Relation addAll(final long[] newValues) {
+    public final Relation addAll(final long[] newValues) {
         synchronized (parent) {
             int nextSize = newValues.length + _size;
             final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(nextSize) / Math.log(2)));
@@ -216,6 +217,7 @@ class HeapRelation implements Relation {
                 System.arraycopy(_backend, indexToRemove + 1, _backend, indexToRemove, _size - indexToRemove - 1);
                 _size--;
             }
+            parent.declareDirty();
         }
         return this;
     }
@@ -233,6 +235,7 @@ class HeapRelation implements Relation {
                 System.arraycopy(_backend, toRemoveIndex + 1, _backend, toRemoveIndex, _size - toRemoveIndex - 1);
                 _size--;
             }
+            parent.declareDirty();
         }
         return this;
     }
@@ -242,6 +245,7 @@ class HeapRelation implements Relation {
         synchronized (parent) {
             _backend = null;
             _size = 0;
+            parent.declareDirty();
         }
         return this;
     }
@@ -262,8 +266,8 @@ class HeapRelation implements Relation {
 
     public final void save(final Buffer buffer) {
         if (_backend != null) {
-            Base64.encodeIntToBuffer(_backend.length, buffer);
-            for (int j = 0; j < _backend.length; j++) {
+            Base64.encodeIntToBuffer(_size, buffer);
+            for (int j = 0; j < _size; j++) {
                 buffer.write(CoreConstants.CHUNK_VAL_SEP);
                 Base64.encodeLongToBuffer(_backend[j], buffer);
             }

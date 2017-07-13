@@ -131,7 +131,7 @@ final class HeapLongArray implements LongArray {
     }
 
     @Override
-    public final synchronized void addElement(long value) {
+    public final synchronized LongArray addElement(long value) {
         if (_backend == null) {
             _backend = new long[]{value};
         } else {
@@ -141,6 +141,7 @@ final class HeapLongArray implements LongArray {
             _backend = newBackend;
         }
         _parent.declareDirty();
+        return this;
     }
 
     @Override

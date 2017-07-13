@@ -50,6 +50,7 @@ public class CoreActionNames {
     public static String READ_VAR = "readVar";
     public static String REMOVE = "remove";
     public static String SAVE = "save";
+    public static String DELETE = "delete";
     public static String SCRIPT = "script";
     public static String ASYNC_SCRIPT = "asyncScript";
     public static String SELECT = "select";

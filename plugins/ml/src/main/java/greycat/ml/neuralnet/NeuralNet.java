@@ -76,7 +76,7 @@ public class NeuralNet {
             //load all layers
             layers = new Layer[nb];
             for (int i = 0; i < layers.length; i++) {
-                layers[i] = Layers.loadLayer(backend.estruct(i+1));
+                layers[i] = Layers.loadLayer(backend.estruct(i + 1));
             }
         } else {
             layers = new Layer[0];
@@ -134,7 +134,7 @@ public class NeuralNet {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
-        ExMatrix actualOutput = internalForward(cg, input);
+        ExMatrix actualOutput = internalForward(cg, input, layers.length);
         DMatrix error = cg.applyLoss(tarinLoss, actualOutput, targetOutput, reportLoss);
         cg.backpropagate();
         learner.stepUpdate(layers);
@@ -146,7 +146,7 @@ public class NeuralNet {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(inputs);
         ExMatrix targetOutput = ExMatrix.createFromW(outputs);
-        ExMatrix actualOutput = internalForward(cg, input);
+        ExMatrix actualOutput = internalForward(cg, input, layers.length);
         DMatrix error = cg.applyLoss(tarinLoss, actualOutput, targetOutput, reportLoss);
         cg.backpropagate();
         learner.setBatchSize(inputs.columns());
@@ -158,14 +158,14 @@ public class NeuralNet {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(inputs);
         ExMatrix targetOutput = ExMatrix.createFromW(outputs);
-        ExMatrix actualOutput = internalForward(cg, input);
-        return  new DMatrix[]{actualOutput, cg.applyLoss(testLoss, actualOutput, targetOutput, true)};
+        ExMatrix actualOutput = internalForward(cg, input, layers.length);
+        return new DMatrix[]{actualOutput, cg.applyLoss(testLoss, actualOutput, targetOutput, true)};
     }
 
     public DMatrix predictVec(DMatrix inputs) {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(inputs);
-        ExMatrix actualOutput = internalForward(cg, input);
+        ExMatrix actualOutput = internalForward(cg, input, layers.length);
         return actualOutput.getW();
     }
 
@@ -184,13 +184,27 @@ public class NeuralNet {
     public double[] predict(double[] inputs) {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
-        ExMatrix actualOutput = internalForward(cg, input);
+        ExMatrix actualOutput = internalForward(cg, input, layers.length);
         return actualOutput.data();
     }
 
-    private ExMatrix internalForward(ProcessGraph cg, ExMatrix input) {
+    public double[] forward(double[] inputs, int numOfLayers) {
+        ProcessGraph cg = new ProcessGraph(false);
+        ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
+        ExMatrix actualOutput = internalForward(cg, input, numOfLayers);
+        return actualOutput.data();
+    }
+
+    public DMatrix forwardVec(DMatrix inputs, int numOfLayers) {
+        ProcessGraph cg = new ProcessGraph(false);
+        ExMatrix input = ExMatrix.createFromW(inputs);
+        ExMatrix actualOutput = internalForward(cg, input, numOfLayers);
+        return actualOutput.getW();
+    }
+
+    private ExMatrix internalForward(ProcessGraph cg, ExMatrix input, int numOfLayers) {
         ExMatrix nextInput = input;
-        for (int i = 0; i < layers.length; i++) {
+        for (int i = 0; i < numOfLayers; i++) {
             nextInput = layers[i].forward(nextInput, cg);
         }
         return nextInput;

@@ -30,7 +30,7 @@ public class BaseCustomTypeSingle extends BaseCustomType {
     }
 
     @Override
-    public final Object getAt(int index) {
+    public Object getAt(int index) {
         return _backend.estruct(DEF_NODE).getAt(index);
     }
 
@@ -45,12 +45,12 @@ public class BaseCustomTypeSingle extends BaseCustomType {
     }
 
     @Override
-    public final int typeAt(int index) {
+    public int typeAt(int index) {
         return _backend.estruct(DEF_NODE).typeAt(index);
     }
 
     @Override
-    public final Container setAt(int index, int type, Object value) {
+    public Container setAt(int index, int type, Object value) {
         return _backend.estruct(DEF_NODE).setAt(index, type, value);
     }
 

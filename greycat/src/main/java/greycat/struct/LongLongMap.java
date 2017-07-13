@@ -29,10 +29,10 @@ public interface LongLongMap extends Map {
      * Add the tuple key/value to the getOrCreateMap.
      * In case the value is equals to Constants.NULL_LONG, the value will be atomically replaced by the current size of the getOrCreateMap
      *
-     * @param key to insert key
+     * @param key   to insert key
      * @param value to insert value
      */
-    void put(long key, long  value);
+    LongLongMap put(long key, long value);
 
     /**
      * Remove the key passed as parameter fromVar the getOrCreateMap

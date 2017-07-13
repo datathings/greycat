@@ -322,7 +322,7 @@ class HeapStringIntMap implements StringIntMap {
     }
 
     @Override
-    public final void put(final String insertKey, final int insertValue) {
+    public final StringIntMap put(final String insertKey, final int insertValue) {
         synchronized (parent) {
             final int keyHash = HashHelper.hash(insertKey);
             if (keys == null) {
@@ -380,6 +380,7 @@ class HeapStringIntMap implements StringIntMap {
                 }
             }
         }
+        return this;
     }
 
     public final void save(final Buffer buffer) {

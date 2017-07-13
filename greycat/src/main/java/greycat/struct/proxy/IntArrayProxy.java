@@ -90,9 +90,9 @@ public final class IntArrayProxy implements IntArray {
     }
 
     @Override
-    public void addElement(int value) {
+    public IntArray addElement(int value) {
         check();
-        _elem.addElement(value);
+        return _elem.addElement(value);
     }
 
     @Override
