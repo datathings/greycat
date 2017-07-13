@@ -385,8 +385,10 @@ public class Model {
         final Index index = type.getOrCreateIndex(localIndexDcl.name.getText());
         index.setType(localIndexDcl.type.getText());
         final Class indexedClass = getOrAddClass(index.type());
-        for (TerminalNode idxDclIdent : localIndexDcl.indexAttributesDcl().IDENT()) {
-            index.addAttributeRef(new AttributeRef(indexedClass.getOrCreateAttribute(idxDclIdent.getText())));
+        if(localIndexDcl.indexAttributesDcl() != null){
+            for (TerminalNode idxDclIdent : localIndexDcl.indexAttributesDcl().IDENT()) {
+                index.addAttributeRef(new AttributeRef(indexedClass.getOrCreateAttribute(idxDclIdent.getText())));
+            }
         }
     }
 
@@ -406,13 +408,14 @@ public class Model {
     }
 
     private String getType(GreyCatModelParser.ValueTypeDclContext typeDclContext) {
-        String type = null;
+        return typeDclContext.getText();
+        /*
         if (typeDclContext.builtInTypeDcl() != null) {
             type = typeDclContext.builtInTypeDcl().getText();
         } else if (typeDclContext.customBuiltTypeDcl() != null) {
             type = typeDclContext.customBuiltTypeDcl().getText();
         }
-        return type;
+        return type;*/
     }
 
     private Class getOrAddClass(String fqn) {

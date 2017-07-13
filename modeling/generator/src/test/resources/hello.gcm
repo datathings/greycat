@@ -26,3 +26,13 @@ const SUPER_SIZE : Int = 42
 const defTask : Task
 
 index Nodes : Hello using name
+
+
+class Generic {
+    ref sub : Node
+    index sibIndex : Node using name
+}
+
+class Generic2 {
+    ref sub : NodeValue
+}

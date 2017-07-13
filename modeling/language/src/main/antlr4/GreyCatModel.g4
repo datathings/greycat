@@ -44,13 +44,14 @@ attributeDcl: 'att' name=IDENT ':' valueTypeDcl ('=' attributeValueDcl)?;
 
 annotationDcl: '@' name=IDENT ('=' value=attributeValueDcl)?;
 
-valueTypeDcl: (builtInTypeDcl | customBuiltTypeDcl);
-customBuiltTypeDcl: IDENT;
+valueTypeDcl: IDENT;//(builtInTypeDcl | customBuiltTypeDcl);
+//customBuiltTypeDcl: IDENT;
+/*
 builtInTypeDcl: ('Bool' | 'Boolean' | 'String' | 'Long' | 'Int' | 'Integer' | 'Double' |
                 'DoubleArray' | 'LongArray' | 'IntArray' | 'StringArray' |
                 'LongToLongMap' | 'LongToLongArrayMap' | 'StringToIntMap'| 'IntToIntMap' | 'IntToStringMap' |
                 'DMatrix' |'LMatrix' |'EStruct' |'EStructArray' | 'KDTree' | 'NDTree' | 'Node' |
-                'Task' | 'TaskArray');
+                'Task' | 'TaskArray');*/
 
 attributeValueDcl: (IDENT | STRING | NUMBER | complexAttributeValueDcl);
 complexAttributeValueDcl: '(' complexValueDcl (',' complexValueDcl)* ')';

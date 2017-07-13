@@ -285,6 +285,8 @@ public class Helper {
                 return ClassName.get(Task[].class);
             case "Node":
                 return ClassName.get(Node.class);
+            case "NodeValue":
+                return ClassName.get(NodeValue.class);
             default:
                 return ClassName.bestGuess(type);
         }

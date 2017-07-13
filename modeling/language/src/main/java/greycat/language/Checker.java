@@ -22,19 +22,25 @@ public class Checker {
     public static void check(Model model) {
         //check that all attributes have a type
         model.classes.values().forEach(aClass -> {
-            aClass.properties().forEach(o -> {
-                if (o instanceof Attribute) {
-                    Attribute attribute = (Attribute) o;
-                    if (attribute.type() == null) {
-                        throw new RuntimeException("Untyped attribute " + attribute.name() + " contained in " + attribute.parent());
+            if(aClass.name.equals("Node")){
+                //noop
+            } else {
+                aClass.properties().forEach(o -> {
+                    if (o instanceof Attribute) {
+                        Attribute attribute = (Attribute) o;
+                        if (attribute.type() == null) {
+                            throw new RuntimeException("Untyped attribute " + attribute.name() + " contained in " + attribute.parent());
+                        }
+                    } else if (o instanceof Constant) {
+                        final Constant constant = (Constant) o;
+                        if (constant.type().equals("Task") && constant.value() != null) {
+                            checkTask(constant.value());
+                        }
                     }
-                } else if (o instanceof Constant) {
-                    final Constant constant = (Constant) o;
-                    if (constant.type().equals("Task") && constant.value() != null) {
-                        checkTask(constant.value());
-                    }
-                }
-            });
+                });
+            }
+
+
         });
         model.constants.values().forEach(constant -> {
             if (constant.type().equals("Task") && constant.value() != null) {

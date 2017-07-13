@@ -23,26 +23,31 @@ import greycat.language.Class;
 import greycat.language.Index;
 import greycat.language.Type;
 import greycat.struct.EStructArray;
-import greycat.utility.HashHelper;
 
 import java.util.List;
 
 import static greycat.generator.Helper.*;
 import static com.squareup.javapoet.TypeName.*;
+import static greycat.utility.HashHelper.hash;
 import static javax.lang.model.element.Modifier.*;
 
 class TypeGenerator {
 
     static void generate(String packageName, Model model, List<JavaFile> collector) {
         for (int i = 0; i < model.classes().length; i++) {
-            collector.add(generateClass(packageName, model.classes()[i]));
+            generateClass(packageName, model.classes()[i], collector);
         }
         for (int i = 0; i < model.customTypes().length; i++) {
-            collector.add(generateClass(packageName, model.customTypes()[i]));
+            generateClass(packageName, model.customTypes()[i], collector);
         }
     }
 
-    private static JavaFile generateClass(String packageName, Type gType) {
+    private static void generateClass(String packageName, Type gType, List<JavaFile> collector) {
+        if (gType.name().equals("Node") || gType.name().equals("greycat.Node")) {
+            return;
+        }
+
+
         TypeSpec.Builder javaClass = TypeSpec.classBuilder(gType.name());
         javaClass.addModifiers(PUBLIC);
 
@@ -60,9 +65,9 @@ class TypeGenerator {
         gType.properties().forEach(o -> {
             if (o instanceof Attribute) {
                 Attribute attribute = (Attribute) o;
-                if (Helper.isPrimitive(attribute.type())) {
-                    TS_GET_SET.append("get " + attribute.name() + "() : " + Helper.classTsName(attribute.type()) + " {return this.get" + Generator.upperCaseFirstChar(attribute.name()) + "();}\n");
-                    TS_GET_SET.append("set " + attribute.name() + "(p : " + Helper.classTsName(attribute.type()) + "){ this.set" + Generator.upperCaseFirstChar(attribute.name()) + "(p);}\n");
+                if (isPrimitive(attribute.type())) {
+                    TS_GET_SET.append("get " + attribute.name() + "() : " + classTsName(attribute.type()) + " {return this.get" + Generator.upperCaseFirstChar(attribute.name()) + "();}\n");
+                    TS_GET_SET.append("set " + attribute.name() + "(p : " + classTsName(attribute.type()) + "){ this.set" + Generator.upperCaseFirstChar(attribute.name()) + "(p);}\n");
                 }
             }
         });
@@ -90,7 +95,6 @@ class TypeGenerator {
         }
 
         // init method
-
         if (gType instanceof Class) {
             javaClass.addMethod(MethodSpec.methodBuilder("create")
                     .addModifiers(PUBLIC, STATIC)
@@ -101,10 +105,9 @@ class TypeGenerator {
                     .addStatement("return ($1T) p_graph.newTypedNode(p_world, p_time, $1T.META.name)", ClassName.get(packageName, gType.name()))
                     .build());
         }
-
         javaClass.addField(FieldSpec.builder(gMeta, "META")
                 .addModifiers(PUBLIC, STATIC, FINAL)
-                .initializer("new $T($S,$L,$L)", gMeta, gType.name(), HashHelper.hash(gType.name()), HashHelper.hash(gType.name()))
+                .initializer("new $T($S,$L,$L)", gMeta, gType.name(), hash(gType.name()), hash(gType.name()))
                 .build());
 
         // properties
@@ -122,22 +125,22 @@ class TypeGenerator {
                 }
                 javaClass.addField(FieldSpec.builder(gMetaConst, constant.name().toUpperCase())
                         .addModifiers(PUBLIC, STATIC, FINAL)
-                        .initializer("new $T($S, $L,$L, $L)", gMetaConst, constant.name(), Helper.typeName(constant.type()), HashHelper.hash(constant.name()), value)
+                        .initializer("new $T($S, $L,$L, $L)", gMetaConst, constant.name(), typeName(constant.type()), hash(constant.name()), value)
                         .build());
             } else if (o instanceof Attribute) {
                 final Attribute att = (Attribute) o;
                 javaClass.addField(FieldSpec.builder(gMeta, att.name().toUpperCase())
                         .addModifiers(PUBLIC, STATIC, FINAL)
-                        .initializer("new $T($S, $L,$L)", gMeta, att.name(), Helper.typeName(att.type()), HashHelper.hash(att.name()))
+                        .initializer("new $T($S, $L,$L)", gMeta, att.name(), typeName(att.type()), hash(att.name()))
                         .build());
 
                 javaClass.addMethod(MethodSpec.methodBuilder("get" + Generator.upperCaseFirstChar(att.name()))
                         .addModifiers(PUBLIC, FINAL)
-                        .returns(Helper.clazz(att.type()))
-                        .addStatement("return ($T) super.getAt($L.hash)", Helper.clazz(att.type()), att.name().toUpperCase())
+                        .returns(clazz(att.type()))
+                        .addStatement("return ($T) super.getAt($L.hash)", clazz(att.type()), att.name().toUpperCase())
                         .build());
 
-                if (Helper.isPrimitive(att.type())) {
+                if (isPrimitive(att.type())) {
                     javaClass.addMethod(MethodSpec.methodBuilder("set" + Generator.upperCaseFirstChar(att.name()))
                             .addModifiers(PUBLIC, FINAL)
                             .addParameter(clazz(att.type()), "value")
@@ -148,8 +151,8 @@ class TypeGenerator {
                 } else {
                     javaClass.addMethod(MethodSpec.methodBuilder("getOrCreate" + Generator.upperCaseFirstChar(att.name()))
                             .addModifiers(PUBLIC, FINAL)
-                            .returns(Helper.clazz(att.type()))
-                            .addStatement("return ($T) super.getOrCreateAt($L.hash,$L.type)", Helper.clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase())
+                            .returns(clazz(att.type()))
+                            .addStatement("return ($T) super.getOrCreateAt($L.hash,$L.type)", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase())
                             .build());
                 }
             } else if (o instanceof Relation) {
@@ -158,7 +161,7 @@ class TypeGenerator {
                 String resultType = rel.type();
                 javaClass.addField(FieldSpec.builder(gMeta, metaRelation)
                         .addModifiers(PUBLIC, STATIC, FINAL)
-                        .initializer("new $T($S, $L, $L)", gMeta, rel.name(), "greycat.Type.RELATION", HashHelper.hash(rel.name()))
+                        .initializer("new $T($S, $L, $L)", gMeta, rel.name(), "greycat.Type.RELATION", hash(rel.name()))
                         .build());
 
                 javaClass.addMethod(MethodSpec.methodBuilder("get" + Generator.upperCaseFirstChar(rel.name()))
@@ -182,7 +185,7 @@ class TypeGenerator {
                 MethodSpec.Builder addTo = MethodSpec.methodBuilder("addTo" + Generator.upperCaseFirstChar(rel.name()))
                         .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
-                        .addParameter(Helper.clazz(rel.type()), "value")
+                        .addParameter(clazz(rel.type()), "value")
                         .addStatement("addToRelationAt($L.hash,value)", rel.name().toUpperCase());
                 if (rel.opposite() != null) {
                     addTo.addStatement(createAddOppositeBody(rel.type(), rel).toString());
@@ -193,7 +196,7 @@ class TypeGenerator {
                 MethodSpec.Builder removeFrom = MethodSpec.methodBuilder("removeFrom" + Generator.upperCaseFirstChar(rel.name()))
                         .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
-                        .addParameter(Helper.clazz(rel.type()), "value")
+                        .addParameter(clazz(rel.type()), "value")
                         .addStatement("removeFromRelationAt($L.hash,value)", rel.name().toUpperCase());
                 if (rel.opposite() != null) {
                     removeFrom.addStatement(createRemoveOppositeBody(rel.type(), rel).toString());
@@ -203,16 +206,16 @@ class TypeGenerator {
 
             } else if (o instanceof Reference) {
                 Reference ref = (Reference) o;
-                ClassName resultType = ClassName.get(packageName, ref.type());
+                TypeName referenceType = clazz(ref.type());
                 javaClass.addField(FieldSpec.builder(gMeta, ref.name().toUpperCase())
                         .addModifiers(PUBLIC, STATIC, FINAL)
-                        .initializer("new $T($S, $L, $L)", gMeta, ref.name(), "greycat.Type.RELATION", HashHelper.hash(ref.name()))
+                        .initializer("new $T($S, $L, $L)", gMeta, ref.name(), "greycat.Type.RELATION", hash(ref.name()))
                         .build());
 
                 javaClass.addMethod(MethodSpec.methodBuilder("get" + Generator.upperCaseFirstChar(ref.name()))
                         .addModifiers(PUBLIC, FINAL)
                         .returns(VOID)
-                        .addParameter(ParameterizedTypeName.get(gCallback, resultType), "callback")
+                        .addParameter(ParameterizedTypeName.get(gCallback, referenceType), "callback")
                         .addStatement("traverseAt($L.hash, $L)", ref.name().toUpperCase(), TypeSpec.anonymousClassBuilder("")
                                 .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeArray))
                                 .addMethod(MethodSpec.methodBuilder("on")
@@ -221,7 +224,7 @@ class TypeGenerator {
                                         .addParameter(gNodeArray, "result")
                                         .returns(VOID)
                                         .beginControlFlow("if(result != null && result.length == 1)")
-                                        .addStatement("callback.on(($T)result[0])", resultType)
+                                        .addStatement("callback.on(($T)result[0])", referenceType)
                                         .nextControlFlow("else")
                                         .addStatement("callback.on(null)")
                                         .endControlFlow()
@@ -232,7 +235,7 @@ class TypeGenerator {
                 MethodSpec.Builder addTo = MethodSpec.methodBuilder("set" + Generator.upperCaseFirstChar(ref.name()))
                         .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
-                        .addParameter(Helper.clazz(ref.type()), "value")
+                        .addParameter(clazz(ref.type()), "value")
                         .addStatement("addToRelationAt($L.hash,value)", ref.name().toUpperCase());
                 if (ref.opposite() != null) {
                     addTo.addStatement(createAddOppositeBody(ref.type(), ref).toString());
@@ -243,7 +246,7 @@ class TypeGenerator {
                 MethodSpec.Builder removeFrom = MethodSpec.methodBuilder("removeFrom" + Generator.upperCaseFirstChar(ref.name()))
                         .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
-                        .addParameter(Helper.clazz(ref.type()), "value")
+                        .addParameter(clazz(ref.type()), "value")
                         .addStatement("removeFromRelationAt($L.hash,value)", ref.name().toUpperCase());
                 if (ref.opposite() != null) {
                     removeFrom.addStatement(createRemoveOppositeBody(ref.type(), ref).toString());
@@ -257,7 +260,7 @@ class TypeGenerator {
                 //Index field
                 javaClass.addField(FieldSpec.builder(gMeta, li.name().toUpperCase())
                         .addModifiers(PUBLIC, STATIC, FINAL)
-                        .initializer("new $T($S, $L, $L)", gMeta, li.name(), "greycat.Type.INDEX", HashHelper.hash(li.name()))
+                        .initializer("new $T($S, $L, $L)", gMeta, li.name(), "greycat.Type.INDEX", hash(li.name()))
                         .build());
 
                 //Index method
@@ -368,26 +371,26 @@ class TypeGenerator {
             if (o instanceof Attribute) {
                 final Attribute att = (Attribute) o;
                 if (att.value() != null) {
-                    if (Helper.isPrimitive(att.type())) {
+                    if (isPrimitive(att.type())) {
                         initMethod.addStatement("setAt($1L.hash,$1L.type, $2L)", att.name().toUpperCase(), att.value().get(0).get(0));
-                    } else if (Helper.isPrimitiveArray(att.type())) {
+                    } else if (isPrimitiveArray(att.type())) {
                         StringBuilder paramBuilder = new StringBuilder();
                         att.value().forEach(objects -> {
                             paramBuilder.append(".addElement(").append(objects.get(0)).append(")");
                         });
-                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", Helper.clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
-                    } else if (Helper.isMap(att.type())) {
+                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
+                    } else if (isMap(att.type())) {
                         StringBuilder paramBuilder = new StringBuilder();
                         att.value().forEach(objects -> {
                             paramBuilder.append(".put(").append(objects.get(0)).append(",").append(objects.get(1)).append(")");
                         });
-                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", Helper.clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
-                    } else if (Helper.isMatrix(att.type())) {
+                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
+                    } else if (isMatrix(att.type())) {
                         StringBuilder paramBuilder = new StringBuilder();
                         att.value().forEach(objects -> {
                             paramBuilder.append(".add(").append(objects.get(0)).append(",").append(objects.get(1)).append(",").append(objects.get(2)).append(")");
                         });
-                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", Helper.clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
+                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
                     }
                 }
             } else if (o instanceof Annotation) {
@@ -417,10 +420,10 @@ class TypeGenerator {
             if (o instanceof Constant) {
                 Constant constant = (Constant) o;
                 if (isFirst[0]) {
-                    typeAtMethod.beginControlFlow("if(index == $L)", HashHelper.hash(constant.name()));
+                    typeAtMethod.beginControlFlow("if(index == $L)", hash(constant.name()));
                     isFirst[0] = false;
                 } else {
-                    typeAtMethod.nextControlFlow("else if(index == $L)", HashHelper.hash(constant.name()));
+                    typeAtMethod.nextControlFlow("else if(index == $L)", hash(constant.name()));
                 }
                 typeAtMethod.addStatement("return $L.type", constant.name().toUpperCase());
             }
@@ -442,10 +445,10 @@ class TypeGenerator {
             if (o instanceof Constant) {
                 Constant constant = (Constant) o;
                 if (isFirst[0]) {
-                    getAtMethod.beginControlFlow("if(index == $L)", HashHelper.hash(constant.name()));
+                    getAtMethod.beginControlFlow("if(index == $L)", hash(constant.name()));
                     isFirst[0] = false;
                 } else {
-                    getAtMethod.nextControlFlow("else if(index == $L)", HashHelper.hash(constant.name()));
+                    getAtMethod.nextControlFlow("else if(index == $L)", hash(constant.name()));
                 }
                 getAtMethod.addStatement("return $L.value", constant.name().toUpperCase());
             }
@@ -456,9 +459,10 @@ class TypeGenerator {
         getAtMethod.addStatement("return super.getAt(index)");
         javaClass.addMethod(getAtMethod.build());
 
-        return JavaFile.builder(packageName, javaClass.build()).build();
+        collector.add(JavaFile.builder(packageName, javaClass.build()).build());
     }
 
+    //TODO refactoring below using JavaPoet addStatement method
     private static StringBuilder createAddOppositeBody(String edgeType, Edge edge) {
         StringBuilder oppositeBodyBuilder = new StringBuilder();
         String oppositeName;
