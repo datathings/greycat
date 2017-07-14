@@ -15,7 +15,7 @@
 
 
     <properties>
-        <greycat.version>9-SNAPSHOT</greycat.version>
+        <greycat.version>9</greycat.version>
         <java2typescript.plugin.version>91</java2typescript.plugin.version>
         <header.path>${project.basedir}/LICENSE</header.path>
     </properties>
@@ -27,6 +27,11 @@
         <module>secwebsocket</module>
         <module>email</module>
     </modules>
+
+    <scm>
+        <connection>scm:git:git@bitbucket.org:datathings/greycat-enterprise.git</connection>
+        <developerConnection>scm:git:git@bitbucket.org:datathings/greycat-enterprise.git</developerConnection>
+    </scm>
 
     <developers>
         <developer>
