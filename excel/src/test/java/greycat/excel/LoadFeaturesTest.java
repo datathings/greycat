@@ -24,7 +24,7 @@ public void loadFeaturesFromSheets() {
  loadFeatues("testfile2.xlsx");
 }
 */
-    @Test
+    //@Test
     public void loadRealFeatures() {
         loadFeatues("Testdata.xlsx");
     }
