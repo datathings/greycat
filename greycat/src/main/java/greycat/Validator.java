@@ -4,10 +4,8 @@
 package greycat;
 
 import javax.crypto.Cipher;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FilenameFilter;
+import java.io.*;
+import java.net.URL;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.Signature;
@@ -59,44 +57,40 @@ public class Validator {
 
     public static boolean validate() {
 
+        /*
         File dir = new File(".");
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".ldt");
             }
-        });
+        });*/
+        InputStream licenseStream = Validator.class.getClassLoader().getResourceAsStream("license.ldt");
+        if (licenseStream == null) {
+            System.err.println("No license file was found!");
+            System.err.println("Please send a request to " + EntrepriseConstants.EMAIL + ", to receive a valid license file");
+            return false;
+        }
 
         StringBuilder sb = new StringBuilder();
-        File licenseFile;
-        FileReader reader;
         BufferedReader br;
 
         String request;
         String licence;
-        if (files.length > 0) {
-            for (int i = 0; i < files.length; i++) {
-                try {
-                    licenseFile = files[i];
-                    sb.append("Loading " + licenseFile.getName() + ":\n");
-                    reader = new FileReader(licenseFile);
-                    br = new BufferedReader(reader);
-                    request = br.readLine();
-                    licence = br.readLine();
-                    if (internalvalidate(request, licence, sb)) {
-                        System.out.println(sb.toString());
-                        return true;
-                    }
-                } catch (Exception ex) {
-                    sb.append(ex.getMessage());
-                }
-            }
-            System.out.println(sb.toString());
-        } else {
-            System.err.println("No license file was found!");
-        }
 
-        System.err.println("Please send a request to " + EntrepriseConstants.EMAIL + ", to receive a valid license file");
+        sb.append("Loading license :\n");
+        try {
+            br = new BufferedReader(new InputStreamReader(licenseStream));
+            request = br.readLine();
+            licence = br.readLine();
+            if (internalvalidate(request, licence, sb)) {
+                System.out.println(sb.toString());
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.err.println("An error occurred while checking license. Please report to " + EntrepriseConstants.EMAIL + ".");
         return false;
     }
 
