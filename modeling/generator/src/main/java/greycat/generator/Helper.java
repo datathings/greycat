@@ -138,7 +138,6 @@ public class Helper {
             default:
                 typeName = "" + HashHelper.hash(type);
         }
-
         return typeName;
     }
 
@@ -156,85 +155,6 @@ public class Helper {
                 return "number";
         }
         return "any";
-    }
-
-    static String className(String type) {
-        String className;
-        switch (type) {
-            case "Bool":
-                className = Boolean.class.getCanonicalName();
-                break;
-            case "String":
-                className = String.class.getCanonicalName();
-                break;
-            case "Long":
-                className = Long.class.getCanonicalName();
-                break;
-            case "Int":
-                className = Integer.class.getCanonicalName();
-                break;
-            case "Double":
-                className = Double.class.getCanonicalName();
-                break;
-            case "DoubleArray":
-                className = DoubleArray.class.getCanonicalName();
-                break;
-            case "LongArray":
-                className = LongArray.class.getCanonicalName();
-                break;
-            case "IntArray":
-                className = IntArray.class.getCanonicalName();
-                break;
-            case "StringArray":
-                className = StringArray.class.getCanonicalName();
-                break;
-            case "LongToLongMap":
-                className = LongLongMap.class.getCanonicalName();
-                break;
-            case "LongToLongArrayMap":
-                className = LongLongArrayMap.class.getCanonicalName();
-                break;
-            case "StringToIntMap":
-                className = StringIntMap.class.getCanonicalName();
-                break;
-            case "DMatrix":
-                className = DMatrix.class.getCanonicalName();
-                break;
-            case "LMatrix":
-                className = LMatrix.class.getCanonicalName();
-                break;
-            case "EStructArray":
-                className = EStructArray.class.getCanonicalName();
-                break;
-            case "EStruct":
-                className = EStruct.class.getCanonicalName();
-                break;
-            case "KDTree":
-                className = KDTree.class.getCanonicalName();
-                break;
-            case "NDTree":
-                className = NDTree.class.getCanonicalName();
-                break;
-            case "IntToIntMap":
-                className = IntIntMap.class.getCanonicalName();
-                break;
-            case "IntToStringMap":
-                className = IntStringMap.class.getCanonicalName();
-                break;
-            case "Task":
-                className = Task.class.getCanonicalName();
-                break;
-            case "TaskArray":
-                className = Task[].class.getCanonicalName();
-                break;
-            case "Node":
-                className = Node.class.getCanonicalName();
-                break;
-            default:
-                className = type;
-        }
-
-        return className;
     }
 
     static TypeName clazz(String type) {

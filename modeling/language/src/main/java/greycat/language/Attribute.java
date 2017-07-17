@@ -21,13 +21,13 @@ import java.util.List;
 public class Attribute {
 
     private final String name;
-    private final Container parent;
+    private final Type parent;
     final List<AttributeRef> references = new ArrayList<AttributeRef>();
     private List<List<Object>> value;
 
     private String type;
 
-    Attribute(final String name, Container parent) {
+    Attribute(final String name, Type parent) {
         this.name = name;
         this.parent = parent;
     }
@@ -40,7 +40,7 @@ public class Attribute {
         return type;
     }
 
-    public final Container parent() {
+    public final Type parent() {
         return parent;
     }
 

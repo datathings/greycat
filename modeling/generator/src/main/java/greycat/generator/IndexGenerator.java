@@ -84,7 +84,7 @@ class IndexGenerator {
                 .addParameter(LONG, "time");
         StringBuilder params = new StringBuilder();
         index.attributes().forEach(attributeRef -> {
-            find.addParameter(Helper.clazz(attributeRef.ref().type()), attributeRef.ref().name());
+            find.addParameter(ClassName.get(String.class), attributeRef.ref().name());
             params.append(",").append(attributeRef.ref().name());
         });
         find.addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, index.type()))), "callback")
@@ -130,10 +130,15 @@ class IndexGenerator {
                                 .returns(VOID)
                                 .beginControlFlow("if(idx != null)")
                                 .addStatement("idx.update(toIndex)")
+                                .addStatement("idx.free()")
+                                .beginControlFlow("if(callback != null)")
                                 .addStatement("callback.on(true)")
+                                .endControlFlow()
                                 .nextControlFlow("else")
                                 .addStatement("System.err.println($S)", "undeclared index " + index.name())
+                                .beginControlFlow("if(callback != null)")
                                 .addStatement("callback.on(false)")
+                                .endControlFlow()
                                 .endControlFlow()
                                 .build())
                         .build())
@@ -153,10 +158,15 @@ class IndexGenerator {
                                 .returns(VOID)
                                 .beginControlFlow("if(idx != null)")
                                 .addStatement("idx.unindex(toUnIndex)")
+                                .addStatement("idx.free()")
+                                .beginControlFlow("if(callback != null)")
                                 .addStatement("callback.on(true)")
+                                .endControlFlow()
                                 .nextControlFlow("else")
                                 .addStatement("System.err.println($S)", "undeclared index " + index.name())
+                                .beginControlFlow("if(callback != null)")
                                 .addStatement("callback.on(false)")
+                                .endControlFlow()
                                 .endControlFlow()
                                 .build())
                         .build())

@@ -1,4 +1,5 @@
 index Buildings : Building using name
+index Cities    : SmartCity using myId
 
 const GLOBAL_CONSTANT : Double = 4.5
 const ANOTHER_GLOBAL_CONSTANT : String = "my_constant"
@@ -14,6 +15,7 @@ class SmartCity {
     const listNodeNames : Task = readIndex("nodes").name
     const derivedAtt : Task = executeExpression("x + y")
 
+    att myId : Integer
     att name : String
     att location : GPSPosition
 
@@ -21,6 +23,8 @@ class SmartCity {
 
     att x : Double = 5.1
     att y : Double = 1.5
+
+    index subCities : SmartCity using myId
 
 }
 

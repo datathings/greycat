@@ -15,14 +15,20 @@
  */
 package greycat.language;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import static greycat.Tasks.newTask;
 
 public class Checker {
 
+    private static Set<String> reserved = new HashSet<String>(Arrays.asList("id, time, world, travelInTime", "nodeTypeName", "forceSet", "get"));
+
     public static void check(Model model) {
         //check that all attributes have a type
         model.classes.values().forEach(aClass -> {
-            if(aClass.name.equals("Node")){
+            if (aClass.name.equals("Node")) {
                 //noop
             } else {
                 aClass.properties().forEach(o -> {
@@ -30,6 +36,9 @@ public class Checker {
                         Attribute attribute = (Attribute) o;
                         if (attribute.type() == null) {
                             throw new RuntimeException("Untyped attribute " + attribute.name() + " contained in " + attribute.parent());
+                        }
+                        if (reserved.contains(((Attribute) o).name())) {
+                            throw new RuntimeException("Usage of a reserved attribute name : " + ((Attribute) o).name());
                         }
                     } else if (o instanceof Constant) {
                         final Constant constant = (Constant) o;
@@ -39,8 +48,6 @@ public class Checker {
                     }
                 });
             }
-
-
         });
         model.constants.values().forEach(constant -> {
             if (constant.type().equals("Task") && constant.value() != null) {

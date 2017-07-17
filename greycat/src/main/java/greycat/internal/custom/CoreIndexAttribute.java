@@ -121,7 +121,7 @@ public class CoreIndexAttribute extends BaseCustomTypeSingle implements Index {
         } else {
             final IntArray hashes = (IntArray) getAt(HASHES);
             if (hashes.size() != params.length) {
-                throw new RuntimeException("Bad API usage, query param is different than index declaration");
+                throw new RuntimeException("Bad API usage: number of parameters in the query differs from index declaration. Expected " + hashes.size() + " parameters, received " + params.length);
             }
             Query queryObj = _backend.graph().newQuery();
             queryObj.setWorld(world);
@@ -206,7 +206,7 @@ public class CoreIndexAttribute extends BaseCustomTypeSingle implements Index {
         final IntArray hashes = (IntArray) getAt(HASHES);
         final LongLongArrayMap relationIndexed = (LongLongArrayMap) getAt(P_MAP);
         if (params.length != hashes.size()) {
-            throw new RuntimeException("Bad API usage, query param is different than index declaration");
+            throw new RuntimeException("Bad API usage: number of parameters in the select differs from index declaration. Expected " + hashes.size() + " parameters, received " + params.length);
         }
         final Query queryObj = _backend.graph().newQuery();
         for (int i = 0; i < params.length; i++) {

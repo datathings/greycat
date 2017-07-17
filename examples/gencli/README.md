@@ -16,7 +16,7 @@ npm i greycat-gencli
 then generate the code through:
 
 ```
-greycatGen mymodel.gcm
+greycatGen model.gcm
 ```
 
 or locally:

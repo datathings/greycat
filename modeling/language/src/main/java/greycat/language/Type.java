@@ -18,7 +18,7 @@ package greycat.language;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class Type implements Container {
+public abstract class Type {
     protected String name;
 
     protected Type parent;

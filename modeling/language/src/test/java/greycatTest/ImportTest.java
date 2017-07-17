@@ -30,7 +30,7 @@ public class ImportTest {
         model.consolidate();
         Checker.check(model);
         Assert.assertEquals(1, model.classes().length);
-        Assert.assertEquals(1, model.globalConstants().length);
+        Assert.assertEquals(1, model.constants().length);
     }
 
 }

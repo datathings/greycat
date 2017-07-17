@@ -27,8 +27,8 @@ SL_COMMENT :  '//' ~('\r' | '\n')* ;
 ML_COMMENT : '/*' .*? '*/' -> skip;
 
 modelDcl: (constDcl | classDcl | globalIndexDcl | customTypeDcl | importDcl)*;
-importDcl: 'import' STRING;
-constDcl: 'const' name=IDENT ':' valueTypeDcl ('=' constValueDcl)?;
+importDcl: 'import' path=STRING;
+constDcl: 'const' name=IDENT ':' type=IDENT ('=' constValueDcl)?;
 constValueDcl: (simpleValueDcl | taskValueDcl);
 simpleValueDcl: (IDENT | STRING | NUMBER);
 taskValueDcl: actionValueDcl ('.' actionValueDcl)*;
@@ -40,18 +40,8 @@ classDcl: 'class' name=IDENT parentDcl? '{' (annotationDcl | constDcl | attribut
 customTypeDcl: 'type' name=IDENT parentDcl? '{' (constDcl | attributeDcl)* '}';
 
 parentDcl: 'extends' IDENT;
-attributeDcl: 'att' name=IDENT ':' valueTypeDcl ('=' attributeValueDcl)?;
-
+attributeDcl: 'att' name=IDENT ':' type=IDENT ('=' attributeValueDcl)?;
 annotationDcl: '@' name=IDENT ('=' value=attributeValueDcl)?;
-
-valueTypeDcl: IDENT;//(builtInTypeDcl | customBuiltTypeDcl);
-//customBuiltTypeDcl: IDENT;
-/*
-builtInTypeDcl: ('Bool' | 'Boolean' | 'String' | 'Long' | 'Int' | 'Integer' | 'Double' |
-                'DoubleArray' | 'LongArray' | 'IntArray' | 'StringArray' |
-                'LongToLongMap' | 'LongToLongArrayMap' | 'StringToIntMap'| 'IntToIntMap' | 'IntToStringMap' |
-                'DMatrix' |'LMatrix' |'EStruct' |'EStructArray' | 'KDTree' | 'NDTree' | 'Node' |
-                'Task' | 'TaskArray');*/
 
 attributeValueDcl: (IDENT | STRING | NUMBER | complexAttributeValueDcl);
 complexAttributeValueDcl: '(' complexValueDcl (',' complexValueDcl)* ')';

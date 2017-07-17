@@ -15,18 +15,17 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-gencli</artifactId>
-    <version>9-SNAPSHOT</version>
+    <version>10-SNAPSHOT</version>
     <name>greycat-gencli</name>
     <packaging>jar</packaging>
 
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings</groupId>
-        <version>9-SNAPSHOT</version>
+        <version>10-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
 
@@ -56,13 +55,23 @@
                         </goals>
                         <configuration>
                             <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>greycat.GeneratorMain</mainClass>
                                 </transformer>
                             </transformers>
                             <outputFile>${basedir}/target/classes-npm/generator.jar</outputFile>
-                            <!--<minimizeJar>true</minimizeJar>-->
+                            <filters>
+                                <filter>
+                                    <artifact>org.jetbrains.kotlin:kotlin-compiler</artifact>
+                                    <excludes>
+                                        <exclude>jline/**</exclude>
+                                        <exclude>kotlin/**</exclude>
+                                        <exclude>com/google/gwt.dev.js/**</exclude>
+                                        <exclude>com/sun/**</exclude>
+                                        <exclude>org/jetbrains/kotlin/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

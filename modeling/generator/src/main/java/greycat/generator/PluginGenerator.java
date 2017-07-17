@@ -26,6 +26,7 @@ import greycat.plugin.TypeFactory;
 import greycat.struct.EStructArray;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static greycat.generator.Helper.*;
 import static com.squareup.javapoet.TypeName.*;
@@ -85,7 +86,9 @@ class PluginGenerator {
                     .returns(VOID)
                     .addStatement("$T waiter = graph.newCounter($L)", ClassName.get(DeferCounter.class), model.indexes().size());
             model.indexes().forEach(index -> {
-                onMethod.addStatement("graph.declareIndex(0,$L.META.name,$L)", index.name(), TypeSpec.anonymousClassBuilder("")
+                CodeBlock.Builder param = CodeBlock.builder();
+                index.attributes().forEach(attributeRef -> param.add(",$T.$L.name", ClassName.get(packageName, (attributeRef.ref().parent()).name()), attributeRef.ref().name().toUpperCase()));
+                onMethod.addStatement("graph.declareIndex(0,$L.META.name,$L$L)", index.name(), TypeSpec.anonymousClassBuilder("")
                         .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeIndex))
                         .addMethod(MethodSpec.methodBuilder("on")
                                 .addAnnotation(Override.class)
@@ -94,7 +97,7 @@ class PluginGenerator {
                                 .addStatement("idx.free()")
                                 .addStatement("waiter.count()")
                                 .returns(VOID).build())
-                        .build());
+                        .build(), param.build());
             });
             onMethod.addStatement("waiter.then($L)", TypeSpec.anonymousClassBuilder("")
                     .addSuperinterface(ClassName.get(Job.class))

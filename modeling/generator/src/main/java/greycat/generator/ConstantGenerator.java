@@ -30,7 +30,7 @@ class ConstantGenerator {
     private static final String CONSTANT_CLASS_NAME = "Constants";
 
     static void generate(String packageName, Model model, List<JavaFile> collector) {
-        collector.add(generateGlobalConstant(packageName, model.globalConstants()));
+        collector.add(generateGlobalConstant(packageName, model.constants()));
     }
 
     private static JavaFile generateGlobalConstant(String packageName, Constant[] globalConstants) {
@@ -40,8 +40,8 @@ class ConstantGenerator {
             String value = constant.value();
             if (constant.type().equals("Task") && value != null) {
                 value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null);";
-            } else if (!constant.type().equals("String") && value != null) {
-                value = value.replaceAll("\"", "");
+            } else if (constant.type().equals("String") && value != null) {
+                value = "\""+value+"\"";
             }
             FieldSpec.Builder field = FieldSpec.builder(clazz(constant.type()), constant.name())
                     .addModifiers(PUBLIC, STATIC);

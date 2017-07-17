@@ -1,25 +1,28 @@
 language: java
 jdk:
-  - oraclejdk8
-
+- oraclejdk8
 notifications:
   email:
     recipients:
-      - francois.fouquet@uni.lu
-      - gregory.nain@datathings.com
-      - thomas.hartmann@uni.lu
-      - assaad.moawad@datathings.com
+    - francois.fouquet@uni.lu
+    - gregory.nain@datathings.com
+    - thomas.hartmann@uni.lu
+    - assaad.moawad@datathings.com
     on_success: change
     on_failure: change
-
 env:
-  - TRAVIS_NODE_VERSION="4"
-
+  matrix:
+  - TRAVIS_NODE_VERSION="8"
+  global:
+  - secure: bdGed1kYtp2VRaNDQlzcwpQ1jzkUnt+O1xZX49IeSJAYPMQ7AOQBkxe8c1bBoo4dD1sA0c+ecIGnZMcw3qhVRXgHaXGEvxS+0c1z3tf4QjFcAN6H/3dpKkk9YN/OJTFBy+lNZknbwU/5H1Lnctkk+0E7EBZyiUUcc0kVd9nUwbIFLFZwTXKFWOJVqzEms9SJom1K1jxWPLJjVTXVN5yQLinucU4ABaq5EywKF36iYOT46oXnD7WmOPlmf9slnuHzv/3coTGDuEMbYADxqz3ffLSQGFKfT4b5QRa2ps0X/WNIJ8j8yQMovh2GAQ7XqPihqb4tsBoF/GQcMFaaf/rccYNuP6XI82NZJzvXf0rhaZqs6F367DiBgAFYoBZZ4gxVolgNF4FGV8ory6OLehscYuQPzf96Dz/9uqb43StIuWfLmAtjtfJAELS12KnNwMcUZcGtwCwCxoB3su23L7zJNUKbRrYRAhOK1fyqShRttUDcJMjqWJjF9APst/se4NY86Gz4OKFSEY6lKVRFJw9ezvzF8wKRFtFimhV38y2zg0snEUS1aieiW3S9idsJCGbysv7ex4dxCIsm90jSFApcSz9l/GADSJHMrH9pkhstNosE+prJJqt1UGaswrkCpY/jWpXmsrUk8a2kSu3UGXpVahlVkej/sCkaz5YJhlsNbwg=
+  - secure: OopfVrB9FtAzWBVvmJXLZ77WgqL7WgUfUq0i3lErYElpxwcfBh4aB2u4EUgLM8GfwXH66rPNk8aJ3Fuqz+TbD8sMxdk+pSYysDQlbZqffNkQxEl77mRdMvmXhhi2F0GQXv8Bwy2TW3+fmb+pJC5bo+J3IOWDs+EcUP9HoglnnXcChxtPZNG2VIhoOdDEWo9NGH8guzqQZXvY3rEZl58CV69YX5e8khqjbSBMeBzsy8hqCsToPQKr3in1rl7Tpn23bvT+Qe4Tqzn8ny3oBoXiw2kfEM2KcLWKQuhv8tI9E1Rlm1hjG/H+2pm+IwfQuDxNz+8KK8FVqQFbxZ9xDNdStwxi9Q2DVhTw17WqJ3X50zCyZHznj4jU7pG7NVljlfMU0+au6xE0BQUK9k5fN4CqxEcThn2Gkr9XobqLbaChSRDe1iO8Np5TcxxOK38khdnPMh+yYihDH1/wjhvtyxGZP8pTOHbZK1qt5xkZiv2Wkb2NRZOK8R8jBCTo9Tfee13K8CCZW8B+73OEKMmm6KI5hEe5uAeBRiEfep+ZkTDQbvxCUjmQIGGDQFjS11nF+gEBS+fOR9MSzWxsphu3q3DnTc6S5rZnYEN+W4KAOGwMaZYiDg4nfMoERKWCvpNCofpCjIc/veCgWYmOINFVsl0XZroIoiejeMBa4YeAFvfvTHM=
 before_install:
-  - echo "MAVEN_OPTS='-Xmx2048m -XX:MaxPermSize=512m'" > ~/.mavenrc
-  - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
-  - node -v
-
+- echo "MAVEN_OPTS='-Xmx2048m -XX:MaxPermSize=512m'" > ~/.mavenrc
+- rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm
+  && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm
+  install $TRAVIS_NODE_VERSION
+- node -v
 install: mvn clean
 script: mvn clean install
-
+after_success:
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { mvn clean deploy --settings etc/deploy-settings.xml -DskipTests=true -B ; };"

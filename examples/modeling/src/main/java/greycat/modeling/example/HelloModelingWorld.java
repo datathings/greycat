@@ -86,15 +86,6 @@ public class HelloModelingWorld {
                 });
 
                 // global index
-                /*
-                Buildings.declareIndex(graph, 0, new Callback<Boolean>() {
-                    @Override
-                    public void on(Boolean result) {
-
-                    }
-                });*/
-
-
                 Buildings.update(building, new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {

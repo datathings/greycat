@@ -21,7 +21,7 @@
     <groupId>com.datathings</groupId>
     <artifactId>greycat-parent</artifactId>
     <packaging>pom</packaging>
-    <version>9-SNAPSHOT</version>
+    <version>10-SNAPSHOT</version>
     <name>greycat-parent</name>
 
     <url>https://github.com/datathings/greycat</url>
@@ -110,14 +110,25 @@
         <module>modeling/gencli</module>
 
         <!--Examples-->
-
+        <!--
         <module>examples/modeling</module>
-
+        -->
 
     </modules>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.3</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
