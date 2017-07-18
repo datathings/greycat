@@ -20,10 +20,22 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.datathings.enterprise</groupId>
+            <artifactId>greycat</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.datathings</groupId>
             <artifactId>greycat-websocket</artifactId>
             <version>${greycat.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.datathings.enterprise</groupId>
+            <artifactId>auth.login</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

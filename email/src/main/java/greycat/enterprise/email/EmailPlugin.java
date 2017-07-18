@@ -13,9 +13,9 @@ import greycat.utility.Base64;
 import javax.mail.*;
 import javax.mail.event.TransportEvent;
 import javax.mail.event.TransportListener;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import javax.mail.internet.*;
+import java.io.IOException;
+import java.util.Collection;
 import java.util.Properties;
 
 /**
@@ -25,7 +25,7 @@ public class EmailPlugin implements Plugin {
 
     public static final String ACTION_SEND_EMAIL = "sendEmail";
 
-    private String  smtpUser, smtpPass;
+    private String smtpUser, smtpPass;
 
     private Properties props;
 
@@ -40,7 +40,7 @@ public class EmailPlugin implements Plugin {
         props.put("mail.smtp.user", smtpUser);
         props.put("mail.smtp.password", smtpPass);
         props.put("mail.smtp.port", smtpPort);
-        props.put("mail.smtp.auth", (authenticate ? "true" : "false"));
+        props.put("mail.smtp.greycat.auth", (authenticate ? "true" : "false"));
 
     }
 
@@ -51,7 +51,7 @@ public class EmailPlugin implements Plugin {
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new EmailAction((String)params[0], (String)params[1], (String)params[2], (String)params[3]);
+                        return new EmailAction((String) params[0], (String) params[1], (String) params[2], (String) params[3]);
                     }
                 });
 
@@ -60,6 +60,46 @@ public class EmailPlugin implements Plugin {
     @Override
     public void stop() {
 
+    }
+
+    public void sendSimpleEmail(String from, String to, String subject, String body) throws MessagingException {
+        Session session = Session.getInstance(props);
+        MimeMessage message = new MimeMessage(session);
+
+        message.setFrom(new InternetAddress(from));
+
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+
+        message.setSubject(subject);
+        message.setText(body);
+
+        Transport.send(message, smtpUser, smtpPass);
+    }
+
+    public void sendMulipartEmail(String from, String to, String subject, String body, Collection<MimeBodyPart> parts) throws MessagingException {
+        Session session = Session.getInstance(props);
+        MimeMessage message = new MimeMessage(session);
+
+        message.setFrom(new InternetAddress(from));
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+
+        message.setSubject(subject);
+
+        Multipart multipart = new MimeMultipart("related");
+
+        //text part
+        BodyPart htmlPart = new MimeBodyPart();
+        htmlPart.setContent(body, "text/html");
+        multipart.addBodyPart(htmlPart);
+
+        for(MimeBodyPart part : parts) {
+            multipart.addBodyPart(part);
+        }
+
+        message.setContent(multipart);
+
+
+        Transport.send(message, smtpUser, smtpPass);
     }
 
     class EmailAction implements Action {
@@ -81,26 +121,14 @@ public class EmailPlugin implements Plugin {
             String subject = ctx.template(_subject);
             String body = ctx.template(_body);
 
-
-            Session session = Session.getInstance(props);
-            MimeMessage message = new MimeMessage(session);
-
             try {
-                message.setFrom(new InternetAddress(from));
-
-                message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-
-                message.setSubject(subject);
-                message.setText(body);
-
-                Transport.send(message, smtpUser, smtpPass);
+                sendSimpleEmail(from, to, subject, body);
                 ctx.append("Email sent to user.");
-
+                ctx.continueTask();
             } catch (MessagingException e) {
                 e.printStackTrace();
-                ctx.endTask(null,e);
+                ctx.endTask(null, e);
             }
-            ctx.continueTask();
         }
 
         @Override

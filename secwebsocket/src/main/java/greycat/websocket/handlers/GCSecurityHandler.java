@@ -1,8 +1,9 @@
 /**
  * Copyright 2017 DataThings - All rights reserved.
  */
-package greycat.websocket.sec;
+package greycat.websocket.handlers;
 
+import greycat.auth.IdentityManager;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.StatusCodes;
@@ -15,9 +16,9 @@ import java.util.Deque;
 public class GCSecurityHandler implements HttpHandler {
 
     private HttpHandler _nextHandler;
-    private GCIdentityManager identityManager;
+    private IdentityManager identityManager;
 
-    public GCSecurityHandler(HttpHandler secured, GCIdentityManager identityManager) {
+    public GCSecurityHandler(HttpHandler secured, IdentityManager identityManager) {
         this._nextHandler = secured;
         this.identityManager = identityManager;
     }

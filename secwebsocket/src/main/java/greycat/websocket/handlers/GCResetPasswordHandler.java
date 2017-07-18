@@ -1,8 +1,9 @@
 /**
  * Copyright 2017 DataThings - All rights reserved.
  */
-package greycat.websocket.sec;
+package greycat.websocket.handlers;
 
+import greycat.auth.IdentityManager;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
@@ -21,9 +22,9 @@ import static io.undertow.util.Methods.OPTIONS;
  */
 public class GCResetPasswordHandler implements HttpHandler {
 
-    private GCIdentityManager identityManager;
+    private IdentityManager identityManager;
 
-    public GCResetPasswordHandler(GCIdentityManager identityManager) {
+    public GCResetPasswordHandler(IdentityManager identityManager) {
         this.identityManager = identityManager;
     }
 

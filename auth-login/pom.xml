@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2017 DataThings - All rights reserved.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>greycat-parent</artifactId>
+        <groupId>com.datathings.enterprise</groupId>
+        <version>9.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>auth.login</artifactId>
+
+
+    <properties>
+        <header.path>${basedir}/../LICENSE</header.path>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>com.datathings.enterprise</groupId>
+            <artifactId>greycat</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>

@@ -4,11 +4,10 @@
 package greycat.websocket;
 
 import greycat.*;
+import greycat.auth.login.LoginManager;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by Gregory NAIN on 23/05/2017.
@@ -24,7 +23,9 @@ public class SecWebsocketTest {
             @Override
             public void on(Boolean connectResult) {
 
-                SecWSServer graphServer = new SecWSServer(graph, 8050, "Users", "email", "password");
+                LoginManager loginManager = new LoginManager(graph, "Users", "email", "password");
+
+                SecWSServer graphServer = new SecWSServer(graph, 8050, loginManager);
                 graphServer.addHandler("hello", new HttpHandler() {
                     @Override
                     public void handleRequest(HttpServerExchange httpServerExchange) throws Exception {
@@ -36,7 +37,7 @@ public class SecWebsocketTest {
 
 
 
-                Graph clientConnection = GraphBuilder.newBuilder().withStorage(new SecWSClient("ws://localhost:8050/ws", "[KEY]")).build();
+                Graph clientConnection = GraphBuilder.newBuilder().withStorage(new SecWSClient("ws://localhost:8050", "[KEY]")).build();
                 clientConnection.connect(connected->{
                     System.out.println("Client connected:" + connected);
                 });

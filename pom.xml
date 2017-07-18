@@ -14,7 +14,7 @@
 
 
     <properties>
-        <greycat.version>9</greycat.version>
+        <greycat.version>9.1-SNAPSHOT</greycat.version>
         <java2typescript.plugin.version>91</java2typescript.plugin.version>
         <header.path>${project.basedir}/LICENSE</header.path>
     </properties>
@@ -25,6 +25,8 @@
         <module>blas</module>
         <module>secwebsocket</module>
         <module>email</module>
+        <module>auth-login</module>
+        <module>auth-totp</module>
     </modules>
 
     <scm>

@@ -6,17 +6,26 @@ import {WSClient} from "greycat-websocket";
 import {Graph, Node} from "greycat";
 
 export class SecWSClient extends WSClient {
-  constructor(p_url: string, authenticationKey: string) {
-    super(p_url + "?gc-auth-key=" + authenticationKey.split("#")[0]);
+
+  private _host: string;
+  private _port: string;
+  private _useSsl: boolean;
+
+  constructor(host: string, port: string, useSsl: boolean, authenticationKey: string) {
+    super((useSsl?"wss://":"ws://")+host + ":" + port + "/ws?gc-auth-key=" + authenticationKey.split("#")[0]);
+    this._host = host;
+    this._port = port;
+    this._useSsl = useSsl;
+
   }
 
-  public static authenticate(url: string, login: string, pass: string, cb: (authenticated: boolean, authenticationKey: string) => any) {
+  public static authenticate(host: string, port: string, useSsl: boolean, credentials: Map<string, string>, cb: (authenticated: boolean, authenticationKey: string) => any) {
     let fd = new FormData();
-    fd.append("login", login);
-    fd.append("pass", pass);
+
+    credentials.forEach((value, key) => fd.append(key, value));
 
     let xhr: XMLHttpRequest = new XMLHttpRequest();
-    xhr.open('POST', url + "/auth");
+    xhr.open('POST', (useSsl?"https://":"http://") + host + ":" + port + "/auth");
     xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
     xhr.onerror = (event: ErrorEvent) => {
       if (cb) {
@@ -40,13 +49,13 @@ export class SecWSClient extends WSClient {
     xhr.send(fd);
   }
 
-  public static renewPassword(url: string, uuid: string, pass: string, callback: (success: boolean, reason: string) => any) {
+  public static renewPassword(host: string, port: string, useSsl: boolean, uuid: string, pass: string, callback: (success: boolean, reason: string) => any) {
     let fd = new FormData();
     fd.append("pass", pass);
     fd.append("uuid", uuid);
 
     let xhr: XMLHttpRequest = new XMLHttpRequest();
-    xhr.open('POST', url + "/renewpasswd");
+    xhr.open('POST', (useSsl?"https://":"http://") + host + ":" + port + "/renewpasswd");
     xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
     xhr.onreadystatechange = ((event: ProgressEvent) => {
       let localXhr = event.target as XMLHttpRequest;
@@ -64,12 +73,14 @@ export class SecWSClient extends WSClient {
 
   public static getAuthenticatedUser(graph: Graph, authenticationKey: string, cb: (user: Node) => any) {
     if (graph) {
-      graph.lookup(0, (new Date()).getTime(), Number(authenticationKey.split("#")[1]), cb);
+      let userId = authenticationKey;
+      if(authenticationKey.indexOf("#") != -1) {
+        userId = authenticationKey.split("#")[1];
+      }
+      graph.lookup(0, (new Date()).getTime(), Number(userId), cb);
     } else {
       cb(null);
     }
   }
 
 }
-
-

@@ -1,52 +1,91 @@
 /**
  * Copyright 2017 DataThings - All rights reserved.
  */
-package greycat.websocket.sec;
+package greycat.auth.login;
 
 import greycat.*;
-import greycat.websocket.sec.GCPrincipal;
-import greycat.websocket.sec.GCSecAccount;
-import io.undertow.security.idm.Account;
-import io.undertow.security.idm.Credential;
-import io.undertow.security.idm.IdentityManager;
-import io.undertow.security.idm.PasswordCredential;
+import greycat.auth.actions.ActionResetPassword;
+import greycat.auth.GCAccount;
+import greycat.auth.IdentityManager;
+import jdk.nashorn.internal.codegen.CompilerConstants;
 
-import java.security.Principal;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Semaphore;
 
 /**
  * Created by Gregory NAIN on 23/05/2017.
  */
-public class GCIdentityManager {
+public class LoginManager implements IdentityManager{
 
     protected Graph graph;
     protected String usersIndex;
     protected String loginAttribute;
     protected String passAttribute;
 
-    protected List<GCSecAccount> activeAccounts = new ArrayList<>();
+    private static final long VALIDITY_PERIOD = 30*60*1000; // 5min
 
-    public GCIdentityManager(Graph graph, String usersIndex, String loginAttribute, String passAttribute) {
+    protected List<GCAccount> activeAccounts = new ArrayList<>();
+    protected Map<String, GCAccount> activeConnections = new HashMap<>();
+
+    public LoginManager(Graph graph, String usersIndex, String loginAttribute, String passAttribute) {
         this.graph = graph;
         this.usersIndex = usersIndex;
         this.loginAttribute = loginAttribute;
         this.passAttribute = passAttribute;
     }
 
+    public void init() {
+        this.graph.actionRegistry().getOrCreateDeclaration(ActionResetPassword.ACTION_RESET_PASSWORD).setFactory(params -> new ActionResetPassword(this));
+    }
 
-    public void verifyCredentials(String login, String pass, Callback<GCSecAccount> callback) {
+    @Override
+    public void onChannelConnected() {
+
+    }
+
+    @Override
+    public void onChannelDisconnected() {
+
+    }
+
+    @Override
+    public void onChannelActivity() {
+
+    }
+
+    @Override
+    public void verifySession(String uuid, Callback<GCAccount> callback) {
+        GCAccount active = null;
+        for(GCAccount acc : new ArrayList<>(activeAccounts)) {
+            if(acc.isExpired()) {
+                activeAccounts.remove(acc);
+            } else if(acc.checkSameSession(uuid)) {
+                active = acc;
+                break;
+            }
+        }
+        callback.on(active);
+    }
+
+    @Override
+    public void verifyCredentials(Map<String, String> credentials, Callback<GCAccount> callback) {
+
+        String login = credentials.get(loginAttribute);
+        String pass = credentials.get(passAttribute);
+
+        if(login == null || pass == null || login.trim().equals("")) {
+            callback.on(null);
+        }
+
         graph.index(0, Constants.BEGINNING_OF_TIME, usersIndex, indexNode->{
             indexNode.findFrom(users->{
 
                 if(users.length <= 1) {
 
-                    GCSecAccount active = null;
-                    for(GCSecAccount acc : new ArrayList<>(activeAccounts)) {
+                    GCAccount active = null;
+                    for(GCAccount acc : new ArrayList<>(activeAccounts)) {
                         if(acc.isExpired()) {
                             activeAccounts.remove(acc);
-                        } else if(acc.getPrincipal().getName().equals(login)) {
+                        } else if(acc.getLogin().equals(login)) {
                             active = acc;
                             break;
                         }
@@ -58,7 +97,7 @@ public class GCIdentityManager {
 
                         if(passCheck) {
                             if(active == null){
-                                active = new GCSecAccount(new GCPrincipal(login, users[0]));
+                                active = new LoginAccount(login, users[0], VALIDITY_PERIOD, true);
                                 activeAccounts.add(active);
                             } else {
                                 active.hit();
@@ -84,24 +123,11 @@ public class GCIdentityManager {
         });
     }
 
-    public void verifySession(String uuid, Callback<GCSecAccount> callback) {
-        GCSecAccount active = null;
-        for(GCSecAccount acc : new ArrayList<>(activeAccounts)) {
-            if(acc.isExpired()) {
-                activeAccounts.remove(acc);
-            } else if(acc.checkSameUUID(uuid)) {
-                active = acc;
-                break;
-            }
-        }
-        callback.on(active);
-    }
-
-    public String createPasswordChangeUUID(Node user) {
+    public void createPasswordUUID(Node user, Callback<String> callback) {
         UUID tmpUUID = UUID.randomUUID();
         user.set("password_reset_uuid", Type.STRING, tmpUUID.toString());
         user.set("password_reset_timeout", Type.LONG, System.currentTimeMillis() + 5 * 60 * 1000);
-        return tmpUUID.toString();
+        user.graph().save(result -> callback.on(tmpUUID.toString()));
     }
 
     public void resetPassword(String uuid, String pass, Callback<Integer> callback) {

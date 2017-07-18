@@ -1,11 +1,16 @@
 /**
  * Copyright 2017 DataThings - All rights reserved.
  */
-package greycat.websocket.actions;
+package greycat.auth.actions;
 
-import greycat.*;
+
+import greycat.Action;
+import greycat.Constants;
+import greycat.Node;
+import greycat.TaskContext;
+import greycat.auth.IdentityManager;
+import greycat.auth.login.LoginManager;
 import greycat.struct.Buffer;
-import greycat.websocket.sec.GCIdentityManager;
 
 /**
  * Created by Gregory NAIN on 26/05/2017.
@@ -13,15 +18,17 @@ import greycat.websocket.sec.GCIdentityManager;
 public class ActionResetPassword implements Action {
 
     public static final String ACTION_RESET_PASSWORD = "resetPassword";
-    private GCIdentityManager identityManager;
+    private LoginManager identityManager;
 
-    public ActionResetPassword(GCIdentityManager manager) {
+    public ActionResetPassword(LoginManager manager) {
         this.identityManager = manager;
     }
 
     @Override
     public void eval(TaskContext ctx) {
-        ctx.continueWith(ctx.wrap(identityManager.createPasswordChangeUUID((Node) ctx.result().get(0))));
+        identityManager.createPasswordUUID((Node) ctx.result().get(0),result -> {
+            ctx.continueWith(ctx.wrap(result));
+        });
     }
 
     @Override

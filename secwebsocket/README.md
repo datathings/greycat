@@ -10,7 +10,7 @@ SecWSServer wsServer = new SecWSServer(<Graph>, <TCP_PORT>, <USERS_GLOBAL_INDEX>
 
 The server automatically registers:
 * **host:ip/ws** as the WebSocket connection address for the Graph
-* **host:ip/auth** to authenticate users
+* **host:ip/greycat.auth** to authenticate users
 * **host:ip/renewpasswd** to change passwords
 
 **If using a proxy, make sure to proxy these paths before sending to your application.**
@@ -26,7 +26,7 @@ You can then connect the graph with the secured WebSocket client with
 ```java
 SecWSClient wsStorage = new SecWSClient("wss://<ip>:<port>/ws", "<sessionUUID>");
 ```   
-This will call the url `wss://<ip>:<port>/ws?gc-auth-key=<sessionUUID>`    
+This will call the url `wss://<ip>:<port>/ws?gc-greycat.auth-key=<sessionUUID>`    
 
 ###Password renewal    
 From an authenticated user connection (admin or user himself), call a remote task:   

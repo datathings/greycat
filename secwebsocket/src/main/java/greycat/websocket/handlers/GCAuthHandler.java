@@ -1,8 +1,10 @@
 /**
  * Copyright 2017 DataThings - All rights reserved.
  */
-package greycat.websocket.sec;
+package greycat.websocket.handlers;
 
+import greycat.auth.GCAccount;
+import greycat.auth.IdentityManager;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
@@ -13,6 +15,8 @@ import io.undertow.util.StatusCodes;
 
 import java.io.IOException;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.undertow.util.Methods.OPTIONS;
 
@@ -21,9 +25,9 @@ import static io.undertow.util.Methods.OPTIONS;
  */
 public class GCAuthHandler implements HttpHandler {
 
-    private GCIdentityManager identityManager;
+    private IdentityManager identityManager;
 
-    public GCAuthHandler(GCIdentityManager identityManager) {
+    public GCAuthHandler(IdentityManager identityManager) {
         this.identityManager = identityManager;
     }
 
@@ -47,18 +51,19 @@ public class GCAuthHandler implements HttpHandler {
                             httpServerExchange.startBlocking();
                             FormData data = parser.parseBlocking();
 
-                            Deque<FormData.FormValue> loginDeque = data.get("login");
-                            Deque<FormData.FormValue> passDeque = data.get("pass");
+                            Map<String, String> credentials = new HashMap<>();
 
-                            if (loginDeque.size() == 1 && passDeque.size() == 1) {
-                                String login = loginDeque.getFirst().getValue();
-                                String pass = passDeque.getFirst().getValue();
+                            data.forEach(s -> {
+                                credentials.put(s, data.getFirst(s).getValue());
+                            });
 
-                                GCAuthHandler.this.identityManager.verifyCredentials(login, pass, account -> {
+                            if (credentials.size() >= 2) {
+
+                                GCAuthHandler.this.identityManager.verifyCredentials(credentials, account -> {
                                     if (account != null) {
                                         httpServerExchange.getResponseHeaders().add(new HttpString("Access-Control-Allow-Origin"), "*");
                                         httpServerExchange.setStatusCode(StatusCodes.OK);
-                                        httpServerExchange.getResponseSender().send(account.getUUID() + "#" + account.getPrincipal().getUserId());
+                                        httpServerExchange.getResponseSender().send(account.getSessionId() + "#" + account.getUser().id());
 
                                     } else {
 
