@@ -178,7 +178,7 @@ public class Generator {
                     "  \"license\":\"UNLICENSED\"," +
                     "  \"dependencies\": {\n" +
                     "    \"greycat\": \"" + gcVersion + "\",\n" +
-                    "    \"" + packageName + "\": \"" + new File(modelWeb, "model-1.0.0.tgz").getAbsolutePath() + "\"\n" +
+                    "    \"" + packageName + "\": \"" + new File(modelWeb, packageName+"-1.0.0.tgz").getAbsolutePath() + "\"\n" +
                     "  },\n" +
                     "  \"devDependencies\": {\n" +
                     "    \"typescript\": \"2.4.1\",\n" +
