@@ -83,7 +83,7 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
 
 
     protected void onChannelClosed(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
-        //TODO: notify Graph !
+        //NOOP
     }
 
     @Override
