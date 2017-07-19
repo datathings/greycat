@@ -110,7 +110,7 @@ public class GeneratorPlugin extends AbstractMojo {
                 }
             }
         }
-        generator.generate(packageName, pluginName, targetGen, targetGenJS, generateJava, generateJS, gcVersion[0], cps);
+        generator.generate(packageName, pluginName, targetGen, targetGenJS, generateJava, generateJS, gcVersion[0], project.getVersion(), cps);
         project.addCompileSourceRoot(targetGen.getAbsolutePath());
     }
 }

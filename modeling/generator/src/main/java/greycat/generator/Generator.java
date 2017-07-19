@@ -66,7 +66,7 @@ public class Generator {
         }
     }
 
-    private void generateJS(String packageName, String pluginName, File src, File target, String gcVersion, List<File> classPath) {
+    private void generateJS(String packageName, String pluginName, File src, File target, String gcVersion, String projectVersion, List<File> classPath) {
         File modelWeb = new File(target, "model");
         if (!modelWeb.exists()) {
             modelWeb.mkdirs();
@@ -123,6 +123,8 @@ public class Generator {
             while (tgzVersion.split("\\.").length != 3) {
                 tgzVersion += ".0";
             }
+
+
             try {
                 MavenResolver resolver = new MavenResolver();
                 HashSet<String> urls = new HashSet<String>();
@@ -140,9 +142,16 @@ public class Generator {
             gcVersion = greycatTgz != null ? greycatTgz.getAbsolutePath() : tgzVersion;
         }
 
+        if(projectVersion.contains("SNAPSHOT")) {
+            projectVersion = projectVersion.replace("-SNAPSHOT", "");
+            while (projectVersion.split("\\.").length != 3) {
+                projectVersion += ".0";
+            }
+        }
+
         String packageJsonContent = "{\n" +
                 "  \"name\": \"" + packageName + "\",\n" +
-                "  \"version\": \"1.0.0\",\n" +
+                "  \"version\": \""+projectVersion+"\",\n" +
                 "  \"description\": \"\",\n" +
                 "  \"main\": \"lib/" + packageName + "\",\n" +
                 "  \"author\": \"\",\n" +
@@ -195,7 +204,7 @@ public class Generator {
                     "  \"license\":\"UNLICENSED\"," +
                     "  \"dependencies\": {\n" +
                     "    \"greycat\": \"" + gcVersion + "\",\n" +
-                    "    \"" + packageName + "\": \"" + new File(modelWeb, packageName+"-1.0.0.tgz").getAbsolutePath() + "\"\n" +
+                    "    \"" + packageName + "\": \"" + new File(modelWeb, packageName+"-"+projectVersion+".tgz").getAbsolutePath() + "\"\n" +
                     "  },\n" +
                     "  \"devDependencies\": {\n" +
                     "    \"typescript\": \"2.4.1\",\n" +
@@ -258,14 +267,14 @@ public class Generator {
         }
     }
 
-    public void generate(String packageName, String pluginName, File target, File targetWeb, boolean generateJava, boolean generateJS, String gcVersion, List<File> classPath) {
+    public void generate(String packageName, String pluginName, File target, File targetWeb, boolean generateJava, boolean generateJS, String gcVersion, String projectVersion, List<File> classPath) {
         model.consolidate();
         Checker.check(model);
         if (generateJava || generateJS) {
             generateJava(packageName, pluginName, target);
         }
         if (generateJS) {
-            generateJS(packageName, pluginName, target, targetWeb, gcVersion, classPath);
+            generateJS(packageName, pluginName, target, targetWeb, gcVersion, projectVersion, classPath);
         }
     }
 
