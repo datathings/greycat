@@ -33,25 +33,29 @@ public class LoginManager implements IdentityManager{
         this.loginAttribute = loginAttribute;
         this.passAttribute = passAttribute;
         this.allowedInactivityDelay = allowedInactivityDelay;
-    }
 
-    public void init() {
         this.graph.actionRegistry().getOrCreateDeclaration(ActionResetPassword.ACTION_RESET_PASSWORD).setFactory(params -> new ActionResetPassword(this));
     }
 
     @Override
-    public void onChannelConnected() {
-
+    public void onChannelConnected(String sessionId, GCAccount account) {
+        activeConnections.put(sessionId, account);
+        account.hit();
     }
 
     @Override
-    public void onChannelDisconnected() {
-
+    public void onChannelDisconnected(String sessionId) {
+        activeConnections.remove(sessionId);
     }
 
     @Override
-    public void onChannelActivity() {
-
+    public boolean onChannelActivity(String sessionId) {
+        GCAccount account = activeConnections.get(sessionId);
+        if(account != null && !account.isExpired()) {
+            account.hit();
+            return true;
+        }
+        return false;
     }
 
     @Override

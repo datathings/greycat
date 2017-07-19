@@ -15,6 +15,8 @@ import java.util.Deque;
  */
 public class GCSecurityHandler implements HttpHandler {
 
+    private static final String AUTH_PARAM_KEY = "gc-auth-key";
+
     private HttpHandler _nextHandler;
     private IdentityManager identityManager;
 
@@ -26,13 +28,14 @@ public class GCSecurityHandler implements HttpHandler {
 
     @Override
     public void handleRequest(HttpServerExchange httpServerExchange) throws Exception {
-        Deque<String> tokens = httpServerExchange.getQueryParameters().get("gc-auth-key");
-
+        Deque<String> tokens = httpServerExchange.getQueryParameters().get(AUTH_PARAM_KEY);
         if (tokens != null && tokens.size() == 1) {
-            this.identityManager.verifySession(tokens.getFirst(), account -> {
+            String sessionId = tokens.getFirst();
+            this.identityManager.verifySession(sessionId, account -> {
                 if (account != null) {
                     try {
                         this._nextHandler.handleRequest(httpServerExchange);
+                        this.identityManager.onChannelConnected(sessionId, account);
                     } catch (Exception e) {
                         e.printStackTrace();
                         httpServerExchange.setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR);

@@ -23,7 +23,7 @@ public class SecWebsocketTest {
             @Override
             public void on(Boolean connectResult) {
 
-                LoginManager loginManager = new LoginManager(graph, "Users", "email", "password");
+                LoginManager loginManager = new LoginManager(graph, "Users", "email", "password", 5*60*1000);
 
                 SecWSServer graphServer = new SecWSServer(graph, 8050, loginManager);
                 graphServer.addHandler("hello", new HttpHandler() {

@@ -13,13 +13,12 @@ import java.util.Map;
  */
 public interface IdentityManager {
 
-    void init();
-    void onChannelConnected();
-    void onChannelDisconnected();
-    void onChannelActivity();
+    void    onChannelConnected(String sessionId, GCAccount account);
+    void    onChannelDisconnected(String sessionId);
+    boolean onChannelActivity(String sessionId);
 
-    void verifyCredentials(Map<String, String> credentials, Callback<GCAccount> callback);
-    void verifySession(String uuid, Callback<GCAccount> callback);
+    void    verifyCredentials(Map<String, String> credentials, Callback<GCAccount> callback);
+    void    verifySession(String uuid, Callback<GCAccount> callback);
 
-    void resetPassword(String uuid, String pass, Callback<Integer> callback);
+    void    resetPassword(String uuid, String pass, Callback<Integer> callback);
 }
