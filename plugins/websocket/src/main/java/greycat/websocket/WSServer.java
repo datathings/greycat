@@ -44,6 +44,18 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
     private Set<WebSocketChannel> peers;
     protected Map<String, HttpHandler> handlers;
 
+    public static void attach(Graph graph, int port) {
+        graph.addConnectHook(new Callback<Callback<Boolean>>() {
+            @Override
+            public void on(Callback<Boolean> result) {
+                WSServer srv = new WSServer(graph, port);
+                srv.start();
+                Runtime.getRuntime().addShutdownHook(new Thread(srv::stop));
+                result.on(true);
+            }
+        });
+    }
+
     public WSServer(Graph p_graph, int p_port) {
         this.graph = p_graph;
         this.port = p_port;
