@@ -4,6 +4,7 @@
 package greycat.excel;
 
 import greycat.*;
+import greycat.internal.CoreNodeValue;
 import greycat.internal.task.TaskHelper;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
@@ -201,7 +202,7 @@ class ActionLoadXlsx implements Action {
                     } else if (!tsnode.get("tag_type").equals("timeshift")) {
                         throw new RuntimeException("Tag " + tsnode.get("tag_type") + " is not marked as a type shift type");
                     } else {
-                        Relation rel = (Relation) newFeature.getOrCreate("timeshift", Type.RELATION);
+                        Relation rel = (Relation) newFeature.getOrCreate("timeshiftRel", Type.RELATION);
                         rel.addNode(tsnode);
                     }
                 } else if (type == CellType.NUMERIC) {
@@ -387,13 +388,15 @@ class ActionLoadXlsx implements Action {
         String tagType = ((String) feature.get("tag_type"));
         if (tagType != null && tagType.equals("timeshift")) {
 
-            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+
+            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
             feature.addToRelation("value", valueNode);
 
             long firstkey = featureValues.firstKey();
             long firstshifted = firstkey + (long) ((double) featureValues.get(firstkey) * _timeShiftConst);
 
-            final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
+
+            final NodeValue valueNodeShifted = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), firstshifted, CoreNodeValue.NAME);
             feature.addToRelation("shiftedvalue", valueNodeShifted);
 
             DeferCounter defer = feature.graph().newCounter(featureValues.size() * 2);
@@ -415,7 +418,7 @@ class ActionLoadXlsx implements Action {
             });
 
         } else {
-            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
             feature.addToRelation("value", valueNode);
 
             DeferCounter defer = feature.graph().newCounter(featureValues.size());
