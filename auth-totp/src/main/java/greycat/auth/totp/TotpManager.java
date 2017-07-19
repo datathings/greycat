@@ -20,8 +20,10 @@ public class TotpManager extends LoginManager {
     private String _issuer;
     private TotpEngine _engine = new TotpEngine();
 
-    public TotpManager(Graph graph, String usersIndex, String loginAttribute, String passAttribute, String issuer) {
-        super(graph, usersIndex, loginAttribute, passAttribute);
+    private static final String TOTP_SECRET_ATTRIBUTE_KEY = "totp.secret";
+
+    public TotpManager(Graph graph, String usersIndex, String loginAttribute, String passAttribute, long allowedInactivityDelay, String issuer) {
+        super(graph, usersIndex, loginAttribute, passAttribute, allowedInactivityDelay);
         this._issuer = issuer;
     }
 
@@ -30,7 +32,7 @@ public class TotpManager extends LoginManager {
     public void verifyCredentials(Map<String, String> credentials, Callback<GCAccount> callback) {
         super.verifyCredentials(credentials, result -> {
             if (result != null) {
-                String secret = (String) result.getUser().get("totp.secret");
+                String secret = (String) result.getUser().get(TOTP_SECRET_ATTRIBUTE_KEY);
                 String code = credentials.get("gc.otp");
                 if (secret != null && code != null && !secret.trim().equals("") && code.length() == 6) {
                     if (_engine.check_code(secret, Long.parseLong(code), System.currentTimeMillis())) {
@@ -45,9 +47,14 @@ public class TotpManager extends LoginManager {
 
     public void createTotpSecret(Node user, Callback<String> initialized) {
         String secret = TotpEngine.generateSecretKey();
-        user.set("totp.secret", Type.STRING, secret);
+        user.set(TOTP_SECRET_ATTRIBUTE_KEY, Type.STRING, secret);
         user.graph().save((aBoolean)->initialized.on(secret));
     }
+
+    public String getAuthenticatorLink(Node user) {
+        return TotpEngine.getAuthenticatorLink((String)user.get(loginAttribute), (String) user.get(TOTP_SECRET_ATTRIBUTE_KEY), _issuer);
+    }
+
 
 
 }

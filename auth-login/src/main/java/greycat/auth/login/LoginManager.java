@@ -20,17 +20,19 @@ public class LoginManager implements IdentityManager{
     protected String usersIndex;
     protected String loginAttribute;
     protected String passAttribute;
+    protected long allowedInactivityDelay;
 
-    private static final long VALIDITY_PERIOD = 30*60*1000; // 5min
+    //private static final long VALIDITY_PERIOD = 30*60*1000; // 5min
 
     protected List<GCAccount> activeAccounts = new ArrayList<>();
     protected Map<String, GCAccount> activeConnections = new HashMap<>();
 
-    public LoginManager(Graph graph, String usersIndex, String loginAttribute, String passAttribute) {
+    public LoginManager(Graph graph, String usersIndex, String loginAttribute, String passAttribute, long allowedInactivityDelay) {
         this.graph = graph;
         this.usersIndex = usersIndex;
         this.loginAttribute = loginAttribute;
         this.passAttribute = passAttribute;
+        this.allowedInactivityDelay = allowedInactivityDelay;
     }
 
     public void init() {
@@ -97,7 +99,7 @@ public class LoginManager implements IdentityManager{
 
                         if(passCheck) {
                             if(active == null){
-                                active = new LoginAccount(login, users[0], VALIDITY_PERIOD, true);
+                                active = new LoginAccount(login, users[0], allowedInactivityDelay, true);
                                 activeAccounts.add(active);
                             } else {
                                 active.hit();

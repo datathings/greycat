@@ -11,7 +11,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
-public class TotpEngine {
+class TotpEngine {
 		
 	// taken from Google pam docs - we probably don't need to mess with these
 	//final static int secretSize = 10;
@@ -59,14 +59,14 @@ public class TotpEngine {
 	 * Google Authenticator application on their smartphone to register the auth code. They can also manually enter the
 	 * secret if desired
 	 */
-	private static String qrCodeUrl = "https://www.google.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=otpauth://totp/%s@%s%%3Fsecret%%3D%s%%26issuer%%3D%s";
-	public static String getQRBarcodeURL(String user, String host, String secret, String issuer) {
-		return String.format(qrCodeUrl, user, host, secret, issuer);
+	private static String qrCodeUrl = "https://www.google.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=otpauth://totp/%s%%3Fsecret%%3D%s%%26issuer%%3D%s";
+	public static String getQRBarcodeURL(String login, String secret, String issuer) {
+		return String.format(qrCodeUrl, login, secret, issuer);
 	}
 
-	private static String authenticatorLink = "otpauth://totp/%s@%s?secret=%s&issuer=%s";
-	public static String getAuthenticatorLink(String user, String host, String secret, String issuer) {
-		return String.format(authenticatorLink, user, host, secret, issuer);
+	private static String authenticatorLink = "otpauth://totp/%s?secret=%s&issuer=%s";
+	public static String getAuthenticatorLink(String login, String secret, String issuer) {
+		return String.format(authenticatorLink, login, secret, issuer);
 	}
 
 	/**
