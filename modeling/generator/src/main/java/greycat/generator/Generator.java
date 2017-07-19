@@ -118,7 +118,11 @@ public class Generator {
         boolean isSnaphot = (gcVersion.contains("SNAPSHOT"));
         File greycatTgz = null;
         if (isSnaphot) {
-            String tgzVersion = gcVersion.replace("-SNAPSHOT", "") + ".0.0";
+
+            String tgzVersion = gcVersion.replace("-SNAPSHOT", "");
+            while (tgzVersion.split("\\.").length != 3) {
+                tgzVersion += ".0";
+            }
             try {
                 MavenResolver resolver = new MavenResolver();
                 HashSet<String> urls = new HashSet<String>();
