@@ -81,6 +81,11 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
         peers.add(webSocketChannel);
     }
 
+
+    protected void onChannelClosed(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
+        //TODO: notify Graph !
+    }
+
     @Override
     public final void on(final Buffer result) {
         //broadcast to anyone...
@@ -114,12 +119,13 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
         @Override
         protected final void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
             peers.remove(webSocketChannel);
+            onChannelClosed(webSocketChannel, channel);
             super.onClose(webSocketChannel, channel);
         }
 
     }
 
-    private void process_rpc(final byte[] input, final WebSocketChannel channel) {
+    protected void process_rpc(final byte[] input, final WebSocketChannel channel) {
         if (input.length == 0) {
             return;
         }
