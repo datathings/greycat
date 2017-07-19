@@ -128,6 +128,9 @@ public class Generator {
                 HashSet<String> urls = new HashSet<String>();
                 urls.add("https://oss.sonatype.org/content/repositories/snapshots");
                 greycatTgz = resolver.resolve("com.datathings", "greycat", gcVersion, "tgz", urls);
+                if(greycatTgz == null) {
+                    throw new RuntimeException("Could not resolve dependency: gp:com.datathings artifact:greycat version:" + gcVersion + " ext:tgz");
+                }
                 //greycatTgz = new File(new File(new File(src.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile().getCanonicalFile(), "greycat"), "target"), "greycat-" + tgzVersion + ".tgz");
                 greycatTgz = greycatTgz.getCanonicalFile();
                 System.out.println("using GreyCat Snapshot from " + greycatTgz.getAbsolutePath());
