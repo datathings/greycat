@@ -40,7 +40,7 @@ public class GenerateTask extends DefaultTask {
         target.mkdirs();
         targetJava.mkdirs();
         targetTs.mkdirs();
-        generator.generate("generated", "generated", targetJava, targetTs, true, true, "9", null);
+        generator.generate("generated", "generated", targetJava, targetTs, true, true, "9", (String)getProject().getVersion(), null);
     }
 
 }
