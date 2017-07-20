@@ -388,15 +388,20 @@ class ActionLoadXlsx implements Action {
         String tagType = ((String) feature.get("tag_type"));
         if (tagType != null && tagType.equals("timeshift")) {
 
-
-            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
-            feature.addToRelation("value", valueNode);
-
             long firstkey = featureValues.firstKey();
             long firstshifted = firstkey + (long) ((double) featureValues.get(firstkey) * _timeShiftConst);
 
 
-            final NodeValue valueNodeShifted = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), firstshifted, CoreNodeValue.NAME);
+            //todo reactivate value node once null are accepted!
+            //final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
+            //final NodeValue valueNodeShifted = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), firstshifted, CoreNodeValue.NAME);
+
+            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+            final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
+
+            feature.addToRelation("value", valueNode);
+
+
             feature.addToRelation("shiftedvalue", valueNodeShifted);
 
             DeferCounter defer = feature.graph().newCounter(featureValues.size() * 2);
