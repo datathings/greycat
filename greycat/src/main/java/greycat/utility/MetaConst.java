@@ -15,12 +15,12 @@
  */
 package greycat.utility;
 
-public class MetaConst extends Meta {
-    public Object value;
+public final class MetaConst<T> extends Meta {
+    public T value;
 
-    public MetaConst(final String name, final int type, final int hash, final Object value) {
+    public MetaConst(final String name, final int type, final int hash, final T value) {
         super(name, type, hash);
         this.value = value;
-
     }
+
 }

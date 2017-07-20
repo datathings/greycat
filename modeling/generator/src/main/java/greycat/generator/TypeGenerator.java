@@ -119,9 +119,9 @@ class TypeGenerator {
                 } else if (constant.type().equals("String") && value != null) {
                     value = "\"" + value + "\"";
                 }
-                javaClass.addField(FieldSpec.builder(gMetaConst, constant.name().toUpperCase())
+                javaClass.addField(FieldSpec.builder(ParameterizedTypeName.get(gMetaConst, clazz(constant.type())), constant.name().toUpperCase())
                         .addModifiers(PUBLIC, STATIC, FINAL)
-                        .initializer("new $T($S, $L,$L, $L)", gMetaConst, constant.name(), typeName(constant.type()), hash(constant.name()), value)
+                        .initializer("new $T($S, $L,$L, $L)", ParameterizedTypeName.get(gMetaConst, clazz(constant.type())), constant.name(), typeName(constant.type()), hash(constant.name()), value)
                         .build());
             } else if (o instanceof Attribute) {
                 final Attribute att = (Attribute) o;
