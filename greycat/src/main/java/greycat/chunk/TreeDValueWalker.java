@@ -18,6 +18,6 @@ package greycat.chunk;
 @FunctionalInterface
 public interface TreeDValueWalker {
 
-    void elem(final long time, final double value);
+    void elem(final long time, final Double value);
 
 }

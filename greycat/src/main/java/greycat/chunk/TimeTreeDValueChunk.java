@@ -19,9 +19,9 @@ public interface TimeTreeDValueChunk extends TimeTreeEmbeddedChunk {
 
     int previousOffset(long key);
 
-    double getValue(int offset);
+    Double getValue(int offset);
 
-    void insertValue(long key, double value);
+    void insertValue(long key, Double value);
 
     void rangeValue(long startKey, long endKey, long maxElements, TreeDValueWalker walker);
 
