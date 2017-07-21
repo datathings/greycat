@@ -14,8 +14,8 @@
 
 
     <properties>
-        <greycat.version>9.1-SNAPSHOT</greycat.version>
-        <java2typescript.plugin.version>91</java2typescript.plugin.version>
+        <greycat.version>10-SNAPSHOT</greycat.version>
+        <java2typescript.plugin.version>92</java2typescript.plugin.version>
         <header.path>${project.basedir}/LICENSE</header.path>
     </properties>
 
