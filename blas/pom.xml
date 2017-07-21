@@ -7,7 +7,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-blas</artifactId>
-    <version>9.1-SNAPSHOT</version>
+    <version>10-SNAPSHOT</version>
     <name>greycat-blas</name>
 
     <properties>
@@ -18,7 +18,7 @@
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings.enterprise</groupId>
-        <version>9.1-SNAPSHOT</version>
+        <version>10-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 
