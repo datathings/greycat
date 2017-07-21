@@ -57,7 +57,7 @@
                                 ant.copy(file: "${basedir}/src/main/ts/greycat.secws.ts", todir: "${basedir}/target/classes-npm")
                                 ant.copy(file: "${basedir}/src/main/ts/package.json", todir: "${basedir}/target/classes-npm")
                                 ant.copy(file: "${basedir}/src/main/ts/tsconfig.json", todir: "${basedir}/target/classes-npm")
-                                def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
+                                def project_version = "${greycat.version}".replaceAll("-SNAPSHOT", "")
                                 while (project_version.split('\\.').length != 3) { project_version += '.0' }
                                 def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
                                 while (j2ts_version.split('\\.').length != 3) { j2ts_version += '.0' }

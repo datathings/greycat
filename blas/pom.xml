@@ -198,7 +198,7 @@
                                 ant.copy(file: "${basedir}/target/generated-sources/greycat.blas.ts", todir: "${basedir}/target/classes-npm")
                                 ant.replace(file: "${basedir}/target/classes-npm/greycat.blas.ts", token: "namespace greycat", value:"export namespace greycatBlas")
                                 ant.replace(file: "${basedir}/target/classes-npm/greycat.blas.ts", token: "greycat.blas", value:"greycatBlas.blas")
-                                def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
+                                def project_version = "${greycat.version}".replaceAll("-SNAPSHOT", "")
                                 while (project_version.split('\\.').length != 3) {
                                     project_version += '.0'
                                 }
