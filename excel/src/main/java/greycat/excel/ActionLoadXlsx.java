@@ -86,6 +86,7 @@ class ActionLoadXlsx implements Action {
                 throw new UnsupportedOperationException("Schema: " + parsedUri.getScheme() + " not yet supported. Tried to open file from: " + _uri);
             }
         } catch (Exception e) {
+
             taskContext.endTask(null, e);
         }
     }
@@ -393,11 +394,11 @@ class ActionLoadXlsx implements Action {
 
 
             //todo reactivate value node once null are accepted!
-            //final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
-            //final NodeValue valueNodeShifted = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), firstshifted, CoreNodeValue.NAME);
+            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
+            final NodeValue valueNodeShifted = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), firstshifted, CoreNodeValue.NAME);
 
-            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
-            final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
+//            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+//            final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
 
             feature.addToRelation("value", valueNode);
 
@@ -419,7 +420,7 @@ class ActionLoadXlsx implements Action {
             featureValues.forEach((key, value) -> {
                 long shift = (long) ((double) value * _timeShiftConst);
                 setValueInTime(feature, valueNode, key, value, type, false, null, () -> defer.count());
-                setValueInTime(feature, valueNodeShifted, key + shift, shift, (byte)Type.LONG, false, null, () -> defer.count());
+                setValueInTime(feature, valueNodeShifted, key + shift, shift*1.0, (byte)Type.DOUBLE, false, null, () -> defer.count());
             });
 
         } else {
