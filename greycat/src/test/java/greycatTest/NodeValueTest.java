@@ -21,6 +21,8 @@ import greycat.scheduler.NoopScheduler;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static greycat.Tasks.newTask;
+
 public class NodeValueTest {
 
     /**
@@ -52,6 +54,8 @@ public class NodeValueTest {
             }
         });
     }
+
+    private static Task traverse=newTask().traverse("sub");
 
     @Test
     public void testRelation() {
@@ -86,9 +90,20 @@ public class NodeValueTest {
                     }
                 });
 
+                TaskContext ctx=traverse.prepare(g, parent, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+                        NodeValue nd= (NodeValue) result.get(0);
+                        System.out.println(nd);
+                        Assert.assertNotNull(nd);
+                    }
+                });
+                traverse.executeUsing(ctx);
+
             }
         });
     }
+
 
 
     @Test
