@@ -36,12 +36,12 @@ public class CoreNodeValue extends BaseNode implements NodeValue {
     }
 
     @Override
-    public final double getValue() {
-        return (double) getAt(cached);
+    public final Double getValue() {
+        return (Double) getAt(cached);
     }
 
     @Override
-    public final void setValue(double newValue) {
+    public final void setValue(Double newValue) {
         setAt(cached, Type.DOUBLE, newValue);
     }
 

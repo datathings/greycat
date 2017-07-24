@@ -18,6 +18,7 @@ package greycatTest;
 import greycat.*;
 import greycat.internal.CoreNodeValue;
 import greycat.scheduler.NoopScheduler;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class NodeValueTest {
@@ -25,7 +26,7 @@ public class NodeValueTest {
     /**
      * @ignore ts
      */
-    //@Test
+    @Test
     public void test() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
         g.connect(new Callback<Boolean>() {
@@ -48,6 +49,95 @@ public class NodeValueTest {
                 double timeSecond = (after - before) / 1000d;
                 System.out.println(timeSecond);
                 System.out.println(size / timeSecond);
+            }
+        });
+    }
+
+    @Test
+    public void testRelation() {
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                NodeValue nodeValue = (NodeValue) g.newTypedNode(0, 0, CoreNodeValue.NAME);
+                nodeValue.setValue(42.5d);
+
+                Node parent = g.newNode(0, 0);
+                parent.addToRelation("sub", nodeValue);
+
+                g.lookup(0, 0, nodeValue.id(), new Callback<Node>() {
+                    @Override
+                    public void on(Node result) {
+                        Assert.assertNotNull(result);
+                    }
+                });
+
+                g.lookupBatch(new long[]{0}, new long[]{0}, new long[]{nodeValue.id()}, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        Assert.assertNotNull(result[0]);
+                    }
+                });
+
+                parent.traverse("sub", new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        Assert.assertNotNull(result[0]);
+                    }
+                });
+
+            }
+        });
+    }
+
+
+    @Test
+    public void testNull() {
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                NodeValue nodeValue = (NodeValue) g.newTypedNode(0, 0, CoreNodeValue.NAME);
+                long size = 100;
+                for (int i = 0; i < size; i++) {
+                    int finalI = i;
+                    g.lookup(0, i, nodeValue.id(), new Callback<NodeValue>() {
+                        @Override
+                        public void on(NodeValue result) {
+                            if ((finalI % 10) == 0) {
+                                result.setValue(null);
+                            } else {
+                                result.setValue(finalI * 2.0d);
+
+                            }
+                            result.free();
+                        }
+                    });
+                }
+                nodeValue.free();
+                g.save(null);
+
+                g.lookup(0, 0, nodeValue.id(), new Callback<NodeValue>() {
+                    @Override
+                    public void on(NodeValue result) {
+                        for (int i = 0; i < size; i++) {
+                            int finalI = i;
+                            g.lookup(0, i, nodeValue.id(), new Callback<NodeValue>() {
+                                @Override
+                                public void on(NodeValue result) {
+                                    if ((finalI % 10) == 0) {
+                                        Assert.assertNull(result.getValue());
+                                    } else {
+                                        Assert.assertTrue((result.getValue() + "").equals((finalI * 2.0d) + ""));
+                                    }
+                                    result.free();
+                                }
+                            });
+                        }
+                    }
+                });
+
+
             }
         });
     }

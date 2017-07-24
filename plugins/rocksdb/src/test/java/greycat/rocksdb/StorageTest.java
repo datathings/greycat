@@ -27,6 +27,11 @@ public class StorageTest {
 
     @Test
     public void test() throws IOException {
+
+        if(System.getProperty("os.name").toLowerCase().contains("win")){
+            return;
+        }
+
         /*
         OffHeapByteArray.alloc_counter = 0;
         OffHeapDoubleArray.alloc_counter = 0;

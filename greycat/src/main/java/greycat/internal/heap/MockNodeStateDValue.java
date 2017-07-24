@@ -184,11 +184,17 @@ public class MockNodeStateDValue implements StateChunk {
 
     @Override
     public final Object getAt(int index) {
+        if(chunk._values_is_null[offset]){
+            return null;
+        }
         return chunk._values[offset];
     }
 
     @Override
     public final Object getRawAt(int index) {
+        if(chunk._values_is_null[offset]){
+            return null;
+        }
         return chunk._values[offset];
     }
 
@@ -215,7 +221,13 @@ public class MockNodeStateDValue implements StateChunk {
 
     @Override
     public final Container setAt(int index, int type, Object value) {
-        chunk._values[offset] = (double) value;
+        if(value == null){
+            chunk._values[offset] = 0d;
+            chunk._values_is_null[offset] = true;
+        } else {
+            chunk._values[offset] = (double) value;
+            chunk._values_is_null[offset] = false;
+        }
         return this;
     }
 

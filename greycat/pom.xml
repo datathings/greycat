@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat</artifactId>
     <name>greycat</name>
@@ -110,9 +111,14 @@
                         </goals>
                         <configuration>
                             <source>
+                                //windows compat...
+                                def gbasedir = basedir.getAbsolutePath().replace('\\','/')
+                                def prefix = (System.getProperty("os.name").toLowerCase().contains("win"))? "CMD /C ": ""
+
+                                //let's start
                                 def ant = new AntBuilder()
-                                ant.copy(file: "${basedir}/src/main/ts/tsconfig.json", todir: "${basedir}/target/classes-npm")
-                                ant.copy(file: "${basedir}/src/main/ts/package.json", todir: "${basedir}/target/classes-npm")
+                                ant.copy(file: "${gbasedir}/src/main/ts/tsconfig.json", todir: "${gbasedir}/target/classes-npm")
+                                ant.copy(file: "${gbasedir}/src/main/ts/package.json", todir: "${gbasedir}/target/classes-npm")
                                 def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
                                 while (project_version.split('\\.').length != 3) {
                                     project_version += '.0'
@@ -121,27 +127,28 @@
                                 while (j2ts_version.split('\\.').length != 3) {
                                     j2ts_version += '.0'
                                 }
-                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
-                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
-                                ant.copy(file: "${basedir}/target/generated-sources/greycat.ts", todir: "${basedir}/target/classes-npm")
-                                ant.concat(append: true, destfile: "${basedir}/target/classes-npm/greycat.ts", "export = greycat;")
-                                def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/classes-npm"))
+                                ant.replace(file: "${gbasedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
+                                ant.replace(file: "${gbasedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
+                                ant.copy(file: "${gbasedir}/target/generated-sources/greycat.ts", todir: "${gbasedir}/target/classes-npm")
+                                ant.concat(append: true, destfile: "${gbasedir}/target/classes-npm/greycat.ts", "export = greycat;")
+                                def npmInstallProcess = (prefix+"npm install").execute(null, new File("${gbasedir}/target/classes-npm"))
                                 npmInstallProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmInstallProcess.exitValue() != 0) {
                                     exit
                                 }
                                 ant.echo("TypeScript Compiler")
-                                def tscProcess = "node ${basedir}/target/classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/classes-npm"))
+                                def tscProcess = (prefix+"node ${gbasedir}/target/classes-npm/node_modules/typescript/lib/tsc.js").execute(null, new File("${gbasedir}/target/classes-npm"))
                                 tscProcess.waitForProcessOutput(System.out, System.err)
                                 if (tscProcess.exitValue() != 0) {
                                     exit
                                 }
-                                ant.delete(file: "${basedir}/target/classes-npm/greycat.ts")
-                                def npmPackProcess = "npm pack classes-npm/".execute(null, new File("${basedir}/target/"))
+                                ant.delete(file: "${gbasedir}/target/classes-npm/greycat.ts")
+                                def npmPackProcess = (prefix+"npm pack classes-npm/").execute(null, new File("${gbasedir}/target/"))
                                 npmPackProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmPackProcess.exitValue() != 0) {
                                     exit
                                 }
+                                project.properties.put("generatedTGZ", "greycat-${project_version}".toString())
                             </source>
                         </configuration>
                     </execution>
@@ -153,9 +160,13 @@
                         </goals>
                         <configuration>
                             <source>
+                                //windows compat...
+                                def gbasedir = basedir.getAbsolutePath().replace('\\','/')
+                                def prefix = (System.getProperty("os.name").toLowerCase().contains("win"))? "CMD /C ": ""
+
                                 def ant = new AntBuilder()
-                                ant.copy(file: "${basedir}/src/test/ts/tsconfig.json", todir: "${basedir}/target/test-classes-npm")
-                                ant.copy(file: "${basedir}/src/test/ts/package.json", todir: "${basedir}/target/test-classes-npm")
+                                ant.copy(file: "${gbasedir}/src/test/ts/tsconfig.json", todir: "${gbasedir}/target/test-classes-npm")
+                                ant.copy(file: "${gbasedir}/src/test/ts/package.json", todir: "${gbasedir}/target/test-classes-npm")
                                 def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
                                 while (project_version.split('\\.').length != 3) {
                                     project_version += '.0'
@@ -164,22 +175,22 @@
                                 while (j2ts_version.split('\\.').length != 3) {
                                     j2ts_version += '.0'
                                 }
-                                ant.replace(file: "${basedir}/target/test-classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
-                                ant.replace(file: "${basedir}/target/test-classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
-                                ant.copy(file: "${basedir}/target/generated-test-sources/test.ts", todir: "${basedir}/target/test-classes-npm")
-                                ant.concat(append: "true", destfile: "${basedir}/target/test-classes-npm/test.ts", "export = greycatTest;")
-                                def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                ant.replace(file: "${gbasedir}/target/test-classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
+                                ant.replace(file: "${gbasedir}/target/test-classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
+                                ant.copy(file: "${gbasedir}/target/generated-test-sources/test.ts", todir: "${gbasedir}/target/test-classes-npm")
+                                ant.concat(append: "true", destfile: "${gbasedir}/target/test-classes-npm/test.ts", "export = greycatTest;")
+                                def npmInstallProcess = (prefix+"npm install").execute(null, new File("${gbasedir}/target/test-classes-npm"))
                                 npmInstallProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmInstallProcess.exitValue() != 0) {
                                     exit
                                 }
-                                def tscProcess = "node ${basedir}/target/test-classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                def tscProcess = (prefix+"node ${gbasedir}/target/test-classes-npm/node_modules/typescript/lib/tsc.js").execute(null, new File("${gbasedir}/target/test-classes-npm"))
                                 tscProcess.waitForProcessOutput(System.out, System.err)
                                 if (tscProcess.exitValue() != 0) {
                                     exit
                                 }
-                                ant.concat(append: "false", destfile: "${basedir}/target/test-classes-npm/jasmine.js", "var Jasmine = require('jasmine');var jasmine = new Jasmine();jasmine.execute(['testsRunner.js']);")
-                                ant.copy(file: "${basedir}/target/generated-test-sources/testsRunner.js", todir: "${basedir}/target/test-classes-npm")
+                                ant.concat(append: "false", destfile: "${gbasedir}/target/test-classes-npm/jasmine.js", "var Jasmine = require('jasmine');var jasmine = new Jasmine();jasmine.execute(['testsRunner.js']);")
+                                ant.copy(file: "${gbasedir}/target/generated-test-sources/testsRunner.js", todir: "${gbasedir}/target/test-classes-npm")
                             </source>
                         </configuration>
                     </execution>
@@ -191,7 +202,11 @@
                         </goals>
                         <configuration>
                             <source>
-                                def jasmineProcess = "node jasmine.js".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                //windows compat...
+                                def gbasedir = basedir.getAbsolutePath().replace('\\','/')
+                                def prefix = (System.getProperty("os.name").toLowerCase().contains("win"))? "CMD /C ": ""
+
+                                def jasmineProcess = (prefix+"node jasmine.js").execute(null, new File("${gbasedir}/target/test-classes-npm"))
                                 jasmineProcess.waitForProcessOutput(System.out, System.err)
                                 if (jasmineProcess.exitValue() != 0) {
                                     exit
@@ -203,5 +218,41 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>2.8.2</version>
+                        <executions>
+                            <execution>
+                                <id>deploy.tgz</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>deploy-file</goal>
+                                </goals>
+                                <configuration>
+                                    <repositoryId>datathings.oss.snapshots</repositoryId>
+                                    <url>${project.distributionManagement.snapshotRepository.url}</url>
+                                    <generatePom>true</generatePom>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <groupId>${project.groupId}</groupId>
+                                    <version>${project.version}</version>
+                                    <file>${basedir}/target/${generatedTGZ}.tgz</file>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

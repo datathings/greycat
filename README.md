@@ -9,7 +9,12 @@ For any questions please contact us via our Gitter:
 [![Build Status](https://travis-ci.org/datathings/greycat.svg?branch=master)](https://travis-ci.org/datathings/greycat)
 
 # Changelog
-- Version 9 (~end of June 2017)
+- Version 11 (planned ~20/07/2017)
+    - convergence of EStruct and CustomType and Node
+    - hybrid storage
+- Version 10 (planned ~20/07/2017)
+    - introducing new chunks to handle access control enabled manager
+- Version 9 (14/07/2017)
     - introduction of model environment (grammar, IDEA plugin, generator Java and TS)
     - introduction of custom types
     - unified index API, declareIndex mandatory now

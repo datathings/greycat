@@ -44,6 +44,18 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
     private Set<WebSocketChannel> peers;
     protected Map<String, HttpHandler> handlers;
 
+    public static void attach(Graph graph, int port) {
+        graph.addConnectHook(new Callback<Callback<Boolean>>() {
+            @Override
+            public void on(Callback<Boolean> result) {
+                WSServer srv = new WSServer(graph, port);
+                srv.start();
+                Runtime.getRuntime().addShutdownHook(new Thread(srv::stop));
+                result.on(true);
+            }
+        });
+    }
+
     public WSServer(Graph p_graph, int p_port) {
         this.graph = p_graph;
         this.port = p_port;
@@ -81,6 +93,11 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
         peers.add(webSocketChannel);
     }
 
+
+    protected void onChannelClosed(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
+        //NOOP
+    }
+
     @Override
     public final void on(final Buffer result) {
         //broadcast to anyone...
@@ -114,12 +131,13 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
         @Override
         protected final void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
             peers.remove(webSocketChannel);
+            onChannelClosed(webSocketChannel, channel);
             super.onClose(webSocketChannel, channel);
         }
 
     }
 
-    private void process_rpc(final byte[] input, final WebSocketChannel channel) {
+    protected void process_rpc(final byte[] input, final WebSocketChannel channel) {
         if (input.length == 0) {
             return;
         }

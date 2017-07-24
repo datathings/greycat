@@ -112,16 +112,25 @@ class TypeGenerator {
             if (o instanceof Constant) {
                 Constant constant = (Constant) o;
                 String value = constant.value();
-                if (constant.type().equals("Task")) {
-                    if (value != null) {
-                        value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null)";
+                if (value != null) {
+                    switch (constant.type()) {
+                        case "Task":
+                            value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null)";
+                            break;
+                        case "Long":
+                            value = value + "L";
+                            break;
+                        case "Double":
+                            value = value + "d";
+                            break;
+                        case "String":
+                            value = "\"" + value + "\"";
+                            break;
                     }
-                } else if (constant.type().equals("String") && value != null) {
-                    value = "\"" + value + "\"";
                 }
-                javaClass.addField(FieldSpec.builder(gMetaConst, constant.name().toUpperCase())
+                javaClass.addField(FieldSpec.builder(ParameterizedTypeName.get(gMetaConst, clazz(constant.type())), constant.name().toUpperCase())
                         .addModifiers(PUBLIC, STATIC, FINAL)
-                        .initializer("new $T($S, $L,$L, $L)", gMetaConst, constant.name(), typeName(constant.type()), hash(constant.name()), value)
+                        .initializer("new $T($S, $L,$L, $L)", ParameterizedTypeName.get(gMetaConst, clazz(constant.type())), constant.name(), typeName(constant.type()), hash(constant.name()), value)
                         .build());
             } else if (o instanceof Attribute) {
                 final Attribute att = (Attribute) o;
@@ -269,18 +278,7 @@ class TypeGenerator {
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(ClassName.get(packageName, li.type()), "value");
 
-                StringBuilder indexedAttBuilder = new StringBuilder();
-                for (AttributeRef attRef : li.attributes()) {
-                    indexedAttBuilder.append(li.type() + "." + attRef.ref().name().toUpperCase() + ".name");
-                    indexedAttBuilder.append(",");
-                }
-                indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
-
                 indexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
-                indexMethod.beginControlFlow("if(index == null)");
-                indexMethod.addStatement("index = ($T) this.getOrCreateAt($L.hash,greycat.Type.INDEX)", gIndex, li.name().toUpperCase());
-                indexMethod.addStatement("index.declareAttributes(null, $L)", indexedAttBuilder.toString());
-                indexMethod.endControlFlow();
                 indexMethod.addStatement("index.update(value)");
                 if (li.opposite() != null) {
                     indexMethod.addCode(createAddOppositeBody(li.type(), li).toString());
@@ -295,12 +293,12 @@ class TypeGenerator {
                         .addParameter(ClassName.bestGuess(Generator.upperCaseFirstChar(li.type())), "value");
 
                 unindexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
-                unindexMethod.beginControlFlow("if(index != null)");
+                //unindexMethod.beginControlFlow("if(index != null)");
                 unindexMethod.addStatement("index.unindex(value)");
                 if (li.opposite() != null) {
                     unindexMethod.addCode(createRemoveOppositeBody(li.type(), li).toString());
                 }
-                unindexMethod.endControlFlow();
+                //unindexMethod.endControlFlow();
                 unindexMethod.addStatement("return this");
                 javaClass.addMethod(unindexMethod.build());
 
@@ -332,7 +330,7 @@ class TypeGenerator {
                 li.attributes().forEach(attributeRef -> params.append(",").append(attributeRef.ref().name()));
                 findMethod.addStatement("index.find($L, this.world(), this.time() $L)", findCallback, params.toString());
                 findMethod.nextControlFlow("else");
-                findMethod.addStatement("callback.on(null)");
+                findMethod.addStatement("callback.on(new $T[0])", ClassName.get(packageName, li.type()));
                 findMethod.endControlFlow();
                 javaClass.addMethod(findMethod.build());
 
@@ -357,7 +355,7 @@ class TypeGenerator {
                                                 .build())
                                         .build())
                         .nextControlFlow("else")
-                        .addStatement("callback.on(null)")
+                        .addStatement("callback.on(new $T[0])", ClassName.get(packageName, li.type()))
                         .endControlFlow().build());
             }
         });
@@ -422,6 +420,16 @@ class TypeGenerator {
                         }
                         initMethod.addStatement("setTimeSensitivity($L, $L)", parsedSensitivity, offset);
                         break;
+                }
+            } else if (o instanceof Index) {
+                Index idx = (Index) o;
+                initMethod.addStatement("$1T $2LIndex = ($1T) this.getOrCreateAt($3L.hash,greycat.Type.INDEX)", gIndex, idx.name(), idx.name().toUpperCase());
+                if (idx.attributes().size() > 0) {
+                    CodeBlock.Builder declareIndexinit = CodeBlock.builder();
+                    idx.attributes().forEach(attributeRef -> {
+                        declareIndexinit.add(", $T.$L.name", clazz(idx.type()), attributeRef.ref().name().toUpperCase());
+                    });
+                    initMethod.addStatement("$LIndex.declareAttributes(null$L)", idx.name(), declareIndexinit.build());
                 }
             }
         });

@@ -17,9 +17,9 @@ package greycat;
 
 public interface NodeValue extends Node {
 
-    double getValue();
+    Double getValue();
 
-    void setValue(double newValue);
+    void setValue(Double newValue);
 
     void batchInsert(long[] times, double[] values);
 

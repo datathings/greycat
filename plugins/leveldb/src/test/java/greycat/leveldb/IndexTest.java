@@ -27,6 +27,10 @@ public class IndexTest {
 
     @Test
     public void testIndex() {
+        if(System.getProperty("os.name").toLowerCase().contains("win")){
+            return;
+        }
+
         Graph graph = new GraphBuilder().withScheduler(new NoopScheduler()).withStorage(new LevelDBStorage("db")).build();
         Graph graph2 = new GraphBuilder().withStorage(new LevelDBStorage("db")).build();
 

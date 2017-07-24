@@ -47,9 +47,9 @@
     </parent>
 
     <properties>
-        <java2typescript.plugin.version>91</java2typescript.plugin.version>
+        <java2typescript.plugin.version>92</java2typescript.plugin.version>
         <header.path>${basedir}/HEADER</header.path>
-        <undertow.version>1.4.17.Final</undertow.version>
+        <undertow.version>1.4.18.Final</undertow.version>
     </properties>
 
     <developers>
@@ -118,6 +118,7 @@
 
     <build>
         <plugins>
+            <!--
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -129,6 +130,7 @@
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>

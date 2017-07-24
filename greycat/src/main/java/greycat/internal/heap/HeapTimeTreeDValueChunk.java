@@ -35,6 +35,7 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
     private int[] _back_meta;
     long[] _k;
     double[] _values;
+    boolean[] _values_is_null;
     private boolean[] _colors;
 
     private long _hash;
@@ -116,7 +117,9 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
         for (int i = 0; i < _size; i++) {
             Base64.encodeLongToBuffer(this._k[i], buffer);
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
-            Base64.encodeDoubleToBuffer(this._values[i], buffer);
+            if (!this._values_is_null[i]) {
+                Base64.encodeDoubleToBuffer(this._values[i], buffer);
+            }
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
         }
         _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
@@ -191,7 +194,12 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
                     break;
                 case Constants.CHUNK_VAL_SEP:
                     if (waiting_value) {
-                        Tuple<Boolean, Integer> index = internal_insert(key_time, Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
+                        final Tuple<Boolean, Integer> index;
+                        if (previous + 1 == cursor) {
+                            index = internal_insert(key_time, 0d, true);
+                        } else {
+                            index = internal_insert(key_time, Base64.decodeToDoubleWithBounds(buffer, previous, cursor), false);
+                        }
                         isDirty = isDirty || index.left();
                         waiting_value = false;
                     } else {
@@ -230,8 +238,12 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
     }
 
     @Override
-    public final double getValue(int offset) {
-        return _values[offset];
+    public final Double getValue(int offset) {
+        if (this._values_is_null[offset]) {
+            return null;
+        } else {
+            return _values[offset];
+        }
     }
 
     @Override
@@ -284,7 +296,7 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
 
     @Override
     public synchronized final int insert(final long p_key) {
-        final Tuple<Boolean, Integer> index = internal_insert(p_key, 0.0d);
+        final Tuple<Boolean, Integer> index = internal_insert(p_key, 0.0d, false);
         if (index.left()) {
             internal_set_dirty();
             return index.right();
@@ -310,6 +322,10 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
         if (_values != null) {
             System.arraycopy(_values, 0, new_back_value, 0, _size);
         }
+        boolean[] new_back_value_is_null = new boolean[newCapacity];
+        if (_values_is_null != null) {
+            System.arraycopy(_values_is_null, 0, new_back_value_is_null, 0, _size);
+        }
         boolean[] new_back_diff = new boolean[newCapacity];
         CoreConstants.fillBooleanArray(new_back_diff, false);
         boolean[] new_back_colors = new boolean[newCapacity];
@@ -329,6 +345,7 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
         _back_meta = new_back_meta;
         _k = new_back_kv;
         _values = new_back_value;
+        _values_is_null = new_back_value_is_null;
         _colors = new_back_colors;
     }
 
@@ -587,15 +604,20 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
     }
 
     @Override
-    public final void insertValue(long p_key, double p_value) {
-        final Tuple<Boolean, Integer> inserted = internal_insert(p_key, p_value);
+    public final void insertValue(long p_key, Double p_value) {
+        final Tuple<Boolean, Integer> inserted;
+        if (p_value == null) {
+            inserted = internal_insert(p_key, 0d, true);
+        } else {
+            inserted = internal_insert(p_key, p_value, false);
+        }
         if (inserted.left()) {
             internal_set_dirty();
         }
     }
 
     @SuppressWarnings("Duplicates")
-    private Tuple<Boolean, Integer> internal_insert(long p_key, double value) {
+    private Tuple<Boolean, Integer> internal_insert(long p_key, double value, boolean isNull) {
         if (p_key > _max) {
             _max = p_key;
         }
@@ -613,6 +635,7 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
             _root = newIndex;
             _k[newIndex] = p_key;
             _values[newIndex] = value;
+            _values_is_null[newIndex] = isNull;
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
             setColor(newIndex, true);
@@ -624,10 +647,11 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
             while (leaf != -1) {
                 father = leaf;
                 if (_k[father] == p_key) {
-                    if (_values[father] == value) {
+                    if (_values[father] == value && _values_is_null[father] == isNull) {
                         return new Tuple<Boolean, Integer>(false, father);
                     } else {
                         _values[father] = value;
+                        _values_is_null[father] = isNull;
                         return new Tuple<Boolean, Integer>(true, father);
                     }
                 }
@@ -642,6 +666,7 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
             setColor(newIndex, false);
             _k[newIndex] = p_key;
             _values[newIndex] = value;
+            _values_is_null[newIndex] = isNull;
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
             setParent(newIndex, father);
@@ -705,7 +730,11 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
         int nbElements = 0;
         int indexEnd = internal_previousOrEqual_index(endKey);
         while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
-            walker.elem(_k[indexEnd], _values[indexEnd]);
+            if (_values_is_null[indexEnd]) {
+                walker.elem(_k[indexEnd], null);
+            } else {
+                walker.elem(_k[indexEnd], _values[indexEnd]);
+            }
             nbElements++;
             indexEnd = internal_previous(indexEnd);
         }

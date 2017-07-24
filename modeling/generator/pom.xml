@@ -55,6 +55,13 @@
             <artifactId>j2ts-transpiler</artifactId>
             <version>${java2typescript.plugin.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.kevoree</groupId>
+            <artifactId>org.kevoree.maven.resolver</artifactId>
+            <version>20</version>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

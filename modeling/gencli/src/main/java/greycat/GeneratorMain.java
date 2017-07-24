@@ -61,7 +61,7 @@ public class GeneratorMain {
             Generator generator = new Generator();
             generator.parse(new File(model));
             String gcVersion = System.getProperty("greycat.version");
-            generator.generate("model", "gen", tempJavaGen, tempGen, true, true, gcVersion.substring(0, gcVersion.indexOf('.')), null);
+            generator.generate("model", "gen", tempJavaGen, tempGen, true, true, gcVersion.substring(0, gcVersion.indexOf('.')), "1.0.0", null);
 
             deleteDir(tempJavaGen);
 

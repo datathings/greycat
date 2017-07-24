@@ -92,14 +92,13 @@ public class GeneratorPlugin extends AbstractMojo {
             e.printStackTrace();
             throw new MojoExecutionException("Error during GCM parse stage", e);
         }
-        String gcVersion = "";
-        for (int i = 0; i < project.getDependencies().size(); i++) {
-            Dependency dependency = project.getDependencies().get(i);
-            if (dependency.getGroupId().equals("com.datathings") && dependency.getArtifactId().equals("greycat")) {
-                gcVersion = dependency.getVersion();
-                break;
+
+        final String[] gcVersion = {""};
+        project.getPluginArtifacts().forEach(artifact -> {
+            if (artifact.getGroupId().equals("com.datathings") && artifact.getArtifactId().equals("greycat-mavenplugin")) {
+                gcVersion[0] = artifact.getVersion();
             }
-        }
+        });
         final List<File> cps = new ArrayList<File>();
         if (project != null) {
             for (Artifact a : project.getArtifacts()) {
@@ -111,7 +110,7 @@ public class GeneratorPlugin extends AbstractMojo {
                 }
             }
         }
-        generator.generate(packageName, pluginName, targetGen, targetGenJS, generateJava, generateJS, gcVersion, cps);
+        generator.generate(packageName, pluginName, targetGen, targetGenJS, generateJava, generateJS, gcVersion[0], project.getVersion(), cps);
         project.addCompileSourceRoot(targetGen.getAbsolutePath());
     }
 }

@@ -27,6 +27,11 @@ public class StorageTest {
 
     @Test
     public void test() throws IOException {
+
+        if(System.getProperty("os.name").toLowerCase().contains("win")){
+            return;
+        }
+
         /*
         OffHeapByteArray.alloc_counter = 0;
         OffHeapDoubleArray.alloc_counter = 0;
@@ -42,6 +47,7 @@ public class StorageTest {
     final long timeOrigin = 1000;
 
     private void test(final String name, final Graph graph) throws IOException {
+
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {

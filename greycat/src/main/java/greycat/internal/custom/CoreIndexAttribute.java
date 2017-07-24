@@ -44,7 +44,7 @@ public class CoreIndexAttribute extends BaseCustomTypeSingle implements Index {
         for (int i = 0; i < casted.length; i++) {
             hashes.set(i, HashHelper.hash(casted[i]));
         }
-        if(callback != null){
+        if (callback != null) {
             callback.on(this);
         }
     }
@@ -120,16 +120,22 @@ public class CoreIndexAttribute extends BaseCustomTypeSingle implements Index {
             _backend.graph().lookupAll(world, time, all(), callback);
         } else {
             final IntArray hashes = (IntArray) getAt(HASHES);
-            if (hashes.size() != params.length) {
-                throw new RuntimeException("Bad API usage: number of parameters in the query differs from index declaration. Expected " + hashes.size() + " parameters, received " + params.length);
+            if (hashes == null) {
+                if (callback != null) {
+                    callback.on(new Node[0]);
+                }
+            } else {
+                if (hashes.size() != params.length) {
+                    throw new RuntimeException("Bad API usage: number of parameters in the query differs from index declaration. Expected " + hashes.size() + " parameters, received " + params.length);
+                }
+                Query queryObj = _backend.graph().newQuery();
+                queryObj.setWorld(world);
+                queryObj.setTime(time);
+                for (int i = 0; i < hashes.size(); i++) {
+                    queryObj.addRaw(hashes.get(i), params[i]);
+                }
+                findByQuery(queryObj, callback);
             }
-            Query queryObj = _backend.graph().newQuery();
-            queryObj.setWorld(world);
-            queryObj.setTime(time);
-            for (int i = 0; i < hashes.size(); i++) {
-                queryObj.addRaw(hashes.get(i), params[i]);
-            }
-            findByQuery(queryObj, callback);
         }
     }
 

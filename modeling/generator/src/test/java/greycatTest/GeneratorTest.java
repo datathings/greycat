@@ -29,7 +29,7 @@ public class GeneratorTest {
         targetWeb.exists();
         Generator generator = new Generator();
         generator.parse(new File("/Users/duke/Documents/datathings/greycat/modeling/generator/src/test/resources/hello.gcm"));
-        generator.generate("generator", "myGen", target, targetWeb, true, false, "9", null);
+        generator.generate("generator", "myGen", target, targetWeb, true, false, "9", "2-SNAPSHOT", null);
     }
 
 }
