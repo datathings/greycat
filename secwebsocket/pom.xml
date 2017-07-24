@@ -8,7 +8,7 @@
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings.enterprise</groupId>
-        <version>10-SNAPSHOT</version>
+        <version>11-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
