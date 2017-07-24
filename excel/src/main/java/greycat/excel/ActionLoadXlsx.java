@@ -159,15 +159,15 @@ class ActionLoadXlsx implements Action {
                     if (currentRow.getCell(firstCol + 7) != null) {
                         String enumRange = currentRow.getCell(firstCol + 7).getStringCellValue();
                         String[] enumValues = enumRange.substring(1, enumRange.length() - 1).split(",");
-                        if(enumValues.length == 0) {
-                            throw new RuntimeException("Tag "+featureName+" is declared as enum, but possible values are not specified in cell " + currentRow.getCell(firstCol + 7).getAddress().toString() + " in sheet '" + metaSheet.getSheetName() + "'.");
+                        if (enumValues.length == 0) {
+                            throw new RuntimeException("Tag " + featureName + " is declared as enum, but possible values are not specified in cell " + currentRow.getCell(firstCol + 7).getAddress().toString() + " in sheet '" + metaSheet.getSheetName() + "'.");
                         }
                         StringArray valuesArray = (StringArray) newFeature.getOrCreate("enum_values", Type.STRING_ARRAY);
                         valuesArray.addAll(enumValues);
                         newFeature.set("value_min", Type.DOUBLE, 0d);
-                        newFeature.set("value_max", Type.DOUBLE, (double)enumValues.length - 1);
+                        newFeature.set("value_max", Type.DOUBLE, (double) enumValues.length - 1);
                     } else {
-                        throw new RuntimeException("Tag "+featureName+" is declared as enum, but possible values are not specified in cell " + CellReference.convertNumToColString(firstCol + 7) + (currentRow.getRowNum()+1) + " in sheet '" + metaSheet.getSheetName() + "'.");
+                        throw new RuntimeException("Tag " + featureName + " is declared as enum, but possible values are not specified in cell " + CellReference.convertNumToColString(firstCol + 7) + (currentRow.getRowNum() + 1) + " in sheet '" + metaSheet.getSheetName() + "'.");
                     }
                 }
                 break;
@@ -214,7 +214,6 @@ class ActionLoadXlsx implements Action {
         }
 
     }
-
 
 
     private double getDoubleUpperBound(String range) {
@@ -357,9 +356,9 @@ class ActionLoadXlsx implements Action {
                 continue;
             }
 
-            taskContext.reportProgress((i * 2.)/(sheetNum * 2), "Data pre-load from " + currentSheet.getSheetName());
+            taskContext.reportProgress((i * 2.) / (sheetNum * 2), "Data pre-load from " + currentSheet.getSheetName());
             Map<String, TreeMap<Long, Object>> content = sheetPreload(taskContext, currentSheet);
-            taskContext.reportProgress(((i * 2.) + 1)/(sheetNum * 2), "Data insertion from " + currentSheet.getSheetName());
+            taskContext.reportProgress(((i * 2.) + 1) / (sheetNum * 2), "Data insertion from " + currentSheet.getSheetName());
             final DeferCounter countContent = taskContext.graph().newCounter(content.size());
             countContent.then(() -> countSheets.count());
             content.forEach((featureName, featureValues) -> {
@@ -420,12 +419,13 @@ class ActionLoadXlsx implements Action {
             featureValues.forEach((key, value) -> {
                 long shift = (long) ((double) value * _timeShiftConst);
                 setValueInTime(feature, valueNode, key, value, type, false, null, () -> defer.count());
-                setValueInTime(feature, valueNodeShifted, key + shift, shift*1.0, (byte)Type.DOUBLE, false, null, () -> defer.count());
+                setValueInTime(feature, valueNodeShifted, key + shift, shift * 1.0, (byte) Type.DOUBLE, false, null, () -> defer.count());
             });
 
         } else {
             final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
             feature.addToRelation("value", valueNode);
+
 
             DeferCounter defer = feature.graph().newCounter(featureValues.size());
             defer.then(() -> {
