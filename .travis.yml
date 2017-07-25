@@ -22,6 +22,7 @@ before_install:
   && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm
   install $TRAVIS_NODE_VERSION
 - node -v
+- npm -v
 install: mvn clean
 script: mvn clean install
 after_success:
