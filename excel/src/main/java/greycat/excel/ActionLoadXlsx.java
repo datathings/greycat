@@ -133,7 +133,7 @@ class ActionLoadXlsx implements Action {
                 taskContext.append("Duplicate TAG name in META: " + featureName + "\n");
             }
 
-            Node newFeature = taskContext.graph().newTypedNode(taskContext.world(), Constants.BEGINNING_OF_TIME, _featureType);
+            Node newFeature = taskContext.graph().newTypedNode(taskContext.world(), Constants.BEGINNING_OF_TIME, taskContext.template(_featureType));
             newFeature.setTimeSensitivity(-1, 0);
 
             newFeature.set("tag_id", Type.STRING, featureId);
