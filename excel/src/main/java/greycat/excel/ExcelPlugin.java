@@ -32,10 +32,10 @@ public class ExcelPlugin implements Plugin {
 
     @Override
     public void start(Graph graph) {
-        graph.actionRegistry().getOrCreateDeclaration(ExcelActions.LOAD_XSLX).setParams(Type.STRING, Type.STRING).setFactory(new ActionFactory() {
+        graph.actionRegistry().getOrCreateDeclaration(ExcelActions.LOAD_XSLX).setParams(Type.STRING, Type.STRING, Type.STRING).setFactory(new ActionFactory() {
             @Override
             public Action create(Object[] params) {
-                return new ActionLoadXlsx(_basePath, String.valueOf(params[0]), String.valueOf(params[1]));
+                return new ActionLoadXlsx(_basePath, String.valueOf(params[0]), String.valueOf(params[1]), String.valueOf(params[2]));
             }
         });
     }

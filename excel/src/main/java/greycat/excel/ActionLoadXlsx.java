@@ -34,6 +34,7 @@ import static greycat.excel.ExcelActions.LOAD_XSLX;
  */
 class ActionLoadXlsx implements Action {
     private long _timeShiftConst = 3600 * 1000; //to convert hour to ms;
+    private String _featureType;
     private String _basePath;
     private String _uri;
     private String _timeShiftParam;
@@ -43,7 +44,8 @@ class ActionLoadXlsx implements Action {
     private HashMap<String, Node> featuresMap = new HashMap<>();
 
 
-    public ActionLoadXlsx(String basePath, String uri, String timeshiftConst) {
+    public ActionLoadXlsx(String basePath, String uri, String timeshiftConst, String featureType) {
+        this._featureType=featureType;
         this._basePath = basePath;
         this._uri = uri;
         this._timeShiftParam = timeshiftConst;
@@ -96,6 +98,10 @@ class ActionLoadXlsx implements Action {
         buffer.writeString(LOAD_XSLX);
         buffer.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_uri, buffer, true);
+        buffer.writeChar(Constants.TASK_PARAM_SEP);
+        TaskHelper.serializeString(_timeShiftParam, buffer, true);
+        buffer.writeChar(Constants.TASK_PARAM_SEP);
+        TaskHelper.serializeString(_featureType, buffer, true);
         buffer.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
@@ -127,7 +133,7 @@ class ActionLoadXlsx implements Action {
                 taskContext.append("Duplicate TAG name in META: " + featureName + "\n");
             }
 
-            Node newFeature = taskContext.graph().newNode(taskContext.world(), Constants.BEGINNING_OF_TIME);
+            Node newFeature = taskContext.graph().newTypedNode(taskContext.world(), Constants.BEGINNING_OF_TIME,_featureType);
             newFeature.setTimeSensitivity(-1, 0);
 
             newFeature.set("tag_id", Type.STRING, featureId);
@@ -393,11 +399,11 @@ class ActionLoadXlsx implements Action {
 
 
             //todo reactivate value node once null are accepted!
-            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
-            final NodeValue valueNodeShifted = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), firstshifted, CoreNodeValue.NAME);
+//            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
+//            final NodeValue valueNodeShifted = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), firstshifted, CoreNodeValue.NAME);
 
-//            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
-//            final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
+            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+            final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
 
             feature.addToRelation("value", valueNode);
 
