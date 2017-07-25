@@ -59,6 +59,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
 
     private Listeners _listeners = null;
 
+    private int[] _kac;
 
     /**
      * @ignore ts
@@ -155,12 +156,24 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
         return _listeners;
     }
 
+    @Override
+    public final int[] kac() {
+        return _kac;
+    }
+
+    @Override
+    public final void setKac(final int[] keys) {
+        this._kac = keys;
+    }
+
     /**
      * @native ts
      */
     @Override
     public final void lock() {
-        while (!unsafe.compareAndSwapInt(this, _lockOffset, 0, 1)) ;
+        while (!unsafe.compareAndSwapInt(this, _lockOffset, 0, 1)) {
+
+        }
     }
 
     /**

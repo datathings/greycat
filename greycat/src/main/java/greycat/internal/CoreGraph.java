@@ -189,7 +189,10 @@ public class CoreGraph implements Graph {
             throw new RuntimeException(CoreConstants.DEAD_NODE_ERROR + " node id: " + casted.id());
         } else {
             //Duplicate marks on all chunks
-            this._space.mark(casted._index_stateChunk);
+            if(casted._index_stateChunk != -1){
+                this._space.mark(casted._index_stateChunk);
+            }
+
             this._space.mark(casted._index_superTimeTree);
             this._space.mark(casted._index_timeTree);
             this._space.mark(casted._index_worldOrder);

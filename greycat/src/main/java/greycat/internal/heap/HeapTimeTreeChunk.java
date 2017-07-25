@@ -190,6 +190,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                             final int treeSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                             final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
                             reallocate(closePowerOfTwo);
+                            extraCursor++;
                             break;
                         case 1:
                             _capacity = Base64.decodeToLongWithBounds(buffer, previous, cursor);

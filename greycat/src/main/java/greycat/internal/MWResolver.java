@@ -607,8 +607,10 @@ final class MWResolver implements Resolver {
                                                                         lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, null);
                                                                     } else {
                                                                         for (int i = 0; i < idsSize; i++) {
+                                                                            int timeOffset = -1;
                                                                             if (theObjectChunks[i] == null && ((WorldOrderChunk) theNodeWorldOrders[i]).type() == NodeValueType) {
-                                                                                theObjectChunks[i] = ((TimeTreeEmbeddedChunk) theNodeTimeTrees[i]).state((int) keys[(i * Constants.KEY_SIZE) + 2]);
+                                                                                timeOffset = (int) keys[(i * Constants.KEY_SIZE) + 2];
+                                                                                theObjectChunks[i] = ((TimeTreeEmbeddedChunk) theNodeTimeTrees[i]).state(timeOffset);
                                                                             }
                                                                             if (theObjectChunks[i] != null) {
                                                                                 WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrders[i];
@@ -628,6 +630,7 @@ final class MWResolver implements Resolver {
                                                                                 resolvedNode._index_superTimeTree = theNodeSuperTimeTrees[i].index();
                                                                                 resolvedNode._index_timeTree = theNodeTimeTrees[i].index();
                                                                                 resolvedNode._index_worldOrder = theNodeWorldOrders[i].index();
+                                                                                resolvedNode._index_timeTree_offset = timeOffset;
                                                                                 if (theObjectChunks[i].world() == worlds[i] && theObjectChunks[i].time() == times[i]) {
                                                                                     resolvedNode._world_magic = -1;
                                                                                     resolvedNode._super_time_magic = -1;
@@ -786,8 +789,10 @@ final class MWResolver implements Resolver {
                                                                         lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, null);
                                                                     } else {
                                                                         for (int i = 0; i < idsSize; i++) {
+                                                                            int timeOffset = -1;
                                                                             if (theObjectChunks[i] == null && ((WorldOrderChunk) theNodeWorldOrders[i]).type() == NodeValueType) {
-                                                                                theObjectChunks[i] = ((TimeTreeEmbeddedChunk) theNodeTimeTrees[i]).state((int) keys[(i * Constants.KEY_SIZE) + 2]);
+                                                                                timeOffset = (int) keys[(i * Constants.KEY_SIZE) + 2];
+                                                                                theObjectChunks[i] = ((TimeTreeEmbeddedChunk) theNodeTimeTrees[i]).state(timeOffset);
                                                                             }
                                                                             if (theObjectChunks[i] != null) {
                                                                                 WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrders[i];
@@ -807,6 +812,7 @@ final class MWResolver implements Resolver {
                                                                                 resolvedNode._index_superTimeTree = theNodeSuperTimeTrees[i].index();
                                                                                 resolvedNode._index_timeTree = theNodeTimeTrees[i].index();
                                                                                 resolvedNode._index_worldOrder = theNodeWorldOrders[i].index();
+                                                                                resolvedNode._index_timeTree_offset = timeOffset;
                                                                                 if (theObjectChunks[i].world() == world && theObjectChunks[i].time() == reqTime) {
                                                                                     resolvedNode._world_magic = -1;
                                                                                     resolvedNode._super_time_magic = -1;
@@ -1895,7 +1901,12 @@ final class MWResolver implements Resolver {
             timeTreeKeys[i * 3] = collectedWorlds[i];
             timeTreeKeys[i * 3 + 1] = collectedSuperTimes[i];
             timeTreeKeys[i * 3 + 2] = node.id();
-            types[i] = ChunkType.TIME_TREE_CHUNK;
+            if(objectWorldOrder.type() == NodeValueType){
+                types[i] = ChunkType.TIME_TREE_DVALUE_CHUNK;
+            } else {
+                types[i] = ChunkType.TIME_TREE_CHUNK;
+            }
+
         }
         getOrLoadAndMarkAll(types, timeTreeKeys, new Callback<Chunk[]>() {
             @Override

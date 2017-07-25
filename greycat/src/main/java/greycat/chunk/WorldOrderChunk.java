@@ -41,4 +41,8 @@ public interface WorldOrderChunk extends Chunk, LongLongMap {
 
     Listeners listeners();
 
+    int[] kac();
+
+    void setKac(int[] keys);
+
 }

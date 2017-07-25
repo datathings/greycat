@@ -185,6 +185,7 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
                             final int treeSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                             final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
                             reallocate(closePowerOfTwo);
+                            extraCursor++;
                             break;
                         case 1:
                             _capacity = Base64.decodeToLongWithBounds(buffer, previous, cursor);
@@ -195,7 +196,7 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
                 case Constants.CHUNK_VAL_SEP:
                     if (waiting_value) {
                         final Tuple<Boolean, Integer> index;
-                        if (previous + 1 == cursor) {
+                        if (previous == cursor) {
                             index = internal_insert(key_time, 0d, true);
                         } else {
                             index = internal_insert(key_time, Base64.decodeToDoubleWithBounds(buffer, previous, cursor), false);
