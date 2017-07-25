@@ -605,15 +605,27 @@ class HeapEStruct implements EStruct, HeapContainer {
     }
 
     @Override
-    public final Object getOrCreateAt(final int key, final int type) {
+    public final Object getOrCreateAt(final int key, final int p_type) {
         final int found = internal_find(key);
         if (found != -1) {
-            if (_type[found] == type) {
-                return _v[found];
+            if (_type[found] == p_type) {
+                Object foundValue = _v[found];
+                if (foundValue != null) {
+                    if (Type.isCustom(p_type)) {
+                        final TypeDeclaration typeDeclaration = graph().typeRegistry().declarationByHash(p_type);
+                        if (typeDeclaration == null) {
+                            return _v[found];
+                        } else {
+                            return typeDeclaration.factory().wrap((EStructArray) _v[found]);
+                        }
+                    } else {
+                        return _v[found];
+                    }
+                }
             }
         }
         Object toSet = null;
-        switch (type) {
+        switch (p_type) {
             case Type.LONG_ARRAY:
                 toSet = new HeapLongArray(this);
                 break;
@@ -665,17 +677,17 @@ class HeapEStruct implements EStruct, HeapContainer {
             final Graph g = graph();
             final EStructArray tempND = new HeapEStructArray(this, null, g);
             toSet = tempND;
-            final TypeDeclaration typeDeclaration = g.typeRegistry().declarationByHash(type);
+            final TypeDeclaration typeDeclaration = g.typeRegistry().declarationByHash(p_type);
             if (typeDeclaration == null) {
                 toGet = toSet;
             } else {
                 toGet = typeDeclaration.factory().wrap(tempND);
                 ((BaseCustomType) toGet).init();
             }
-            internal_set(key, type, toSet, true, false);
+            internal_set(key, p_type, toSet, true, false);
             return toGet;
         } else {
-            internal_set(key, type, toSet, true, false);
+            internal_set(key, p_type, toSet, true, false);
             return toSet;
         }
     }

@@ -304,7 +304,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             if (_type[found] == p_type) {
                 Object foundValue = _v[found];
                 if (foundValue != null) {
-                    return _v[found];
+                    if (Type.isCustom(p_type)) {
+                        final TypeDeclaration typeDeclaration = graph().typeRegistry().declarationByHash(p_type);
+                        if (typeDeclaration == null) {
+                            return _v[found];
+                        } else {
+                            return typeDeclaration.factory().wrap((EStructArray) _v[found]);
+                        }
+                    } else {
+                        return _v[found];
+                    }
                 }
             }
         }
