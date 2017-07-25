@@ -45,7 +45,7 @@ class ActionLoadXlsx implements Action {
 
 
     public ActionLoadXlsx(String basePath, String uri, String timeshiftConst, String featureType) {
-        this._featureType=featureType;
+        this._featureType = featureType;
         this._basePath = basePath;
         this._uri = uri;
         this._timeShiftParam = timeshiftConst;
@@ -133,7 +133,7 @@ class ActionLoadXlsx implements Action {
                 taskContext.append("Duplicate TAG name in META: " + featureName + "\n");
             }
 
-            Node newFeature = taskContext.graph().newTypedNode(taskContext.world(), Constants.BEGINNING_OF_TIME,_featureType);
+            Node newFeature = taskContext.graph().newTypedNode(taskContext.world(), Constants.BEGINNING_OF_TIME, _featureType);
             newFeature.setTimeSensitivity(-1, 0);
 
             newFeature.set("tag_id", Type.STRING, featureId);
@@ -429,7 +429,10 @@ class ActionLoadXlsx implements Action {
             });
 
         } else {
-            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
+            //todo reactivate value node once null are accepted!
+            //final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
+            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+
             feature.addToRelation("value", valueNode);
 
 
