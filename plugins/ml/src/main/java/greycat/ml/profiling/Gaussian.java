@@ -18,42 +18,55 @@ package greycat.ml.profiling;
 import greycat.Node;
 import greycat.Type;
 import greycat.ml.math.Gaussian1D;
-import greycat.struct.DMatrix;
-import greycat.struct.DoubleArray;
-import greycat.struct.Relation;
+import greycat.struct.*;
 
 public class Gaussian {
-    public static final String NULL = "profile_null";
-    public static final String REJECT = "profile_reject";
-    public static final String MIN = "profile_min";
-    public static final String MAX = "profile_max";
-    public static final String AVG = "profile_avg";
-    public static final String COV = "profile_cov";
-    public static final String STD = "profile_std";
-    public static final String SUM = "profile_sum";
-    public static final String SUMSQ = "profile_sumsq";
-    public static final String TOTAL = "profile_total";
-    public static final String PRECISIONS = "profile_precisions"; //Default covariance matrix for a dirac function
-    public static final String VALUES = "profile_values";
+    public static final String NULL = "nullValues";
+    public static final String REJECTED = "rejectedValues";
+    public static final String ACCEPTED = "acceptedValues";
 
-    public static final String HISTOGRAM_CENTER = "histogram_center";
-    public static final String HISTOGRAM_VALUES = "histogram_values";
+    public static final String MIN = "min";
+    public static final String MAX = "max";
+    public static final String AVG = "avg";
+    public static final String COV = "cov";
+    public static final String STD = "std";
+    public static final String SUM = "sum";
+    public static final String SUMSQ = "sumsq";
+    public static final String TOTAL = "total";
 
-    public static final int STATUS_NULL=0;
-    public static final int STATUS_ACCEPTED=1;
-    public static final int STATUS_REJECTED=2;
+    public static final String PRECISIONS = "precisions"; //Default covariance matrix for a dirac function
+    public static final String VALUES = "values";
+
+    public static final String HISTOGRAM_CENTERS = "centers";
+    public static final String HISTOGRAM_VALUES = "values";
+
+    public static final int STATUS_NULL = 0;
+    public static final int STATUS_ACCEPTED = 1;
+    public static final int STATUS_REJECTED = 2;
 
 
-    public static int profile(Node host, Double value, Double boundMin, Double boundMax) {
+    private static EStruct getRoot(EStructArray hostnode) {
+        EStruct host = hostnode.root();
+        if (host == null) {
+            host = hostnode.newEStruct();
+            hostnode.setRoot(host);
+        }
+        return host;
+    }
+
+    public static int profile(EStructArray hostnode, Double value, Double boundMin, Double boundMax) {
+        EStruct host = getRoot(hostnode);
+
         if (value == null) {
             host.set(NULL, Type.LONG, host.getWithDefault(NULL, 0l) + 1);
             return STATUS_NULL;
         }
 
         if (boundMin != null && value < boundMin || boundMax != null && value > boundMax) {
-            host.set(REJECT, Type.LONG, host.getWithDefault(REJECT, 0l) + 1);
+            host.set(REJECTED, Type.LONG, host.getWithDefault(REJECTED, 0l) + 1);
             return STATUS_REJECTED;
         }
+        host.set(ACCEPTED, Type.LONG, host.getWithDefault(ACCEPTED, 0l) + 1);
 
         Double min = host.getWithDefault(MIN, null);
         Double max = host.getWithDefault(MAX, null);
@@ -79,17 +92,19 @@ public class Gaussian {
             double cov = Gaussian1D.getCovariance(sum, sumsq, total);
             host.set(COV, Type.DOUBLE, cov);
             host.set(STD, Type.DOUBLE, Math.sqrt(cov));
-        }
-        else{
-            host.set(COV, Type.DOUBLE, 0);
-            host.set(STD, Type.DOUBLE, 0);
+        } else {
+            host.set(COV, Type.DOUBLE, 0.0);
+            host.set(STD, Type.DOUBLE, 0.0);
         }
         return STATUS_ACCEPTED;
     }
 
-    public static void clearProfile(Node host) {
+    public static void clearProfile(EStructArray hostnode) {
+        EStruct host = getRoot(hostnode);
+
         host.remove(NULL);
-        host.remove(REJECT);
+        host.remove(REJECTED);
+        host.remove(ACCEPTED);
         host.remove(TOTAL);
         host.remove(SUM);
         host.remove(SUMSQ);
@@ -98,20 +113,22 @@ public class Gaussian {
         host.remove(STD);
         host.remove(MIN);
         host.remove(MAX);
-        host.remove(HISTOGRAM_CENTER);
+        host.remove(HISTOGRAM_CENTERS);
         host.remove(HISTOGRAM_VALUES);
     }
 
-    public static void histogram(Node host, double min, double max, Double value, int histogramBins) {
-        if (value==null ||max <= min || value < min || value > max) {
+    public static void histogram(EStructArray hostnode, double min, double max, Double value, int histogramBins) {
+        EStruct host = getRoot(hostnode);
+
+        if (value == null || max <= min || value < min || value > max) {
             return;
         }
-        if(histogramBins<=0){
+        if (histogramBins <= 0) {
             throw new RuntimeException("Histogram bins should be at least 1");
         }
 
         double stepsize = (max - min) / histogramBins;
-        DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTER, Type.DOUBLE_ARRAY);
+        DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTERS, Type.DOUBLE_ARRAY);
         DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY);
 
         if (hist_center.size() == 0) {
@@ -137,8 +154,8 @@ public class Gaussian {
             }
         }
     }
-    
-    
+
+
     public static void inversenormaliseMatrix(DMatrix input, double[] avg, double[] std) {
         for (int i = 0; i < input.columns(); i++) {
             for (int j = 0; j < input.rows(); j++) {
@@ -200,8 +217,6 @@ public class Gaussian {
     }
 
 
-
-
     public static double[] normalise(final double[] input, final double[] avg, final double[] std) {
         double[] res = new double[input.length];
 
@@ -226,7 +241,7 @@ public class Gaussian {
         return res;
     }
 
-    public static double[] normaliseMinMax(final double[] input, final double [] min, final double[] max) {
+    public static double[] normaliseMinMax(final double[] input, final double[] min, final double[] max) {
 
         double[] res = new double[input.length];
 
@@ -241,7 +256,7 @@ public class Gaussian {
         return res;
     }
 
-    public static double[] inverseNormaliseMinMax(final double[] input, final double [] min, final double[] max) {
+    public static double[] inverseNormaliseMinMax(final double[] input, final double[] min, final double[] max) {
 
         double[] res = new double[input.length];
 

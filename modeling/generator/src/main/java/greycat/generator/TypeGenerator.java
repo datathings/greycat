@@ -197,7 +197,7 @@ class TypeGenerator {
                         .addParameter(clazz(rel.type()), "value")
                         .addStatement("addToRelationAt($L.hash,value)", rel.name().toUpperCase());
                 if (rel.opposite() != null) {
-                    addTo.addStatement(createAddOppositeBody(rel.type(), rel).toString());
+                    addTo.addCode(createAddOppositeBlock(rel.type(), rel).build());
                 }
                 addTo.addStatement("return this");
                 javaClass.addMethod(addTo.build());
@@ -208,7 +208,7 @@ class TypeGenerator {
                         .addParameter(clazz(rel.type()), "value")
                         .addStatement("removeFromRelationAt($L.hash,value)", rel.name().toUpperCase());
                 if (rel.opposite() != null) {
-                    removeFrom.addStatement(createRemoveOppositeBody(rel.type(), rel).toString());
+                    removeFrom.addCode(createRemoveOppositeBlock(rel.type(), rel).build());
                 }
                 removeFrom.addStatement("return this");
                 javaClass.addMethod(removeFrom.build());
@@ -247,7 +247,7 @@ class TypeGenerator {
                         .addParameter(clazz(ref.type()), "value")
                         .addStatement("(($T)this.getOrCreateAt($L.hash, greycat.Type.RELATION)).clear().add(value.id())", ClassName.get(greycat.struct.Relation.class), ref.name().toUpperCase());
                 if (ref.opposite() != null) {
-                    addTo.addStatement(createAddOppositeBody(ref.type(), ref).toString());
+                    addTo.addCode(createAddOppositeBlock(ref.type(), ref).build());
                 }
                 addTo.addStatement("return this");
                 javaClass.addMethod(addTo.build());
@@ -258,7 +258,7 @@ class TypeGenerator {
                         .addParameter(clazz(ref.type()), "value")
                         .addStatement("removeFromRelationAt($L.hash,value)", ref.name().toUpperCase());
                 if (ref.opposite() != null) {
-                    removeFrom.addStatement(createRemoveOppositeBody(ref.type(), ref).toString());
+                    removeFrom.addCode(createRemoveOppositeBlock(ref.type(), ref).build());
                 }
                 removeFrom.addStatement("return this");
                 javaClass.addMethod(removeFrom.build());
@@ -281,7 +281,7 @@ class TypeGenerator {
                 indexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
                 indexMethod.addStatement("index.update(value)");
                 if (li.opposite() != null) {
-                    indexMethod.addCode(createAddOppositeBody(li.type(), li).toString());
+                    indexMethod.addCode(createAddOppositeBlock(li.type(), li).build());
                 }
                 indexMethod.addStatement("return this");
                 javaClass.addMethod(indexMethod.build());
@@ -296,7 +296,7 @@ class TypeGenerator {
                 //unindexMethod.beginControlFlow("if(index != null)");
                 unindexMethod.addStatement("index.unindex(value)");
                 if (li.opposite() != null) {
-                    unindexMethod.addCode(createRemoveOppositeBody(li.type(), li).toString());
+                    unindexMethod.addCode(createRemoveOppositeBlock(li.type(), li).build());
                 }
                 //unindexMethod.endControlFlow();
                 unindexMethod.addStatement("return this");
@@ -415,8 +415,8 @@ class TypeGenerator {
                     case "timeSensitivity":
                         long parsedSensitivity = Long.parseLong(annot.value().get(0).get(0).toString());
                         long offset = 0;
-                        if (annot.value().get(0).size() == 2) {
-                            offset = Long.parseLong(annot.value().get(0).get(1).toString());
+                        if (annot.value().size() == 2) {
+                            offset = Long.parseLong(annot.value().get(1).get(0).toString());
                         }
                         initMethod.addStatement("setTimeSensitivity($L, $L)", parsedSensitivity, offset);
                         break;
@@ -488,57 +488,53 @@ class TypeGenerator {
         collector.add(JavaFile.builder(packageName, javaClass.build()).build());
     }
 
-    //TODO refactoring below using JavaPoet addStatement method
-    private static StringBuilder createAddOppositeBody(String edgeType, Edge edge) {
-        StringBuilder oppositeBodyBuilder = new StringBuilder();
-        String oppositeName;
+
+    public static CodeBlock.Builder createAddOppositeBlock(String edgeType, Edge edge) {
+        CodeBlock.Builder addBlock = CodeBlock.builder();
         if (edge.opposite() != null) {
             if (edge.opposite().edge() instanceof Relation) {
-                oppositeName = ((Relation) edge.opposite().edge()).name();
-                oppositeBodyBuilder.append("value.addToRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(".name, this);");
+                String oppositeName = ((Relation) edge.opposite().edge()).name();
+                addBlock.addStatement("value.addToRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "this");
 
             } else if (edge.opposite().edge() instanceof Reference) {
-                oppositeName = ((Reference) edge.opposite().edge()).name();
-                oppositeBodyBuilder.append("value.removeFromRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(".name, this);");
-                oppositeBodyBuilder.append("value.addToRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(".name, this);");
+                String oppositeName = ((Reference) edge.opposite().edge()).name();
+                addBlock.addStatement("value.removeFromRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "this");
+                addBlock.addStatement("value.addToRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "this");
+
             } else if (edge.opposite().edge() instanceof Index) {
                 Index idx = ((Index) edge.opposite().edge());
-                oppositeName = idx.name();
-                oppositeBodyBuilder.append("greycat.Index index = value.getIndex(").
-                        append(Generator.upperCaseFirstChar(edgeType)).append(".").append(oppositeName.toUpperCase()).append(".name);");
-                oppositeBodyBuilder.append("if (index == null) {");
-                oppositeBodyBuilder.append("index = (greycat.Index) value.getOrCreate(").
-                        append(Generator.upperCaseFirstChar(edgeType)).append(".").append(oppositeName.toUpperCase()).append(".name, greycat.Type.INDEX);");
-                StringBuilder indexedAttBuilder = new StringBuilder();
-                for (AttributeRef attRef : idx.attributes()) {
-                    indexedAttBuilder.append(idx.type() + "." + attRef.ref().name().toUpperCase() + ".name");
-                    indexedAttBuilder.append(",");
-                }
-                indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
-                oppositeBodyBuilder.append("index.declareAttributes(null, " + indexedAttBuilder.toString() + ");");
-                oppositeBodyBuilder.append("}");
-                oppositeBodyBuilder.append("index.update(").append("this").append(");");
+                String oppositeName = idx.name();
+                addBlock.addStatement("$T index = value.getIndex($L.$L.name)", Helper.gIndex, Generator.upperCaseFirstChar(edgeType), oppositeName.toUpperCase());
+                addBlock.beginControlFlow("if (index == null)");
+                addBlock.addStatement("index = ($T) value.getOrCreate($L.$L.name, $L)", Helper.gIndex, Generator.upperCaseFirstChar(edgeType), oppositeName.toUpperCase(), "greycat.Type.INDEX");
+                final StringBuilder params = new StringBuilder();
+                idx.attributes().forEach(attributeRef -> params.append(",").append(attributeRef.ref().name().toUpperCase() + ".name"));
+                addBlock.addStatement("index.declareAttributes(null $L)", params.toString());
+                addBlock.endControlFlow();
+                addBlock.addStatement("index.update($L)", "this");
+
             }
         }
-        return oppositeBodyBuilder;
+        return addBlock;
     }
 
-    private static StringBuilder createRemoveOppositeBody(String edgeType, Edge edge) {
-        StringBuilder oppositeBodyBuilder = new StringBuilder();
-        oppositeBodyBuilder.append("Node self = this;\n");
-        String oppositeName;
+    private static CodeBlock.Builder createRemoveOppositeBlock(String edgeType, Edge edge) {
+        CodeBlock.Builder removeBlock = CodeBlock.builder();
+        removeBlock.addStatement("$T self = this", Helper.gNode);
+
         if ((edge.opposite().edge() instanceof Relation) || (edge.opposite().edge() instanceof Reference)) {
-            oppositeName = (edge.opposite().edge() instanceof Relation) ? ((Relation) edge.opposite().edge()).name() : ((Reference) edge.opposite().edge()).name();
-            oppositeBodyBuilder.append("value.removeFromRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(".name, self);");
+            String oppositeName = (edge.opposite().edge() instanceof Relation) ? ((Relation) edge.opposite().edge()).name() : ((Reference) edge.opposite().edge()).name();
+            removeBlock.addStatement("value.removeFromRelation($L.$L.name,$L)", edgeType, oppositeName.toUpperCase(), "self");
 
         } else if (edge.opposite().edge() instanceof Index) {
-            oppositeName = ((Index) edge.opposite().edge()).name();
-            oppositeBodyBuilder.append("greycat.Index index = value.getIndex(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(".name);");
-            oppositeBodyBuilder.append(" if (index != null) {");
-            oppositeBodyBuilder.append("index.unindex(self);");
-            oppositeBodyBuilder.append("}");
+            String oppositeName = ((Index) edge.opposite().edge()).name();
+            removeBlock.addStatement("$T index = value.getIndex($L.$L.name)", Helper.gIndex, edgeType, oppositeName.toUpperCase());
+            removeBlock.beginControlFlow("if(index != null)");
+            removeBlock.addStatement("index.unindex(self)");
+            removeBlock.endControlFlow();
         }
-        return oppositeBodyBuilder;
+
+        return removeBlock;
     }
 
 

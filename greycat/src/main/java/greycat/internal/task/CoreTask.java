@@ -674,6 +674,23 @@ public class CoreTask implements Task {
     }
 
     public static void fillDefault(ActionRegistry registry) {
+        registry.getOrCreateDeclaration(CoreActionNames.DELETE)
+                .setDescription("Drop a node from the Graph. This actually erases the entire node from the graph. Use with caution.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionDelete();
+                    }
+                });
+        registry.getOrCreateDeclaration(CoreActionNames.REMOVE)
+                .setParams(Type.STRING)
+                .setDescription("Clears the relationship on a node. The name of teh relationship has to be given in parameter.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionRemove((String)params[0]);
+                    }
+                });
         registry.getOrCreateDeclaration(CoreActionNames.TRAVEL_IN_WORLD)
                 .setParams(Type.STRING)
                 .setDescription("Sets the task context to a particular world. Every nodes in current result will be switch ot new world.")
@@ -959,6 +976,7 @@ public class CoreTask implements Task {
                         return new ActionExecuteExpression((String) params[0]);
                     }
                 });
+
         registry.getOrCreateDeclaration(CoreActionNames.READ_INDEX)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
                 .setDescription("Retrieves indexed nodes matching the query.")
