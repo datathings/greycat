@@ -202,7 +202,7 @@
             </extension>
         </extensions>
     </build>
-
+<!--
     <repositories>
         <repository>
             <id>OSS-public</id>
@@ -259,5 +259,44 @@
             <url>scp://maven.datathings.com/home/dtdeploy/.m2/repository</url>
         </snapshotRepository>
     </distributionManagement>
+    -->
+    <repositories>
+        <repository>
+            <id>datathings.protected</id>
+            <url>https://registry.datathings.com/repository/private/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>datathings.protected</id>
+            <url>https://registry.datathings.com/repository/private/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <distributionManagement>
+        <repository>
+            <id>datathings.protected</id>
+            <url>https://registry.datathings.com/repository/private-release/</url>
+        </repository>
+        <snapshotRepository>
+            <id>datathings.protected</id>
+            <url>https://registry.datathings.com/repository/private-snapshot/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
 
 </project>
