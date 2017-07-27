@@ -145,7 +145,12 @@ class ActionLoadXlsx implements Action {
             if (currentRow.getCell(firstCol + 3) != null) {
                 newFeature.set("tag_unit", Type.STRING, currentRow.getCell(firstCol + 3).getStringCellValue());
             }
-            newFeature.set("tag_type", Type.STRING, currentRow.getCell(firstCol + 4).getStringCellValue().toLowerCase().trim());
+            String tagt=currentRow.getCell(firstCol + 4).getStringCellValue().toLowerCase().trim();
+            if(tagt.equals("param")){
+                tagt="ignored";
+            }
+            newFeature.set("tag_type", Type.STRING, tagt);
+
             if (currentRow.getCell(firstCol + 5) != null) {
                 newFeature.set("value_precision", Type.DOUBLE, currentRow.getCell(firstCol + 5).getNumericCellValue());
             }
@@ -399,11 +404,11 @@ class ActionLoadXlsx implements Action {
 
 
             //todo reactivate value node once null are accepted!
-            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
-            final NodeValue valueNodeShifted = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), firstshifted, CoreNodeValue.NAME);
+//            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
+//            final NodeValue valueNodeShifted = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), firstshifted, CoreNodeValue.NAME);
 
-//            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
-//            final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
+            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+            final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
 
             feature.addToRelation("value", valueNode);
 
@@ -430,8 +435,8 @@ class ActionLoadXlsx implements Action {
 
         } else {
             //todo reactivate value node once null are accepted!
-            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
-//            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
+//            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
+            final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
 
             feature.addToRelation("value", valueNode);
 
