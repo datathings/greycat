@@ -2,8 +2,8 @@
 /// Copyright 2017 DataThings - All rights reserved.
 ///
 
-import {WSClient} from "greycat-websocket";
-import {Graph, Node} from "greycat";
+import {WSClient} from '@greycat/greycat-websocket';
+import {Graph, Node} from '@greycat/greycat';
 
 export class SecWSClient extends WSClient {
 

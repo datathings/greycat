@@ -1,13 +1,13 @@
 {
-  "name": "greycat-blas",
+  "name": "@greycat-enterprise/greycat-blas",
   "homepage": "https://github.com/datathings/greycat",
   "description": "Blas plugin for GreyCat Enterprise",
   "version": "GREYCAT_VERSION",
   "main": "greycat.blas.js",
   "typings": "greycat.blas.d.ts",
   "dependencies": {
-    "greycat": "^GREYCAT_VERSION",
-    "j2ts-jre":"^J2TS_VERSION"
+    "@greycat/greycat": "GREYCAT_VERSION",
+    "@greycat/j2ts-jre":"J2TS_VERSION"
   },
   "repository": {
     "type": "git",

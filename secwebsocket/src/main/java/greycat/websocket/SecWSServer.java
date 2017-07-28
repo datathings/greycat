@@ -14,13 +14,12 @@ import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 
 import java.io.IOException;
-import java.util.Deque;
 import java.util.List;
 
 /**
  * Created by Gregory NAIN on 23/05/2017.
  */
-public class SecWSServer extends WSServer {
+public class SecWSServer extends WSSharedServer {
 
     private IdentityManager identityManager;
     private static final String AUTH_PARAM_KEY = "gc-auth-key";

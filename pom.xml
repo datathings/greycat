@@ -15,7 +15,7 @@
 
     <properties>
         <greycat.version>11-SNAPSHOT</greycat.version>
-        <java2typescript.plugin.version>92</java2typescript.plugin.version>
+        <java2typescript.plugin.version>93</java2typescript.plugin.version>
         <header.path>${project.basedir}/LICENSE</header.path>
     </properties>
 
@@ -262,6 +262,16 @@
     -->
     <repositories>
         <repository>
+            <id>datathings.public</id>
+            <url>https://registry.datathings.com/repository/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>datathings.protected</id>
             <url>https://registry.datathings.com/repository/private/</url>
             <releases>
@@ -274,6 +284,16 @@
     </repositories>
 
     <pluginRepositories>
+        <pluginRepository>
+            <id>datathings.public</id>
+            <url>https://registry.datathings.com/repository/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
         <pluginRepository>
             <id>datathings.protected</id>
             <url>https://registry.datathings.com/repository/private/</url>
