@@ -1,6 +1,5 @@
 {
   "name": "@greycat-enterprise/greycat-websocket-sec",
-  "private": true,
   "homepage": "https://github.com/datathings/greycat",
   "description": "Secured WebSocket plugin for GreyCat",
   "version": "GREYCAT_VERSION",

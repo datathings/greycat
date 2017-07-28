@@ -172,8 +172,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-
             <plugin>
                 <groupId>org.codehaus.gmaven</groupId>
                 <artifactId>groovy-maven-plugin</artifactId>
@@ -279,6 +277,25 @@
                                 def jasmineProcess = "node jasmine.js".execute(null, new File("${basedir}/target/test-classes-npm"))
                                 jasmineProcess.waitForProcessOutput(System.out, System.err)
                                 if (jasmineProcess.exitValue() != 0) {
+                                    exit
+                                }
+                            </source>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>main.ts.deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                //windows compat...
+                                def gbasedir = basedir.getAbsolutePath().replace('\\', '/')
+                                def prefix = (System.getProperty("os.name").toLowerCase().contains("win")) ? "CMD /C " : ""
+                                def npmDeployProcess = (prefix + "npm publish").execute(null, new File("${gbasedir}/target/classes-npm"))
+                                npmDeployProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmDeployProcess.exitValue() != 0) {
                                     exit
                                 }
                             </source>

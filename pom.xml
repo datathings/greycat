@@ -309,11 +309,11 @@
     <distributionManagement>
         <repository>
             <id>datathings.protected</id>
-            <url>https://registry.datathings.com/repository/private-release/</url>
+            <url>https://registry.datathings.com/repository/private/</url>
         </repository>
         <snapshotRepository>
             <id>datathings.protected</id>
-            <url>https://registry.datathings.com/repository/private-snapshot/</url>
+            <url>https://registry.datathings.com/repository/private/</url>
         </snapshotRepository>
     </distributionManagement>
 

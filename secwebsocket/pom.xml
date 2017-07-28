@@ -64,16 +64,7 @@
                                 ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
                                 ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
                                 ant.copy(file: "${basedir}/src/main/ts/readme.md", todir: "${basedir}/target/classes-npm")
-                                def installGreycat = "npm install ${greycat.path}/greycat/target/classes-npm".execute(null, new File("${basedir}/target/classes-npm"))
-                                installGreycat.waitForProcessOutput(System.out, System.err)
-                                if (installGreycat.exitValue() != 0) {
-                                    exit
-                                }
-                                def installGreycatWS = "npm install ${greycat.path}/plugins/websocket/target/classes-npm".execute(null, new File("${basedir}/target/classes-npm"))
-                                installGreycatWS.waitForProcessOutput(System.out, System.err)
-                                if (installGreycatWS.exitValue() != 0) {
-                                    exit
-                                }
+
                                 def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/classes-npm"))
                                 npmInstallProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmInstallProcess.exitValue() != 0) { exit }
@@ -81,6 +72,25 @@
                                 tscProcess.waitForProcessOutput(System.out, System.err)
                                 if (tscProcess.exitValue() != 0) { exit }
                                 ant.delete(file: "${basedir}/target/classes-npm/greycat.secws.ts")
+                            </source>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>main.ts.deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                //windows compat...
+                                def gbasedir = basedir.getAbsolutePath().replace('\\', '/')
+                                def prefix = (System.getProperty("os.name").toLowerCase().contains("win")) ? "CMD /C " : ""
+                                def npmDeployProcess = (prefix + "npm publish").execute(null, new File("${gbasedir}/target/classes-npm"))
+                                npmDeployProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmDeployProcess.exitValue() != 0) {
+                                    exit
+                                }
                             </source>
                         </configuration>
                     </execution>
