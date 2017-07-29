@@ -112,11 +112,13 @@ public class BaseNode implements Node {
 
     @Override
     public final String nodeTypeName() {
-        final NodeDeclaration declaration = this.graph().nodeRegistry().declarationByHash(this._resolver.typeCode(this));
+        int typeHash = this._resolver.typeCode(this);
+        final NodeDeclaration declaration = this.graph().nodeRegistry().declarationByHash(typeHash);
         if (declaration != null) {
             return declaration.name();
+        } else {
+            return _resolver.hashToString(typeHash);
         }
-        return null;
     }
 
     protected final NodeState unphasedState() {
