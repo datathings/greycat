@@ -99,13 +99,35 @@ class PluginGenerator {
                                 .returns(VOID).build())
                         .build(), param.build());
             });
+
+
+            MethodSpec.Builder waiterRun = MethodSpec.methodBuilder("run")
+                    .addAnnotation(Override.class)
+                    .addModifiers(PUBLIC)
+                    .returns(VOID);
+            for (Class aClass : model.classes()) {
+                waiterRun.addStatement("graph.resolver().stringToHash($L.META.name,true)", aClass.name());
+                aClass.properties.forEach((propName, value) -> {
+                    if (!(value instanceof Annotation)) {
+                        waiterRun.addStatement("graph.resolver().stringToHash($L.$L.name,true)", aClass.name(), propName.toUpperCase());
+                    }
+                });
+
+            }
+            for (CustomType aType : model.customTypes()) {
+                waiterRun.addStatement("graph.resolver().stringToHash($L.META.name,true)", aType.name());
+                aType.properties.forEach((propName, value) -> {
+                    if (!(value instanceof Annotation)) {
+                        waiterRun.addStatement("graph.resolver().stringToHash($L.$L.name,true)", aType.name(), propName.toUpperCase());
+                    }
+                });
+            }
+            waiterRun.addStatement("graph.save(endIndexes)");
+            //.addStatement("endIndexes.on(true)")
+
             onMethod.addStatement("waiter.then($L)", TypeSpec.anonymousClassBuilder("")
                     .addSuperinterface(ClassName.get(Job.class))
-                    .addMethod(MethodSpec.methodBuilder("run")
-                            .addAnnotation(Override.class)
-                            .addModifiers(PUBLIC)
-                            .addStatement("endIndexes.on(true)")
-                            .returns(VOID).build())
+                    .addMethod(waiterRun.build())
                     .build());
             startMethod.addStatement("graph.addConnectHook($L)", TypeSpec.anonymousClassBuilder("")
                     .addSuperinterface(ParameterizedTypeName.get(gCallback, ParameterizedTypeName.get(gCallback, BOOLEAN.box())))
