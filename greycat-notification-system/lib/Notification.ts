@@ -1,3 +1,7 @@
+///
+/// Copyright 2017 DataThings - All rights reserved.
+///
+
 import NotificationAction from './NotificationAction';
 /**
  * Created by gnain on 24/05/2017.

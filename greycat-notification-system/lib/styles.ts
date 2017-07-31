@@ -1,3 +1,7 @@
+///
+/// Copyright 2017 DataThings - All rights reserved.
+///
+
 // Used for calculations
 let defaultWidth = 320;
 let defaultColors = {

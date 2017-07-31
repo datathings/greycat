@@ -1,3 +1,7 @@
+///
+/// Copyright 2017 DataThings - All rights reserved.
+///
+
 /**
  * Created by gnain on 24/05/2017.
  */

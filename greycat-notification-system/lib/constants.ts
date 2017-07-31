@@ -1,3 +1,7 @@
+///
+/// Copyright 2017 DataThings - All rights reserved.
+///
+
 let Constants = {
 
   // Positions
