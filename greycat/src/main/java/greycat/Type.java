@@ -61,6 +61,9 @@ public class Type {
         return p_type < BOOL || p_type > INT_TO_STRING_MAP;
     }
 
+    public static final byte INT_SET = 28;
+    public static final byte LONG_SET = 29;
+
     /**
      * Convert a type that represent a byte to a readable String representation
      *
@@ -116,13 +119,18 @@ public class Type {
                 return "INT_TO_INT_MAP";
             case Type.INT_TO_STRING_MAP:
                 return "INT_TO_STRING_MAP";
-                /* default custom Types*/
+            case Type.INT_SET:
+                return "INT_SET";
+            case Type.LONG_SET:
+                return "LONG_SET";
+     /* default custom Types*/
             case Type.INDEX:
                 return "INDEX";
             case Type.KDTREE:
                 return "KDTREE";
             case Type.NDTREE:
                 return "NDTREE";
+
             default:
                 return "Custom";
         }
@@ -174,6 +182,10 @@ public class Type {
                 return Type.INT_TO_INT_MAP;
             case "INT_TO_STRING_MAP":
                 return Type.INT_TO_STRING_MAP;
+            case "INT_SET":
+                return Type.INT_SET;
+            case "LONG_SET":
+                return Type.LONG_SET;
                 /* default custom Types*/
             case "KDTREE":
                 return Type.KDTREE;

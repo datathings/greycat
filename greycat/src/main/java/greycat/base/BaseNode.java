@@ -223,6 +223,10 @@ public class BaseNode implements Node {
                     return new DoubleArrayProxy(index, this, (DoubleArray) elem);
                 case Type.STRING_ARRAY:
                     return new StringArrayProxy(index, this, (StringArray) elem);
+                case Type.INT_SET:
+                    return new IntSetProxy(index,this,(IntSet)elem);
+                case Type.LONG_SET:
+                    return new LongSetProxy(index,this,(LongSet) elem);
                 case Type.INT_TO_INT_MAP:
                     return new IntIntMapProxy(index, this, (IntIntMap) elem);
                 case Type.INT_TO_STRING_MAP:
@@ -407,6 +411,8 @@ public class BaseNode implements Node {
             case Type.LONG_TO_LONG_ARRAY_MAP:
             case Type.INT_TO_INT_MAP:
             case Type.INT_TO_STRING_MAP:
+            case Type.INT_SET:
+            case Type.LONG_SET:
                 throw new RuntimeException("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
             default:
                 throw new RuntimeException("Not managed type " + type);
@@ -742,6 +748,34 @@ public class BaseNode implements Node {
                                 builder.append("]");
                                 break;
                             }
+                            case Type.LONG_SET:
+                                builder.append("\"");
+                                builder.append(resolveName);
+                                builder.append("\":");
+                                builder.append("[");
+                                long[] castedLS =  ((LongSet)elem).extract();
+                                for (int j = 0; j < castedLS.length; j++) {
+                                    if (j != 0) {
+                                        builder.append(",");
+                                    }
+                                    builder.append(castedLS[j]);
+                                }
+                                builder.append("]");
+                                break;
+                            case Type.INT_SET:
+                                builder.append("\"");
+                                builder.append(resolveName);
+                                builder.append("\":");
+                                builder.append("[");
+                                int[] castedIS =  ((IntSet)elem).extract();
+                                for (int j = 0; j < castedIS.length; j++) {
+                                    if (j != 0) {
+                                        builder.append(",");
+                                    }
+                                    builder.append(castedIS[j]);
+                                }
+                                builder.append("]");
+                                break;
                             case Type.LONG_TO_LONG_MAP: {
                                 builder.append(",\"");
                                 builder.append(resolveName);
@@ -952,6 +986,16 @@ public class BaseNode implements Node {
     @Override
     public final LongLongArrayMap getLongLongArrayMap(String name) {
         return (LongLongArrayMap) get(name);
+    }
+
+    @Override
+    public LongSet getLongSet(String name) {
+        return (LongSet) get(name);
+    }
+
+    @Override
+    public IntSet getIntSet(String name) {
+        return (IntSet) get(name);
     }
 
     public final Node createClone() {

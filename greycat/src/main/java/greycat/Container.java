@@ -56,6 +56,10 @@ public interface Container {
 
     LongLongArrayMap getLongLongArrayMap(String name);
 
+    LongSet getLongSet(String name);
+
+    IntSet getIntSet(String name);
+
     /**
      * Returns the value of an attribute of the container.
      *

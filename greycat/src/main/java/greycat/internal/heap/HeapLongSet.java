@@ -18,44 +18,35 @@ package greycat.internal.heap;
 import greycat.Constants;
 import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
-import greycat.struct.LongLongArrayMap;
-import greycat.struct.LongLongArrayMapCallBack;
+import greycat.struct.LongSet;
 import greycat.utility.Base64;
 import greycat.utility.HashHelper;
 
 import java.util.Arrays;
 
-class HeapLongLongArrayMap implements LongLongArrayMap {
+public class HeapLongSet implements LongSet {
 
-    final HeapContainer parent;
+    private final HeapContainer parent;
 
-    int mapSize = 0;
-    int capacity = 0;
+    private int mapSize = 0;
+    private int capacity = 0;
 
-    long[] keys = null;
-    long[] values = null;
+    private long[] keys = null;
 
-    int[] nexts = null;
-    int[] hashs = null;
+    private int[] nexts = null;
+    private int[] hashs = null;
 
-    HeapLongLongArrayMap(final HeapContainer p_listener) {
+    HeapLongSet(final HeapContainer p_listener) {
         this.parent = p_listener;
     }
 
-    long key(int i) {
+
+    protected long key(int i) {
         return keys[i];
     }
 
     private void setKey(int i, long newValue) {
         keys[i] = newValue;
-    }
-
-    long value(int i) {
-        return values[i];
-    }
-
-    private void setValue(int i, long newValue) {
-        values[i] = newValue;
     }
 
     private int next(int i) {
@@ -74,17 +65,6 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
         hashs[i] = newValue;
     }
 
-    void internal_clear() {
-        synchronized (parent) {
-            mapSize = 0;
-            capacity = 0;
-            keys = null;
-            values = null;
-            nexts = null;
-            hashs = null;
-            parent.declareDirty();
-        }
-    }
 
     void reallocate(int newCapacity) {
         if (newCapacity > capacity) {
@@ -94,13 +74,6 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
                 System.arraycopy(keys, 0, new_keys, 0, capacity);
             }
             keys = new_keys;
-            //extend values
-            long[] new_values = new long[newCapacity];
-            if (values != null) {
-                System.arraycopy(values, 0, new_values, 0, capacity);
-            }
-            values = new_values;
-
             int[] new_nexts = new int[newCapacity];
             int[] new_hashes = new int[newCapacity * 2];
             Arrays.fill(new_nexts, 0, newCapacity, -1);
@@ -116,19 +89,14 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
         }
     }
 
-    HeapLongLongArrayMap cloneFor(HeapContainer newParent) {
-        HeapLongLongArrayMap cloned = new HeapLongLongArrayMap(newParent);
+    HeapLongSet cloneFor(HeapContainer newParent) {
+        HeapLongSet cloned = new HeapLongSet(newParent);
         cloned.mapSize = mapSize;
         cloned.capacity = capacity;
         if (keys != null) {
             long[] cloned_keys = new long[capacity];
             System.arraycopy(keys, 0, cloned_keys, 0, capacity);
             cloned.keys = cloned_keys;
-        }
-        if (values != null) {
-            long[] cloned_values = new long[capacity];
-            System.arraycopy(values, 0, cloned_values, 0, capacity);
-            cloned.values = cloned_values;
         }
         if (nexts != null) {
             int[] cloned_nexts = new int[capacity];
@@ -144,38 +112,42 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     }
 
     @Override
-    public final long[] get(final long requestKey) {
-        long[] result = new long[0];
+    public boolean put(long insertKey) {
+        boolean result = false;
         synchronized (parent) {
-            if (keys != null) {
-                final int hashIndex = (int) HashHelper.longHash(requestKey, capacity * 2);
-                int resultCapacity = 0;
-                int resultIndex = 0;
-                int m = hash(hashIndex);
+            if (keys == null) {
+                reallocate(Constants.MAP_INITIAL_CAPACITY);
+                setKey(0, insertKey);
+                setHash((int) HashHelper.longHash(insertKey, capacity * 2), 0);
+                setNext(0, -1);
+                mapSize++;
+            } else {
+                int hashCapacity = capacity * 2;
+                int insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
+                int currentHash = hash(insertKeyHash);
+                int m = currentHash;
+                int found = -1;
                 while (m >= 0) {
-                    if (requestKey == key(m)) {
-                        if (resultIndex == resultCapacity) {
-                            int newCapacity;
-                            if (resultCapacity == 0) {
-                                newCapacity = 1;
-                            } else {
-                                newCapacity = resultCapacity * 2;
-                            }
-                            long[] tempResult = new long[newCapacity];
-                            System.arraycopy(result, 0, tempResult, 0, result.length);
-                            result = tempResult;
-                            resultCapacity = newCapacity;
-                        }
-                        result[resultIndex] = value(m);
-                        resultIndex++;
+                    if (insertKey == key(m)) {
+                        found = m;
+                        break;
                     }
                     m = next(m);
                 }
-                if (resultIndex != resultCapacity) {
-                    //shrink result
-                    long[] shrinkedResult = new long[resultIndex];
-                    System.arraycopy(result, 0, shrinkedResult, 0, resultIndex);
-                    result = shrinkedResult;
+                if (found == -1) {
+                    result = true;
+                    final int lastIndex = mapSize;
+                    if (lastIndex == capacity) {
+                        reallocate(capacity * 2);
+                        hashCapacity = capacity * 2;
+                        insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
+                        currentHash = hash(insertKeyHash);
+                    }
+                    setKey(lastIndex, insertKey);
+                    setHash((int) HashHelper.longHash(insertKey, capacity * 2), lastIndex);
+                    setNext(lastIndex, currentHash);
+                    mapSize++;
+                    parent.declareDirty();
                 }
             }
         }
@@ -183,15 +155,16 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     }
 
     @Override
-    public boolean contains(long requestKey, long requestValue) {
+    public boolean contains(long requestKey) {
         boolean result = false;
         synchronized (parent) {
             if (keys != null) {
                 final int hashIndex = (int) HashHelper.longHash(requestKey, capacity * 2);
                 int m = hash(hashIndex);
-                while (m >= 0 && !result) {
-                    if (requestKey == key(m) && requestValue == value(m)) {
+                while (m >= 0) {
+                    if (requestKey == key(m)) {
                         result = true;
+                        break;
                     }
                     m = next(m);
                 }
@@ -201,43 +174,42 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     }
 
     @Override
-    public final void each(LongLongArrayMapCallBack callback) {
+    public int index(long requestKey) {
+        int result = -1;
         synchronized (parent) {
-            unsafe_each(callback);
-        }
-    }
-
-    void unsafe_each(LongLongArrayMapCallBack callback) {
-        for (int i = 0; i < mapSize; i++) {
-            callback.on(key(i), value(i));
-        }
-    }
-
-    @Override
-    public int size() {
-        int result;
-        synchronized (parent) {
-            result = mapSize;
+            if (keys != null) {
+                final int hashIndex = (int) HashHelper.longHash(requestKey, capacity * 2);
+                int m = hash(hashIndex);
+                while (m >= 0) {
+                    if (requestKey == key(m)) {
+                        result = m;
+                        break;
+                    }
+                    m = next(m);
+                }
+            }
         }
         return result;
     }
 
     @Override
-    public final void delete(final long requestKey, final long requestValue) {
+    public boolean remove(long requestKey) {
+        boolean result = false;
         synchronized (parent) {
             if (keys != null && mapSize != 0) {
-                long hashCapacity = capacity * 2;
+                int hashCapacity = capacity * 2;
                 int hashIndex = (int) HashHelper.longHash(requestKey, hashCapacity);
                 int m = hash(hashIndex);
                 int found = -1;
                 while (m >= 0) {
-                    if (requestKey == key(m) && requestValue == value(m)) {
+                    if (requestKey == key(m)) {
                         found = m;
                         break;
                     }
                     m = next(m);
                 }
                 if (found != -1) {
+                    result = true;
                     //first remove currentKey from hashChain
                     int toRemoveHash = (int) HashHelper.longHash(requestKey, hashCapacity);
                     m = hash(toRemoveHash);
@@ -261,7 +233,6 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
                         //less cool, we have to unchain the last value of the map
                         final long lastKey = key(lastIndex);
                         setKey(found, lastKey);
-                        setValue(found, value(lastIndex));
                         setNext(found, next(lastIndex));
                         int victimHash = (int) HashHelper.longHash(lastKey, hashCapacity);
                         m = hash(victimHash);
@@ -285,104 +256,49 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
                 }
             }
         }
+        return result;
     }
 
     @Override
-    public final LongLongArrayMap putNoCheck(final long insertKey, final long insertValue){
-        synchronized (parent) {
-            internal_put(insertKey, insertValue, false,false);
-        }
-        return this;
-    }
-
-    @Override
-    public final LongLongArrayMap put(final long insertKey, final long insertValue) {
-        synchronized (parent) {
-            internal_put(insertKey, insertValue, false,true);
-        }
-        return this;
-    }
-
-    private void internal_put(final long insertKey, final long insertValue, final boolean initial,final boolean check) {
+    public long[] extract() {
         if (keys == null) {
-            reallocate(Constants.MAP_INITIAL_CAPACITY);
-            setKey(0, insertKey);
-            setValue(0, insertValue);
-            setHash((int) HashHelper.longHash(insertKey, capacity * 2), 0);
-            setNext(0, -1);
-            mapSize++;
-            if (!initial) {
-                parent.declareDirty();
-            }
-        } else {
-            long hashCapacity = capacity * 2;
-            int insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
-            int currentHash = hash(insertKeyHash);
-            int m = currentHash;
-            int found = -1;
-            if(check) {
-                while (m >= 0) {
-                    if (insertKey == key(m) && insertValue == value(m)) {
-                        found = m;
-                        break;
-                    }
-                    m = next(m);
-                }
-            }
-            if (found == -1) {
-                final int lastIndex = mapSize;
-                if (lastIndex == capacity) {
-                    reallocate(capacity * 2);
-                    hashCapacity = capacity * 2;
-                    insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
-                    currentHash = hash(insertKeyHash);
-                }
-                setKey(lastIndex, insertKey);
-                setValue(lastIndex, insertValue);
-                setHash((int) HashHelper.longHash(insertKey, capacity * 2), lastIndex);
-                setNext(lastIndex, currentHash);
-                mapSize++;
-                if (!initial) {
-                    parent.declareDirty();
-                }
-            }
+            return new long[0];
         }
+        final long[] extracted = new long[mapSize];
+        System.arraycopy(keys, 0, extracted, 0, mapSize);
+        return extracted;
+    }
+
+    @Override
+    public int size() {
+        int result;
+        synchronized (parent) {
+            result = mapSize;
+        }
+        return result;
     }
 
     public final void save(final Buffer buffer) {
-        if (mapSize != 0) {
-            Base64.encodeIntToBuffer(mapSize, buffer);
-            for (int j = 0; j < mapSize; j++) {
-                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                Base64.encodeLongToBuffer(keys[j], buffer);
-                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                Base64.encodeLongToBuffer(values[j], buffer);
-            }
-        } else {
-            Base64.encodeIntToBuffer(0, buffer);
+        Base64.encodeIntToBuffer(mapSize, buffer);
+        for (int j = 0; j < mapSize; j++) {
+            buffer.write(CoreConstants.CHUNK_VAL_SEP);
+            Base64.encodeLongToBuffer(keys[j], buffer);
         }
     }
+
 
     public final long load(final Buffer buffer, final long offset, final long max) {
         long cursor = offset;
         byte current = buffer.read(cursor);
         boolean isFirst = true;
         long previous = offset;
-        long previousKey = -1;
-        boolean waitingVal = false;
         while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.BLOCK_CLOSE) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                     isFirst = false;
                 } else {
-                    if (!waitingVal) {
-                        previousKey = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                        waitingVal = true;
-                    } else {
-                        waitingVal = false;
-                        internal_put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor), true,false);
-                    }
+                    put(Base64.decodeToLongWithBounds(buffer, previous, cursor));
                 }
                 previous = cursor + 1;
             }
@@ -393,15 +309,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
         }
         if (isFirst) {
             reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
-        } else {
-            if (waitingVal) {
-                internal_put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor), true,false);
-            }
         }
         return cursor;
     }
-
 }
-
-
-

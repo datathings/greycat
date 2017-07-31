@@ -27,7 +27,7 @@ public class MockNodeStateDValue implements StateChunk {
     private HeapTimeTreeDValueChunk chunk;
     private int offset;
 
-    MockNodeStateDValue(HeapTimeTreeDValueChunk p_chunk, int p_offset){
+    MockNodeStateDValue(HeapTimeTreeDValueChunk p_chunk, int p_offset) {
         chunk = p_chunk;
         offset = p_offset;
     }
@@ -169,6 +169,16 @@ public class MockNodeStateDValue implements StateChunk {
 
     @Override
     public final LongLongArrayMap getLongLongArrayMap(String name) {
+        return null;
+    }
+
+    @Override
+    public LongSet getLongSet(String name) {
+        return null;
+    }
+
+    @Override
+    public IntSet getIntSet(String name) {
         return null;
     }
 
