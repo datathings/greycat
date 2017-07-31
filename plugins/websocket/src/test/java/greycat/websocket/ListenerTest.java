@@ -18,14 +18,11 @@ package greycat.websocket;
 import greycat.*;
 import greycat.scheduler.NoopScheduler;
 import greycatTest.internal.MockStorage;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.concurrent.CountDownLatch;
-
-import static greycat.Tasks.newTask;
 
 public class ListenerTest {
 
@@ -41,7 +38,7 @@ public class ListenerTest {
         graph_back.save(null);
 
         int port = findFreePort();
-        WSServer graphServer = new WSServer(graph_back, port);
+        WSSharedServer graphServer = new WSSharedServer(graph_back, port);
         graphServer.start();
 
         final Graph graph = new GraphBuilder().withStorage(new WSClient("ws://localhost:" + port + "/ws")).build();

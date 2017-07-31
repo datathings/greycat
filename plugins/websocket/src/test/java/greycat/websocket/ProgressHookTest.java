@@ -18,8 +18,6 @@ package greycat.websocket;
 import greycat.*;
 import greycatTest.internal.MockStorage;
 
-import static greycat.Tasks.newTask;
-
 public class ProgressHookTest {
 
     public static void main(String[] args) {
@@ -32,7 +30,7 @@ public class ProgressHookTest {
             public void on(Boolean result) {
 
 
-                WSServer srv = new WSServer(graph, 4000);
+                WSSharedServer srv = new WSSharedServer(graph, 4000);
                 srv.start();
                 System.out.println("Server started 4000");
 

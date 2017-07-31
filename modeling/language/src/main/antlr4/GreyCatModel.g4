@@ -32,7 +32,7 @@ constDcl: 'const' name=IDENT ':' type=IDENT ('=' constValueDcl)?;
 constValueDcl: (simpleValueDcl | taskValueDcl);
 simpleValueDcl: (IDENT | STRING | NUMBER);
 taskValueDcl: actionValueDcl ('.' actionValueDcl)*;
-actionValueDcl: IDENT ('(' actionParamList ')')?;
+actionValueDcl: IDENT ('(' actionParamList? ')')?;
 actionParamList: actionParam (',' actionParam)*;
 actionParam: STRING | NUMBER | subTask;
 subTask: '{' taskValueDcl '}';

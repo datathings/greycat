@@ -16,45 +16,58 @@
 package greycat.websocket;
 
 import greycat.*;
-import greycat.base.BaseNode;
-import greycat.chunk.StateChunk;
 import greycat.struct.Buffer;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import org.junit.Assert;
 import org.junit.Test;
+import greycat.chunk.StateChunk;
+import greycat.base.BaseNode;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.concurrent.CountDownLatch;
 
-public class WSServerTest {
+public class WSSharedServerTest {
 
     public static void main(String[] args) {
-        WSServer graphServer = new WSServer(GraphBuilder.newBuilder().withMemorySize(10000), 8050);
-        graphServer.addHandler("hello", new ResourceHandler(new ClassPathResourceManager(WSServerTest.class.getClassLoader(), "hello")).addWelcomeFiles("index.html").setDirectoryListingEnabled(true));
-        graphServer.start();
-        System.out.println("WSServer started!");
-
-        Graph gclient = GraphBuilder.newBuilder().withStorage(new WSClient("ws://localhost:8050/ws")).build();
-        gclient.connect(new Callback<Boolean>() {
+        final Graph graph = new GraphBuilder()
+                .withMemorySize(10000)
+                .build();
+        graph.connect(new Callback<Boolean>() {
             @Override
-            public void on(Boolean result) {
-                System.out.println("WSClient connected");
-                Node node = gclient.newNode(0, 0);
-                node.set("name", Type.STRING, "hello");
-                gclient.save(new Callback<Boolean>() {
+            public void on(Boolean connectResult) {
+                WSSharedServer graphServer = new WSSharedServer(graph, 8050);
+                graphServer.addHandler("hello", new ResourceHandler(new ClassPathResourceManager(this.getClass().getClassLoader(), "hello")).addWelcomeFiles("index.html").setDirectoryListingEnabled(true));
+                graphServer.start();
+                System.out.println("Connected!");
+
+
+                Node root = graph.newNode(0, 0);
+                root.set("name", Type.STRING, "root");
+
+                Node n0 = graph.newNode(0, 0);
+                n0.set("name", Type.STRING, "n0");
+
+                Node n1 = graph.newNode(0, 0);
+                n1.set("name", Type.STRING, "n0");
+
+                root.addToRelation("children", n0);
+                root.addToRelation("children", n1);
+
+                graph.declareIndex(0, "nodes", new Callback<NodeIndex>() {
                     @Override
-                    public void on(Boolean result) {
-                        gclient.disconnect(new Callback<Boolean>() {
-                            @Override
-                            public void on(Boolean result) {
-                                System.out.println("Test over");
-                                graphServer.stop();
-                            }
-                        });
+                    public void on(NodeIndex indexNode) {
+                        indexNode.update(root);
+                        System.out.println(indexNode.toString());
+                        StateChunk chunk = (StateChunk) graph.space().get(((BaseNode) indexNode)._index_stateChunk);
+                        Buffer buffer = graph.newBuffer();
+                        chunk.save(buffer);
+
+                        System.out.println(new String(buffer.data()));
+                        System.out.println(chunk.index());
                     }
-                });
+                }, "name");
             }
         });
     }
@@ -76,6 +89,8 @@ public class WSServerTest {
                     @Override
                     public void on(NodeIndex indexNode) {
                         indexNode.update(node);
+
+
                     }
                 }, "name");
 

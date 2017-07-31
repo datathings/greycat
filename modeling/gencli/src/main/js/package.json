@@ -1,5 +1,5 @@
 {
-  "name": "greycat-gencli",
+  "name": "@greycat/greycat-gencli",
   "homepage": "https://github.com/datathings/greycat",
   "version": "GREYCAT_VERSION",
   "description": "GreyCat is a powerful environment bringing Live Machine Learning and Data Analytics to your business. Check it out on http://datathings.com.",
@@ -11,12 +11,12 @@
     "url": "https://github.com/datathings/greycat/issues"
   },
   "dependencies": {
-    "shelljs":"0.7.8"
+    "shelljs": "0.7.8"
   },
   "license": "Apache-2.0",
   "typings": "greycat.d.ts",
   "main": "gen.js",
   "bin": {
-    "greycatGen":"gencli.js"
+    "greycatGen": "gencli.js"
   }
 }

@@ -29,6 +29,7 @@ import greycat.TaskHook;
 import greycat.utility.Base64;
 
 import java.util.*;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CoreGraph implements Graph {
@@ -52,6 +53,9 @@ public class CoreGraph implements Graph {
     private MemoryFactory _memoryFactory;
     private TaskHook[] _taskHooks;
     private List<Callback<Callback<Boolean>>> _connectHooks;
+
+    //general properties
+    private final HashMap<String, Object> _properties = new HashMap<String, Object>();
 
     public CoreGraph(final Storage p_storage, final long memorySize, final long batchSize, final Scheduler p_scheduler, final Plugin[] p_plugins, final boolean deepPriority) {
         //initiate the two registry
@@ -136,6 +140,17 @@ public class CoreGraph implements Graph {
     }
 
     @Override
+    public final Graph setProperty(String key, Object value) {
+        _properties.put(key, value);
+        return this;
+    }
+
+    @Override
+    public final Object getProperty(String key) {
+        return _properties.get(key);
+    }
+
+    @Override
     public final Node newNode(long world, long time) {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
@@ -166,6 +181,23 @@ public class CoreGraph implements Graph {
         return newNode;
     }
 
+    @Override
+    public final Node newTypedNodeFrom(long world, long time, int nodeType) {
+        if (!_isConnected.get()) {
+            throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
+        }
+        final NodeFactory resolvedFactory = factoryByCode(nodeType);
+        BaseNode newNode;
+        if (resolvedFactory == null) {
+            System.out.println("WARNING: UnKnow NodeType " + nodeType + ", missing plugin configuration in the builder ? Using generic node as a fallback");
+            newNode = new BaseNode(world, time, this._nodeKeyCalculator.newKey(), this);
+        } else {
+            newNode = (BaseNode) resolvedFactory.create(world, time, this._nodeKeyCalculator.newKey(), this);
+        }
+        this._resolver.initNode(newNode, nodeType);
+        return newNode;
+    }
+
     /**
      * @ignore ts
      */
@@ -189,7 +221,7 @@ public class CoreGraph implements Graph {
             throw new RuntimeException(CoreConstants.DEAD_NODE_ERROR + " node id: " + casted.id());
         } else {
             //Duplicate marks on all chunks
-            if(casted._index_stateChunk != -1){
+            if (casted._index_stateChunk != -1) {
                 this._space.mark(casted._index_stateChunk);
             }
 

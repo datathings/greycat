@@ -173,7 +173,15 @@ public class GaussianENode {
         if (total >= 2) {
             initAvg();
             int dim = avg.length;
-            double[] err = backend.getWithDefault(Gaussian.PRECISIONS, new double[avg.length]);
+            DoubleArray errArray = ((DoubleArray) backend.get(Gaussian.PRECISIONS));
+            double[] err;
+            if(errArray!=null){
+                err=errArray.extract();
+            }
+            else {
+                err=new double[avg.length];
+            }
+
             double[] sumsq = getSumSq();
             std = new double[dim];
 
@@ -204,7 +212,6 @@ public class GaussianENode {
             int dim = avg.length;
 
             DoubleArray gp = (DoubleArray) backend.get(Gaussian.PRECISIONS);
-
 
             double[] err;
             if (gp != null) {
@@ -271,7 +278,7 @@ public class GaussianENode {
         return covtemp;
     }
 
-    public DMatrix getPearson() {
+    public DMatrix getCorrelation() {
         if (!initCov()) {
             return null;
         }

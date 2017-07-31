@@ -6,11 +6,11 @@
   "private": true,
   "typings": "test.d.ts",
   "devDependencies": {
-    "typescript": "^2.1.5"
+    "typescript": "2.4.2"
   },
   "dependencies": {
-    "j2ts-jre": "^J2TS_VERSION",
-    "j2ts-junit": "^J2TS_VERSION",
+    "@greycat/j2ts-jre": "^J2TS_VERSION",
+    "@greycat/j2ts-junit": "^J2TS_VERSION",
     "jasmine": "2.5.3"
   }
 }

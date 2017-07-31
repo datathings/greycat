@@ -70,7 +70,7 @@
                             <source>${basedir}/../greycat/src/main/java</source>
                             <target>${basedir}/target/generated-sources</target>
                             <headers>
-                                <header>import {java,Long} from 'j2ts-jre';</header>
+                                <header>import {java,Long} from '@greycat/j2ts-jre';</header>
                             </headers>
                         </configuration>
                     </execution>
@@ -83,8 +83,8 @@
                         <configuration>
                             <name>test</name>
                             <headers>
-                                <header>import {java,Long} from 'j2ts-jre';</header>
-                                <header>import {org} from 'j2ts-junit';</header>
+                                <header>import {java,Long} from '@greycat/j2ts-jre';</header>
+                                <header>import {org} from '@greycat/j2ts-junit';</header>
                                 <header>import * as greycat from '../../target/classes-npm';</header>
                             </headers>
                             <testHeaders>
@@ -215,43 +215,33 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <id>main.ts.deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                //windows compat...
+                                def gbasedir = basedir.getAbsolutePath().replace('\\', '/')
+                                def prefix = (System.getProperty("os.name").toLowerCase().contains("win")) ? "CMD /C " : ""
+                                def npmDeployProcess = (prefix + "npm publish").execute(null, new File("${gbasedir}/target/classes-npm"))
+                                npmDeployProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmDeployProcess.exitValue() != 0) {
+                                    exit
+                                }
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>dev</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
-                        <version>2.8.2</version>
-                        <executions>
-                            <execution>
-                                <id>deploy.tgz</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>deploy-file</goal>
-                                </goals>
-                                <configuration>
-                                    <repositoryId>datathings.oss.snapshots</repositoryId>
-                                    <url>${project.distributionManagement.snapshotRepository.url}</url>
-                                    <generatePom>true</generatePom>
-                                    <artifactId>${project.artifactId}</artifactId>
-                                    <groupId>${project.groupId}</groupId>
-                                    <version>${project.version}</version>
-                                    <file>${basedir}/target/${generatedTGZ}.tgz</file>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
+    
 </project>

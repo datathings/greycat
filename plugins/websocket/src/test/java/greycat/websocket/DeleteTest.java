@@ -38,7 +38,7 @@ public class DeleteTest {
         n.set("name", Type.STRING, "NamedNode");
 
         int port = findFreePort();
-        WSServer graphServer = new WSServer(graph_back, port);
+        WSSharedServer graphServer = new WSSharedServer(graph_back, port);
         graphServer.start();
 
         final Graph graph = new GraphBuilder().withStorage(new WSClient("ws://localhost:" + port + "/ws")).build();

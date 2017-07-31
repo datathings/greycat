@@ -1,0 +1,26 @@
+{
+  "name": "@greycat/greycat-rocksdb",
+  "homepage": "https://github.com/datathings/greycat",
+  "description": "RocksDB plugin for GreyCat",
+  "version": "11.0.0",
+  "main": "greycat.rocksdb.js",
+  "typings": "greycat.rocksdb.d.ts",
+  "dependencies": {
+    "@greycat/greycat": "11.0.0",
+    "@greycat/j2ts-jre": "93",
+    "@types/node": "^8.0.17",
+    "level-rocksdb": "1.0.1",
+    "rocksdb-node": "^1.5.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/datathings/greycat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/datathings/greycat/issues"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "2.4.2"
+  }
+}

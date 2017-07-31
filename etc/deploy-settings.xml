@@ -18,9 +18,9 @@
 <settings>
     <servers>
         <server>
-            <id>datathings.oss.snapshots</id>
-            <username>${env.OSSRH_USER}</username>
-            <password>${env.OSSRH_PASS}</password>
+            <id>datathings.protected</id>
+            <username>${env.DT_USER}</username>
+            <password>${env.DT_PASS}</password>
         </server>
     </servers>
 </settings>

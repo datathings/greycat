@@ -119,12 +119,6 @@ public class WSClient implements Storage, TaskExecutor {
             WebSocketClient.ConnectionBuilder builder = io.undertow.websockets.client.WebSocketClient
                     .connectionBuilder(_worker, _buffer, new URI(_url));
 
-            /*
-            if(_sslContext != null) {
-                UndertowXnioSsl ssl = new UndertowXnioSsl(Xnio.getInstance(), OptionMap.EMPTY, _sslContext);
-                builder.setSsl(ssl);
-            }*/
-
             IoFuture<WebSocketChannel> futureChannel = builder.connect();
             futureChannel.await(5, TimeUnit.SECONDS); //Todo change this magic number!!!
             if (futureChannel.getStatus() != IoFuture.Status.DONE) {

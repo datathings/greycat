@@ -57,7 +57,7 @@ public class TaskServerTest {
                                 nodesIndex.update(n0);
                                 nodesIndex.update(n1);
                                 nodesIndex.update(root);
-                                WSServer srv = new WSServer(graph, 4000);
+                                WSSharedServer srv = new WSSharedServer(graph, 4000);
                                 srv.start();
                                 System.out.println("Server started 4000");
 

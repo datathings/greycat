@@ -1,2 +1,2 @@
 
-const myNestedTask : Task = readIndex("nodes").forEach({ log("name") }).log("end")
+const myNestedTask : Task = readIndex("nodes").forEach({ log("name") }).log("end").cloneNodes()

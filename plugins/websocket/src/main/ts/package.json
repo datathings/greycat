@@ -1,13 +1,13 @@
 {
-  "name": "greycat-websocket",
+  "name": "@greycat/greycat-websocket",
   "homepage": "https://github.com/datathings/greycat",
   "description": "WebSocket plugin for GreyCat",
   "version": "GREYCAT_VERSION",
   "main": "greycat.ws.js",
   "typings": "greycat.ws.d.ts",
   "dependencies": {
-    "greycat": "GREYCAT_VERSION_D",
-    "j2ts-jre": "J2TS_VERSION"
+    "@greycat/greycat": "GREYCAT_VERSION_D",
+    "@greycat/j2ts-jre": "J2TS_VERSION"
   },
   "repository": {
     "type": "git",
@@ -18,6 +18,6 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "typescript": "2.4.1"
+    "typescript": "2.4.2"
   }
 }

@@ -19,7 +19,6 @@ import com.squareup.javapoet.JavaFile;
 import greycat.language.Checker;
 import greycat.language.Model;
 import java2typescript.SourceTranslator;
-import org.kevoree.resolver.MavenResolver;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +26,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 public class Generator {
@@ -90,8 +88,8 @@ public class Generator {
             addToTransClassPath(transpiler);
         }
         transpiler.process();
-        transpiler.addHeader("import * as greycat from 'greycat';");
-        transpiler.addHeader("import {java} from 'j2ts-jre';");
+        transpiler.addHeader("import * as greycat from '@greycat/greycat';");
+        transpiler.addHeader("import {java} from '@greycat/j2ts-jre';");
         transpiler.generate();
         File tsGen = new File(modelWeb, packageName + ".ts");
         try {
@@ -122,15 +120,14 @@ public class Generator {
             e.printStackTrace();
         }
         boolean isSnaphot = (gcVersion.contains("SNAPSHOT"));
-        File greycatTgz = null;
         if (isSnaphot) {
-
-            String tgzVersion = gcVersion.replace("-SNAPSHOT", "");
-            while (tgzVersion.split("\\.").length != 3) {
-                tgzVersion += ".0";
+            StringBuilder tgzVersion = new StringBuilder(gcVersion.replace("-SNAPSHOT", ""));
+            while (tgzVersion.toString().split("\\.").length != 3) {
+                tgzVersion.append(".0");
             }
-
-
+            gcVersion = tgzVersion.toString();
+            /*
+            File greycatTgz = null;
             try {
                 MavenResolver resolver = new MavenResolver();
                 HashSet<String> urls = new HashSet<String>();
@@ -145,7 +142,8 @@ public class Generator {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            gcVersion = greycatTgz != null ? greycatTgz.getAbsolutePath().replace('\\','/') : tgzVersion;
+            gcVersion = greycatTgz != null ? greycatTgz.getAbsolutePath().replace('\\', '/') : tgzVersion.toString();
+            */
         }
 
         if (projectVersion.contains("SNAPSHOT")) {
@@ -166,10 +164,10 @@ public class Generator {
                 "  \"repository\":\"empty\",\n" +
                 "  \"license\":\"UNLICENSED\"," +
                 "  \"dependencies\": {\n" +
-                "    \"greycat\": \"" + gcVersion + "\"\n" +
+                "    \"@greycat/greycat\": \"" + gcVersion + "\"\n" +
                 "  },\n" +
                 "  \"devDependencies\": {\n" +
-                "    \"typescript\": \"2.4.1\"\n" +
+                "    \"typescript\": \"2.4.2\"\n" +
                 "  }" +
                 "}";
         try {
@@ -186,7 +184,7 @@ public class Generator {
         File mainTS = new File(modelWebStarter, "main2.ts");
         try {
             mainJS.createNewFile();
-            Files.write(mainJS.toPath(), ("var greycat = require(\"greycat\");\n" +
+            Files.write(mainJS.toPath(), ("var greycat = require(\"@greycat/greycat\");\n" +
                     "var " + packageName + " = require(\"" + packageName + "\");\n" +
                     "\n" +
                     "var g = greycat.GraphBuilder.newBuilder().withPlugin(new " + packageName + "." + pluginName + "()).build();\n" +
@@ -209,11 +207,11 @@ public class Generator {
                     "  \"repository\":\"empty\",\n" +
                     "  \"license\":\"UNLICENSED\"," +
                     "  \"dependencies\": {\n" +
-                    "    \"greycat\": \"" + gcVersion + "\",\n" +
-                    "    \"" + packageName + "\": \"" + new File(modelWeb, packageName + "-" + projectVersion + ".tgz").getAbsolutePath().replace('\\','/') + "\"\n" +
+                    "    \"@greycat/greycat\": \"" + gcVersion + "\",\n" +
+                    "    \"" + packageName + "\": \"" + new File(modelWeb, packageName + "-" + projectVersion + ".tgz").getAbsolutePath().replace('\\', '/') + "\"\n" +
                     "  },\n" +
                     "  \"devDependencies\": {\n" +
-                    "    \"typescript\": \"2.4.1\",\n" +
+                    "    \"typescript\": \"2.4.2\",\n" +
                     "    \"ts-node\": \"3.0.4\"\n" +
                     "  }" +
                     "}").getBytes());
@@ -231,7 +229,7 @@ public class Generator {
                     "then\n" +
                     "\n" +
                     "`ts-node main2.ts`").getBytes());
-            Files.write(mainTS.toPath(), ("import * as greycat from 'greycat';\n" +
+            Files.write(mainTS.toPath(), ("import * as greycat from '@greycat/greycat';\n" +
                     "import * as " + packageName + " from '" + packageName + "';\n" +
                     "\n" +
                     "var g = greycat.GraphBuilder.newBuilder().withPlugin(new " + packageName + ".ModelPlugin()).build();\n" +
@@ -247,24 +245,31 @@ public class Generator {
             e.printStackTrace();
         }
 
+        ProcessBuilder processBuilderPre;
         ProcessBuilder processBuilder;
         ProcessBuilder processBuilder2;
         ProcessBuilder processBuilder3;
         ProcessBuilder processBuilder4;
 
         // Install required package in TS
+
         if (isWindows()) {
+            processBuilderPre = new ProcessBuilder("CMD", "/C", "npm", "config", "set", "@greycat:registry", "https://registry.datathings.com/repository/npm-public/");
             processBuilder = new ProcessBuilder("CMD", "/C", "npm", "install");
             processBuilder2 = new ProcessBuilder("CMD", "/C", "node", "node_modules/typescript/lib/tsc.js");
             processBuilder3 = new ProcessBuilder("CMD", "/C", "npm", "pack");
             processBuilder4 = new ProcessBuilder("CMD", "/C", "npm", "install");
         } else {
+            processBuilderPre = new ProcessBuilder("npm", "config", "set", "@greycat:registry", "https://registry.datathings.com/repository/npm-public/");
             processBuilder = new ProcessBuilder("npm", "install");
             processBuilder2 = new ProcessBuilder("node", "node_modules/typescript/lib/tsc.js");
             processBuilder3 = new ProcessBuilder("npm", "pack");
             processBuilder4 = new ProcessBuilder("npm", "install");
         }
 
+        processBuilderPre.directory(modelWeb);
+        processBuilderPre.inheritIO();
+        // Run TSC
         processBuilder.directory(modelWeb);
         processBuilder.inheritIO();
         // Run TSC
@@ -277,6 +282,7 @@ public class Generator {
         processBuilder4.directory(modelWebStarter);
         processBuilder4.inheritIO();
         try {
+            processBuilderPre.start().waitFor();
             processBuilder.start().waitFor();
             processBuilder2.start().waitFor();
             processBuilder3.start().waitFor();

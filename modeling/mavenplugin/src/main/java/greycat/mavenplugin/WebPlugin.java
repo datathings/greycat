@@ -15,7 +15,6 @@
  */
 package greycat.mavenplugin;
 
-import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -24,14 +23,11 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.kevoree.resolver.MavenResolver;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.HashSet;
 
 @Mojo(name = "web", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class WebPlugin extends AbstractMojo {
@@ -59,13 +55,14 @@ public class WebPlugin extends AbstractMojo {
                 gcVersionLook[0] = artifact.getVersion();
             }
         });
-        String gcVersion = gcVersionLook[0];
+        StringBuilder gcVersion = new StringBuilder(gcVersionLook[0].replace("-SNAPSHOT",""));
         getLog().info("detected GreyCat version " + gcVersion);
         final Charset charset = StandardCharsets.UTF_8;
 
         try {
             String content = new String(Files.readAllBytes(target.toPath()), charset);
-            if (gcVersion.contains("-SNAPSHOT")) {
+            //if (gcVersion.contains("-SNAPSHOT")) {
+                /*
                 MavenResolver resolver = new MavenResolver();
                 HashSet<String> urls = new HashSet<String>();
                 //TODO add all current repository
@@ -74,19 +71,21 @@ public class WebPlugin extends AbstractMojo {
                 File greycatWebSocketTgz = resolver.resolve("com.datathings", "greycat-websocket", gcVersion, "tgz", urls);
                 File greycatMLTgz = resolver.resolve("com.datathings", "greycat-ml", gcVersion, "tgz", urls);
                 content = content
-                        .replaceAll("\"greycat\": \".*\"", "\"greycat\": \"" + greycatTgz.getAbsolutePath().replace('\\','/') + "\"")
-                        .replaceAll("\"greycat-websocket\": \".*\"", "\"greycat-websocket\": \"" + greycatWebSocketTgz.getAbsolutePath().replace('\\','/') + "\"")
-                        .replaceAll("\"greycat-ml\": \".*\"", "\"greycat-ml\": \"" + greycatMLTgz.getAbsolutePath().replace('\\','/') + "\"");
+                        .replaceAll("\"greycat\": \".*\"", "\"greycat\": \"" + greycatTgz.getAbsolutePath().replace('\\', '/') + "\"")
+                        .replaceAll("\"greycat-websocket\": \".*\"", "\"greycat-websocket\": \"" + greycatWebSocketTgz.getAbsolutePath().replace('\\', '/') + "\"")
+                        .replaceAll("\"greycat-ml\": \".*\"", "\"greycat-ml\": \"" + greycatMLTgz.getAbsolutePath().replace('\\', '/') + "\"");
                 Files.write(target.toPath(), content.getBytes(charset));
-            } else {
-                while (gcVersion.split("\\.").length != 3) {
-                    gcVersion += ".0";
-                }
-                content = content
-                        .replaceAll("\"greycat\": \".*\"", "\"greycat\": \"" + gcVersion + "\"")
-                        .replaceAll("\"greycat-websocket\": \".*\"", "\"greycat-websocket\": \"" + gcVersion + "\"")
-                        .replaceAll("\"greycat-ml\": \".*\"", "\"greycat-ml\": \"" + gcVersion + "\"");
+                */
+            // } else {
+
+            while (gcVersion.toString().split("\\.").length != 3) {
+                gcVersion.append(".0");
             }
+            content = content
+                    .replaceAll("\"@greycat/greycat\": \".*\"", "\"@greycat/greycat\": \"" + gcVersion.toString() + "\"")
+                    .replaceAll("\"@greycat/greycat-websocket\": \".*\"", "\"@greycat/greycat-websocket\": \"" + gcVersion.toString() + "\"")
+                    .replaceAll("\"@greycat/greycat-ml\": \".*\"", "\"@greycat/greycat-ml\": \"" + gcVersion.toString() + "\"");
+            //}
             Files.write(target.toPath(), content.getBytes(charset));
 
             File yarnLock = new File(target.getParentFile(), "yarn.lock");
@@ -99,7 +98,7 @@ public class WebPlugin extends AbstractMojo {
             }
 
             //now cleanup node module if exists
-            File nodeModules = new File(target.getParentFile(), "node_modules");
+            File nodeModules = new File(new File(target.getParentFile(), "node_modules"), "@greycat");
             if (nodeModules.exists()) {
                 //we have to clean greycat
                 File greyCatModule = new File(nodeModules, "greycat");

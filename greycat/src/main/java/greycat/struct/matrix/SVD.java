@@ -521,7 +521,6 @@ class SVD implements SVDDecompose {
      *
      * @return V
      */
-
     public DMatrix getV() {
         return V;
     }

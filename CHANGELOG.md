@@ -8,6 +8,7 @@ All release has been tagged into our GitHub repository.
 - Version 11 (planned ~1/08/2017)
     - convergence of EStruct and CustomType and Node
     - hybrid storage
+    - TypeScript version 2.4.2
 - Version 10 (24/07/2017)
     - introducing new chunks to handle access control enabled manager
     - fixing maven and generator plugin in order to handle snapshot based development. Please see the stack example for plugins usage.

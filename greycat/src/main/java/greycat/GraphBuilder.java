@@ -28,7 +28,7 @@ import greycat.plugin.Storage;
  */
 public class GraphBuilder {
 
-    private Storage _storage = null;
+    public Storage storage = null;
     private Scheduler _scheduler = null;
     private Plugin[] _plugins = null;
     private long _memorySize = -1;
@@ -40,14 +40,26 @@ public class GraphBuilder {
         return new GraphBuilder();
     }
 
+    public final GraphBuilder clone() {
+        GraphBuilder copy = new GraphBuilder();
+        copy.storage = this.storage;
+        copy._scheduler = this._scheduler;
+        copy._plugins = this._plugins;
+        copy._memorySize = this._memorySize;
+        copy._batchSize = this._batchSize;
+        copy._readOnly = this._readOnly;
+        copy._deepPriority = this._deepPriority;
+        return copy;
+    }
+
     /**
      * Sets the storage system to the given parameter.
      *
      * @param storage the storage system to be used by the graph
      * @return the {@link GraphBuilder}, for a fluent API
      */
-    public GraphBuilder withStorage(Storage storage) {
-        this._storage = storage;
+    public final GraphBuilder withStorage(Storage storage) {
+        this.storage = storage;
         return this;
     }
 
@@ -58,7 +70,7 @@ public class GraphBuilder {
      * @return the {@link GraphBuilder}, for a fluent API
      */
     public GraphBuilder withReadOnlyStorage(Storage storage) {
-        this._storage = storage;
+        this.storage = storage;
         _readOnly = true;
         return this;
     }
@@ -120,11 +132,11 @@ public class GraphBuilder {
     }
 
     public Graph build() {
-        if (_storage == null) {
-            _storage = new BlackHoleStorage();
+        if (storage == null) {
+            storage = new BlackHoleStorage();
         }
         if (_readOnly) {
-            _storage = new ReadOnlyStorage(_storage);
+            storage = new ReadOnlyStorage(storage);
         }
         if (_scheduler == null) {
             _scheduler = new TrampolineScheduler();
@@ -132,7 +144,7 @@ public class GraphBuilder {
         if (_memorySize == -1) {
             _memorySize = 100000;
         }
-        return new CoreGraph(_storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
+        return new CoreGraph(storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
     }
 
 }

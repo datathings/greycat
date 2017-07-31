@@ -1,5 +1,5 @@
 {
-  "name": "greycat",
+  "name": "@greycat/greycat",
   "homepage": "https://github.com/datathings/greycat",
   "version": "GREYCAT_VERSION",
   "main": "greycat.js",
@@ -14,9 +14,9 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "typescript": "2.4.1"
+    "typescript": "2.4.2"
   },
   "dependencies": {
-    "j2ts-jre": "J2TS_VERSION"
+    "@greycat/j2ts-jre": "J2TS_VERSION"
   }
 }

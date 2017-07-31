@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-websocket</artifactId>
     <version>11-SNAPSHOT</version>
@@ -81,7 +82,7 @@
                                 while (project_version.split('\\.').length != 3) {
                                     project_version += '.0'
                                 }
-                                def greycatPtr = new File("${gbasedir}/../../greycat/target/greycat-${project_version}.tgz").canonicalPath.replace('\\', '/')
+                                def greycatPtr = new File("${gbasedir}/../../greycat/target/greycat-greycat-${project_version}.tgz").canonicalPath.replace('\\', '/')
                                 def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
                                 while (j2ts_version.split('\\.').length != 3) {
                                     j2ts_version += '.0'
@@ -114,43 +115,33 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <id>main.ts.deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                //windows compat...
+                                def gbasedir = basedir.getAbsolutePath().replace('\\', '/')
+                                def prefix = (System.getProperty("os.name").toLowerCase().contains("win")) ? "CMD /C " : ""
+                                def npmDeployProcess = (prefix + "npm publish").execute(null, new File("${gbasedir}/target/classes-npm"))
+                                npmDeployProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmDeployProcess.exitValue() != 0) {
+                                    exit
+                                }
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>dev</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
-                        <version>2.8.2</version>
-                        <executions>
-                            <execution>
-                                <id>deploy.tgz</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>deploy-file</goal>
-                                </goals>
-                                <configuration>
-                                    <repositoryId>datathings.oss.snapshots</repositoryId>
-                                    <url>${project.distributionManagement.snapshotRepository.url}</url>
-                                    <generatePom>false</generatePom>
-                                    <artifactId>${project.artifactId}</artifactId>
-                                    <groupId>${project.groupId}</groupId>
-                                    <version>${project.version}</version>
-                                    <file>${basedir}/target/${generatedTGZ}.tgz</file>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>

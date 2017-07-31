@@ -29,6 +29,8 @@ public class Gaussian {
     public static final String MAX = "max";
     public static final String AVG = "avg";
     public static final String COV = "cov";
+    public static final String COR = "cor";
+
     public static final String STD = "std";
     public static final String SUM = "sum";
     public static final String SUMSQ = "sumsq";
@@ -110,6 +112,7 @@ public class Gaussian {
         host.remove(SUMSQ);
         host.remove(AVG);
         host.remove(COV);
+        host.remove(COR);
         host.remove(STD);
         host.remove(MIN);
         host.remove(MAX);

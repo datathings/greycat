@@ -55,7 +55,8 @@ public class NodeValueTest {
                 System.out.println(size / timeSecond);
             }
         });
-    }*/
+    }
+    */
     @Test
     public void testRelation() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
@@ -122,6 +123,13 @@ public class NodeValueTest {
                     }
                 });
                 traverse.executeUsing(ctx);
+
+                g.lookupTimes(0, Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, nodeValue.id(), -1, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":1,\"value\":42.5}", result[0].toString());
+                    }
+                });
 
             }
         });

@@ -41,8 +41,8 @@ public class MatrixOps {
         return destination;
     }
 
-    public static void appendBtoA(DMatrix A, DMatrix B, int step){
-        for(int i=0;i<B.columns();i+=step){
+    public static void appendBtoA(DMatrix A, DMatrix B, int step) {
+        for (int i = 0; i < B.columns(); i += step) {
             A.appendColumn(B.column(i));
         }
     }
@@ -253,8 +253,8 @@ public class MatrixOps {
     //todo can be replaced by system array copy if possible
     public static void copy(DMatrix from, DMatrix to) {
         int total = from.length();
-        if(to.length()==0){
-            to.init(from.rows(),from.columns());
+        if (to.length() == 0) {
+            to.init(from.rows(), from.columns());
         }
         for (int i = 0; i < total; i++) {
             to.unsafeSet(i, from.unsafeGet(i));
@@ -320,4 +320,17 @@ public class MatrixOps {
         }
         return result;
     }
+
+
+    public static void print(DMatrix matA, String name) {
+        System.out.println("Matrix " + name);
+        for (int i = 0; i < matA.rows(); i++) {
+            for (int j = 0; j < matA.columns(); j++) {
+                System.out.print(matA.get(i, j) + "\t");
+            }
+            System.out.println("");
+        }
+        System.out.println("");
+    }
+
 }

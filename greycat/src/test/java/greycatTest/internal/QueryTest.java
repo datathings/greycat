@@ -27,6 +27,7 @@ import greycat.utility.Tuple;
 import org.junit.Assert;
 import org.junit.Test;
 
+
 public class QueryTest implements Resolver, Graph {
 
     @Test
@@ -95,12 +96,27 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public Graph setProperty(String key, Object value) {
+        return null;
+    }
+
+    @Override
+    public Object getProperty(String key) {
+        return null;
+    }
+
+    @Override
     public Node newNode(long world, long time) {
         return null;
     }
 
     @Override
     public Node newTypedNode(long world, long time, String nodeType) {
+        return null;
+    }
+
+    @Override
+    public Node newTypedNodeFrom(long world, long time, int nodeType) {
         return null;
     }
 
