@@ -140,6 +140,7 @@
                         <exclude>**/d3.*</exclude>
                         <exclude>**/moment.js</exclude>
                         <exclude>**/build_netlib/**</exclude>
+                        <exclude>greycat-notification-system/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>
