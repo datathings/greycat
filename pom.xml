@@ -96,18 +96,22 @@
     </developers>
 
     <modules>
+
+        <module>core</module>
+
+        <!--
         <module>greycat</module>
         <module>plugins/importer</module>
         <module>plugins/leveldb</module>
         <module>plugins/rocksdb</module>
         <module>plugins/websocket</module>
         <module>plugins/ml</module>
-        <!-- Modelling environment-->
         <module>modeling/language</module>
         <module>modeling/generator</module>
         <module>modeling/mavenplugin</module>
         <module>modeling/gradleplugin</module>
         <module>modeling/gencli</module>
+        -->
 
     </modules>
 
@@ -201,6 +205,7 @@
                         <exclude>**/moment.js</exclude>
                     </excludes>
                 </configuration>
+                <!--
                 <executions>
                     <execution>
                         <goals>
@@ -208,6 +213,8 @@
                         </goals>
                     </execution>
                 </executions>
+                -->
+
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
