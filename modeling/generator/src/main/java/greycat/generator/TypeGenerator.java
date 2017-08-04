@@ -191,16 +191,24 @@ class TypeGenerator {
                                 .build())
                         .build());
 
-                MethodSpec.Builder addTo = MethodSpec.methodBuilder("addTo" + Generator.upperCaseFirstChar(rel.name()))
-                        .addModifiers(PUBLIC, FINAL)
-                        .returns(ClassName.get(packageName, gType.name()))
-                        .addParameter(clazz(rel.type()), "value")
-                        .addStatement("addToRelationAt($L.hash,value)", rel.name().toUpperCase());
                 if (rel.opposite() != null) {
-                    addTo.addCode(createAddOppositeBlock(rel.type(), rel).build());
+                    MethodSpec.Builder addTo = MethodSpec.methodBuilder("addTo" + Generator.upperCaseFirstChar(rel.name()))
+                            .addModifiers(PUBLIC, FINAL)
+                            .addParameter(clazz(rel.type()), "value")
+                            .addParameter(ParameterizedTypeName.get(gCallback, ClassName.get(packageName, gType.name())), "callback")
+                            .addStatement("$T self = this", ClassName.get(packageName, gType.name()))
+                            .addStatement("addToRelationAt($L.hash,value)", rel.name().toUpperCase());
+                    addTo.addCode(createAddOppositeBlock(rel.type(), rel, ClassName.get(packageName, gType.name())).build());
+                    javaClass.addMethod(addTo.build());
+                } else {
+                    MethodSpec.Builder addTo = MethodSpec.methodBuilder("addTo" + Generator.upperCaseFirstChar(rel.name()))
+                            .addModifiers(PUBLIC, FINAL)
+                            .returns(ClassName.get(packageName, gType.name()))
+                            .addParameter(clazz(rel.type()), "value")
+                            .addStatement("addToRelationAt($L.hash,value)", rel.name().toUpperCase())
+                            .addStatement("return this");
+                    javaClass.addMethod(addTo.build());
                 }
-                addTo.addStatement("return this");
-                javaClass.addMethod(addTo.build());
 
                 MethodSpec.Builder removeFrom = MethodSpec.methodBuilder("removeFrom" + Generator.upperCaseFirstChar(rel.name()))
                         .addModifiers(PUBLIC, FINAL)
@@ -241,16 +249,24 @@ class TypeGenerator {
                                 .build())
                         .build());
 
-                MethodSpec.Builder addTo = MethodSpec.methodBuilder("set" + Generator.upperCaseFirstChar(ref.name()))
-                        .addModifiers(PUBLIC, FINAL)
-                        .returns(ClassName.get(packageName, gType.name()))
-                        .addParameter(clazz(ref.type()), "value")
-                        .addStatement("(($T)this.getOrCreateAt($L.hash, greycat.Type.RELATION)).clear().add(value.id())", ClassName.get(greycat.struct.Relation.class), ref.name().toUpperCase());
                 if (ref.opposite() != null) {
-                    addTo.addCode(createAddOppositeBlock(ref.type(), ref).build());
+                    MethodSpec.Builder addTo = MethodSpec.methodBuilder("set" + Generator.upperCaseFirstChar(ref.name()))
+                            .addModifiers(PUBLIC, FINAL)
+                            .addParameter(clazz(ref.type()), "value")
+                            .addParameter(ParameterizedTypeName.get(gCallback, ClassName.get(packageName, gType.name())), "callback")
+                            .addStatement("$T self = this", ClassName.get(packageName, gType.name()))
+                            .addStatement("(($T)this.getOrCreateAt($L.hash, greycat.Type.RELATION)).clear().add(value.id())", ClassName.get(greycat.struct.Relation.class), ref.name().toUpperCase());
+                    addTo.addCode(createAddOppositeBlock(ref.type(), ref, ClassName.get(packageName, gType.name())).build());
+                    javaClass.addMethod(addTo.build());
+                } else {
+                    MethodSpec.Builder addTo = MethodSpec.methodBuilder("set" + Generator.upperCaseFirstChar(ref.name()))
+                            .addModifiers(PUBLIC, FINAL)
+                            .returns(ClassName.get(packageName, gType.name()))
+                            .addParameter(clazz(ref.type()), "value")
+                            .addStatement("(($T)this.getOrCreateAt($L.hash, greycat.Type.RELATION)).clear().add(value.id())", ClassName.get(greycat.struct.Relation.class), ref.name().toUpperCase())
+                            .addStatement("return this");
+                    javaClass.addMethod(addTo.build());
                 }
-                addTo.addStatement("return this");
-                javaClass.addMethod(addTo.build());
 
                 MethodSpec.Builder removeFrom = MethodSpec.methodBuilder("removeFrom" + Generator.upperCaseFirstChar(ref.name()))
                         .addModifiers(PUBLIC, FINAL)
@@ -273,18 +289,27 @@ class TypeGenerator {
                         .build());
 
                 //Index method
-                MethodSpec.Builder indexMethod = MethodSpec.methodBuilder("index" + Generator.upperCaseFirstChar(li.name()))
-                        .addModifiers(PUBLIC, FINAL)
-                        .returns(ClassName.get(packageName, gType.name()))
-                        .addParameter(ClassName.get(packageName, li.type()), "value");
-
-                indexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
-                indexMethod.addStatement("index.update(value)");
                 if (li.opposite() != null) {
-                    indexMethod.addCode(createAddOppositeBlock(li.type(), li).build());
+                    MethodSpec.Builder indexMethod = MethodSpec.methodBuilder("index" + Generator.upperCaseFirstChar(li.name()))
+                            .addModifiers(PUBLIC, FINAL)
+                            .addParameter(ClassName.get(packageName, li.type()), "value")
+                            .addParameter(ParameterizedTypeName.get(gCallback, ClassName.get(packageName, gType.name())), "callback")
+
+                            .addStatement("$T self = this", ClassName.get(packageName, gType.name()))
+                            .addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase())
+                            .addStatement("index.update(value)")
+                            .addCode(createAddOppositeBlock(li.type(), li, ClassName.get(packageName, gType.name())).build());
+                    javaClass.addMethod(indexMethod.build());
+                } else {
+                    MethodSpec.Builder indexMethod = MethodSpec.methodBuilder("index" + Generator.upperCaseFirstChar(li.name()))
+                            .addModifiers(PUBLIC, FINAL)
+                            .returns(ClassName.get(packageName, gType.name()))
+                            .addParameter(ClassName.get(packageName, li.type()), "value")
+                            .addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase())
+                            .addStatement("index.update(value)")
+                            .addStatement("return this");
+                    javaClass.addMethod(indexMethod.build());
                 }
-                indexMethod.addStatement("return this");
-                javaClass.addMethod(indexMethod.build());
 
                 //UnIndex method
                 MethodSpec.Builder unindexMethod = MethodSpec.methodBuilder("unindex" + Generator.upperCaseFirstChar(li.name()))
@@ -489,17 +514,46 @@ class TypeGenerator {
     }
 
 
-    public static CodeBlock.Builder createAddOppositeBlock(String edgeType, Edge edge) {
+    public static CodeBlock.Builder createAddOppositeBlock(String edgeType, Edge edge, ClassName className) {
         CodeBlock.Builder addBlock = CodeBlock.builder();
         if (edge.opposite() != null) {
             if (edge.opposite().edge() instanceof Relation) {
-                String oppositeName = ((Relation) edge.opposite().edge()).name();
+                String oppositeName = edge.opposite().edge().name();
                 addBlock.addStatement("value.addToRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "this");
+                addBlock.addStatement("callback.on(self)");
 
             } else if (edge.opposite().edge() instanceof Reference) {
-                String oppositeName = ((Reference) edge.opposite().edge()).name();
-                addBlock.addStatement("value.removeFromRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "this");
-                addBlock.addStatement("value.addToRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "this");
+                String oppositeName = edge.opposite().edge().name();
+                String metaRelation = edge.name().toUpperCase();
+
+                CodeBlock.Builder removeFromOther = CodeBlock.builder();
+                if (edge instanceof Index) {
+                    removeFromOther.addStatement("$T index = ($T) result.getAt($L.hash)", gIndex, gIndex, metaRelation)
+                            .beginControlFlow("if(index != null)")
+                            .addStatement("index.unindex(value)")
+                            .endControlFlow();
+                } else {
+                    removeFromOther.addStatement("result.removeFromRelationAt($L.hash, $L)", metaRelation, "value");
+                }
+
+                addBlock.addStatement("value.get$L($L)", Generator.upperCaseFirstChar(oppositeName), TypeSpec.anonymousClassBuilder("")
+                        .addSuperinterface(ParameterizedTypeName.get(gCallback, className))
+                        .addMethod(MethodSpec.methodBuilder("on")
+                                .addAnnotation(Override.class)
+                                .addModifiers(PUBLIC)
+                                .addParameter(className, "result")
+                                .returns(VOID)
+                                .beginControlFlow("if(result != null)")
+                                .addCode(removeFromOther.build())
+                                .endControlFlow()
+                                .addStatement("$T rel = value.getRelation($L.$L.name)", gRelation, edgeType, oppositeName.toUpperCase())
+                                .beginControlFlow("if(rel != null)")
+                                .addStatement("rel.clear()")
+                                .endControlFlow()
+                                .addStatement("value.addToRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "self")
+                                .addStatement("callback.on(self)")
+                                .build())
+                        .build());
 
             } else if (edge.opposite().edge() instanceof Index) {
                 Index idx = ((Index) edge.opposite().edge());
@@ -512,7 +566,7 @@ class TypeGenerator {
                 addBlock.addStatement("index.declareAttributes(null $L)", params.toString());
                 addBlock.endControlFlow();
                 addBlock.addStatement("index.update($L)", "this");
-
+                addBlock.addStatement("callback.on(self)");
             }
         }
         return addBlock;

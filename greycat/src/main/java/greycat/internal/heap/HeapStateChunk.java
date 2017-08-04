@@ -1334,4 +1334,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         return (LongLongArrayMap) get(name);
     }
 
+    @Override
+    public final int[] attributeIndexes() {
+        final int[] result = new int[_size];
+        System.arraycopy(_k, 0, result, 0, _size);
+        return result;
+    }
+
 }

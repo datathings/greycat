@@ -41,6 +41,7 @@ public class Helper {
     static final ClassName gIndex = ClassName.get(Index.class);
     static final ClassName gNodeIndex = ClassName.get(NodeIndex.class);
     static final ClassName jlSystem = ClassName.get(java.lang.System.class);
+    static final ClassName gRelation = ClassName.get(Relation.class);
 
     private static Set<String> primitives = new HashSet<String>(Arrays.asList("Bool", "Boolean", "String", "Long", "Int", "Integer", "Double"));
     private static Set<String> primitiveArrays = new HashSet<String>(Arrays.asList("BoolArray", "BooleanArray", "StringArray", "LongArray", "IntArray", "IntegerArray", "DoubleArray"));

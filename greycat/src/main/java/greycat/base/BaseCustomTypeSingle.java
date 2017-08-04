@@ -69,4 +69,9 @@ public class BaseCustomTypeSingle extends BaseCustomType {
         return _backend.estruct(DEF_NODE).getAtWithDefault(key, defaultValue);
     }
 
+    @Override
+    public final int[] attributeIndexes() {
+        return _backend.estruct(DEF_NODE).attributeIndexes();
+    }
+
 }

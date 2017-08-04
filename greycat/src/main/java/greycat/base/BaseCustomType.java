@@ -193,4 +193,9 @@ public class BaseCustomType implements Container {
         return this;
     }
 
+    @Override
+    public int[] attributeIndexes() {
+        return null;
+    }
+
 }

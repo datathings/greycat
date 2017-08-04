@@ -46,6 +46,12 @@ Here are the essential information for a quick start:
 - [idea plugin](https://plugins.jetbrains.com/plugin/9771-greycat-idea)
 - [changelog](CHANGELOG.md)
 
+#### How to build
+
+- requirements: NodeJS (since V8), NPM (since V5), Java (since V8), Maven (since V3.3)
+- then `npm config set @greycat:registry https://registry.datathings.com/repository/npm-public/`
+- then `mvn clean install`
+
 #### In case of troubles or questions ?
 
 Please contact us via [our Github](https://github.com/datathings/greycat) for questions, pull request, or feature requests.

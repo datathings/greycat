@@ -567,6 +567,12 @@ class HeapEStruct implements EStruct, HeapContainer {
         return this;
     }
 
+    @Override
+    public final int[] attributeIndexes() {
+        final int[] result = new int[_size];
+        System.arraycopy(_k, 0, result, 0, _size);
+        return result;
+    }
 
     @Override
     public void drop() {

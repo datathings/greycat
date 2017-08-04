@@ -20,4 +20,5 @@ public interface Edge {
 
     void setOpposite(Opposite opposite);
 
+    String name();
 }

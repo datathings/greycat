@@ -275,6 +275,11 @@ public final class EStructProxy implements EStruct {
     }
 
     @Override
+    public final int[] attributeIndexes() {
+        return _node.attributeIndexes();
+    }
+
+    @Override
     public final void drop() {
         check();
         _node.drop();

@@ -32,6 +32,7 @@ public class Index implements Edge {
         this.attributes = new ArrayList<AttributeRef>();
     }
 
+    @Override
     public String name() {
         return this.name;
     }

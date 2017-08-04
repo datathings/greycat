@@ -269,6 +269,11 @@ public class MockNodeStateDValue implements StateChunk {
     }
 
     @Override
+    public final int[] attributeIndexes() {
+        return new int[0];
+    }
+
+    @Override
     public <A> A getWithDefault(String key, A defaultValue) {
         return null;
     }

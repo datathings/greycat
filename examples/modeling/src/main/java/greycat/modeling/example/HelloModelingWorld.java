@@ -25,7 +25,6 @@ import static greycat.Tasks.newTask;
 
 public class HelloModelingWorld {
 
-
     public static void main(String[] args) {
         //add  the generated plugin to a GraphBuilder
         GraphBuilder builder = new GraphBuilder().withPlugin(new ModelPlugin());
@@ -126,23 +125,32 @@ public class HelloModelingWorld {
                 B b2 = B.create(0, 0, graph);
                 b2.setName("b2");
 
-                a1.addToBRel(b1);
-                b1.getARef(new Callback<A>() {
+                a1.addToBRel(b1, new Callback<A>() {
                     @Override
                     public void on(A result) {
-                        System.out.println("opposite found: " + result.getName());
+                        b1.getARef(new Callback<A>() {
+                            @Override
+                            public void on(A result) {
+                                System.out.println("opposite found: " + result.getName());
+                            }
+                        });
                     }
                 });
 
-                b2.setARef(a1);
-                a1.getBRel(new Callback<B[]>() {
+                b2.setARef(a1, new Callback<B>() {
                     @Override
-                    public void on(B[] result) {
-                        for (B b : result) {
-                            System.out.println(b.getName());
-                        }
+                    public void on(B result) {
+                        a1.getBRel(new Callback<B[]>() {
+                            @Override
+                            public void on(B[] result) {
+                                for (B b : result) {
+                                    System.out.println(b.getName());
+                                }
+                            }
+                        });
                     }
                 });
+
 
                 // derived att
                 smartCity.traverseAt(SmartCity.DERIVEDATT.hash, new Callback<Double>() {

@@ -127,7 +127,7 @@ public interface Container {
      * @return An instance that can be altered at the current world and time.
      */
     Object getOrCreateAt(int index, int type);
-    
+
     Object getOrCreateCustom(String name, String typeName);
 
     Object getOrCreateCustomAt(int index, String typeName);
@@ -137,5 +137,7 @@ public interface Container {
     <A> A getAtWithDefault(int key, A defaultValue);
 
     Container rephase();
+
+    int[] attributeIndexes();
 
 }

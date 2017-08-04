@@ -25,6 +25,7 @@ public class Reference implements Edge {
         this.name = name;
     }
 
+    @Override
     public String name() {
         return name;
     }

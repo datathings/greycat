@@ -578,6 +578,11 @@ public class BaseNode implements Node {
     }
 
     @Override
+    public final int[] attributeIndexes() {
+        return this._resolver.resolveState(this).attributeIndexes();
+    }
+
+    @Override
     public final void timepoints(final long beginningOfSearch, final long endOfSearch, final Callback<long[]> callback) {
         this._resolver.resolveTimepoints(this, beginningOfSearch, endOfSearch, callback);
     }

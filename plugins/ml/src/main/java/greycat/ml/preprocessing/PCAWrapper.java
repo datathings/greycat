@@ -147,7 +147,7 @@ public class PCAWrapper {
 
             System.out.println("");
             System.out.println("Space density");
-            DoubleArray density= (DoubleArray) _backend.get(SPACE_DENSITY_INFORMATION);
+            DoubleArray density = (DoubleArray) _backend.get(SPACE_DENSITY_INFORMATION);
             for (int i = 0; i < density.size(); i++) {
                 System.out.println("Dim " + i + ": " + density.get(i));
             }
@@ -212,17 +212,6 @@ public class PCAWrapper {
         return res.column(0);
     }
 
-
-    //Column vectors based
-    public DMatrix convertSpace(DMatrix initial) {
-        DMatrix _matrixV = (DMatrix) _backend.get(MATRIX_V_TRANS);
-        if (_matrixV == null) {
-            throw new RuntimeException("Please set dimension first before calling PCA");
-        }
-
-        return MatrixOps.multiply(_matrixV, initial);
-    }
-
     public double[] inverseConvertVector(double[] data) {
         DMatrix _matrixV = (DMatrix) _backend.get(MATRIX_V_TRANS);
         if (_matrixV == null) {
@@ -235,6 +224,18 @@ public class PCAWrapper {
         return res.column(0);
     }
 
+
+    //Column vectors based
+    public DMatrix convertSpace(DMatrix initial) {
+        DMatrix _matrixV = (DMatrix) _backend.get(MATRIX_V_TRANS);
+        if (_matrixV == null) {
+            throw new RuntimeException("Please set dimension first before calling PCA");
+        }
+
+        return MatrixOps.multiply(_matrixV, initial);
+    }
+
+
     public DMatrix inverseConvertSpace(DMatrix initial) {
         DMatrix _matrixV = (DMatrix) _backend.get(MATRIX_V_TRANS);
         if (_matrixV == null) {
@@ -244,6 +245,7 @@ public class PCAWrapper {
         DMatrix res = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, _matrixV, TransposeType.NOTRANSPOSE, initial);
         return res;
     }
+
 
 
     public DMatrix getVT() {

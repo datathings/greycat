@@ -336,4 +336,31 @@ public class MatrixOps {
     public static DMatrix cloneMatrix(DMatrix source) {
         return VolatileDMatrix.cloneFrom(source);
     }
+
+
+    public static DMatrix cropMatrix(DMatrix original, int rows, int columns) {
+        if (rows > original.rows() || columns > original.columns()) {
+            throw new RuntimeException("Rows and columns must be less or equal to the original matrix rows and columns");
+        }
+        VolatileDMatrix res = VolatileDMatrix.empty(rows, columns);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                res.set(i, j, original.get(i, j));
+            }
+        }
+        return res;
+    }
+
+    public static DMatrix expandMatrix(DMatrix original, int rows, int columns) {
+        if (rows < original.rows() || columns < original.columns()) {
+            throw new RuntimeException("Rows and columns must be more or equal to the original matrix rows and columns");
+        }
+        VolatileDMatrix res = VolatileDMatrix.empty(rows, columns);
+        for (int i = 0; i < original.rows(); i++) {
+            for (int j = 0; j < original.columns(); j++) {
+                res.set(i, j, original.get(i, j));
+            }
+        }
+        return res;
+    }
 }

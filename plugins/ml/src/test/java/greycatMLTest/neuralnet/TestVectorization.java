@@ -121,7 +121,7 @@ public class TestVectorization {
 //                System.out.println("time nonVectorized: "+(end-start)+" ms");
 
 
-                //Validate that the inputs and outputs are unchanged! 
+                //Validate that the inputs and outputs are unchanged!
                 Assert.assertTrue(MatrixOps.compare(inputs,inputsBackup)==0);
                 Assert.assertTrue(MatrixOps.compare(outputs,outputsBackup)==0);
 
