@@ -4,4 +4,10 @@ public interface Chunk {
 
     void setDirty();
 
+    void unmark();
+
+    void mark();
+
+    Struct payload();
+
 }

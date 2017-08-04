@@ -6,8 +6,6 @@ public interface Struct {
 
     Object get(String name);
 
-    Object getAtOffset(int offset);
-
     /**
      * Returns the value of an attribute of the container.
      *
@@ -17,10 +15,6 @@ public interface Struct {
      * (typed by one of the Type)
      */
     Object getAt(int index);
-
-    Object getRawAt(int index);
-
-    Object getTypedRawAt(int index, int type);
 
     /**
      * Returns the type of an attribute. The returned value is one of {@link greycat.Type}.
@@ -87,9 +81,7 @@ public interface Struct {
     <A> A getWithDefault(String key, A defaultValue);
 
     <A> A getAtWithDefault(int key, A defaultValue);
-
-    void rephase();
-
+    
     int[] attributeIndexes();
 
 }
