@@ -82,6 +82,6 @@ public interface Struct {
 
     <A> A getAtWithDefault(int key, A defaultValue);
     
-    int[] attributeIndexes();
+    Integer[] attributes();
 
 }

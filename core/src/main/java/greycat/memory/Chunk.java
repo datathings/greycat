@@ -10,4 +10,12 @@ public interface Chunk {
 
     Struct payload();
 
+    long id();
+
+    long time();
+
+    long world();
+
+    long seq();
+
 }

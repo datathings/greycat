@@ -18,4 +18,9 @@ public class Helper {
         return data.hashCode();
     }
 
+    public static long longHash(long number, long max) {
+        long hash = number % max;
+        return hash < 0 ? hash * -1 : hash;
+    }
+
 }

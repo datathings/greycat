@@ -11,14 +11,25 @@ public class HChunk implements Chunk, HHost {
     private Struct payload;
     private Map<Integer, Chunk> children = null;
 
-    int mark = 0;
+    private int mark = 0;
+
+    private final long $id;
+    private final long $time;
+    private final long $world;
+    private final long $seq;
 
     private final long offset;
     private final HHost host;
 
-    HChunk(long offset, HHost host) {
+    HChunk(long id, long time, long world, long seq, long offset, HHost host) {
+        this.$id = id;
+        this.$time = time;
+        this.$world = world;
+        this.$seq = seq;
+        //For un registration
         this.offset = offset;
         this.host = host;
+        this.payload = new HStruct(this);
     }
 
     @Override
@@ -45,6 +56,26 @@ public class HChunk implements Chunk, HHost {
     @Override
     public Struct payload() {
         return payload;
+    }
+
+    @Override
+    public final long id() {
+        return $id;
+    }
+
+    @Override
+    public final long time() {
+        return $time;
+    }
+
+    @Override
+    public final long world() {
+        return $world;
+    }
+
+    @Override
+    public final long seq() {
+        return $seq;
     }
 
     @Override

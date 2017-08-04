@@ -4,22 +4,33 @@ import greycat.memory.ChunkCache;
 import greycat.memory.Chunk;
 import greycat.memory.ChunkKey;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class HChunkCache implements ChunkCache {
 
     //TODO optimize later to avoid created of string...
-    private Map<String, Chunk> backend = new HashMap<String, Chunk>();
+    private final int max;
+
+    private LinkedHashMap<String, Chunk> backend = new LinkedHashMap<String, Chunk>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Chunk> eldest) {
+            return size() > max;
+        }
+    };
+
+    public HChunkCache(int max) {
+        this.max = max;
+    }
 
     @Override
-    public Chunk get(long id, long world, long time, int seq) {
+    public Chunk get(long id, long world, long time, long seq) {
         return backend.get(ChunkKey.flat(id, world, time, seq));
     }
 
     @Override
-    public Chunk set(long id, long world, long time, int seq, Chunk chunk) {
-        return backend.put(ChunkKey.flat(id, world, time, seq), chunk);
+    public void put(Chunk chunk) {
+        backend.put(ChunkKey.flatFrom(chunk), chunk);
     }
 
 }

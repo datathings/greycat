@@ -1,5 +1,7 @@
 package greycat;
 
-public interface Node {
+import greycat.memory.Struct;
+
+public interface Node extends Struct {
 
 }

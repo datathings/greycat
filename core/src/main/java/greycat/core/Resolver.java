@@ -1,9 +1,9 @@
 package greycat.core;
 
-import greycat.Node;
+import greycat.memory.Struct;
 
 public interface Resolver {
 
-    void initNode(Node n);
+    Struct newRoot(long id, long time, long world);
 
 }

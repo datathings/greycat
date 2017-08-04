@@ -2,8 +2,8 @@ package greycat.memory;
 
 public interface ChunkCache {
 
-    Chunk get(long id, long world, long time, int seq);
+    Chunk get(long id, long world, long time, long seq);
 
-    Chunk set(long id, long world, long time, int seq, Chunk chunk);
+    void put(Chunk chunk);
 
 }

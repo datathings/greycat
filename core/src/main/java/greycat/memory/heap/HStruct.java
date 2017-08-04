@@ -1,6 +1,7 @@
 package greycat.memory.heap;
 
 import greycat.Helper;
+import greycat.Type;
 import greycat.memory.Chunk;
 import greycat.memory.Struct;
 import greycat.memory.Tuple;
@@ -13,7 +14,7 @@ public class HStruct implements Struct {
     private final Chunk _chunk;
     private final Map<Integer, Tuple<Integer, Object>> backend = new HashMap<Integer, Tuple<Integer, Object>>();
 
-    public HStruct(Chunk chunk) {
+    HStruct(Chunk chunk) {
         _chunk = chunk;
     }
 
@@ -105,9 +106,39 @@ public class HStruct implements Struct {
     }
 
     @Override
-    public int[] attributeIndexes() {
-        //TODO
-        return new int[0];
+    public Integer[] attributes() {
+        return backend.keySet().toArray(new Integer[backend.size()]);
     }
+
+    @Override
+    public final String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        Integer[] keys = attributes();
+        for (int i = 0; i < keys.length; i++) {
+            if (i != 0) {
+                builder.append(", ");
+            }
+            Tuple<Integer, Object> result = backend.get(keys[i]);
+            builder.append(keys[i]);//TODO enhance with resolve name
+            builder.append(": ");
+            if (result != null) {
+                switch (result.left()) {
+                    case Type.STRING:
+                        builder.append("\"");
+                        builder.append(result.right().toString());
+                        builder.append("\"");
+                        break;
+                    default:
+                        builder.append(result.right().toString());
+                        break;
+
+                }
+            }
+        }
+        builder.append("}");
+        return builder.toString();
+    }
+
 
 }

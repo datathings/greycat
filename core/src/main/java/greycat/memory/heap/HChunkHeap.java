@@ -1,6 +1,7 @@
 package greycat.memory.heap;
 
 import greycat.memory.Chunk;
+import greycat.memory.ChunkCache;
 import greycat.memory.ChunkHeap;
 
 import java.util.HashMap;
@@ -9,23 +10,25 @@ import java.util.Map;
 public class HChunkHeap implements ChunkHeap, HHost {
 
     private Map<Long, Chunk> backend = new HashMap<Long, Chunk>();
+    private final ChunkCache cache;
 
-    @Override
-    public Chunk getOrCreateAndMark(long id) {
-        Chunk root = backend.get(id);
-        if (root != null) {
-            root.mark();
-            return root;
-        } else {
-            Chunk newChunk = new HChunk(id, this);
-            newChunk.mark();
-            backend.put(id, newChunk);
-            return newChunk;
-        }
+    public HChunkHeap(ChunkCache cache) {
+        this.cache = cache;
     }
 
     @Override
-    public void unregister(long offset) {
-        backend.remove(offset);//TODO put in cache here
+    public final Chunk create(long id, long time, long world, long seq) {
+        Chunk newChunk = new HChunk(id, time, world, seq, id, this);
+        newChunk.mark();
+        backend.put(id, newChunk);
+        return newChunk;
     }
+
+    @Override
+    public final void unregister(long offset) {
+        Chunk c = backend.get(offset);
+        backend.remove(offset);
+        cache.put(c);
+    }
+
 }

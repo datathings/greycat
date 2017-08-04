@@ -1,8 +1,10 @@
 package greycat.core;
 
 import greycat.Node;
+import greycat.base.GenericNode;
 import greycat.memory.ChunkCache;
 import greycat.memory.ChunkHeap;
+import greycat.memory.Struct;
 
 public class MWResolver implements Resolver {
 
@@ -15,15 +17,13 @@ public class MWResolver implements Resolver {
     }
 
     @Override
-    public void initNode(Node n) {
-        CoreNode casted = (CoreNode) n;
-        StructProxy proxy = casted.chunk;
-        proxy.target = heap.getOrCreateAndMark(proxy.id);
+    public Struct newRoot(long id, long time, long world) {
+        return heap.create(id, time, world, 0).payload();
     }
 
     void free(Node n) {
-        CoreNode casted = (CoreNode) n;
-        casted.chunk.target.unmark();
+        GenericNode casted = (GenericNode) n;
+        casted.chunk().unmark();
     }
 
 }

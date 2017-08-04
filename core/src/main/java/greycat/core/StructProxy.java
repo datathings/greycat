@@ -98,7 +98,7 @@ public class StructProxy implements Struct {
     }
 
     @Override
-    public int[] attributeIndexes() {
-        return new int[0];
+    public Integer[] attributes() {
+        return new Integer[0];
     }
 }

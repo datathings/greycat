@@ -2,6 +2,6 @@ package greycat.memory;
 
 public interface ChunkHeap {
 
-    Chunk getOrCreateAndMark(long id);
 
+    Chunk create(long id, long time, long world, long seq);
 }
