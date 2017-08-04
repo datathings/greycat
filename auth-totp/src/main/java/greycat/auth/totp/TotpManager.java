@@ -39,6 +39,9 @@ public class TotpManager extends LoginManager {
                         callback.on(result);
                         return;
                     }
+                } else {
+                    callback.on(result); //Totp not set
+                    return;
                 }
             }
             callback.on(null);

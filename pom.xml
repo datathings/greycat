@@ -27,6 +27,7 @@
         <module>email</module>
         <module>auth-login</module>
         <module>auth-totp</module>
+        <module>storage-access-control</module>
     </modules>
 
     <scm>
