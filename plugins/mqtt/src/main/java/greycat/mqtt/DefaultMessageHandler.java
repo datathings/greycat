@@ -53,6 +53,7 @@ public class DefaultMessageHandler extends MessageHandler {
                                 .then(CoreActions.forceAttribute(attributeName, Type.typeFromName(attribute.getString("type")), attribute.getString("value")))
                                 .execute(super.getGraph(), null);
                 });
+                super.getGraph().save(null);
             } else throw new BadPayloadException("Missing values");
         } catch (JSONException jsonException) {
             jsonException.printStackTrace();
