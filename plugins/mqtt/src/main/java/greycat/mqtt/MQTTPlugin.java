@@ -15,12 +15,13 @@
  */
 package greycat.mqtt;
 
-import greycat.*;
+import greycat.Graph;
 import greycat.plugin.Plugin;
-import org.eclipse.paho.client.mqttv3.*;
+import org.eclipse.paho.client.mqttv3.IMqttClient;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class MQTTPlugin implements Plugin {
 
@@ -31,13 +32,29 @@ public class MQTTPlugin implements Plugin {
 
     private IMqttClient client;
 
+    /**
+     * Build the MQTT plugin
+     * @param brokerURL MQTT Broker URL
+     * @param brokerPort MQTT Broker IP
+     * @param subscriptions List of subscriptions
+     * @param lookupIndex Index's name containing the targeted nodes
+     */
     public MQTTPlugin(String brokerURL, int brokerPort, String[] subscriptions, String lookupIndex){
         this.brokerURL = brokerURL;
         this.brokerPort = brokerPort;
         this.subscriptions = subscriptions;
-        this.handler = new DefaultMessageRouter(lookupIndex);
+        this.handler = new DefaultMessageHandler(lookupIndex);
     }
 
+
+    /**
+     * Build the MQTT plugin with a custom message handler
+     * @param brokerURL MQTT Broker URL
+     * @param brokerPort MQTT Broker IP
+     * @param subscriptions List of subscriptions
+     * @param lookupIndex Index's name containing the targeted nodes
+     * @param customHandler Message handler
+     */
     public MQTTPlugin(String brokerURL, int brokerPort, String[] subscriptions, String lookupIndex, MessageHandler customHandler){
         this.brokerURL = brokerURL;
         this.brokerPort = brokerPort;

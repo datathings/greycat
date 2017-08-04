@@ -24,6 +24,10 @@ public abstract class MessageHandler implements MqttCallback {
     protected final String lookupIndex;
     private Graph graph = null;
 
+    /**
+     * Build the message handler
+     * @param lookupIndex Index's name containing the targeted nodes
+     */
     public MessageHandler(String lookupIndex){
         this.lookupIndex = lookupIndex;
     }
