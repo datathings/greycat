@@ -6,15 +6,14 @@ package greycat.auth.login;
 import greycat.*;
 import greycat.auth.actions.ActionResetPassword;
 import greycat.auth.GCAccount;
-import greycat.auth.IdentityManager;
-import jdk.nashorn.internal.codegen.CompilerConstants;
+import greycat.AccessControlManager;
 
 import java.util.*;
 
 /**
  * Created by Gregory NAIN on 23/05/2017.
  */
-public class LoginManager implements IdentityManager{
+public class LoginManager implements AccessControlManager {
 
     protected Graph graph;
     protected String usersIndex;

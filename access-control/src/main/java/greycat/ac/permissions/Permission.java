@@ -1,11 +1,9 @@
-package greycat.storage.ac;
+package greycat.ac.permissions;
 
 import greycat.Type;
 import greycat.struct.*;
 
 import java.util.Arrays;
-
-import static greycat.storage.ac.PermissionsManager.*;
 
 /**
  * Created by Gregory NAIN on 03/08/2017.
@@ -49,7 +47,7 @@ public class Permission {
             return false;
         }
         switch (permType) {
-            case READ_ALLOWED: {
+            case PermissionsManager.READ_ALLOWED: {
                 int[] newTable = new int[_r.length + 1];
                 System.arraycopy(_r, 0, newTable, 0, _r.length);
                 newTable[_r.length] = gid;
@@ -57,7 +55,7 @@ public class Permission {
                 this._r = newTable;
             }
             break;
-            case WRITE_ALLOWED: {
+            case PermissionsManager.WRITE_ALLOWED: {
                 int[] newTable = new int[_w.length + 1];
                 System.arraycopy(_w, 0, newTable, 0, _w.length);
                 newTable[_w.length] = gid;
@@ -65,7 +63,7 @@ public class Permission {
                 this._w = newTable;
             }
             break;
-            case READ_DENIED: {
+            case PermissionsManager.READ_DENIED: {
                 int[] newTable = new int[_nr.length + 1];
                 System.arraycopy(_nr, 0, newTable, 0, _nr.length);
                 newTable[_nr.length] = gid;
@@ -73,7 +71,7 @@ public class Permission {
                 this._nr = newTable;
             }
             break;
-            case WRITE_DENIED: {
+            case PermissionsManager.WRITE_DENIED: {
                 int[] newTable = new int[_nw.length + 1];
                 System.arraycopy(_nw, 0, newTable, 0, _nw.length);
                 newTable[_nw.length] = gid;
@@ -92,7 +90,7 @@ public class Permission {
             }
         }
         switch (permType) {
-            case READ_ALLOWED: {
+            case PermissionsManager.READ_ALLOWED: {
                 int[] newTable = new int[_r.length + gids.length];
                 System.arraycopy(_r, 0, newTable, 0, _r.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -102,7 +100,7 @@ public class Permission {
                 this._r = newTable;
             }
             break;
-            case WRITE_ALLOWED: {
+            case PermissionsManager.WRITE_ALLOWED: {
                 int[] newTable = new int[_w.length + gids.length];
                 System.arraycopy(_w, 0, newTable, 0, _w.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -112,7 +110,7 @@ public class Permission {
                 this._w = newTable;
             }
             break;
-            case READ_DENIED: {
+            case PermissionsManager.READ_DENIED: {
                 int[] newTable = new int[_nr.length + gids.length];
                 System.arraycopy(_nr, 0, newTable, 0, _nr.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -122,7 +120,7 @@ public class Permission {
                 this._nr = newTable;
             }
             break;
-            case WRITE_DENIED: {
+            case PermissionsManager.WRITE_DENIED: {
                 int[] newTable = new int[_nw.length + gids.length];
                 System.arraycopy(_nw, 0, newTable, 0, _nw.length);
                 for (int i = 0; i < gids.length; i++) {

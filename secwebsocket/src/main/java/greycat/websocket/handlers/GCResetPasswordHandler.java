@@ -3,7 +3,7 @@
  */
 package greycat.websocket.handlers;
 
-import greycat.auth.IdentityManager;
+import greycat.AccessControlManager;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
@@ -22,10 +22,10 @@ import static io.undertow.util.Methods.OPTIONS;
  */
 public class GCResetPasswordHandler implements HttpHandler {
 
-    private IdentityManager identityManager;
+    private AccessControlManager _acm;
 
-    public GCResetPasswordHandler(IdentityManager identityManager) {
-        this.identityManager = identityManager;
+    public GCResetPasswordHandler(AccessControlManager acm) {
+        this._acm = acm;
     }
 
 
@@ -55,7 +55,7 @@ public class GCResetPasswordHandler implements HttpHandler {
                                 String uuid = uuidDeque.getFirst().getValue();
                                 String pass = passDeque.getFirst().getValue();
 
-                                GCResetPasswordHandler.this.identityManager.resetPassword(uuid, pass, (result)->{
+                                GCResetPasswordHandler.this._acm.getAuthenticationManager().resetPassword(uuid, pass, (result)->{
 
                                     switch(result) {
                                         case 1: {

@@ -1,4 +1,4 @@
-package greycat.storage.ac;
+package greycat.ac.permissions;
 
 import greycat.Callback;
 import greycat.Graph;
@@ -27,7 +27,7 @@ public class PermissionsManager {
 
     private Map<Long, Permission> _permissions = new HashMap<>();
 
-    PermissionsManager(Graph rootAccessGraph, String acmIndexName) {
+    public PermissionsManager(Graph rootAccessGraph, String acmIndexName) {
         this._graph = rootAccessGraph;
         this._acmIndexName = acmIndexName;
     }
@@ -42,7 +42,7 @@ public class PermissionsManager {
 
     public boolean add(long uid, int permType, int gid) {
         Permission perm = _permissions.get(uid);
-        if(perm == null) {
+        if (perm == null) {
             perm = new Permission(uid);
             _permissions.put(uid, perm);
         }
@@ -51,7 +51,7 @@ public class PermissionsManager {
 
     public boolean add(long uid, int permType, int[] gids) {
         Permission perm = _permissions.get(uid);
-        if(perm == null) {
+        if (perm == null) {
             perm = new Permission(uid);
             _permissions.put(uid, perm);
         }
@@ -59,42 +59,51 @@ public class PermissionsManager {
     }
 
     public boolean remove(int uid, int gid, int permtype) {
-       throw new RuntimeException("Not implemented");
+        throw new RuntimeException("Not implemented");
     }
 
-    void load(Callback<Boolean> done) {
+    public void load(Callback<Boolean> done) {
         _graph.index(-1, System.currentTimeMillis(), _acmIndexName, acIndex -> {
-            acIndex.findFrom(secGrpNodes -> {
-                Node securityGroupsNode;
-                if(secGrpNodes == null || secGrpNodes.length == 0) {
+            acIndex.findFrom(permissionNodes -> {
+                Node permissionsNode;
+                if (permissionNodes == null || permissionNodes.length == 0) {
                     throw new RuntimeException("Should not load if never saved !");
                 } else {
-                    securityGroupsNode = secGrpNodes[0];
+                    permissionsNode = permissionNodes[0];
                 }
-                NodeState ns = _graph.resolver().resolveState(securityGroupsNode);
+                NodeState ns = _graph.resolver().resolveState(permissionsNode);
+                ArrayList<Integer> attKeys = new ArrayList<>();
                 ns.each((attributeKey, elemType, elem) -> {
+                    if (elemType == Type.STRING) {
+                        return;
+                    }
+                    attKeys.add(attributeKey);
                     Permission p = Permission.load((EStructArray) elem);
                     _permissions.put(p.uid(), p);
                 });
+                for (int attKey : attKeys) {
+                    permissionsNode.removeAt(attKey);
+                }
+                _graph.save(done);
             }, "perms");
         });
-        done.on(true);
     }
 
-    void save(Callback<Boolean> done) {
+    public void save(Callback<Boolean> done) {
         _graph.index(-1, System.currentTimeMillis(), _acmIndexName, acIndex -> {
             acIndex.findFrom(permsNodes -> {
                 Node permissionsNode;
-                if(permsNodes == null || permsNodes.length == 0) {
+                if (permsNodes == null || permsNodes.length == 0) {
                     permissionsNode = _graph.newNode(acIndex.world(), acIndex.time());
+                    permissionsNode.set("name", Type.STRING, "perms");
                     acIndex.update(permissionsNode);
                 } else {
                     permissionsNode = permsNodes[0];
                 }
-
-                for(int i = 0; i < _permissions.size(); i++) {
-                    EStructArray permissionContainer = (EStructArray) permissionsNode.getOrCreateAt(i, Type.ESTRUCT_ARRAY);
-                    _permissions.get(i).save(permissionContainer);
+                int i = 0;
+                for (Permission p : _permissions.values()) {
+                    EStructArray permissionContainer = (EStructArray) permissionsNode.getOrCreateAt(i++, Type.ESTRUCT_ARRAY);
+                    p.save(permissionContainer);
                 }
 
                 _graph.save(done);
@@ -102,10 +111,10 @@ public class PermissionsManager {
         });
     }
 
-    void loadInitialPermissions(long adminId, Callback<Boolean> done) {
-        add(adminId, PermissionsManager.READ_ALLOWED, 1);
-        add(adminId, PermissionsManager.WRITE_ALLOWED, new int[]{0, 1});
-        done.on(true);
+    public void loadInitialData(Callback<Boolean> done) {
+        add(3, PermissionsManager.READ_ALLOWED, 1);
+        add(3, PermissionsManager.WRITE_ALLOWED, new int[]{0, 1});
+        _graph.save(done);
     }
 
 }

@@ -3,8 +3,8 @@
  */
 package greycat.websocket.handlers;
 
-import greycat.auth.GCAccount;
-import greycat.auth.IdentityManager;
+import greycat.Session;
+import greycat.AccessControlManager;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
@@ -14,7 +14,6 @@ import io.undertow.util.HttpString;
 import io.undertow.util.StatusCodes;
 
 import java.io.IOException;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,10 +24,10 @@ import static io.undertow.util.Methods.OPTIONS;
  */
 public class GCAuthHandler implements HttpHandler {
 
-    private IdentityManager identityManager;
+    private AccessControlManager _acm;
 
-    public GCAuthHandler(IdentityManager identityManager) {
-        this.identityManager = identityManager;
+    public GCAuthHandler(AccessControlManager acm) {
+        this._acm = acm;
     }
 
 
@@ -59,14 +58,13 @@ public class GCAuthHandler implements HttpHandler {
 
                             if (credentials.size() >= 2) {
 
-                                GCAuthHandler.this.identityManager.verifyCredentials(credentials, account -> {
-                                    if (account != null) {
-                                        httpServerExchange.getResponseHeaders().add(new HttpString("Access-Control-Allow-Origin"), "*");
+                                GCAuthHandler.this._acm.getAuthenticationManager().verifyCredentials(credentials, uid -> {
+                                    if (uid != null) {
+                                        Session session = GCAuthHandler.this._acm.getSessionsManager().getOrCreateSession(uid);
                                         httpServerExchange.setStatusCode(StatusCodes.OK);
-                                        httpServerExchange.getResponseSender().send(account.getSessionId() + "#" + account.getUser().id());
-
+                                        httpServerExchange.getResponseHeaders().add(new HttpString("Access-Control-Allow-Origin"), "*");
+                                        httpServerExchange.getResponseSender().send(session.sessionId() + "#" + session.uid());
                                     } else {
-
                                         httpServerExchange.getResponseHeaders().add(new HttpString("Access-Control-Allow-Origin"), "*");
                                         httpServerExchange.setStatusCode(StatusCodes.UNAUTHORIZED);
                                         httpServerExchange.endExchange();

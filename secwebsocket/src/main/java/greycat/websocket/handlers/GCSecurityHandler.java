@@ -3,7 +3,8 @@
  */
 package greycat.websocket.handlers;
 
-import greycat.auth.IdentityManager;
+import greycat.AccessControlManager;
+import greycat.Session;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.StatusCodes;
@@ -18,34 +19,31 @@ public class GCSecurityHandler implements HttpHandler {
     private static final String AUTH_PARAM_KEY = "gc-auth-key";
 
     private HttpHandler _nextHandler;
-    private IdentityManager identityManager;
+    private AccessControlManager _acm;
 
-    public GCSecurityHandler(HttpHandler secured, IdentityManager identityManager) {
+    public GCSecurityHandler(HttpHandler secured, AccessControlManager acm) {
         this._nextHandler = secured;
-        this.identityManager = identityManager;
+        this._acm = acm;
     }
-
 
     @Override
     public void handleRequest(HttpServerExchange httpServerExchange) throws Exception {
         Deque<String> tokens = httpServerExchange.getQueryParameters().get(AUTH_PARAM_KEY);
         if (tokens != null && tokens.size() == 1) {
             String sessionId = tokens.getFirst();
-            this.identityManager.verifySession(sessionId, account -> {
-                if (account != null) {
-                    try {
-                        this._nextHandler.handleRequest(httpServerExchange);
-                        this.identityManager.onChannelConnected(sessionId, account);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        httpServerExchange.setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR);
-                        httpServerExchange.endExchange();
-                    }
-                } else {
-                    httpServerExchange.setStatusCode(StatusCodes.UNAUTHORIZED);
+            Session session = this._acm.getSessionsManager().sessionCheck(sessionId);
+            if (session != null && session.setLastHit(System.currentTimeMillis())) {
+                try {
+                    this._nextHandler.handleRequest(httpServerExchange);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    httpServerExchange.setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR);
                     httpServerExchange.endExchange();
                 }
-            });
+            } else {
+                httpServerExchange.setStatusCode(StatusCodes.UNAUTHORIZED);
+                httpServerExchange.endExchange();
+            }
         } else {
             httpServerExchange.setStatusCode(StatusCodes.UNAUTHORIZED);
             httpServerExchange.endExchange();

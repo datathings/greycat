@@ -8,7 +8,6 @@ import greycat.Action;
 import greycat.Constants;
 import greycat.Node;
 import greycat.TaskContext;
-import greycat.auth.IdentityManager;
 import greycat.auth.login.LoginManager;
 import greycat.struct.Buffer;
 

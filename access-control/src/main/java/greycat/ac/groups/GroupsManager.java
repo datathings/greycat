@@ -1,11 +1,11 @@
-package greycat.storage.ac;
+package greycat.ac.groups;
 
 import greycat.Callback;
 import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
+import greycat.ac.SecurityManager;
 import greycat.plugin.NodeState;
-import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
 
 import java.util.*;
@@ -13,31 +13,31 @@ import java.util.*;
 /**
  * Created by Gregory NAIN on 04/08/2017.
  */
-public class SecurityGroupsManager {
+public class GroupsManager implements SecurityManager {
 
     private Graph _graph;
     private String _acmIndexName;
     private int _rootGroups = 0;
 
-    private Map<Integer, SecurityGroup> _groups = new HashMap<>();
+    private Map<Integer, Group> _groups = new HashMap<>();
 
-    SecurityGroupsManager(Graph rootAccessGraph, String acmIndexName) {
+    public GroupsManager(Graph rootAccessGraph, String acmIndexName) {
         this._graph = rootAccessGraph;
         this._acmIndexName = acmIndexName;
     }
 
-    public Collection<SecurityGroup> all() {
+    public Collection<Group> all() {
         return new ArrayList<>(_groups.values());
     }
 
-    public SecurityGroup get(int gid) {
+    public Group get(int gid) {
         return _groups.get(gid);
     }
 
-    public SecurityGroup add(SecurityGroup parent, String name) {
-        SecurityGroup newGroup;
-        if(parent== null) {
-            newGroup = new SecurityGroup(_groups.size(), name, new int[]{_rootGroups});
+    public Group add(Group parent, String name) {
+        Group newGroup;
+        if (parent == null) {
+            newGroup = new Group(_groups.size(), name, new int[]{_rootGroups});
             _rootGroups++;
         } else {
             newGroup = parent.createSubGroup(_groups.size(), name);
@@ -46,35 +46,50 @@ public class SecurityGroupsManager {
         return newGroup;
     }
 
-    public boolean remove(int gid) {
+    public void delete(int gid, Callback<Boolean> done) {
         _groups.remove(gid);
-        return true;
-    }
-
-    void load(Callback<Boolean> done) {
         _graph.index(-1, System.currentTimeMillis(), _acmIndexName, acIndex -> {
             acIndex.findFrom(secGrpNodes -> {
                 Node securityGroupsNode;
-                if(secGrpNodes == null || secGrpNodes.length == 0) {
+                if (secGrpNodes != null && secGrpNodes.length != 0) {
+                    securityGroupsNode = secGrpNodes[0];
+                    securityGroupsNode.removeAt(gid);
+                    _graph.save(done);
+                } else {
+                    done.on(true);
+                }
+
+            }, "secGrps");
+        });
+    }
+
+    public void load(Callback<Boolean> done) {
+        _graph.index(-1, System.currentTimeMillis(), _acmIndexName, acIndex -> {
+            acIndex.findFrom(secGrpNodes -> {
+                Node securityGroupsNode;
+                if (secGrpNodes == null || secGrpNodes.length == 0) {
                     throw new RuntimeException("Should not load if never saved !");
                 } else {
                     securityGroupsNode = secGrpNodes[0];
                 }
                 NodeState ns = _graph.resolver().resolveState(securityGroupsNode);
                 ns.each((attributeKey, elemType, elem) -> {
-                   _groups.put(attributeKey, SecurityGroup.load((EStructArray) elem));
+                    if (elemType != Type.STRING) {
+                        _groups.put(attributeKey, Group.load((EStructArray) elem));
+                    }
                 });
+                done.on(true);
             }, "secGrps");
         });
-        done.on(true);
     }
 
-    void save(Callback<Boolean> done) {
+    public void save(Callback<Boolean> done) {
         _graph.index(-1, System.currentTimeMillis(), _acmIndexName, acIndex -> {
             acIndex.findFrom(secGrpNodes -> {
                 Node securityGroupsNode;
-                if(secGrpNodes == null || secGrpNodes.length == 0) {
+                if (secGrpNodes == null || secGrpNodes.length == 0) {
                     securityGroupsNode = _graph.newNode(acIndex.world(), acIndex.time());
+                    securityGroupsNode.set("name", Type.STRING, "secGrps");
                     acIndex.update(securityGroupsNode);
                 } else {
                     securityGroupsNode = secGrpNodes[0];
@@ -88,15 +103,15 @@ public class SecurityGroupsManager {
         });
     }
 
-    void loadInitialGroups(Callback<Boolean> done) {
+    public void loadInitialData(Callback<Boolean> done) {
         add(null, "Public");
-        SecurityGroup rootAdmin = add(null, "Admin Root");
-        SecurityGroup usersAdmin = add(rootAdmin, "Users Admin");
+        Group rootAdmin = add(null, "Admin Root");
+        Group usersAdmin = add(rootAdmin, "Users Admin");
         add(usersAdmin, "Admin User Admin");
-        SecurityGroup acm = add(rootAdmin, "Access Control Admin");
+        Group acm = add(rootAdmin, "Access Control Admin");
         add(acm, "Security Groups Admin");
         add(acm, "Permissions Admin");
         add(rootAdmin, "Business Security Root");
-        done.on(true);
+        _graph.save(done);
     }
 }

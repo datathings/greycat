@@ -1,9 +1,7 @@
-package greycat.storage.ac;
+package greycat.ac.groups;
 
 
-import greycat.Node;
 import greycat.Type;
-import greycat.struct.Buffer;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
 import greycat.struct.IntArray;
@@ -13,16 +11,16 @@ import java.util.Arrays;
 /**
  * Created by Gregory NAIN on 03/08/2017.
  */
-public class SecurityGroup {
+public class Group {
 
     private int gid;
     private String name;
     private int[] path;
     private int genIndex = 1;
 
-    private SecurityGroup(){};
+    private Group(){};
 
-    SecurityGroup(int gid, String name, int[] path) {
+    Group(int gid, String name, int[] path) {
         this.name = name;
         this.path = path;
         this.gid = gid;
@@ -40,12 +38,12 @@ public class SecurityGroup {
         return path;
     }
 
-    SecurityGroup createSubGroup(int gid, String name) {
+    Group createSubGroup(int gid, String name) {
         int[] childPath = new int[this.path.length+1];
         System.arraycopy(this.path, 0, childPath, 0, this.path.length);
         childPath[this.path.length] = this.genIndex;
         genIndex++;
-        SecurityGroup newGroup = new SecurityGroup(gid, name, childPath);
+        Group newGroup = new Group(gid, name, childPath);
         return newGroup;
     }
 
@@ -60,8 +58,8 @@ public class SecurityGroup {
         root.set("genIndex", Type.INT, genIndex);
     }
 
-    static SecurityGroup load(EStructArray container) {
-        SecurityGroup sg = new SecurityGroup();
+    static Group load(EStructArray container) {
+        Group sg = new Group();
         EStruct root = container.root();
         if(root == null) {
             throw new RuntimeException("Nothing to load !");

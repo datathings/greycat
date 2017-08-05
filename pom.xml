@@ -25,9 +25,11 @@
         <module>blas</module>
         <module>secwebsocket</module>
         <module>email</module>
+        <module>access-control</module>
+        <!--
         <module>auth-login</module>
         <module>auth-totp</module>
-        <module>storage-access-control</module>
+        -->
     </modules>
 
     <scm>
