@@ -106,7 +106,7 @@ public class PasswordChangeTest {
                     .log("User:{{result}}").action("resetPassword")
                     .executeRemotely(graph, result -> {
 
-                        if(result.exception() != null) {
+                        if (result.exception() != null) {
                             result.exception().printStackTrace();
                         }
 
