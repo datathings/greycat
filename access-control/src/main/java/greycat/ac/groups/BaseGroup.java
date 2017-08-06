@@ -11,16 +11,16 @@ import java.util.Arrays;
 /**
  * Created by Gregory NAIN on 03/08/2017.
  */
-public class Group {
+public class BaseGroup {
 
     private int gid;
     private String name;
     private int[] path;
     private int genIndex = 1;
 
-    private Group(){};
+    private BaseGroup(){};
 
-    Group(int gid, String name, int[] path) {
+    BaseGroup(int gid, String name, int[] path) {
         this.name = name;
         this.path = path;
         this.gid = gid;
@@ -38,12 +38,12 @@ public class Group {
         return path;
     }
 
-    Group createSubGroup(int gid, String name) {
+    BaseGroup createSubGroup(int gid, String name) {
         int[] childPath = new int[this.path.length+1];
         System.arraycopy(this.path, 0, childPath, 0, this.path.length);
         childPath[this.path.length] = this.genIndex;
         genIndex++;
-        Group newGroup = new Group(gid, name, childPath);
+        BaseGroup newGroup = new BaseGroup(gid, name, childPath);
         return newGroup;
     }
 
@@ -58,8 +58,8 @@ public class Group {
         root.set("genIndex", Type.INT, genIndex);
     }
 
-    static Group load(EStructArray container) {
-        Group sg = new Group();
+    static BaseGroup load(EStructArray container) {
+        BaseGroup sg = new BaseGroup();
         EStruct root = container.root();
         if(root == null) {
             throw new RuntimeException("Nothing to load !");

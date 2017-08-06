@@ -9,7 +9,7 @@ import greycat.utility.Base64;
 /**
  * Created by Gregory NAIN on 03/08/2017.
  */
-public class StorageAccessControler implements Storage {
+public class BaseStorageAccessController implements Storage {
 
     private static final String AUTH_PARAM_KEY = "gc-auth-key";
 
@@ -17,7 +17,7 @@ public class StorageAccessControler implements Storage {
     private Graph _graph;
     private AccessControlManager _acm;
 
-    public StorageAccessControler(Storage toSecure, AccessControlManager manager) {
+    public BaseStorageAccessController(Storage toSecure, AccessControlManager manager) {
         if (!Validator.validate()) {
             System.exit(-1);
         }
@@ -80,7 +80,8 @@ public class StorageAccessControler implements Storage {
 
     @Override
     public void disconnect(Callback<Boolean> callback) {
-        _secured.disconnect(callback);
+        _graph = null;
+        callback.on(true);
     }
 
     @Override
@@ -89,7 +90,7 @@ public class StorageAccessControler implements Storage {
     }
 
     private Buffer filter_get(Buffer in) {
-        Session session = _acm.getSessionsManager().sessionCheck((String) _graph.getProperty(AUTH_PARAM_KEY));
+        Session session = _acm.getSessionsManager().getSession((String) _graph.getProperty(AUTH_PARAM_KEY));
         long uid = session.uid();
         final Buffer result = new HeapBuffer();
         long max = in.length();
@@ -125,7 +126,7 @@ public class StorageAccessControler implements Storage {
     }
 
     private Buffer filter_put(Buffer in) {
-        Session session = _acm.getSessionsManager().sessionCheck((String) _graph.getProperty(AUTH_PARAM_KEY));
+        Session session = _acm.getSessionsManager().getSession((String) _graph.getProperty(AUTH_PARAM_KEY));
         long uid = session.uid();
         final Buffer result = new HeapBuffer();
         long max = in.length();

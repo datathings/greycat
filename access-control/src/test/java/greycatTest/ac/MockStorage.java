@@ -162,6 +162,7 @@ public class MockStorage implements Storage {
 
     @Override
     public final void disconnect(Callback<Boolean> callback) {
+        System.out.println("MockStorage disconnection");
         _graph = null;
         callback.on(true);
     }

@@ -9,6 +9,12 @@ package greycat;
  */
 public interface AccessControlManager {
 
+    AccessControlManager setAcIndexName(String acIndexName);
+
+    void shutdown();
+
+    void start(Callback<Boolean> callback);
+
     AuthenticationManager getAuthenticationManager();
 
     SessionManager getSessionsManager();

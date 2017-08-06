@@ -31,13 +31,19 @@ public class GCSecurityHandler implements HttpHandler {
         Deque<String> tokens = httpServerExchange.getQueryParameters().get(AUTH_PARAM_KEY);
         if (tokens != null && tokens.size() == 1) {
             String sessionId = tokens.getFirst();
-            Session session = this._acm.getSessionsManager().sessionCheck(sessionId);
-            if (session != null && session.setLastHit(System.currentTimeMillis())) {
-                try {
-                    this._nextHandler.handleRequest(httpServerExchange);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    httpServerExchange.setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR);
+            Session session = this._acm.getSessionsManager().getSession(sessionId);
+            if (session != null) {
+                if (!session.isExpired() && session.setLastHit(System.currentTimeMillis())) {
+                    try {
+                        this._nextHandler.handleRequest(httpServerExchange);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        httpServerExchange.setStatusCode(StatusCodes.INTERNAL_SERVER_ERROR);
+                        httpServerExchange.endExchange();
+                    }
+                } else {
+                    this._acm.getSessionsManager().clearSession(sessionId);
+                    httpServerExchange.setStatusCode(StatusCodes.UNAUTHORIZED);
                     httpServerExchange.endExchange();
                 }
             } else {

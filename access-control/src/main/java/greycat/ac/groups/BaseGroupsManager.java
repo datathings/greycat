@@ -13,31 +13,31 @@ import java.util.*;
 /**
  * Created by Gregory NAIN on 04/08/2017.
  */
-public class GroupsManager implements SecurityManager {
+public class BaseGroupsManager implements SecurityManager {
 
     private Graph _graph;
     private String _acmIndexName;
     private int _rootGroups = 0;
 
-    private Map<Integer, Group> _groups = new HashMap<>();
+    private Map<Integer, BaseGroup> _groups = new HashMap<>();
 
-    public GroupsManager(Graph rootAccessGraph, String acmIndexName) {
+    public BaseGroupsManager(Graph rootAccessGraph, String acmIndexName) {
         this._graph = rootAccessGraph;
         this._acmIndexName = acmIndexName;
     }
 
-    public Collection<Group> all() {
+    public Collection<BaseGroup> all() {
         return new ArrayList<>(_groups.values());
     }
 
-    public Group get(int gid) {
+    public BaseGroup get(int gid) {
         return _groups.get(gid);
     }
 
-    public Group add(Group parent, String name) {
-        Group newGroup;
+    public BaseGroup add(BaseGroup parent, String name) {
+        BaseGroup newGroup;
         if (parent == null) {
-            newGroup = new Group(_groups.size(), name, new int[]{_rootGroups});
+            newGroup = new BaseGroup(_groups.size(), name, new int[]{_rootGroups});
             _rootGroups++;
         } else {
             newGroup = parent.createSubGroup(_groups.size(), name);
@@ -75,7 +75,7 @@ public class GroupsManager implements SecurityManager {
                 NodeState ns = _graph.resolver().resolveState(securityGroupsNode);
                 ns.each((attributeKey, elemType, elem) -> {
                     if (elemType != Type.STRING) {
-                        _groups.put(attributeKey, Group.load((EStructArray) elem));
+                        _groups.put(attributeKey, BaseGroup.load((EStructArray) elem));
                     }
                 });
                 done.on(true);
@@ -105,10 +105,10 @@ public class GroupsManager implements SecurityManager {
 
     public void loadInitialData(Callback<Boolean> done) {
         add(null, "Public");
-        Group rootAdmin = add(null, "Admin Root");
-        Group usersAdmin = add(rootAdmin, "Users Admin");
+        BaseGroup rootAdmin = add(null, "Admin Root");
+        BaseGroup usersAdmin = add(rootAdmin, "Users Admin");
         add(usersAdmin, "Admin User Admin");
-        Group acm = add(rootAdmin, "Access Control Admin");
+        BaseGroup acm = add(rootAdmin, "Access Control Admin");
         add(acm, "Security Groups Admin");
         add(acm, "Permissions Admin");
         add(rootAdmin, "Business Security Root");

@@ -2,9 +2,9 @@ package greycatTest.ac;
 
 import greycat.*;
 import greycat.ac.BaseAccessControlManager;
-import greycat.ac.groups.Group;
-import greycat.ac.permissions.PermissionsManager;
-import greycat.ac.groups.GroupsManager;
+import greycat.ac.groups.BaseGroup;
+import greycat.ac.permissions.BasePermissionsManager;
+import greycat.ac.groups.BaseGroupsManager;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
@@ -41,19 +41,19 @@ public class SecuredBackendServerTest {
 
     }
 
-    private static Group chiefUserAdmin, userUserAdmin, businessSecurityRoot, complexASecurityGroup, complexBSecurityGroup;
+    private static BaseGroup chiefUserAdmin, userUserAdmin, businessSecurityRoot, complexASecurityGroup, complexBSecurityGroup;
 
     private static void loadRootSecurityGroups(BaseAccessControlManager acm) {
         System.out.println("Adding security Groups");
-        GroupsManager sgm = acm.getSecurityGroupsManager();
+        BaseGroupsManager sgm = acm.getSecurityGroupsManager();
 
-        Group usersAdmin = sgm.get(2);
+        BaseGroup usersAdmin = sgm.get(2);
         businessSecurityRoot = sgm.get(7);
 
         chiefUserAdmin = sgm.add(usersAdmin, "Chief User Admin");
         userUserAdmin = sgm.add(usersAdmin, "User User Admin");
 
-        Group complexesSecurityGroup = sgm.add(businessSecurityRoot, "Complexes Security Group");
+        BaseGroup complexesSecurityGroup = sgm.add(businessSecurityRoot, "Complexes Security Group");
         complexASecurityGroup = sgm.add(complexesSecurityGroup, "Complex A Security Group");
         complexBSecurityGroup = sgm.add(complexesSecurityGroup, "Complex B Security Group");
 
@@ -89,16 +89,16 @@ public class SecuredBackendServerTest {
     private static void loadRootPermissions(BaseAccessControlManager acm) {
         System.out.println("Adding permissions");
 
-        PermissionsManager pm = acm.getPermissionsManager();
+        BasePermissionsManager pm = acm.getPermissionsManager();
 
 
-        pm.add(businessUserChief.id(), PermissionsManager.READ_ALLOWED, new int[]{businessSecurityRoot.gid(), chiefUserAdmin.gid()});
-        pm.add(businessUserChief.id(), PermissionsManager.READ_DENIED, new int[]{complexBSecurityGroup.gid()});
-        pm.add(businessUserChief.id(), PermissionsManager.WRITE_ALLOWED, new int[]{businessSecurityRoot.gid(), chiefUserAdmin.gid()});
-        pm.add(businessUserChief.id(), PermissionsManager.WRITE_DENIED, new int[]{complexBSecurityGroup.gid()});
+        pm.add(businessUserChief.id(), BasePermissionsManager.READ_ALLOWED, new int[]{businessSecurityRoot.gid(), chiefUserAdmin.gid()});
+        pm.add(businessUserChief.id(), BasePermissionsManager.READ_DENIED, new int[]{complexBSecurityGroup.gid()});
+        pm.add(businessUserChief.id(), BasePermissionsManager.WRITE_ALLOWED, new int[]{businessSecurityRoot.gid(), chiefUserAdmin.gid()});
+        pm.add(businessUserChief.id(), BasePermissionsManager.WRITE_DENIED, new int[]{complexBSecurityGroup.gid()});
 
-        pm.add(businessUser.id(), PermissionsManager.READ_ALLOWED, new int[]{complexBSecurityGroup.gid(), userUserAdmin.gid()});
-        pm.add(businessUser.id(), PermissionsManager.WRITE_ALLOWED, new int[]{complexBSecurityGroup.gid(), userUserAdmin.gid()});
+        pm.add(businessUser.id(), BasePermissionsManager.READ_ALLOWED, new int[]{complexBSecurityGroup.gid(), userUserAdmin.gid()});
+        pm.add(businessUser.id(), BasePermissionsManager.WRITE_ALLOWED, new int[]{complexBSecurityGroup.gid(), userUserAdmin.gid()});
     }
 
     private static void loadFakeBusinessElements(Graph rootAccessGraph) {

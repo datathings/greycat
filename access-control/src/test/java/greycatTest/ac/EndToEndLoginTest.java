@@ -1,12 +1,11 @@
 package greycatTest.ac;
 
-import greycat.Callback;
-import greycat.Graph;
-import greycat.GraphBuilder;
+import greycat.*;
 import greycat.ac.BaseAccessControlManager;
-import greycat.ac.storage.StorageAccessControler;
+import greycat.ac.storage.BaseStorageAccessController;
 import greycat.websocket.SecWSClient;
 import greycat.websocket.SecWSServer;
+import jdk.nashorn.internal.codegen.CompilerConstants;
 
 import java.io.*;
 import java.net.*;
@@ -26,9 +25,10 @@ public class EndToEndLoginTest {
         MockStorage storage = new MockStorage();
 
         GraphBuilder builder = GraphBuilder.newBuilder().withStorage(storage);
-        BaseAccessControlManager acm = new BaseAccessControlManager(builder.build());
+        AccessControlManager acm = new BaseAccessControlManager(builder.build());
+        acm.getSessionsManager().setInactivityDelay(10 * 1000);
         acm.start(acmReady -> {
-            builder.withStorage(new StorageAccessControler(storage, acm));
+            builder.withStorage(new BaseStorageAccessController(storage, acm));
             wsServer[0] = new SecWSServer(builder, 7071, acm);
             wsServer[0].start();
 
@@ -63,20 +63,26 @@ public class EndToEndLoginTest {
         graph.connect(connected -> {
             System.out.println("Client connected");
 
-            launchPermissionsCheck(graph);
+            launchPermissionsCheck(graph, done -> {
+                graph.disconnect(disconnected -> {
+                    System.out.println("Client disconnected:" + disconnected);
+                });
+            });
 
         });
 
     }
 
-    private static void launchPermissionsCheck(Graph graph) {
+    private static void launchPermissionsCheck(Graph graph, Callback<Boolean> done) {
         System.out.println("=====  Permission checks ======");
+        DeferCounter counter = graph.newCounter(100);
         for (int i = 0; i < 50; i++) {
             int finalI = i;
             graph.lookup(-1, System.currentTimeMillis(), i, node -> {
                 if (node != null) {
                     System.out.println("READ\t" + finalI + "\t" + (node != null ? "OK\t" + node : "FAIL"));
                 }
+                counter.count();
             });
         }
         for (int i = 0; i < 50; i++) {
@@ -85,8 +91,12 @@ public class EndToEndLoginTest {
                 if (node != null) {
                     System.out.println("READ\t" + finalI + "\t" + (node != null ? "OK\t" + node : "FAIL"));
                 }
+                counter.count();
             });
         }
+        counter.then(() -> {
+            done.on(true);
+        });
     }
 
 

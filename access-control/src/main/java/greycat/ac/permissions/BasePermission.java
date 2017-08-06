@@ -8,7 +8,7 @@ import java.util.Arrays;
 /**
  * Created by Gregory NAIN on 03/08/2017.
  */
-public class Permission {
+public class BasePermission {
 
     private long _uid;
     private long[] _roots = new long[0];
@@ -17,9 +17,9 @@ public class Permission {
     private int[] _nr = new int[0];
     private int[] _nw = new int[0];
 
-    private Permission() {}
+    private BasePermission() {}
 
-    Permission(long uid) {
+    BasePermission(long uid) {
         this._uid = uid;
     }
 
@@ -47,7 +47,7 @@ public class Permission {
             return false;
         }
         switch (permType) {
-            case PermissionsManager.READ_ALLOWED: {
+            case BasePermissionsManager.READ_ALLOWED: {
                 int[] newTable = new int[_r.length + 1];
                 System.arraycopy(_r, 0, newTable, 0, _r.length);
                 newTable[_r.length] = gid;
@@ -55,7 +55,7 @@ public class Permission {
                 this._r = newTable;
             }
             break;
-            case PermissionsManager.WRITE_ALLOWED: {
+            case BasePermissionsManager.WRITE_ALLOWED: {
                 int[] newTable = new int[_w.length + 1];
                 System.arraycopy(_w, 0, newTable, 0, _w.length);
                 newTable[_w.length] = gid;
@@ -63,7 +63,7 @@ public class Permission {
                 this._w = newTable;
             }
             break;
-            case PermissionsManager.READ_DENIED: {
+            case BasePermissionsManager.READ_DENIED: {
                 int[] newTable = new int[_nr.length + 1];
                 System.arraycopy(_nr, 0, newTable, 0, _nr.length);
                 newTable[_nr.length] = gid;
@@ -71,7 +71,7 @@ public class Permission {
                 this._nr = newTable;
             }
             break;
-            case PermissionsManager.WRITE_DENIED: {
+            case BasePermissionsManager.WRITE_DENIED: {
                 int[] newTable = new int[_nw.length + 1];
                 System.arraycopy(_nw, 0, newTable, 0, _nw.length);
                 newTable[_nw.length] = gid;
@@ -90,7 +90,7 @@ public class Permission {
             }
         }
         switch (permType) {
-            case PermissionsManager.READ_ALLOWED: {
+            case BasePermissionsManager.READ_ALLOWED: {
                 int[] newTable = new int[_r.length + gids.length];
                 System.arraycopy(_r, 0, newTable, 0, _r.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -100,7 +100,7 @@ public class Permission {
                 this._r = newTable;
             }
             break;
-            case PermissionsManager.WRITE_ALLOWED: {
+            case BasePermissionsManager.WRITE_ALLOWED: {
                 int[] newTable = new int[_w.length + gids.length];
                 System.arraycopy(_w, 0, newTable, 0, _w.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -110,7 +110,7 @@ public class Permission {
                 this._w = newTable;
             }
             break;
-            case PermissionsManager.READ_DENIED: {
+            case BasePermissionsManager.READ_DENIED: {
                 int[] newTable = new int[_nr.length + gids.length];
                 System.arraycopy(_nr, 0, newTable, 0, _nr.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -120,7 +120,7 @@ public class Permission {
                 this._nr = newTable;
             }
             break;
-            case PermissionsManager.WRITE_DENIED: {
+            case BasePermissionsManager.WRITE_DENIED: {
                 int[] newTable = new int[_nw.length + gids.length];
                 System.arraycopy(_nw, 0, newTable, 0, _nw.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -152,8 +152,8 @@ public class Permission {
         ((IntArray)root.getOrCreate("!write", Type.INT_ARRAY)).addAll(_nw);
     }
 
-    public static Permission load(EStructArray container) {
-        Permission perm = new Permission();
+    public static BasePermission load(EStructArray container) {
+        BasePermission perm = new BasePermission();
         EStruct root = container.root();
         if(root == null) {
             throw new RuntimeException("Nothing to load !");

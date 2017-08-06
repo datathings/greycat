@@ -2,10 +2,10 @@ package greycat.ac;
 
 import greycat.*;
 import greycat.ac.auth.BaseAuthenticationManager;
-import greycat.ac.groups.Group;
-import greycat.ac.groups.GroupsManager;
-import greycat.ac.permissions.Permission;
-import greycat.ac.permissions.PermissionsManager;
+import greycat.ac.groups.BaseGroup;
+import greycat.ac.groups.BaseGroupsManager;
+import greycat.ac.permissions.BasePermission;
+import greycat.ac.permissions.BasePermissionsManager;
 import greycat.ac.sessions.BaseSessionsManager;
 
 import java.util.concurrent.CountDownLatch;
@@ -17,21 +17,29 @@ public class BaseAccessControlManager implements AccessControlManager {
 
     private Graph _graph;
     private String _acIndexName = "$acm";
-    private GroupsManager _groupsManager;
-    private PermissionsManager _permissionsManager;
+    private BaseGroupsManager _groupsManager;
+    private BasePermissionsManager _permissionsManager;
     private AuthenticationManager _authManager;
     private SessionManager _sessionManager;
 
 
     public BaseAccessControlManager(Graph graph) {
         this._graph = graph;
+
+        this._groupsManager = new BaseGroupsManager(_graph, _acIndexName);
+        this._permissionsManager = new BasePermissionsManager(_graph, _acIndexName);
+        this._authManager = new BaseAuthenticationManager(_graph, _acIndexName);
+        this._sessionManager = new BaseSessionsManager(_graph, _acIndexName);
+
     }
 
-    public BaseAccessControlManager setAcIndexName(String acIndexName) {
+    @Override
+    public AccessControlManager setAcIndexName(String acIndexName) {
         this._acIndexName = acIndexName;
         return this;
     }
 
+    @Override
     public void shutdown() {
         System.out.println("Shutting down ACM");
         CountDownLatch latch = new CountDownLatch(4);
@@ -56,9 +64,9 @@ public class BaseAccessControlManager implements AccessControlManager {
     }
 
 
+    @Override
     public void start(Callback<Boolean> callback) {
         _graph.connect(connected -> {
-            initManagers();
             _graph.indexNames(-1, System.currentTimeMillis(), indexNames -> {
                 try {
                     boolean indexExists = indexNames != null && indexNames.length > 0;
@@ -139,26 +147,11 @@ public class BaseAccessControlManager implements AccessControlManager {
         });
     }
 
-    private void initManagers() {
-        if (this._groupsManager == null) {
-            this._groupsManager = new GroupsManager(_graph, _acIndexName);
-        }
-        if (this._permissionsManager == null) {
-            this._permissionsManager = new PermissionsManager(_graph, _acIndexName);
-        }
-        if (this._authManager == null) {
-            this._authManager = new BaseAuthenticationManager(_graph, _acIndexName);
-        }
-        if (this._sessionManager == null) {
-            this._sessionManager = new BaseSessionsManager(_graph, _acIndexName);
-        }
-    }
-
-    public GroupsManager getSecurityGroupsManager() {
+    public BaseGroupsManager getSecurityGroupsManager() {
         return _groupsManager;
     }
 
-    public PermissionsManager getPermissionsManager() {
+    public BasePermissionsManager getPermissionsManager() {
         return _permissionsManager;
     }
 
@@ -179,8 +172,8 @@ public class BaseAccessControlManager implements AccessControlManager {
             return true; //Public group
         }
 
-        Permission userPermissions = _permissionsManager.get(uid);
-        Group resourceGroup = _groupsManager.get(gid);
+        BasePermission userPermissions = _permissionsManager.get(uid);
+        BaseGroup resourceGroup = _groupsManager.get(gid);
 
         //Check if group is in explicit NoRead permissions
         int[] userNotReadGroups = userPermissions.notRead();
@@ -195,8 +188,8 @@ public class BaseAccessControlManager implements AccessControlManager {
 
     @Override
     public boolean canWrite(long uid, int gid) {
-        Permission userPermissions = _permissionsManager.get(uid);
-        Group resourceGroup = _groupsManager.get(gid);
+        BasePermission userPermissions = _permissionsManager.get(uid);
+        BaseGroup resourceGroup = _groupsManager.get(gid);
 
         //Check if group is in explicit NoRead permissions
         int[] userNotWriteGroups = userPermissions.notWrite();
@@ -209,7 +202,7 @@ public class BaseAccessControlManager implements AccessControlManager {
         }
     }
 
-    private boolean match(Group resourceGroup, int[] userGroups) {
+    private boolean match(BaseGroup resourceGroup, int[] userGroups) {
         int resourceGpId = resourceGroup.gid();
         int[] resourcePath = resourceGroup.path();
         for (int i = 0; i < userGroups.length; i++) {

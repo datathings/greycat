@@ -27,7 +27,8 @@ public class BaseSessionsManager implements SessionManager {
         this._acIndexName = acIndexName;
     }
 
-    public BaseSessionsManager setInactivityDelay(long delay) {
+    @Override
+    public SessionManager setInactivityDelay(long delay) {
         this._inactivityDelay = delay;
         return this;
     }
@@ -43,18 +44,16 @@ public class BaseSessionsManager implements SessionManager {
         return session;
     }
 
-    public Session sessionCheck(String sessionId) {
-        BaseSession session = _sessionIdSessions.get(sessionId);
-        if (session == null) {
-            return null;
-        } else {
-            if (session.isExpired()) {
-                _sessionIdSessions.remove(sessionId);
-                _usersSessions.remove(session.uid());
-                return null;
-            } else {
-                return session;
-            }
+    @Override
+    public Session getSession(String sessionId) {
+        return _sessionIdSessions.get(sessionId);
+    }
+
+    @Override
+    public void clearSession(String sessionId) {
+        Session session = _sessionIdSessions.remove(sessionId);
+        if (session != null) {
+            _usersSessions.remove(session.uid());
         }
     }
 

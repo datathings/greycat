@@ -5,9 +5,13 @@ package greycat;
  */
 public interface SessionManager {
 
+    SessionManager setInactivityDelay(long delay);
+
     Session getOrCreateSession(long uid);
 
-    Session sessionCheck(String sessionId);
+    Session getSession(String sessionId);
+
+    void clearSession(String sessionId);
 
     void load(Callback<Boolean> done);
 

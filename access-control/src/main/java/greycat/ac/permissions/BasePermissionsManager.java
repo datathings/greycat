@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Created by Gregory NAIN on 04/08/2017.
  */
-public class PermissionsManager {
+public class BasePermissionsManager {
 
     public static final int READ_ALLOWED = 0;
     public static final int WRITE_ALLOWED = 1;
@@ -25,34 +25,34 @@ public class PermissionsManager {
     private Graph _graph;
     private String _acmIndexName;
 
-    private Map<Long, Permission> _permissions = new HashMap<>();
+    private Map<Long, BasePermission> _permissions = new HashMap<>();
 
-    public PermissionsManager(Graph rootAccessGraph, String acmIndexName) {
+    public BasePermissionsManager(Graph rootAccessGraph, String acmIndexName) {
         this._graph = rootAccessGraph;
         this._acmIndexName = acmIndexName;
     }
 
-    public Collection<Permission> all() {
+    public Collection<BasePermission> all() {
         return new ArrayList<>(_permissions.values());
     }
 
-    public Permission get(long uid) {
+    public BasePermission get(long uid) {
         return _permissions.get(uid);
     }
 
     public boolean add(long uid, int permType, int gid) {
-        Permission perm = _permissions.get(uid);
+        BasePermission perm = _permissions.get(uid);
         if (perm == null) {
-            perm = new Permission(uid);
+            perm = new BasePermission(uid);
             _permissions.put(uid, perm);
         }
         return perm.add(permType, gid);
     }
 
     public boolean add(long uid, int permType, int[] gids) {
-        Permission perm = _permissions.get(uid);
+        BasePermission perm = _permissions.get(uid);
         if (perm == null) {
-            perm = new Permission(uid);
+            perm = new BasePermission(uid);
             _permissions.put(uid, perm);
         }
         return perm.add(permType, gids);
@@ -78,7 +78,7 @@ public class PermissionsManager {
                         return;
                     }
                     attKeys.add(attributeKey);
-                    Permission p = Permission.load((EStructArray) elem);
+                    BasePermission p = BasePermission.load((EStructArray) elem);
                     _permissions.put(p.uid(), p);
                 });
                 for (int attKey : attKeys) {
@@ -101,7 +101,7 @@ public class PermissionsManager {
                     permissionsNode = permsNodes[0];
                 }
                 int i = 0;
-                for (Permission p : _permissions.values()) {
+                for (BasePermission p : _permissions.values()) {
                     EStructArray permissionContainer = (EStructArray) permissionsNode.getOrCreateAt(i++, Type.ESTRUCT_ARRAY);
                     p.save(permissionContainer);
                 }
@@ -112,8 +112,8 @@ public class PermissionsManager {
     }
 
     public void loadInitialData(Callback<Boolean> done) {
-        add(3, PermissionsManager.READ_ALLOWED, 1);
-        add(3, PermissionsManager.WRITE_ALLOWED, new int[]{0, 1});
+        add(3, BasePermissionsManager.READ_ALLOWED, 1);
+        add(3, BasePermissionsManager.WRITE_ALLOWED, new int[]{0, 1});
         _graph.save(done);
     }
 

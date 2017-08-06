@@ -40,7 +40,7 @@ public class SecWSServer extends WSServer {
         handlers.put("/auth", new GCAuthHandler(this._acm));
         handlers.put("/renewpasswd", new GCResetPasswordHandler(this._acm));
 
-        executor.scheduleAtFixedRate(connectionsChecker, 1, 1, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(connectionsChecker, 20, 20, TimeUnit.SECONDS);
 
         super.start();
     }
@@ -54,20 +54,28 @@ public class SecWSServer extends WSServer {
     private Runnable connectionsChecker = new Runnable() {
         @Override
         public void run() {
+            System.out.println("Sessions check");
             SessionManager sessionManager = _acm.getSessionsManager();
             ArrayList<WebSocketChannel> tmpPeers = new ArrayList<>(peers);
             tmpPeers.forEach(webSocketChannel -> {
                 PeerInternalListener listener = (PeerInternalListener) ((ChannelListener.SimpleSetter) webSocketChannel.getReceiveSetter()).get();
                 String sessionKey = (String) listener.graph().getProperty(AUTH_PARAM_KEY);
-                Session session = sessionManager.sessionCheck(sessionKey);
-                if (session == null) {
+                Session session = sessionManager.getSession(sessionKey);
+                if (session.isExpired()) {
+                    System.out.println("Session " + session.sessionId() + " has expired. Closing WS.");
                     peers.remove(webSocketChannel);
                     try {
                         webSocketChannel.setCloseCode(StatusCodes.UNAUTHORIZED);
                         webSocketChannel.setCloseReason("Session expired.");
                         webSocketChannel.sendClose();
+                        webSocketChannel.addCloseTask(channel -> {
+                            System.out.println("WS Close listener= => Clearing session");
+                            PeerInternalListener lst = (PeerInternalListener) ((ChannelListener.SimpleSetter) channel.getReceiveSetter()).get();
+                            String sessionK = (String) lst.graph().getProperty(AUTH_PARAM_KEY);
+                            sessionManager.clearSession(sessionK);
+                        });
                     } catch (IOException e) {
-                        //e.printStackTrace();
+                        e.printStackTrace();
                     }
                 } else {
                     session.setLastHit((long) listener.graph().getProperty("ws.last"));
