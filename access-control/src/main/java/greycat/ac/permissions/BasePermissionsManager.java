@@ -4,6 +4,8 @@ import greycat.Callback;
 import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
+import greycat.ac.Permission;
+import greycat.ac.PermissionsManager;
 import greycat.plugin.NodeState;
 import greycat.struct.EStructArray;
 
@@ -15,47 +17,46 @@ import java.util.Map;
 /**
  * Created by Gregory NAIN on 04/08/2017.
  */
-public class BasePermissionsManager {
-
-    public static final int READ_ALLOWED = 0;
-    public static final int WRITE_ALLOWED = 1;
-    public static final int READ_DENIED = 2;
-    public static final int WRITE_DENIED = 3;
+public class BasePermissionsManager implements PermissionsManager {
 
     private Graph _graph;
     private String _acmIndexName;
 
-    private Map<Long, BasePermission> _permissions = new HashMap<>();
+    private Map<Long, Permission> _permissions = new HashMap<>();
 
     public BasePermissionsManager(Graph rootAccessGraph, String acmIndexName) {
         this._graph = rootAccessGraph;
         this._acmIndexName = acmIndexName;
     }
 
-    public Collection<BasePermission> all() {
+    @Override
+    public Collection<Permission> all() {
         return new ArrayList<>(_permissions.values());
     }
 
-    public BasePermission get(long uid) {
+    @Override
+    public Permission get(long uid) {
         return _permissions.get(uid);
     }
 
+    @Override
     public boolean add(long uid, int permType, int gid) {
-        BasePermission perm = _permissions.get(uid);
+        Permission perm = _permissions.get(uid);
         if (perm == null) {
             perm = new BasePermission(uid);
             _permissions.put(uid, perm);
         }
-        return perm.add(permType, gid);
+        return perm.addPerm(permType, gid);
     }
 
+    @Override
     public boolean add(long uid, int permType, int[] gids) {
-        BasePermission perm = _permissions.get(uid);
+        Permission perm = _permissions.get(uid);
         if (perm == null) {
             perm = new BasePermission(uid);
             _permissions.put(uid, perm);
         }
-        return perm.add(permType, gids);
+        return perm.addPerm(permType, gids);
     }
 
     public boolean remove(int uid, int gid, int permtype) {
@@ -78,7 +79,7 @@ public class BasePermissionsManager {
                         return;
                     }
                     attKeys.add(attributeKey);
-                    BasePermission p = BasePermission.load((EStructArray) elem);
+                    Permission p = BasePermission.load((EStructArray) elem);
                     _permissions.put(p.uid(), p);
                 });
                 for (int attKey : attKeys) {
@@ -95,13 +96,14 @@ public class BasePermissionsManager {
                 Node permissionsNode;
                 if (permsNodes == null || permsNodes.length == 0) {
                     permissionsNode = _graph.newNode(acIndex.world(), acIndex.time());
+                    permissionsNode.setGroup(6);
                     permissionsNode.set("name", Type.STRING, "perms");
                     acIndex.update(permissionsNode);
                 } else {
                     permissionsNode = permsNodes[0];
                 }
                 int i = 0;
-                for (BasePermission p : _permissions.values()) {
+                for (Permission p : _permissions.values()) {
                     EStructArray permissionContainer = (EStructArray) permissionsNode.getOrCreateAt(i++, Type.ESTRUCT_ARRAY);
                     p.save(permissionContainer);
                 }
@@ -112,9 +114,16 @@ public class BasePermissionsManager {
     }
 
     public void loadInitialData(Callback<Boolean> done) {
-        add(3, BasePermissionsManager.READ_ALLOWED, 1);
-        add(3, BasePermissionsManager.WRITE_ALLOWED, new int[]{0, 1});
+        add(3, PermissionsManager.READ_ALLOWED, 1);
+        add(3, PermissionsManager.WRITE_ALLOWED, new int[]{0, 1});
         _graph.save(done);
+    }
+
+    public void printCurrentConfiguration(StringBuilder sb) {
+        sb.append("#########   Permissions Manager - CurrentConfiguration   #########\n\n");
+        _permissions.values().forEach(permission -> {
+            sb.append(permission.toString() + "\n");
+        });
     }
 
 }

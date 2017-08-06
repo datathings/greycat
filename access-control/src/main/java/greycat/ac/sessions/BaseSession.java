@@ -1,6 +1,6 @@
 package greycat.ac.sessions;
 
-import greycat.Session;
+import greycat.ac.Session;
 import greycat.Type;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;

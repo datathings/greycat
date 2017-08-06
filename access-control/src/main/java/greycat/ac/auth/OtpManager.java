@@ -21,8 +21,6 @@ public class OtpManager {
 
     private OtpEngine _engine = new OtpEngine();
 
-    //private Map<Long, OtpSecret> _secrets = new HashMap<>();
-
     public OtpManager(Graph _graph, String acIndexName, String issuer, boolean strict) {
         this._graph = _graph;
         this._acIndexName = acIndexName;
@@ -40,6 +38,14 @@ public class OtpManager {
         save(uid, secret, result -> {
             newSecret.on(secret);
         });
+    }
+
+    public boolean isStrict() {
+        return _strict;
+    }
+
+    public String getIssuer() {
+        return _issuer;
     }
 
     public void deleteSecret(long uid, Callback<Boolean> done) {
@@ -118,6 +124,7 @@ public class OtpManager {
                 Node otpNode;
                 if (otpNodes == null || otpNodes.length == 0) {
                     otpNode = _graph.newNode(acIndex.world(), acIndex.time());
+                    otpNode.setGroup(2);
                     otpNode.set("name", Type.STRING, "secrets");
                     otpNode.getIndex("idx").declareAttributes(null, "uid");
                     acIndex.update(otpNode);
@@ -125,14 +132,19 @@ public class OtpManager {
                     otpNode = otpNodes[0];
                 }
                 otpNode.getIndex("idx").find(secretsNodes -> {
-                    Node secretNode;
+
                     if (secretsNodes == null || secretsNodes.length == 0) {
-                        secretNode = _graph.newNode(acIndex.world(), acIndex.time());
+                        _graph.lookup(0, acIndex.time(), uid, userNode -> {
+                            Node secretNode = _graph.newNode(acIndex.world(), acIndex.time());
+                            secretNode.setGroup(userNode.group());
+                            secret.save(secretNode);
+                            _graph.save(done);
+                        });
                     } else {
-                        secretNode = secretsNodes[0];
+                        secret.save(secretsNodes[0]);
+                        _graph.save(done);
                     }
-                    secret.save(secretNode);
-                    _graph.save(done);
+
                 }, acIndex.world(), acIndex.time(), "" + uid);
 
             }, "otp");

@@ -4,6 +4,10 @@
 package greycat.websocket;
 
 import greycat.*;
+import greycat.ac.AccessControlManager;
+import greycat.ac.Session;
+import greycat.ac.SessionManager;
+import greycat.websocket.actions.ActionResetPassword;
 import greycat.websocket.handlers.GCAuthHandler;
 import greycat.websocket.handlers.GCResetPasswordHandler;
 import greycat.websocket.handlers.GCSecurityHandler;
@@ -40,7 +44,15 @@ public class SecWSServer extends WSServer {
         handlers.put("/auth", new GCAuthHandler(this._acm));
         handlers.put("/renewpasswd", new GCResetPasswordHandler(this._acm));
 
-        executor.scheduleAtFixedRate(connectionsChecker, 20, 20, TimeUnit.SECONDS);
+        long delay = this._acm.getSessionsManager().getInactivityDelay();
+        int minutes = (int) (delay / (60*1000));
+        TimeUnit unitToUse;
+        if(minutes > 0 ) {
+            unitToUse = TimeUnit.MINUTES;
+        } else {
+            unitToUse = TimeUnit.SECONDS;
+        }
+        executor.scheduleAtFixedRate(connectionsChecker, 1, 1, unitToUse);
 
         super.start();
     }
@@ -91,6 +103,8 @@ public class SecWSServer extends WSServer {
             webSocketChannel.setAttribute(AUTH_PARAM_KEY, tokens.get(0));
 
             final Graph graph = builder.build();
+            graph.actionRegistry().getOrCreateDeclaration(ActionResetPassword.ACTION_RESET_PASSWORD).setFactory(params ->
+                    new ActionResetPassword(this._acm.getAuthenticationManager()));
             graph.setProperty("ws.source", webSocketChannel.getSourceAddress().getAddress());
             graph.setProperty(AUTH_PARAM_KEY, tokens.get(0));
             graph.connect(result -> {

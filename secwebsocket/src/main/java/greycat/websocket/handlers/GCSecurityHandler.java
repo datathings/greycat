@@ -3,8 +3,8 @@
  */
 package greycat.websocket.handlers;
 
-import greycat.AccessControlManager;
-import greycat.Session;
+import greycat.ac.AccessControlManager;
+import greycat.ac.Session;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.StatusCodes;

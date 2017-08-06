@@ -42,7 +42,7 @@ public class BaseAccessControlManager implements AccessControlManager {
     @Override
     public void shutdown() {
         System.out.println("Shutting down ACM");
-        CountDownLatch latch = new CountDownLatch(4);
+        CountDownLatch latch = new CountDownLatch(5);
         this._authManager.save(result -> {
             latch.countDown();
         });
@@ -53,6 +53,10 @@ public class BaseAccessControlManager implements AccessControlManager {
             latch.countDown();
         });
         this._sessionManager.save(result -> {
+            latch.countDown();
+        });
+        this._graph.disconnect(disconnected -> {
+            System.out.println("Root graph disconnected");
             latch.countDown();
         });
         try {
@@ -147,11 +151,13 @@ public class BaseAccessControlManager implements AccessControlManager {
         });
     }
 
-    public BaseGroupsManager getSecurityGroupsManager() {
+    @Override
+    public GroupsManager getSecurityGroupsManager() {
         return _groupsManager;
     }
 
-    public BasePermissionsManager getPermissionsManager() {
+    @Override
+    public PermissionsManager getPermissionsManager() {
         return _permissionsManager;
     }
 
@@ -171,9 +177,12 @@ public class BaseAccessControlManager implements AccessControlManager {
         if (gid == 0) {
             return true; //Public group
         }
-
-        BasePermission userPermissions = _permissionsManager.get(uid);
-        BaseGroup resourceGroup = _groupsManager.get(gid);
+        Permission userPermissions = _permissionsManager.get(uid);
+        if(userPermissions == null) {
+            System.err.println("User " + uid + " has no permissions !");
+            return false;
+        }
+        Group resourceGroup = _groupsManager.get(gid);
 
         //Check if group is in explicit NoRead permissions
         int[] userNotReadGroups = userPermissions.notRead();
@@ -188,8 +197,13 @@ public class BaseAccessControlManager implements AccessControlManager {
 
     @Override
     public boolean canWrite(long uid, int gid) {
-        BasePermission userPermissions = _permissionsManager.get(uid);
-        BaseGroup resourceGroup = _groupsManager.get(gid);
+        Permission userPermissions = _permissionsManager.get(uid);
+        if(userPermissions == null) {
+            System.err.println("User " + uid + " has no permissions !");
+            return false;
+        }
+        Group resourceGroup = _groupsManager.get(gid);
+
 
         //Check if group is in explicit NoRead permissions
         int[] userNotWriteGroups = userPermissions.notWrite();
@@ -202,7 +216,7 @@ public class BaseAccessControlManager implements AccessControlManager {
         }
     }
 
-    private boolean match(BaseGroup resourceGroup, int[] userGroups) {
+    private boolean match(Group resourceGroup, int[] userGroups) {
         int resourceGpId = resourceGroup.gid();
         int[] resourcePath = resourceGroup.path();
         for (int i = 0; i < userGroups.length; i++) {
@@ -229,4 +243,15 @@ public class BaseAccessControlManager implements AccessControlManager {
         return false;
     }
 
+    @Override
+    public void printCurrentConfiguration() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("#########   AccessControlManager - CurrentConfiguration   #########\n\n");
+        _authManager.printCurrentConfiguration(sb);
+        sb.append("\n");
+        _groupsManager.printCurrentConfiguration(sb);
+        sb.append("\n");
+        _permissionsManager.printCurrentConfiguration(sb);
+        System.out.println(sb.toString());
+    }
 }

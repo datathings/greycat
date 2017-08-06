@@ -1,6 +1,7 @@
 package greycat.ac.auth;
 
 import greycat.*;
+import greycat.ac.AuthenticationManager;
 import greycat.plugin.NodeState;
 import greycat.struct.EStructArray;
 
@@ -17,6 +18,8 @@ public class BaseAuthenticationManager implements AuthenticationManager {
     private String _loginAttribute = "login";
     private String _passwordAttribute = "pass";
 
+    private long _passwordChangeKeyValidity = 5 * 60 * 1000;
+
     private OtpManager _otpManager;
 
     private Map<String, PasswordKey> _keyToPasswordKey = new HashMap<>();
@@ -26,10 +29,10 @@ public class BaseAuthenticationManager implements AuthenticationManager {
     public BaseAuthenticationManager(Graph _graph, String acIndexName) {
         this._graph = _graph;
         this._acIndexName = acIndexName;
-        this._graph.actionRegistry().getOrCreateDeclaration(ActionResetPassword.ACTION_RESET_PASSWORD).setFactory(params -> new ActionResetPassword(this));
     }
 
-    public BaseAuthenticationManager setUsersIndexName(String usersIndexName) {
+    @Override
+    public AuthenticationManager setUsersIndexName(String usersIndexName) {
         if (_locked) {
             throw new RuntimeException("User index name must be done before ACM initialization.");
         } else {
@@ -38,7 +41,8 @@ public class BaseAuthenticationManager implements AuthenticationManager {
         return this;
     }
 
-    public BaseAuthenticationManager setLoginAttribute(String loginAttribute) {
+    @Override
+    public AuthenticationManager setLoginAttribute(String loginAttribute) {
         if (_locked) {
             throw new RuntimeException("Login attribute name must be done before ACM initialization.");
         } else {
@@ -47,7 +51,8 @@ public class BaseAuthenticationManager implements AuthenticationManager {
         return this;
     }
 
-    public BaseAuthenticationManager setPasswordAttribute(String passwordAttribute) {
+    @Override
+    public AuthenticationManager setPasswordAttribute(String passwordAttribute) {
         if (_locked) {
             throw new RuntimeException("Password attribute name must be done before ACM initialization.");
         } else {
@@ -56,8 +61,15 @@ public class BaseAuthenticationManager implements AuthenticationManager {
         return this;
     }
 
-    public BaseAuthenticationManager activateTwoFactorsAuth(String issuer, boolean strict) {
+    @Override
+    public AuthenticationManager activateTwoFactorsAuth(String issuer, boolean strict) {
         this._otpManager = new OtpManager(_graph, _acIndexName, issuer, strict);
+        return this;
+    }
+
+    @Override
+    public AuthenticationManager setPasswordChangeKeyValidity(long duration) {
+        this._passwordChangeKeyValidity = duration;
         return this;
     }
 
@@ -102,7 +114,7 @@ public class BaseAuthenticationManager implements AuthenticationManager {
         _graph.lookup(0, System.currentTimeMillis(), uid, user -> {
             if (user != null) {
                 UUID tmpUUID = UUID.randomUUID();
-                PasswordKey key = new PasswordKey(uid, tmpUUID.toString(), System.currentTimeMillis() + 5 * 60 * 1000);
+                PasswordKey key = new PasswordKey(uid, tmpUUID.toString(), System.currentTimeMillis() + _passwordChangeKeyValidity);
                 _keyToPasswordKey.put(key.authKey(), key);
                 callback.on(key.authKey());
             } else {
@@ -149,10 +161,12 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                 NodeState ns = _graph.resolver().resolveState(tmpPasswdKeysNode);
                 ArrayList<Integer> attKeys = new ArrayList<>();
                 ns.each((attributeKey, elemType, elem) -> {
-                    attKeys.add(attributeKey);
-                    PasswordKey pk = PasswordKey.load((EStructArray) elem);
-                    if (System.currentTimeMillis() < pk.deadline()) {
-                        _keyToPasswordKey.put(pk.authKey(), pk);
+                    if (elemType != Type.STRING) {
+                        attKeys.add(attributeKey);
+                        PasswordKey pk = PasswordKey.load((EStructArray) elem);
+                        if (System.currentTimeMillis() < pk.deadline()) {
+                            _keyToPasswordKey.put(pk.authKey(), pk);
+                        }
                     }
                 });
                 for (int attKey : attKeys) {
@@ -160,7 +174,7 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                 }
                 this._locked = true;
                 _graph.save(done);
-            }, "secGrps");
+            }, "passwdKeys");
         });
 
     }
@@ -172,6 +186,7 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                 Node passwdKeysNode;
                 if (passwdKeyNodes == null || passwdKeyNodes.length == 0) {
                     passwdKeysNode = _graph.newNode(acIndex.world(), acIndex.time());
+                    passwdKeysNode.setGroup(2);
                     passwdKeysNode.set("name", Type.STRING, "passwdKeys");
                     acIndex.update(passwdKeysNode);
                 } else {
@@ -201,6 +216,27 @@ public class BaseAuthenticationManager implements AuthenticationManager {
             this._locked = true;
             done.on(true);
         }, _loginAttribute);
+    }
+
+    @Override
+    public void printCurrentConfiguration(StringBuilder sb) {
+        sb.append("#########   Authentication Manager - CurrentConfiguration   #########\n\n");
+        sb.append("Users index: " + _usersIndexName + "\n");
+        sb.append("Login attribute: " + _loginAttribute + "\n");
+        sb.append("Password attribute: " + _passwordAttribute + "\n");
+        sb.append("Two-Factor Authentication: " + (_otpManager != null ? "ENABLED" : "DISABLED") + "\n");
+        if (_otpManager != null) {
+            sb.append("Two-Factor Config {isStrict: " + Boolean.toString(_otpManager.isStrict()) + ", issuer: " + _otpManager.getIssuer() + "}\n");
+        }
+        sb.append("********        Authentication Manager - Users list         *********\n\n");
+        _graph.index(0, System.currentTimeMillis(), _usersIndexName, usersIndex -> {
+            usersIndex.findFrom(users -> {
+                for (Node user : users) {
+                    sb.append(user.toString() + "\n");
+                }
+            });
+        });
+
     }
 
 }

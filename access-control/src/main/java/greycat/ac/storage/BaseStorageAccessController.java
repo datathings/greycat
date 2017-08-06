@@ -1,6 +1,8 @@
 package greycat.ac.storage;
 
 import greycat.*;
+import greycat.ac.AccessControlManager;
+import greycat.ac.Session;
 import greycat.internal.heap.HeapBuffer;
 import greycat.plugin.Storage;
 import greycat.struct.Buffer;

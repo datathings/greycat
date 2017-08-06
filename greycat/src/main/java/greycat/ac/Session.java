@@ -1,4 +1,4 @@
-package greycat;
+package greycat.ac;
 
 /**
  * Created by Gregory NAIN on 05/08/2017.

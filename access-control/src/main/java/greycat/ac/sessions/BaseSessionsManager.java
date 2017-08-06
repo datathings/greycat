@@ -1,6 +1,8 @@
 package greycat.ac.sessions;
 
 import greycat.*;
+import greycat.ac.Session;
+import greycat.ac.SessionManager;
 import greycat.plugin.NodeState;
 import greycat.struct.EStructArray;
 
@@ -31,6 +33,11 @@ public class BaseSessionsManager implements SessionManager {
     public SessionManager setInactivityDelay(long delay) {
         this._inactivityDelay = delay;
         return this;
+    }
+
+    @Override
+    public long getInactivityDelay() {
+        return _inactivityDelay;
     }
 
     @Override
@@ -95,6 +102,7 @@ public class BaseSessionsManager implements SessionManager {
                 Node sessionsNode;
                 if (sessions == null || sessions.length == 0) {
                     sessionsNode = _graph.newNode(acIndex.world(), acIndex.time());
+                    sessionsNode.setGroup(1);
                     sessionsNode.set("name", Type.STRING, "sessions");
                     acIndex.update(sessionsNode);
                 } else {

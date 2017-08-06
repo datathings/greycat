@@ -1,4 +1,6 @@
-package greycat;
+package greycat.ac;
+
+import greycat.Callback;
 
 /**
  * Created by Gregory NAIN on 05/08/2017.
@@ -6,6 +8,8 @@ package greycat;
 public interface SessionManager {
 
     SessionManager setInactivityDelay(long delay);
+
+    long getInactivityDelay();
 
     Session getOrCreateSession(long uid);
 

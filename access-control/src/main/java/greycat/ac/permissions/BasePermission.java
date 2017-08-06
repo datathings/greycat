@@ -1,6 +1,8 @@
 package greycat.ac.permissions;
 
 import greycat.Type;
+import greycat.ac.Permission;
+import greycat.ac.PermissionsManager;
 import greycat.struct.*;
 
 import java.util.Arrays;
@@ -8,7 +10,7 @@ import java.util.Arrays;
 /**
  * Created by Gregory NAIN on 03/08/2017.
  */
-public class BasePermission {
+public class BasePermission implements Permission {
 
     private long _uid;
     private long[] _roots = new long[0];
@@ -23,31 +25,47 @@ public class BasePermission {
         this._uid = uid;
     }
 
+    @Override
     public long uid() {
         return _uid;
     }
 
+    @Override
     public int[] read() {
         return _r;
     }
 
+    @Override
     public int[] write() {
         return _w;
     }
 
+    @Override
     public int[] notRead() {
         return _nr;
     }
 
+    @Override
     public int[] notWrite() {
         return _nw;
     }
-    boolean add(int permType, int gid) {
+
+    @Override
+    public void addRoot(long rootId) {
+        long[] newTable = new long[_roots.length + 1];
+        System.arraycopy(_roots, 0, newTable, 0, _roots.length);
+        newTable[_roots.length] = rootId;
+        Arrays.sort(newTable);
+        this._roots = newTable;
+    }
+
+    @Override
+    public boolean addPerm(int permType, int gid) {
         if (!consistencyCheck(permType, gid)) {
             return false;
         }
         switch (permType) {
-            case BasePermissionsManager.READ_ALLOWED: {
+            case PermissionsManager.READ_ALLOWED: {
                 int[] newTable = new int[_r.length + 1];
                 System.arraycopy(_r, 0, newTable, 0, _r.length);
                 newTable[_r.length] = gid;
@@ -55,7 +73,7 @@ public class BasePermission {
                 this._r = newTable;
             }
             break;
-            case BasePermissionsManager.WRITE_ALLOWED: {
+            case PermissionsManager.WRITE_ALLOWED: {
                 int[] newTable = new int[_w.length + 1];
                 System.arraycopy(_w, 0, newTable, 0, _w.length);
                 newTable[_w.length] = gid;
@@ -63,7 +81,7 @@ public class BasePermission {
                 this._w = newTable;
             }
             break;
-            case BasePermissionsManager.READ_DENIED: {
+            case PermissionsManager.READ_DENIED: {
                 int[] newTable = new int[_nr.length + 1];
                 System.arraycopy(_nr, 0, newTable, 0, _nr.length);
                 newTable[_nr.length] = gid;
@@ -71,7 +89,7 @@ public class BasePermission {
                 this._nr = newTable;
             }
             break;
-            case BasePermissionsManager.WRITE_DENIED: {
+            case PermissionsManager.WRITE_DENIED: {
                 int[] newTable = new int[_nw.length + 1];
                 System.arraycopy(_nw, 0, newTable, 0, _nw.length);
                 newTable[_nw.length] = gid;
@@ -83,14 +101,15 @@ public class BasePermission {
         return true;
     }
 
-    boolean add(int permType, int[] gids) {
+    @Override
+    public boolean addPerm(int permType, int[] gids) {
         for (int gid : gids) {
             if (!consistencyCheck(permType, gid)) {
                 return false;
             }
         }
         switch (permType) {
-            case BasePermissionsManager.READ_ALLOWED: {
+            case PermissionsManager.READ_ALLOWED: {
                 int[] newTable = new int[_r.length + gids.length];
                 System.arraycopy(_r, 0, newTable, 0, _r.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -100,7 +119,7 @@ public class BasePermission {
                 this._r = newTable;
             }
             break;
-            case BasePermissionsManager.WRITE_ALLOWED: {
+            case PermissionsManager.WRITE_ALLOWED: {
                 int[] newTable = new int[_w.length + gids.length];
                 System.arraycopy(_w, 0, newTable, 0, _w.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -110,7 +129,7 @@ public class BasePermission {
                 this._w = newTable;
             }
             break;
-            case BasePermissionsManager.READ_DENIED: {
+            case PermissionsManager.READ_DENIED: {
                 int[] newTable = new int[_nr.length + gids.length];
                 System.arraycopy(_nr, 0, newTable, 0, _nr.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -120,7 +139,7 @@ public class BasePermission {
                 this._nr = newTable;
             }
             break;
-            case BasePermissionsManager.WRITE_DENIED: {
+            case PermissionsManager.WRITE_DENIED: {
                 int[] newTable = new int[_nw.length + gids.length];
                 System.arraycopy(_nw, 0, newTable, 0, _nw.length);
                 for (int i = 0; i < gids.length; i++) {
@@ -139,6 +158,7 @@ public class BasePermission {
     }
 
 
+    @Override
     public void save(EStructArray container) {
         EStruct root = container.root();
         if(root == null) {
@@ -152,7 +172,7 @@ public class BasePermission {
         ((IntArray)root.getOrCreate("!write", Type.INT_ARRAY)).addAll(_nw);
     }
 
-    public static BasePermission load(EStructArray container) {
+    static Permission load(EStructArray container) {
         BasePermission perm = new BasePermission();
         EStruct root = container.root();
         if(root == null) {
@@ -169,6 +189,6 @@ public class BasePermission {
 
     @Override
     public String toString() {
-        return "{uid: "+_uid+", read: "+Arrays.toString(_r)+", write: "+Arrays.toString(_w)+", !read: "+Arrays.toString(_nr)+", !write: "+Arrays.toString(_nw)+"}";
+        return "{uid: "+_uid+", roots: "+Arrays.toString(_roots)+", read: "+Arrays.toString(_r)+", write: "+Arrays.toString(_w)+", !read: "+Arrays.toString(_nr)+", !write: "+Arrays.toString(_nw)+"}";
     }
 }

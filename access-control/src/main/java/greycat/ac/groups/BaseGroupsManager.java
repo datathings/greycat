@@ -4,6 +4,8 @@ import greycat.Callback;
 import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
+import greycat.ac.Group;
+import greycat.ac.GroupsManager;
 import greycat.ac.SecurityManager;
 import greycat.plugin.NodeState;
 import greycat.struct.EStructArray;
@@ -13,29 +15,32 @@ import java.util.*;
 /**
  * Created by Gregory NAIN on 04/08/2017.
  */
-public class BaseGroupsManager implements SecurityManager {
+public class BaseGroupsManager implements SecurityManager, GroupsManager {
 
     private Graph _graph;
     private String _acmIndexName;
     private int _rootGroups = 0;
 
-    private Map<Integer, BaseGroup> _groups = new HashMap<>();
+    private Map<Integer, Group> _groups = new HashMap<>();
 
     public BaseGroupsManager(Graph rootAccessGraph, String acmIndexName) {
         this._graph = rootAccessGraph;
         this._acmIndexName = acmIndexName;
     }
 
-    public Collection<BaseGroup> all() {
+    @Override
+    public Collection<Group> all() {
         return new ArrayList<>(_groups.values());
     }
 
-    public BaseGroup get(int gid) {
+    @Override
+    public Group get(int gid) {
         return _groups.get(gid);
     }
 
-    public BaseGroup add(BaseGroup parent, String name) {
-        BaseGroup newGroup;
+    @Override
+    public Group add(Group parent, String name) {
+        Group newGroup;
         if (parent == null) {
             newGroup = new BaseGroup(_groups.size(), name, new int[]{_rootGroups});
             _rootGroups++;
@@ -89,6 +94,7 @@ public class BaseGroupsManager implements SecurityManager {
                 Node securityGroupsNode;
                 if (secGrpNodes == null || secGrpNodes.length == 0) {
                     securityGroupsNode = _graph.newNode(acIndex.world(), acIndex.time());
+                    securityGroupsNode.setGroup(5);
                     securityGroupsNode.set("name", Type.STRING, "secGrps");
                     acIndex.update(securityGroupsNode);
                 } else {
@@ -105,13 +111,20 @@ public class BaseGroupsManager implements SecurityManager {
 
     public void loadInitialData(Callback<Boolean> done) {
         add(null, "Public");
-        BaseGroup rootAdmin = add(null, "Admin Root");
-        BaseGroup usersAdmin = add(rootAdmin, "Users Admin");
+        Group rootAdmin = add(null, "Admin Root");
+        Group usersAdmin = add(rootAdmin, "Users Admin");
         add(usersAdmin, "Admin User Admin");
-        BaseGroup acm = add(rootAdmin, "Access Control Admin");
+        Group acm = add(rootAdmin, "Access Control Admin");
         add(acm, "Security Groups Admin");
         add(acm, "Permissions Admin");
         add(rootAdmin, "Business Security Root");
         _graph.save(done);
+    }
+
+    public void printCurrentConfiguration(StringBuilder sb) {
+        sb.append("#########   Security Groups Manager - CurrentConfiguration   #########\n\n");
+        _groups.values().forEach(baseGroup -> {
+            sb.append(baseGroup.toString() + "\n");
+        });
     }
 }

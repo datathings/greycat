@@ -1,9 +1,10 @@
 /**
  * Copyright 2017 DataThings - All rights reserved.
  */
-package greycat.ac.auth;
+package greycat.websocket.actions;
 
 import greycat.*;
+import greycat.ac.AuthenticationManager;
 import greycat.struct.Buffer;
 
 /**
@@ -12,9 +13,9 @@ import greycat.struct.Buffer;
 public class ActionResetPassword implements Action {
 
     public static final String ACTION_RESET_PASSWORD = "resetPassword";
-    private BaseAuthenticationManager authManager;
+    private AuthenticationManager authManager;
 
-    public ActionResetPassword(BaseAuthenticationManager manager) {
+    public ActionResetPassword(AuthenticationManager manager) {
         this.authManager = manager;
     }
 
@@ -29,6 +30,7 @@ public class ActionResetPassword implements Action {
             for(int i = 0; i < ctx.result().size(); i++) {
                 authManager.createPasswordChangeAuthKey(((Node)ctx.result().get(i)).id(), result -> {
                    newResult.add(result);
+                   counter.count();
                 });
             }
             counter.then(() -> {

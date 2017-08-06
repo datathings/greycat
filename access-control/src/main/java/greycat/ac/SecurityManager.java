@@ -1,6 +1,9 @@
 package greycat.ac;
 
 import greycat.Callback;
+import greycat.ac.groups.BaseGroup;
+
+import java.util.Collection;
 
 /**
  * Created by Gregory NAIN on 05/08/2017.

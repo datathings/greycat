@@ -9,14 +9,17 @@ import greycat.websocket.SecWSClient;
 import greycat.websocket.SecWSServer;
 
 import java.io.*;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by Gregory NAIN on 05/08/2017.
  */
-public class EndToEndLoginTest {
+public class SessionExpiryTest {
 
 
     public static void main(String[] args) {
@@ -25,7 +28,8 @@ public class EndToEndLoginTest {
 
         GraphBuilder builder = GraphBuilder.newBuilder().withStorage(storage);
         AccessControlManager acm = new BaseAccessControlManager(builder.build());
-        //acm.getSessionsManager().setInactivityDelay(10 * 1000);
+        acm.getSessionsManager().setInactivityDelay(3 * 1000);
+
         acm.start(acmReady -> {
 
             //acm.printCurrentConfiguration();
@@ -77,10 +81,17 @@ public class EndToEndLoginTest {
             System.out.println("Client connected");
 
             launchPermissionsCheck(graph, done -> {
-                graph.disconnect(disconnected -> {
-                    System.out.println("Client disconnected:" + disconnected);
-                    System.exit(0);
-                });
+                try {
+                    Thread.sleep(6*1000);
+                    launchPermissionsCheck(graph, done2 -> {
+                        graph.disconnect(disconnected -> {
+                            System.out.println("Client disconnected:" + disconnected);
+                            System.exit(0);
+                        });
+                    });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             });
 
         });

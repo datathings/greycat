@@ -2,6 +2,7 @@ package greycat.ac.groups;
 
 
 import greycat.Type;
+import greycat.ac.Group;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
 import greycat.struct.IntArray;
@@ -11,7 +12,7 @@ import java.util.Arrays;
 /**
  * Created by Gregory NAIN on 03/08/2017.
  */
-public class BaseGroup {
+public class BaseGroup implements Group {
 
     private int gid;
     private String name;
@@ -26,19 +27,24 @@ public class BaseGroup {
         this.gid = gid;
     }
 
+    @Override
     public int gid() {
         return gid;
     }
 
+    @Override
     public String name() {
         return name;
     }
 
+    @Override
     public int[] path() {
         return path;
     }
 
-    BaseGroup createSubGroup(int gid, String name) {
+
+    @Override
+    public Group createSubGroup(int gid, String name) {
         int[] childPath = new int[this.path.length+1];
         System.arraycopy(this.path, 0, childPath, 0, this.path.length);
         childPath[this.path.length] = this.genIndex;
@@ -47,7 +53,9 @@ public class BaseGroup {
         return newGroup;
     }
 
-    void save(EStructArray container) {
+
+    @Override
+    public void save(EStructArray container) {
         EStruct root = container.root();
         if(root == null) {
             root = container.newEStruct();
@@ -58,7 +66,7 @@ public class BaseGroup {
         root.set("genIndex", Type.INT, genIndex);
     }
 
-    static BaseGroup load(EStructArray container) {
+    static Group load(EStructArray container) {
         BaseGroup sg = new BaseGroup();
         EStruct root = container.root();
         if(root == null) {

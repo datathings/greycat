@@ -1,8 +1,10 @@
 /**
  * Copyright 2017 DataThings - All rights reserved.
  */
-package greycat;
+package greycat.ac;
 
+
+import greycat.Callback;
 
 import java.util.Map;
 
@@ -10,6 +12,16 @@ import java.util.Map;
  * Created by Gregory NAIN on 18/07/2017.
  */
 public interface AuthenticationManager {
+
+    AuthenticationManager setUsersIndexName(String usersIndexName);
+
+    AuthenticationManager setLoginAttribute(String loginAttribute);
+
+    AuthenticationManager setPasswordAttribute(String passwordAttribute);
+
+    AuthenticationManager activateTwoFactorsAuth(String issuer, boolean strict);
+
+    AuthenticationManager setPasswordChangeKeyValidity(long duration);
 
     void verifyCredentials(Map<String, String> credentials, Callback<Long> callback);
 
@@ -22,4 +34,6 @@ public interface AuthenticationManager {
     void save(Callback<Boolean> done);
 
     void loadInitialData(Callback<Boolean> done);
+
+    void printCurrentConfiguration(StringBuilder sb);
 }
