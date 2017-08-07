@@ -1,6 +1,7 @@
 package greycat.memory.heap;
 
 import greycat.memory.Chunk;
+import greycat.memory.ChunkCache;
 import greycat.memory.Struct;
 
 import java.util.Map;
@@ -9,7 +10,7 @@ public class HChunk implements Chunk, HHost {
 
     private boolean dirty = false;
     private Struct payload;
-    private Map<Integer, Chunk> children = null;
+    private Map<Long, Chunk> children = null;
 
     private int mark = 0;
 
@@ -20,8 +21,9 @@ public class HChunk implements Chunk, HHost {
 
     private final long offset;
     private final HHost host;
+    private final ChunkCache cache;
 
-    HChunk(long id, long time, long world, long seq, long offset, HHost host) {
+    HChunk(long id, long time, long world, long seq, long offset, HHost host, ChunkCache cache) {
         this.$id = id;
         this.$time = time;
         this.$world = world;
@@ -29,6 +31,7 @@ public class HChunk implements Chunk, HHost {
         //For un registration
         this.offset = offset;
         this.host = host;
+        this.cache = cache;
         this.payload = new HStruct(this);
     }
 
@@ -79,8 +82,10 @@ public class HChunk implements Chunk, HHost {
     }
 
     @Override
-    public void unregister(long offset) {
-        //TODO
+    public final void unregister(long offset) {
+        Chunk c = children.get(offset);
+        children.remove(offset);
+        cache.put(c);
     }
 
 }

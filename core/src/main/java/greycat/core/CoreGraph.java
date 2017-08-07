@@ -2,6 +2,7 @@ package greycat.core;
 
 import greycat.Graph;
 import greycat.Node;
+import greycat.base.GenericNode;
 import greycat.memory.ChunkCache;
 import greycat.memory.ChunkHeap;
 import greycat.memory.ChunkStorage;
@@ -32,12 +33,18 @@ public class CoreGraph implements Graph {
     public final Node newNode(long world, long time) {
         idGen++;
         final Struct payload = resolver.newRoot(idGen, time, world);
-        return new greycat.base.GenericNode(payload);
+        return new GenericNode(payload);
     }
 
     @Override
-    public final void freeNode(Node n) {
+    public void free(Node n) {
         resolver.free(n);
+
+    }
+
+    @Override
+    public Node alias(Node n) {
+        return new GenericNode(n.chunk().payload());
     }
 
 }

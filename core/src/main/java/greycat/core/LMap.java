@@ -66,6 +66,7 @@ public class LMap {
         next_hashs[i + capacity] = newValue;
     }
 
+
     private void reallocate(int newCapacity) {
         if (newCapacity > capacity) {
             //extend keys
@@ -92,6 +93,14 @@ public class LMap {
             }
             capacity = newCapacity;
         }
+    }
+
+    public synchronized final boolean atomicPut(final long requestKey, final long requestValue) {
+        return put(requestKey, requestValue);
+    }
+
+    public synchronized final void atomicRemove(final long requestKey) {
+        remove(requestKey);
     }
 
     public final boolean contains(final long requestKey) {

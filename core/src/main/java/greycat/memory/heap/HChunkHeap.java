@@ -18,7 +18,7 @@ public class HChunkHeap implements ChunkHeap, HHost {
 
     @Override
     public final Chunk create(long id, long time, long world, long seq) {
-        Chunk newChunk = new HChunk(id, time, world, seq, id, this);
+        Chunk newChunk = new HChunk(id, time, world, seq, id, this, cache);
         newChunk.mark();
         backend.put(id, newChunk);
         return newChunk;

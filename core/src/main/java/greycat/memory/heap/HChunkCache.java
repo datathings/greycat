@@ -15,6 +15,7 @@ public class HChunkCache implements ChunkCache {
     private LinkedHashMap<String, Chunk> backend = new LinkedHashMap<String, Chunk>() {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, Chunk> eldest) {
+            //TODO pop into secondary cache in cache of still out of sync
             return size() > max;
         }
     };

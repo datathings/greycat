@@ -19,17 +19,17 @@ public class HStruct implements Struct {
     }
 
     @Override
-    public Chunk chunk() {
+    public final Chunk chunk() {
         return _chunk;
     }
 
     @Override
-    public Object get(String name) {
+    public final Object get(String name) {
         return getAt(Helper.hash(name));
     }
 
     @Override
-    public Object getAt(int index) {
+    public final Object getAt(int index) {
         Tuple<Integer, Object> result = backend.get(index);
         if (result != null) {
             return result.right();
@@ -38,12 +38,12 @@ public class HStruct implements Struct {
     }
 
     @Override
-    public int type(String name) {
+    public final int type(String name) {
         return typeAt(Helper.hash(name));
     }
 
     @Override
-    public int typeAt(int index) {
+    public final int typeAt(int index) {
         Tuple<Integer, Object> result = backend.get(index);
         if (result != null) {
             return result.left();
@@ -52,61 +52,61 @@ public class HStruct implements Struct {
     }
 
     @Override
-    public Struct set(String name, int type, Object value) {
+    public final Struct set(String name, int type, Object value) {
         return setAt(Helper.hash(name), type, value);
     }
 
     @Override
-    public Struct setAt(int index, int type, Object value) {
+    public final Struct setAt(int index, int type, Object value) {
         _chunk.setDirty();
         backend.put(index, new Tuple<Integer, Object>(type, value));
         return this;
     }
 
     @Override
-    public Struct remove(String name) {
+    public final Struct remove(String name) {
         return removeAt(Helper.hash(name));
     }
 
     @Override
-    public Struct removeAt(int index) {
+    public final Struct removeAt(int index) {
         _chunk.setDirty();
         backend.remove(index);
         return this;
     }
 
     @Override
-    public Object getOrCreate(String name, int type) {
+    public final Object getOrCreate(String name, int type) {
         return null;
     }
 
     @Override
-    public Object getOrCreateAt(int index, int type) {
+    public final Object getOrCreateAt(int index, int type) {
         return null;
     }
 
     @Override
-    public Object getOrCreateCustom(String name, String typeName) {
+    public final Object getOrCreateCustom(String name, String typeName) {
         return null;
     }
 
     @Override
-    public Object getOrCreateCustomAt(int index, String typeName) {
+    public final Object getOrCreateCustomAt(int index, String typeName) {
         return null;
     }
 
     @Override
-    public <A> A getWithDefault(String key, A defaultValue) {
+    public final <A> A getWithDefault(String key, A defaultValue) {
         return null;
     }
 
     @Override
-    public <A> A getAtWithDefault(int key, A defaultValue) {
+    public final <A> A getAtWithDefault(int key, A defaultValue) {
         return null;
     }
 
     @Override
-    public Integer[] attributes() {
+    public final Integer[] attributes() {
         return backend.keySet().toArray(new Integer[backend.size()]);
     }
 
