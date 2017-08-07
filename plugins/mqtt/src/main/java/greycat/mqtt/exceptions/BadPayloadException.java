@@ -16,7 +16,7 @@
 package greycat.mqtt.exceptions;
 
 public class BadPayloadException extends Exception {
-    public BadPayloadException(String reason){
+    public BadPayloadException(String reason) {
         super(reason);
     }
 }

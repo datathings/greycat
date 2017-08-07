@@ -37,21 +37,24 @@ public class DefaultMessageHandler extends MessageHandler {
         try {
             JSONObject obj = new JSONObject(payload);
             String id = null;
-            if (obj.has("id")) id = obj.getString("id"); else throw new BadPayloadException("Missing id"); //Extract node id from the JSON message (/!\ Id = id registered in the targeted nodes' index)
+            if (obj.has("id")) id = obj.getString("id");
+            else
+                throw new BadPayloadException("Missing id"); //Extract node id from the JSON message (/!\ Id = id registered in the targeted nodes' index)
 
             long time = -1;
-            if (obj.has("time")) time = obj.getLong("time"); else throw new BadPayloadException("Missing id"); //Extract time from the JSON message
+            if (obj.has("time")) time = obj.getLong("time");
+            else throw new BadPayloadException("Missing id"); //Extract time from the JSON message
 
-            if (obj.has("values")){
+            if (obj.has("values")) {
                 JSONObject values = obj.getJSONObject("values");
                 long finalTime = time;
                 String finalId = id;
                 values.keySet().forEach(attributeName -> { // For each attribute stored in the JSON message, update the node's attributes
                     JSONObject attribute = values.getJSONObject(attributeName);
-                        newTask().travelInTime(Long.toString(finalTime))
-                                .readIndex(lookupIndex, finalId)
-                                .then(CoreActions.forceAttribute(attributeName, Type.typeFromName(attribute.getString("type")), attribute.getString("value")))
-                                .execute(super.getGraph(), null);
+                    newTask().travelInTime(Long.toString(finalTime))
+                            .readIndex(lookupIndex, finalId)
+                            .then(CoreActions.forceAttribute(attributeName, Type.typeFromName(attribute.getString("type")), attribute.getString("value")))
+                            .execute(super.getGraph(), null);
                 });
                 super.getGraph().save(null);
             } else throw new BadPayloadException("Missing values");

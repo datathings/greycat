@@ -34,12 +34,13 @@ public class MQTTPlugin implements Plugin {
 
     /**
      * Build the MQTT plugin
-     * @param brokerURL MQTT Broker URL
-     * @param brokerPort MQTT Broker IP
+     *
+     * @param brokerURL     MQTT Broker URL
+     * @param brokerPort    MQTT Broker IP
      * @param subscriptions List of subscriptions
-     * @param lookupIndex Index's name containing the targeted nodes
+     * @param lookupIndex   Index's name containing the targeted nodes
      */
-    public MQTTPlugin(String brokerURL, int brokerPort, String[] subscriptions, String lookupIndex){
+    public MQTTPlugin(String brokerURL, int brokerPort, String[] subscriptions, String lookupIndex) {
         this.brokerURL = brokerURL;
         this.brokerPort = brokerPort;
         this.subscriptions = subscriptions;
@@ -49,18 +50,20 @@ public class MQTTPlugin implements Plugin {
 
     /**
      * Build the MQTT plugin with a custom message handler
-     * @param brokerURL MQTT Broker URL
-     * @param brokerPort MQTT Broker IP
+     *
+     * @param brokerURL     MQTT Broker URL
+     * @param brokerPort    MQTT Broker IP
      * @param subscriptions List of subscriptions
-     * @param lookupIndex Index's name containing the targeted nodes
+     * @param lookupIndex   Index's name containing the targeted nodes
      * @param customHandler Message handler
      */
-    public MQTTPlugin(String brokerURL, int brokerPort, String[] subscriptions, String lookupIndex, MessageHandler customHandler){
+    public MQTTPlugin(String brokerURL, int brokerPort, String[] subscriptions, String lookupIndex, MessageHandler customHandler) {
         this.brokerURL = brokerURL;
         this.brokerPort = brokerPort;
         this.subscriptions = subscriptions;
         this.handler = customHandler;
     }
+
     @Override
     public void start(Graph graph) {
         try {
@@ -68,7 +71,7 @@ public class MQTTPlugin implements Plugin {
             client = new MqttClient("tcp://" + this.brokerURL + ":" + this.brokerPort, MqttClient.generateClientId());
             client.setCallback(handler);
             client.connect();
-            if (client.isConnected()){
+            if (client.isConnected()) {
                 Arrays.stream(subscriptions).forEach(s -> {
                     try {
                         client.subscribe(s);
