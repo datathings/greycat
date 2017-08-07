@@ -31,7 +31,7 @@ import java.io.IOException;
 
 import static greycat.Tasks.newTask;
 
-public class MQTTTests {
+public class MQTTTest {
     private static Graph graph1;
     private static Graph graph2;
     private static String topic = "demo" + System.currentTimeMillis();
