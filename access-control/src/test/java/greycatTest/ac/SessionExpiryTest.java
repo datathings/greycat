@@ -1,5 +1,6 @@
 package greycatTest.ac;
 
+import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
 import greycat.*;
 import greycat.ac.AccessControlManager;
 import greycat.ac.BaseAccessControlManager;
@@ -7,6 +8,9 @@ import greycat.ac.storage.BaseStorageAccessController;
 import greycat.plugin.Storage;
 import greycat.websocket.SecWSClient;
 import greycat.websocket.SecWSServer;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -15,161 +19,92 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 /**
  * Created by Gregory NAIN on 05/08/2017.
  */
 public class SessionExpiryTest {
 
+    static CountDownLatch latch;
+    AccessControlManager acm;
+    final SecWSServer[] wsServer = new SecWSServer[1];
 
-    public static void main(String[] args) {
-        final SecWSServer[] wsServer = new SecWSServer[1];
+    @Before
+    public void startTest() {
+        latch = new CountDownLatch(1);
+
         Storage storage = new MockStorage();
-
         GraphBuilder builder = GraphBuilder.newBuilder().withStorage(storage);
-        AccessControlManager acm = new BaseAccessControlManager(builder.build());
-        acm.getSessionsManager().setInactivityDelay(3 * 1000);
-
+        Graph rootGraph = builder.build();
+        acm = new BaseAccessControlManager(rootGraph);
+        acm.getSessionsManager().setInactivityDelay(200);
         acm.start(acmReady -> {
-
-            //acm.printCurrentConfiguration();
-            System.out.println("ACM ready !");
+            assertTrue("ACM not ready !", acmReady);
 
             builder.withStorage(new BaseStorageAccessController(storage, acm));
             wsServer[0] = new SecWSServer(builder, 7071, acm);
             wsServer[0].start();
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+        });
+    }
 
-            Thread clientThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    System.out.println("Getting Token");
-                    getAuthToken(token -> {
-                        if (token.length() > 0) {
-                            System.out.println("Token:" + token);
-                            connectClient(token);
-                        } else {
-                            System.err.println("Received no token");
+
+    @After
+    public void stopTest() {
+        if (wsServer[0] != null) {
+            wsServer[0].stop();
+        }
+        if (acm != null) {
+            acm.shutdown();
+        }
+    }
+
+
+    @Test
+    public void sessionExpiryTest() {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        TestsUtils.authenticateAndConnect("admin", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", graph -> {
+
+            graph.lookup(-1, System.currentTimeMillis(), 1, node -> {
+                assertNotNull(node);
+                executor.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            graph.lookup(0, System.currentTimeMillis(), 2, node2 -> {
+                                latch.countDown();
+                                fail();
+                            });
+                        } catch (Exception e) {
+                          latch.countDown();
+                          return;
                         }
-                    });
-                }
+                        fail();
+                    }
+                }, 2, TimeUnit.SECONDS);
             });
-            clientThread.setUncaughtExceptionHandler((t, e) -> {
-                e.printStackTrace();
-            });
-            clientThread.start();
-
         });
-
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (wsServer[0] != null) {
-                    wsServer[0].stop();
-                }
-                acm.shutdown();
-            }
-        }));
-    }
-
-
-    private static void connectClient(String token) {
-
-        Graph graph = GraphBuilder.newBuilder()
-                .withStorage(new SecWSClient("ws://localhost:7071/ws", token.split("#")[0])).build();
-
-        graph.connect(connected -> {
-            System.out.println("Client connected");
-
-            launchPermissionsCheck(graph, done -> {
-                try {
-                    Thread.sleep(6*1000);
-                    launchPermissionsCheck(graph, done2 -> {
-                        graph.disconnect(disconnected -> {
-                            System.out.println("Client disconnected:" + disconnected);
-                            System.exit(0);
-                        });
-                    });
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            });
-
-        });
-
-
-    }
-
-    private static void launchPermissionsCheck(Graph graph, Callback<Boolean> done) {
-        System.out.println("=====  Permission checks ======");
-        DeferCounter counter = graph.newCounter(100);
-        for (int i = 0; i < 50; i++) {
-            int finalI = i;
-            graph.lookup(-1, System.currentTimeMillis(), i, node -> {
-                if (node != null) {
-                    System.out.println("READ\t" + finalI + "\t" + (node != null ? "OK\t" + node : "FAIL"));
-                }
-                counter.count();
-            });
-        }
-        for (int i = 0; i < 50; i++) {
-            int finalI = i;
-            graph.lookup(0, System.currentTimeMillis(), i, node -> {
-                if (node != null) {
-                    System.out.println("READ\t" + finalI + "\t" + (node != null ? "OK\t" + node : "FAIL"));
-                }
-                counter.count();
-            });
-        }
-        counter.then(() -> {
-            done.on(true);
-        });
-    }
-
-
-    private static void getAuthToken(Callback<String> token) {
         try {
-            URL url = new URL("http://localhost:7071/auth");
-
-            Map<String, Object> params = new HashMap<>();
-            params.put("login", "admin");
-            params.put("pass", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb");
-
-            StringBuilder postData = new StringBuilder();
-            for (Map.Entry<String, Object> param : params.entrySet()) {
-                if (postData.length() != 0) postData.append('&');
-                postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-                postData.append('=');
-                postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-            }
-            String urlParameters = postData.toString();
-            URLConnection conn = url.openConnection();
-            //conn.setConnectTimeout(1000);
-            //conn.setReadTimeout(4000);
-
-            conn.setDoOutput(true);
-
-            OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-            writer.write(urlParameters);
-            writer.flush();
-
-            String result = "";
-            String line;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
-            while ((line = reader.readLine()) != null) {
-                result += line;
-            }
-            writer.close();
-            reader.close();
-            token.on(result);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
+
+    @Test
+    public void sessionRevivalTest() {
+
+    }
 
 }

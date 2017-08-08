@@ -90,6 +90,7 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                     if (users.length > 1) {
                         throw new RuntimeException("multiple users indexed with the same ID !");
                     }
+                    System.err.println("User not found");
                     callback.on(null);
                 } else {
                     Node user = users[0];
@@ -126,23 +127,22 @@ public class BaseAuthenticationManager implements AuthenticationManager {
 
     @Override
     public void resetPassword(String authKey, String newPass, Callback<Integer> callback) {
-        PasswordKey pk = _keyToPasswordKey.get(authKey);
+        PasswordKey pk = _keyToPasswordKey.remove(authKey);
         if (pk != null) {
-            _graph.lookup(0, System.currentTimeMillis(), pk.uid(), user -> {
-                if (user != null) {
-                    _keyToPasswordKey.remove(pk.authKey());
-                    if (System.currentTimeMillis() < pk.deadline()) {
+            if (System.currentTimeMillis() < pk.deadline()) {
+                _graph.lookup(0, System.currentTimeMillis(), pk.uid(), user -> {
+                    if (user != null) {
                         user.set(_passwordAttribute, Type.STRING, newPass);
                         _graph.save((ok) -> {
                             callback.on(1);
                         });
                     } else {
-                        callback.on(-1);
+                        throw new RuntimeException("Could not resolve user with uid:" + pk.uid());
                     }
-                } else {
-                    throw new RuntimeException("Could not resolve user with uid:" + pk.uid());
-                }
-            });
+                });
+            } else {
+                callback.on(-1);
+            }
         } else {
             callback.on(-2);
         }

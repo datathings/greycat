@@ -45,9 +45,9 @@ public class SecWSServer extends WSServer {
         handlers.put("/renewpasswd", new GCResetPasswordHandler(this._acm));
 
         long delay = this._acm.getSessionsManager().getInactivityDelay();
-        int minutes = (int) (delay / (60*1000));
+        int minutes = (int) (delay / (60 * 1000));
         TimeUnit unitToUse;
-        if(minutes > 0 ) {
+        if (minutes > 0) {
             unitToUse = TimeUnit.MINUTES;
         } else {
             unitToUse = TimeUnit.SECONDS;
@@ -77,15 +77,17 @@ public class SecWSServer extends WSServer {
                     System.out.println("Session " + session.sessionId() + " has expired. Closing WS.");
                     peers.remove(webSocketChannel);
                     try {
-                        webSocketChannel.setCloseCode(StatusCodes.UNAUTHORIZED);
-                        webSocketChannel.setCloseReason("Session expired.");
-                        webSocketChannel.sendClose();
                         webSocketChannel.addCloseTask(channel -> {
                             System.out.println("WS Close listener= => Clearing session");
                             PeerInternalListener lst = (PeerInternalListener) ((ChannelListener.SimpleSetter) channel.getReceiveSetter()).get();
                             String sessionK = (String) lst.graph().getProperty(AUTH_PARAM_KEY);
                             sessionManager.clearSession(sessionK);
                         });
+                        webSocketChannel.suspendReceives();
+                        webSocketChannel.setCloseCode(StatusCodes.UNAUTHORIZED);
+                        webSocketChannel.setCloseReason("Session expired.");
+                        webSocketChannel.sendClose();
+                        webSocketChannel.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

@@ -41,7 +41,6 @@ public class BaseAccessControlManager implements AccessControlManager {
 
     @Override
     public void shutdown() {
-        System.out.println("Shutting down ACM");
         CountDownLatch latch = new CountDownLatch(5);
         this._authManager.save(result -> {
             latch.countDown();
@@ -56,12 +55,10 @@ public class BaseAccessControlManager implements AccessControlManager {
             latch.countDown();
         });
         this._graph.disconnect(disconnected -> {
-            System.out.println("Root graph disconnected");
             latch.countDown();
         });
         try {
             latch.await();
-            System.out.println("ACM shutdown complete");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -90,19 +87,15 @@ public class BaseAccessControlManager implements AccessControlManager {
 
                         _graph.declareIndex(-1, _acIndexName, newAcmIndex -> {
                             newAcmIndex.setGroup(4);
-                            System.out.println("ACM:LoadingInitialData");
                             this._authManager.loadInitialData(result -> {
-                                System.out.println("ACM:AuthManager:Done:" + result);
                                 ready[0] = result;
                                 latch.countDown();
                             });
                             this._groupsManager.loadInitialData(result -> {
-                                System.out.println("ACM:GroupsManager:Done:" + result);
                                 ready[1] = result;
                                 latch.countDown();
                             });
                             this._permissionsManager.loadInitialData(result -> {
-                                System.out.println("ACM:PermissionsManager:Done:" + result);
                                 ready[2] = result;
                                 latch.countDown();
                             });
@@ -212,7 +205,11 @@ public class BaseAccessControlManager implements AccessControlManager {
         } else {
             //Check if group is in explicit read permissions
             int[] userWriteGroups = userPermissions.write();
-            return match(resourceGroup, userWriteGroups);
+            boolean matched = match(resourceGroup, userWriteGroups);
+            if(!matched) {
+                System.out.println("Write rejected:"+ uid + ":"+gid);
+            }
+            return matched;
         }
     }
 
