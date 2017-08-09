@@ -67,6 +67,9 @@ public class BaseAccessControlManager implements AccessControlManager {
 
     @Override
     public void start(Callback<Boolean> callback) {
+        _graph.storage().listen(result -> {
+            _graph.remoteNotify(result);
+        });
         _graph.connect(connected -> {
             _graph.indexNames(-1, System.currentTimeMillis(), indexNames -> {
                 try {

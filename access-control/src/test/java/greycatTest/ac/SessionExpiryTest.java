@@ -74,24 +74,25 @@ public class SessionExpiryTest {
     public void sessionExpiryTest() {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         TestsUtils.authenticateAndConnect("admin", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", graph -> {
-
-            graph.lookup(-1, System.currentTimeMillis(), 1, node -> {
-                assertNotNull(node);
-                executor.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            graph.lookup(0, System.currentTimeMillis(), 2, node2 -> {
+            graph.connect(connected -> {
+                graph.lookup(-1, System.currentTimeMillis(), 1, node -> {
+                    assertNotNull(node);
+                    executor.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                graph.lookup(0, System.currentTimeMillis(), 2, node2 -> {
+                                    latch.countDown();
+                                    fail();
+                                });
+                            } catch (Exception e) {
                                 latch.countDown();
-                                fail();
-                            });
-                        } catch (Exception e) {
-                          latch.countDown();
-                          return;
+                                return;
+                            }
+                            fail();
                         }
-                        fail();
-                    }
-                }, 2, TimeUnit.SECONDS);
+                    }, 2, TimeUnit.SECONDS);
+                });
             });
         });
         try {
@@ -101,10 +102,5 @@ public class SessionExpiryTest {
         }
     }
 
-
-    @Test
-    public void sessionRevivalTest() {
-
-    }
 
 }

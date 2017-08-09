@@ -6,10 +6,10 @@ import greycat.ac.SessionManager;
 import greycat.plugin.NodeState;
 import greycat.struct.EStructArray;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Gregory NAIN on 05/08/2017.
@@ -20,9 +20,8 @@ public class BaseSessionsManager implements SessionManager {
     private String _acIndexName;
     private long _inactivityDelay = 10 * 60 * 1000; // 10 minutes
 
-    private Map<Long, BaseSession> _usersSessions = new HashMap<>();
-    private Map<String, BaseSession> _sessionIdSessions = new HashMap<>();
-
+    private Map<Long, Session> _usersSessions = new HashMap<>();
+    private Map<String, Session> _sessionIdSessions = new HashMap<>();
 
     public BaseSessionsManager(Graph _graph, String acIndexName) {
         this._graph = _graph;
@@ -41,8 +40,8 @@ public class BaseSessionsManager implements SessionManager {
     }
 
     @Override
-    public BaseSession getOrCreateSession(long uid) {
-        BaseSession session = _usersSessions.get(uid);
+    public Session getOrCreateSession(long uid) {
+        Session session = _usersSessions.get(uid);
         if (session == null) {
             session = new BaseSession(uid, UUID.randomUUID().toString(), _inactivityDelay);
             _usersSessions.put(session.uid(), session);
@@ -81,7 +80,7 @@ public class BaseSessionsManager implements SessionManager {
                         return;
                     }
                     attKeys.add(attributeKey);
-                    BaseSession session = BaseSession.load((EStructArray) elem);
+                    Session session = BaseSession.load((EStructArray) elem);
                     if (!session.isExpired()) {
                         _sessionIdSessions.put(session.sessionId(), session);
                         _usersSessions.put(session.uid(), session);
@@ -109,9 +108,11 @@ public class BaseSessionsManager implements SessionManager {
                     sessionsNode = sessions[0];
                 }
                 int i = 0;
-                for (BaseSession session : _sessionIdSessions.values()) {
-                    EStructArray securityGroupContainer = (EStructArray) sessionsNode.getOrCreateAt(i++, Type.ESTRUCT_ARRAY);
-                    session.save(securityGroupContainer);
+                for (Session session : _sessionIdSessions.values()) {
+                    if (!session.isExpired()) {
+                        EStructArray securityGroupContainer = (EStructArray) sessionsNode.getOrCreateAt(i++, Type.ESTRUCT_ARRAY);
+                        session.save(securityGroupContainer);
+                    }
                 }
                 _graph.save(done);
             }, "sessions");

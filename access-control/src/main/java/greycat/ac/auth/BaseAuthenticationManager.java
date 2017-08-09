@@ -2,10 +2,14 @@ package greycat.ac.auth;
 
 import greycat.*;
 import greycat.ac.AuthenticationManager;
+import greycat.ac.Session;
 import greycat.plugin.NodeState;
 import greycat.struct.EStructArray;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Gregory NAIN on 05/08/2017.
@@ -26,9 +30,19 @@ public class BaseAuthenticationManager implements AuthenticationManager {
 
     private boolean _locked = false;
 
+    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
     public BaseAuthenticationManager(Graph _graph, String acIndexName) {
         this._graph = _graph;
         this._acIndexName = acIndexName;
+        executor.scheduleAtFixedRate(() -> {
+            Collection<PasswordKey> pks = new ArrayList<>(_keyToPasswordKey.values());
+            for(PasswordKey pk : pks) {
+                if(System.currentTimeMillis() > pk.deadline()) {
+                    _keyToPasswordKey.remove(pk.authKey());
+                }
+            }
+        }, 20, 20, TimeUnit.SECONDS);
     }
 
     @Override
@@ -194,8 +208,10 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                 }
                 int i = 0;
                 for (PasswordKey pk : _keyToPasswordKey.values()) {
-                    EStructArray passwordKeyContainer = (EStructArray) passwdKeysNode.getOrCreateAt(i++, Type.ESTRUCT_ARRAY);
-                    pk.save(passwordKeyContainer);
+                    if (System.currentTimeMillis() < pk.deadline()) {
+                        EStructArray passwordKeyContainer = (EStructArray) passwdKeysNode.getOrCreateAt(i++, Type.ESTRUCT_ARRAY);
+                        pk.save(passwordKeyContainer);
+                    }
                 }
                 _graph.save(done);
             }, "passwdKeys");

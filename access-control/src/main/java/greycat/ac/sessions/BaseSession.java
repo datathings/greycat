@@ -15,7 +15,7 @@ public class BaseSession implements Session {
     private static final int UID_IDX = 0;
     private static final int SESSION_ID_IDX = 1;
     private static final int LAST_HIT_IDX = 2;
-    private static final int VALIDITY_IDX = 2;
+    private static final int VALIDITY_IDX = 3;
 
     private long _uid;
     private String _sessionId;
@@ -61,7 +61,8 @@ public class BaseSession implements Session {
         return System.currentTimeMillis() > deadline();
     }
 
-    void save(EStructArray container) {
+    @Override
+    public void save(EStructArray container) {
         EStruct root = container.root();
         if(root == null) {
             root = container.newEStruct();
@@ -88,7 +89,7 @@ public class BaseSession implements Session {
 
     @Override
     public String toString() {
-        return "{uid: "+_uid+", sessionId: "+_sessionId+", deadline: "+ new Date(deadline()).toString()+"}";
+        return "{uid: "+_uid+", sessionId: "+_sessionId+", lastHit: "+_lastHit+", validity: "+_validityPeriod+", deadline:"+ new Date(deadline()).toString()+"}";
     }
 
 }

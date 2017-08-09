@@ -6,6 +6,7 @@ import greycat.GraphBuilder;
 import greycat.websocket.SecWSClient;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -24,7 +25,7 @@ public class TestsUtils {
     public static void connectGraph(String token, Callback<Graph> callback) {
 
         Graph graph = GraphBuilder.newBuilder()
-                .withStorage(new SecWSClient("ws://localhost:7071/ws", token.split("#")[0])).build();
+                .withStorage(new SecWSClient("ws://localhost:7071/ws", token.split("#")[1])).build();
         graph.connect(connected -> {
             callback.on(graph);
         });
@@ -47,7 +48,7 @@ public class TestsUtils {
                 postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
             }
             String urlParameters = postData.toString();
-            URLConnection conn = url.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setDoOutput(true);
 
@@ -55,16 +56,25 @@ public class TestsUtils {
             writer.write(urlParameters);
             writer.flush();
 
-            String result = "";
+            String result = conn.getResponseCode() + "#";
             String line;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
-            while ((line = reader.readLine()) != null) {
-                result += line;
+            if (conn.getResponseCode() < 300) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                while ((line = reader.readLine()) != null) {
+                    result += line;
+                }
+                writer.close();
+                reader.close();
+                callback.on(result);
+            } else {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                while ((line = reader.readLine()) != null) {
+                    result += line;
+                }
+                writer.close();
+                reader.close();
+                callback.on(result);
             }
-            writer.close();
-            reader.close();
-            callback.on(result);
         } catch (Exception e) {
             e.printStackTrace();
         }

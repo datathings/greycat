@@ -5,47 +5,21 @@ import greycat.GraphBuilder;
 import greycat.ac.Group;
 import greycat.ac.Permission;
 import greycat.ac.PermissionsManager;
+import greycat.ac.Session;
 import greycat.ac.groups.BaseGroupsManager;
 import greycat.ac.permissions.BasePermissionsManager;
 import greycat.ac.sessions.BaseSession;
 import greycat.ac.sessions.BaseSessionsManager;
 import org.junit.Test;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Created by Gregory NAIN on 05/08/2017.
  */
 public class LoadSaveTests {
 
-    @Test
-    public void sessionsTest() {
-        MockStorage storage = new MockStorage();
-        Graph graph = GraphBuilder.newBuilder().withStorage(storage).build();
-        graph.connect(connected -> {
 
-            graph.declareIndex(-1, "idx", nodeIndex -> {
-
-                BaseSessionsManager manager = new BaseSessionsManager(graph, "idx");
-                BaseSession s = manager.getOrCreateSession(1);
-                manager.save(saveDone -> {
-                    graph.disconnect(disconnected -> {
-                        Graph graph2 = GraphBuilder.newBuilder().withStorage(storage).build();
-                        graph2.connect(connected2 -> {
-                            BaseSessionsManager manager2 = new BaseSessionsManager(graph, "idx");
-                            manager2.load(loadDone -> {
-                                BaseSession loaded = manager2.getOrCreateSession(1);
-                                assertEquals(s.sessionId(), loaded.sessionId());
-                            });
-                        });
-                    });
-                });
-
-            }, "name");
-        });
-    }
 
     @Test
     public void permissionsTest() {
