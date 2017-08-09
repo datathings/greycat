@@ -25,6 +25,8 @@ public interface LongLongArrayMap extends Map {
      */
     long[] get(long key);
 
+    LongLongArrayMap putWithoutCheck(long insertKey, long insertValue);
+
     /**
      * Add the tuple key/value to the getOrCreateMap.
      * This getOrCreateMap allows keys conflicts.
