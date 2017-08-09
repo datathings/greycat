@@ -82,6 +82,27 @@ public class BaseAuthenticationManager implements AuthenticationManager {
     }
 
     @Override
+    public void resetTwoFactorSecret(long uid, Callback<String> newSecret) {
+        if(this._otpManager == null) {
+            throw new RuntimeException("Two factor authentication not activated");
+        } else {
+            this._otpManager.resetSecret(uid, secret -> {
+                newSecret.on(secret.secret());
+            });
+        }
+    }
+
+    @Override
+    public void revokeTwoFactorSecret(long uid, Callback<Boolean> done) {
+        if(this._otpManager == null) {
+            throw new RuntimeException("Two factor authentication not activated");
+        } else {
+            this._otpManager.deleteSecret(uid, done);
+        }
+    }
+
+
+    @Override
     public AuthenticationManager setPasswordChangeKeyValidity(long duration) {
         this._passwordChangeKeyValidity = duration;
         return this;

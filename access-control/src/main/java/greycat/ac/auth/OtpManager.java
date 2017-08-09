@@ -55,8 +55,8 @@ public class OtpManager {
     public void verifyCredentials(long uid, Map<String, String> credentials, Callback<Long> callback) {
         load(uid, secret -> {
             String code = credentials.get("otp");
-            if (secret != null && code != null && code.length() == 6) {
-                if (_engine.check_code(secret.secret(), Long.parseLong(code), System.currentTimeMillis())) {
+            if (secret != null && code != null && code.length() > 0 && code.length() < 10) {
+                if (_engine.check_code(secret.secret(), code, System.currentTimeMillis())) {
                     callback.on(uid);
                 } else {
                     callback.on(null);
@@ -81,14 +81,14 @@ public class OtpManager {
                 } else {
                     otpNode = otpNodes[0];
                 }
-                otpNode.getIndex("idx").find(secretsNodes -> {
+                ((Index) otpNode.getAt(0)).find(secretsNodes -> {
                     if (secretsNodes == null || secretsNodes.length == 0) {
                         done.on(null);
                     } else {
                         done.on(OtpSecret.load(secretsNodes[0]));
                     }
                 }, acIndex.world(), acIndex.time(), "" + uid);
-            }, "otp");
+            }, "secrets");
         });
 
     }
@@ -103,17 +103,20 @@ public class OtpManager {
                 } else {
                     otpNode = otpNodes[0];
                 }
-                Index localIndex = otpNode.getIndex("idx");
+                Index localIndex = (Index) otpNode.getAt(0);
                 localIndex.find(secretsNodes -> {
                     if (secretsNodes == null || secretsNodes.length == 0) {
                         done.on(true);
                     } else {
                         localIndex.unindex(secretsNodes[0]);
-                        secretsNodes[0].drop(result ->
-                                _graph.save(done));
+                        _graph.save((saved) -> {
+                            secretsNodes[0].drop(result ->
+                                    done.on(true));
+                        });
+
                     }
                 }, acIndex.world(), acIndex.time(), "" + uid);
-            }, "otp");
+            }, "secrets");
         });
 
     }
@@ -126,18 +129,20 @@ public class OtpManager {
                     otpNode = _graph.newNode(acIndex.world(), acIndex.time());
                     otpNode.setGroup(2);
                     otpNode.set("name", Type.STRING, "secrets");
-                    otpNode.getIndex("idx").declareAttributes(null, "uid");
+                    ((Index) otpNode.getOrCreateAt(0, Type.INDEX)).declareAttributes(null, "uid");
                     acIndex.update(otpNode);
                 } else {
                     otpNode = otpNodes[0];
                 }
-                otpNode.getIndex("idx").find(secretsNodes -> {
+                Index otpIndex = (Index) otpNode.getAt(0);
+                otpIndex.find(secretsNodes -> {
 
                     if (secretsNodes == null || secretsNodes.length == 0) {
                         _graph.lookup(0, acIndex.time(), uid, userNode -> {
                             Node secretNode = _graph.newNode(acIndex.world(), acIndex.time());
                             secretNode.setGroup(userNode.group());
                             secret.save(secretNode);
+                            otpIndex.update(secretNode);
                             _graph.save(done);
                         });
                     } else {
@@ -147,7 +152,7 @@ public class OtpManager {
 
                 }, acIndex.world(), acIndex.time(), "" + uid);
 
-            }, "otp");
+            }, "secrets");
         });
     }
 

@@ -21,6 +21,10 @@ public interface AuthenticationManager {
 
     AuthenticationManager activateTwoFactorsAuth(String issuer, boolean strict);
 
+    void resetTwoFactorSecret(long uid, Callback<String> newSecret);
+
+    void revokeTwoFactorSecret(long uid, Callback<Boolean> done);
+
     AuthenticationManager setPasswordChangeKeyValidity(long duration);
 
     void verifyCredentials(Map<String, String> credentials, Callback<Long> callback);

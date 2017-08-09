@@ -18,14 +18,22 @@ import java.util.Map;
  */
 public class TestsUtils {
 
-    public static void authenticateAndConnect(String login, String password,Callback<Graph> callback) {
+    public static void authenticateAndConnect(String login, String password, Callback<Graph> callback) {
         getAuthToken(login, password, token -> connectGraph(token, callback));
     }
 
-    public static void connectGraph(String token, Callback<Graph> callback) {
+    public static void authenticateAndConnect(String login, String password, String pin, Callback<Graph> callback) {
+        getAuthToken(login, password, pin, token -> connectGraph(token, callback));
+    }
 
+    public static void connectGraph(String token, Callback<Graph> callback) {
+        String[] params = token.split("#");
+        if(params.length < 2) {
+            callback.on(null);
+            return;
+        }
         Graph graph = GraphBuilder.newBuilder()
-                .withStorage(new SecWSClient("ws://localhost:7071/ws", token.split("#")[1])).build();
+                .withStorage(new SecWSClient("ws://localhost:7071/ws", params[1])).build();
         graph.connect(connected -> {
             callback.on(graph);
         });
@@ -33,12 +41,19 @@ public class TestsUtils {
     }
 
     public static void getAuthToken(String login, String password, Callback<String> callback) {
+        getAuthToken(login, password, null, callback);
+    }
+
+    public static void getAuthToken(String login, String password, String twoFactor, Callback<String> callback) {
         try {
             URL url = new URL("http://localhost:7071/auth");
 
             Map<String, Object> params = new HashMap<>();
             params.put("login", login);
             params.put("pass", password);
+            if (twoFactor != null) {
+                params.put("otp", twoFactor);
+            }
 
             StringBuilder postData = new StringBuilder();
             for (Map.Entry<String, Object> param : params.entrySet()) {
@@ -67,12 +82,14 @@ public class TestsUtils {
                 reader.close();
                 callback.on(result);
             } else {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-                while ((line = reader.readLine()) != null) {
-                    result += line;
+                if (conn.getErrorStream() != null) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                    while ((line = reader.readLine()) != null) {
+                        result += line;
+                    }
+                    writer.close();
+                    reader.close();
                 }
-                writer.close();
-                reader.close();
                 callback.on(result);
             }
         } catch (Exception e) {
