@@ -6,7 +6,7 @@ package greycatBlasTest;
 import greycat.*;
 import greycat.blas.BlasPlugin;
 import greycat.ml.MLPlugin;
-import greycat.ml.neuralnet.NeuralNet;
+import greycat.ml.neuralnet.NeuralNetWrapper;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.loss.Losses;
@@ -54,7 +54,7 @@ public class VectorizedNN {
 
                 Node node1 = g.newNode(0, 0);
                 EStructArray egraph1 = (EStructArray) node1.getOrCreate("nn1", Type.ESTRUCT_ARRAY);
-                NeuralNet net1 = new NeuralNet(egraph1);
+                NeuralNetWrapper net1 = new NeuralNetWrapper(egraph1);
                 net1.setRandom(1234, 0.1);
                 net1.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net1.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate/trainset, regularisation}, 1);
@@ -63,7 +63,7 @@ public class VectorizedNN {
 
                 Node node2 = g.newNode(0, 0);
                 EStructArray egraph2 = (EStructArray) node2.getOrCreate("nn2", Type.ESTRUCT_ARRAY);
-                NeuralNet net2 = new NeuralNet(egraph2);
+                NeuralNetWrapper net2 = new NeuralNetWrapper(egraph2);
                 net2.setRandom(1234, 0.1);
                 net2.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net2.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 0);

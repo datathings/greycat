@@ -1,24 +1,17 @@
+/**
+ * Copyright 2017 DataThings - All rights reserved.
+ */
 package greycatTest.ac;
 
-import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
 import greycat.*;
 import greycat.ac.AccessControlManager;
 import greycat.ac.BaseAccessControlManager;
 import greycat.ac.storage.BaseStorageAccessController;
 import greycat.plugin.Storage;
-import greycat.websocket.SecWSClient;
 import greycat.websocket.SecWSServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

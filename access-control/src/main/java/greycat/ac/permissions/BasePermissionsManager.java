@@ -1,3 +1,6 @@
+/**
+ * Copyright 2017 DataThings - All rights reserved.
+ */
 package greycat.ac.permissions;
 
 import greycat.Callback;

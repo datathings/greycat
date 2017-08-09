@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2017 DataThings - All rights reserved.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -9,8 +14,11 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>storage-access-control</artifactId>
+    <artifactId>greycat-access-control</artifactId>
 
+    <properties>
+        <header.path>${basedir}/../LICENSE</header.path>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -20,7 +28,7 @@
         </dependency>
         <dependency>
             <groupId>com.datathings.enterprise</groupId>
-            <artifactId>secwebsocket</artifactId>
+            <artifactId>greycat-secured-websocket</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
@@ -28,6 +36,7 @@
             <groupId>com.eclipsesource.minimal-json</groupId>
             <artifactId>minimal-json</artifactId>
             <version>0.9.4</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

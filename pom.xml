@@ -23,7 +23,7 @@
         <module>greycat</module>
         <module>excel</module>
         <module>blas</module>
-        <module>secwebsocket</module>
+        <module>secured-websocket</module>
         <module>email</module>
         <module>access-control</module>
         <!--

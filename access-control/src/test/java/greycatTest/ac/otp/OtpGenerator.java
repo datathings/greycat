@@ -1,3 +1,6 @@
+/**
+ * Copyright 2017 DataThings - All rights reserved.
+ */
 package greycatTest.ac.otp;
 
 import greycat.ac.auth.Base32String;

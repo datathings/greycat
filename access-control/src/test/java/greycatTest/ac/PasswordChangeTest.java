@@ -1,3 +1,6 @@
+/**
+ * Copyright 2017 DataThings - All rights reserved.
+ */
 package greycatTest.ac;
 
 import greycat.*;
@@ -114,7 +117,7 @@ public class PasswordChangeTest {
                                     //System.out.println(passwordRenewResult);
                                     TestsUtils.authenticateAndConnect("Test", "007", testGraph -> {
                                         latch.countDown();
-                                        if(! (testGraph == null)) {
+                                        if(testGraph == null) {
                                             fail("Could not connect client after password renewed.");
                                         }
                                     });
@@ -142,15 +145,14 @@ public class PasswordChangeTest {
                 }
                 testGraph.disconnect(disconnected -> {
                     try {
-                        Thread.sleep(4000);
+                        Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     changePassword(runtimeExpireTestToken, "007", expiredRenewalAnswer -> {
                         latch.countDown();
-                        //System.out.println(expiredRenewalAnswer);
                         if(!expiredRenewalAnswer.split("#")[0].equals("401")) {
-                            fail("Should have been rejected");
+                            fail("Should have been rejected:" + expiredRenewalAnswer);
                         }
                         //assertEquals("401", );
                     });
