@@ -26,7 +26,7 @@ See the test/ directory for more examples
 
 ## Payload format
 
-The MQTT payload have to comply with the following JSON structure:
+The MQTT payload has to comply with the following JSON structure:
 
 ```
 {"id":node_indexed_id,
@@ -39,8 +39,8 @@ The MQTT payload have to comply with the following JSON structure:
 }
 ```
 where:
-* `node_indexed_id` is the indexed attribute of the node (STRING)
-* `time` is a timestamp
+* `node_indexed_id` is the **indexed** attribute of the node (STRING)
+* `time` is a UNIX timestamp
 *  `values` contains a list of attributes to create or update for the specified timestamp:
     * `attr1` is the attribute's name
     * `value` is the attribute's value
@@ -60,7 +60,5 @@ The following example shows a JSON payload received through a MQTT subscription:
 
 ## Writing a custom message handler
 
-A custom message handler has to extend the `MessageHandler` abstract class and define the `messageArrived` method.
+A custom message handler extends the `MessageHandler` abstract class and overrides the `messageArrived` method.
 The `DefaultMessageHandler` class shows an implementation example.
-
-
