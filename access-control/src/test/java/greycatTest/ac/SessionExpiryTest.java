@@ -66,7 +66,7 @@ public class SessionExpiryTest {
     @Test
     public void sessionExpiryTest() {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        TestsUtils.authenticateAndConnect("admin", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", graph -> {
+        TestsUtils.authenticateAndConnect("admin@local.host", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", graph -> {
             graph.connect(connected -> {
                 graph.lookup(-1, System.currentTimeMillis(), 1, node -> {
                     assertNotNull(node);

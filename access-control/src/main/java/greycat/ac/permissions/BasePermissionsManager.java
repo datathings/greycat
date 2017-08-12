@@ -25,6 +25,7 @@ public class BasePermissionsManager implements PermissionsManager {
     private Graph _graph;
     private String _acmIndexName;
 
+
     private Map<Long, Permission> _permissions = new HashMap<>();
 
     public BasePermissionsManager(Graph rootAccessGraph, String acmIndexName) {
@@ -93,6 +94,7 @@ public class BasePermissionsManager implements PermissionsManager {
         });
     }
 
+    @Override
     public void save(Callback<Boolean> done) {
         _graph.index(-1, System.currentTimeMillis(), _acmIndexName, acIndex -> {
             acIndex.findFrom(permsNodes -> {
@@ -116,9 +118,12 @@ public class BasePermissionsManager implements PermissionsManager {
         });
     }
 
-    public void loadInitialData(Callback<Boolean> done) {
-        add(3, PermissionsManager.READ_ALLOWED, 1);
-        add(3, PermissionsManager.WRITE_ALLOWED, new int[]{0, 1});
+    @Override
+    public void loadInitialData(boolean createAdminAtBoot, Callback<Boolean> done) {
+        if (createAdminAtBoot) {
+            add(3, PermissionsManager.READ_ALLOWED, 1);
+            add(3, PermissionsManager.WRITE_ALLOWED, new int[]{0, 1});
+        }
         _graph.save(done);
     }
 

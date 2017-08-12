@@ -3,6 +3,8 @@
  */
 package greycat.ac;
 
+import greycat.Callback;
+
 import java.util.Collection;
 
 /**
@@ -15,4 +17,13 @@ public interface GroupsManager {
     Group get(int gid);
 
     Group add(Group parent, String name);
+
+
+    void load(Callback<Boolean> done);
+
+    void save(Callback<Boolean> done);
+
+    void loadInitialData(Callback<Boolean> done);
+
+    void printCurrentConfiguration(StringBuilder sb);
 }

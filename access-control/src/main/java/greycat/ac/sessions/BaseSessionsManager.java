@@ -122,4 +122,9 @@ public class BaseSessionsManager implements SessionManager {
         });
     }
 
+    @Override
+    public void printCurrentConfiguration(StringBuilder sb) {
+
+    }
+
 }

@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 
 import static greycat.Tasks.newTask;
 import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -93,7 +92,8 @@ public class PasswordChangeTest {
 
     @Test
     public void _0passwordChangeTest() {
-        TestsUtils.authenticateAndConnect("admin", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", adminGraph -> {
+        TestsUtils.authenticateAndConnect("admin@local.host", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", adminGraph -> {
+            assertNotNull(adminGraph);
             addTestUser(adminGraph, acm, "Test", testUserAdded -> {
                 // retrieve Test user
                 newTask().travelInTime("" + System.currentTimeMillis()).lookup("274877906945")

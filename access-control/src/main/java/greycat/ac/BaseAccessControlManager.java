@@ -5,9 +5,7 @@ package greycat.ac;
 
 import greycat.*;
 import greycat.ac.auth.BaseAuthenticationManager;
-import greycat.ac.groups.BaseGroup;
 import greycat.ac.groups.BaseGroupsManager;
-import greycat.ac.permissions.BasePermission;
 import greycat.ac.permissions.BasePermissionsManager;
 import greycat.ac.sessions.BaseSessionsManager;
 
@@ -20,10 +18,12 @@ public class BaseAccessControlManager implements AccessControlManager {
 
     private Graph _graph;
     private String _acIndexName = "$acm";
-    private BaseGroupsManager _groupsManager;
-    private BasePermissionsManager _permissionsManager;
+    private GroupsManager _groupsManager;
+    private PermissionsManager _permissionsManager;
     private AuthenticationManager _authManager;
     private SessionManager _sessionManager;
+
+    private boolean _createAdminAtBoot = true;
 
 
     public BaseAccessControlManager(Graph graph) {
@@ -34,6 +34,12 @@ public class BaseAccessControlManager implements AccessControlManager {
         this._authManager = new BaseAuthenticationManager(_graph, _acIndexName);
         this._sessionManager = new BaseSessionsManager(_graph, _acIndexName);
 
+    }
+
+    @Override
+    public AccessControlManager doNotCreateAdminAtBoot() {
+        this._createAdminAtBoot = false;
+        return this;
     }
 
     @Override
@@ -93,7 +99,7 @@ public class BaseAccessControlManager implements AccessControlManager {
 
                         _graph.declareIndex(-1, _acIndexName, newAcmIndex -> {
                             newAcmIndex.setGroup(4);
-                            this._authManager.loadInitialData(result -> {
+                            this._authManager.loadInitialData(_createAdminAtBoot, result -> {
                                 ready[0] = result;
                                 latch.countDown();
                             });
@@ -101,7 +107,7 @@ public class BaseAccessControlManager implements AccessControlManager {
                                 ready[1] = result;
                                 latch.countDown();
                             });
-                            this._permissionsManager.loadInitialData(result -> {
+                            this._permissionsManager.loadInitialData(_createAdminAtBoot, result -> {
                                 ready[2] = result;
                                 latch.countDown();
                             });

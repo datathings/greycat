@@ -24,6 +24,7 @@ public class BaseAuthenticationManager implements AuthenticationManager {
     private String _usersIndexName = "Users";
     private String _loginAttribute = "login";
     private String _passwordAttribute = "pass";
+    private String _firstAdminLogin = "admin@local.host";
 
     private long _passwordChangeKeyValidity = 5 * 60 * 1000;
 
@@ -40,8 +41,8 @@ public class BaseAuthenticationManager implements AuthenticationManager {
         this._acIndexName = acIndexName;
         executor.scheduleAtFixedRate(() -> {
             Collection<PasswordKey> pks = new ArrayList<>(_keyToPasswordKey.values());
-            for(PasswordKey pk : pks) {
-                if(System.currentTimeMillis() > pk.deadline()) {
+            for (PasswordKey pk : pks) {
+                if (System.currentTimeMillis() > pk.deadline()) {
                     _keyToPasswordKey.remove(pk.authKey());
                 }
             }
@@ -79,6 +80,16 @@ public class BaseAuthenticationManager implements AuthenticationManager {
     }
 
     @Override
+    public AuthenticationManager setFirstAdminLogin(String adminLogin) {
+        if (_locked) {
+            throw new RuntimeException("Password attribute name must be done before ACM initialization.");
+        } else {
+            this._firstAdminLogin = adminLogin;
+        }
+        return this;
+    }
+
+    @Override
     public AuthenticationManager activateTwoFactorsAuth(String issuer, boolean strict) {
         this._otpManager = new OtpManager(_graph, _acIndexName, issuer, strict);
         return this;
@@ -86,7 +97,7 @@ public class BaseAuthenticationManager implements AuthenticationManager {
 
     @Override
     public void resetTwoFactorSecret(long uid, Callback<String> newSecret) {
-        if(this._otpManager == null) {
+        if (this._otpManager == null) {
             throw new RuntimeException("Two factor authentication not activated");
         } else {
             this._otpManager.resetSecret(uid, secret -> {
@@ -96,8 +107,16 @@ public class BaseAuthenticationManager implements AuthenticationManager {
     }
 
     @Override
+    public String getAuthenticatorUri(Node user, String secret) {
+        if (_otpManager == null) {
+            throw new RuntimeException("Two Factor not activated. Cannot get Authenticator URI.");
+        }
+        return OtpEngine.getAuthenticatorUri((String) user.get(_loginAttribute), secret, _otpManager.getIssuer());
+    }
+
+    @Override
     public void revokeTwoFactorSecret(long uid, Callback<Boolean> done) {
-        if(this._otpManager == null) {
+        if (this._otpManager == null) {
             throw new RuntimeException("Two factor authentication not activated");
         } else {
             this._otpManager.deleteSecret(uid, done);
@@ -243,16 +262,22 @@ public class BaseAuthenticationManager implements AuthenticationManager {
     }
 
     @Override
-    public void loadInitialData(Callback<Boolean> done) {
+    public void loadInitialData(boolean createAdminAtBoot, Callback<Boolean> done) {
         _graph.declareIndex(0, _usersIndexName, newUsersIndex -> {
             newUsersIndex.setGroup(2);
 
-            Node admin = _graph.newNode(0, System.currentTimeMillis());
-            admin.setGroup(3);
-            admin.set(_loginAttribute, Type.STRING, "admin")
-                    .set(_passwordAttribute, Type.STRING, "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb");
-            newUsersIndex.update(admin);
-
+            if (createAdminAtBoot) {
+                Node admin = _graph.newNode(0, System.currentTimeMillis());
+                admin.setGroup(3);
+                admin.set(_loginAttribute, Type.STRING, this._firstAdminLogin)
+                        .set(_passwordAttribute, Type.STRING, "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb");
+                if (this._otpManager != null) {
+                    _otpManager.resetSecret(admin.id(), secret -> {
+                        System.out.println("Admin authenticator account: " + OtpEngine.getQRURL(this._firstAdminLogin, secret.secret(), _otpManager.getIssuer()));
+                    });
+                }
+                newUsersIndex.update(admin);
+            }
             this._locked = true;
             done.on(true);
         }, _loginAttribute);

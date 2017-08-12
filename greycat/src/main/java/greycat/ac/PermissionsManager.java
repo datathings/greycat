@@ -3,6 +3,8 @@
  */
 package greycat.ac;
 
+import greycat.Callback;
+
 import java.util.Collection;
 
 /**
@@ -21,4 +23,13 @@ public interface PermissionsManager {
     boolean add(long uid, int permType, int gid);
 
     boolean add(long uid, int permType, int[] gids);
+
+
+    void load(Callback<Boolean> done);
+
+    void save(Callback<Boolean> done);
+
+    void loadInitialData(boolean createAdminAtBoot, Callback<Boolean> done);
+
+    void printCurrentConfiguration(StringBuilder sb);
 }

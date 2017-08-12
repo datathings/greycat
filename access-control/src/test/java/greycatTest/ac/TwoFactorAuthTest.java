@@ -105,7 +105,7 @@ public class TwoFactorAuthTest {
     public void _0otpConnectionTest() {
 
         String pin = OtpGenerator.computePin(adminSecret, System.currentTimeMillis());
-        TestsUtils.authenticateAndConnect("admin", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", pin, graph -> {
+        TestsUtils.authenticateAndConnect("admin@local.host", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", pin, graph -> {
             latch.countDown();
             if (graph == null) {
                 fail("could not connect");
@@ -123,7 +123,7 @@ public class TwoFactorAuthTest {
     public void _1noOtpConnectionTest() {
 
         String pin = OtpGenerator.computePin(adminSecret, System.currentTimeMillis());
-        TestsUtils.authenticateAndConnect("admin", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", graph -> {
+        TestsUtils.authenticateAndConnect("admin@local.host", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", graph -> {
             latch.countDown();
             if (graph != null) {
                 fail("Should not connect");
@@ -153,7 +153,7 @@ public class TwoFactorAuthTest {
         latch = new CountDownLatch(1);
 
         String pin = OtpGenerator.computePin(adminSecret, System.currentTimeMillis());
-        TestsUtils.authenticateAndConnect("admin", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", pin, graph -> {
+        TestsUtils.authenticateAndConnect("admin@local.host", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", pin, graph -> {
             latch.countDown();
             if (graph == null) {
                 fail("could not connect");
@@ -181,7 +181,7 @@ public class TwoFactorAuthTest {
         latch = new CountDownLatch(1);
 
         String pin = OtpGenerator.computePin(adminSecret, System.currentTimeMillis());
-        TestsUtils.authenticateAndConnect("admin", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", pin, graph -> {
+        TestsUtils.authenticateAndConnect("admin@local.host", "7c9619638d47730bd9c1509e0d553640b762d90dd3227bb7e6a5fc96bb274acb", pin, graph -> {
             latch.countDown();
             if (graph != null) {
                 fail("Should not connect");

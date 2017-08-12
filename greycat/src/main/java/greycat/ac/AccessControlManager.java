@@ -11,6 +11,8 @@ import greycat.Callback;
  */
 public interface AccessControlManager {
 
+    AccessControlManager doNotCreateAdminAtBoot();
+
     AccessControlManager setAcIndexName(String acIndexName);
 
     void shutdown();

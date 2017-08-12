@@ -57,21 +57,38 @@ public class Validator {
 
     public static boolean validate() {
 
-        /*
         File dir = new File(".");
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".ldt");
             }
-        });*/
-        InputStream licenseStream = Validator.class.getClassLoader().getResourceAsStream("license.ldt");
-        if (licenseStream == null) {
-            System.err.println("No license file was found!");
-            System.err.println("Please send a request to " + EntrepriseConstants.EMAIL + ", to receive a valid license file");
-            return false;
-        }
+        });
 
+        if(files != null && files.length != 0) {
+            for(File f : files) {
+                try {
+                    if(checkLicenseFromStream(new FileInputStream(f))) {
+                        return true;
+                    }
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            return false;
+        } else {
+            InputStream licenseStream = Validator.class.getClassLoader().getResourceAsStream("license.ldt");
+            if (licenseStream == null) {
+                System.err.println("No license file was found!");
+                System.err.println("Please send a request to " + EntrepriseConstants.EMAIL + ", to receive a valid license file");
+                return false;
+            } else {
+                return checkLicenseFromStream(licenseStream);
+            }
+        }
+    }
+
+    private static boolean checkLicenseFromStream(InputStream licenseStream) {
         StringBuilder sb = new StringBuilder();
         BufferedReader br;
 

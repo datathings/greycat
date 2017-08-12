@@ -5,6 +5,7 @@ package greycat.ac;
 
 
 import greycat.Callback;
+import greycat.Node;
 
 import java.util.Map;
 
@@ -19,9 +20,13 @@ public interface AuthenticationManager {
 
     AuthenticationManager setPasswordAttribute(String passwordAttribute);
 
+    AuthenticationManager setFirstAdminLogin(String adminLogin);
+
     AuthenticationManager activateTwoFactorsAuth(String issuer, boolean strict);
 
     void resetTwoFactorSecret(long uid, Callback<String> newSecret);
+
+    String getAuthenticatorUri(Node user, String secret);
 
     void revokeTwoFactorSecret(long uid, Callback<Boolean> done);
 
@@ -37,7 +42,7 @@ public interface AuthenticationManager {
 
     void save(Callback<Boolean> done);
 
-    void loadInitialData(Callback<Boolean> done);
+    void loadInitialData(boolean createAdminAtBoot, Callback<Boolean> done);
 
     void printCurrentConfiguration(StringBuilder sb);
 }

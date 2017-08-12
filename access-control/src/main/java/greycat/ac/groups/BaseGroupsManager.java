@@ -9,7 +9,6 @@ import greycat.Node;
 import greycat.Type;
 import greycat.ac.Group;
 import greycat.ac.GroupsManager;
-import greycat.ac.SecurityManager;
 import greycat.plugin.NodeState;
 import greycat.struct.EStructArray;
 
@@ -18,7 +17,7 @@ import java.util.*;
 /**
  * Created by Gregory NAIN on 04/08/2017.
  */
-public class BaseGroupsManager implements SecurityManager, GroupsManager {
+public class BaseGroupsManager implements GroupsManager {
 
     private Graph _graph;
     private String _acmIndexName;
@@ -91,6 +90,7 @@ public class BaseGroupsManager implements SecurityManager, GroupsManager {
         });
     }
 
+    @Override
     public void save(Callback<Boolean> done) {
         _graph.index(-1, System.currentTimeMillis(), _acmIndexName, acIndex -> {
             acIndex.findFrom(secGrpNodes -> {
@@ -112,6 +112,7 @@ public class BaseGroupsManager implements SecurityManager, GroupsManager {
         });
     }
 
+    @Override
     public void loadInitialData(Callback<Boolean> done) {
         add(null, "Public");
         Group rootAdmin = add(null, "Admin Root");

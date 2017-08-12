@@ -54,14 +54,14 @@ public class OtpEngine {
      */
     private static String qrCodeUrl = "https://www.google.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=otpauth://totp/%s%%3Fsecret%%3D%s%%26issuer%%3D%s";
 
-    public static String getQRBarcodeURL(String login, String secret, String issuer) {
+    public static String getQRURL(String login, String secret, String issuer) {
         return String.format(qrCodeUrl, login, secret, issuer);
     }
 
-    private static String authenticatorLink = "otpauth://totp/%s?secret=%s&issuer=%s";
+    private static String authenticatorUri = "otpauth://totp/%s?secret=%s&issuer=%s";
 
-    public static String getAuthenticatorLink(String login, String secret, String issuer) {
-        return String.format(authenticatorLink, login, secret, issuer);
+    public static String getAuthenticatorUri(String login, String secret, String issuer) {
+        return String.format(authenticatorUri, login, secret, issuer);
     }
 
     /**

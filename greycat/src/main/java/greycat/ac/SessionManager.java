@@ -23,4 +23,6 @@ public interface SessionManager {
     void load(Callback<Boolean> done);
 
     void save(Callback<Boolean> done);
+
+    void printCurrentConfiguration(StringBuilder sb);
 }
