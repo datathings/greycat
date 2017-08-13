@@ -17,42 +17,47 @@ import java.util.Arrays;
  */
 public class BaseGroup implements Group {
 
-    private int gid;
-    private String name;
-    private int[] path;
-    private int genIndex = 1;
+    private int _gid;
+    private int _parentGid;
+    private String _name;
+    private int[] _path;
+    private int _genIndex = 1;
 
     private BaseGroup(){};
 
-    BaseGroup(int gid, String name, int[] path) {
-        this.name = name;
-        this.path = path;
-        this.gid = gid;
+    BaseGroup(int gid, int parentGid, String name, int[] _path) {
+        this._name = name;
+        this._path = _path;
+        this._gid = gid;
+        this._parentGid = parentGid;
     }
 
     @Override
     public int gid() {
-        return gid;
+        return _gid;
     }
 
     @Override
     public String name() {
-        return name;
+        return _name;
     }
 
     @Override
     public int[] path() {
-        return path;
+        return _path;
     }
 
+    public int parentGid() {
+        return _parentGid;
+    }
 
     @Override
     public Group createSubGroup(int gid, String name) {
-        int[] childPath = new int[this.path.length+1];
-        System.arraycopy(this.path, 0, childPath, 0, this.path.length);
-        childPath[this.path.length] = this.genIndex;
-        genIndex++;
-        BaseGroup newGroup = new BaseGroup(gid, name, childPath);
+        int[] childPath = new int[this._path.length+1];
+        System.arraycopy(this._path, 0, childPath, 0, this._path.length);
+        childPath[this._path.length] = this._genIndex;
+        _genIndex++;
+        BaseGroup newGroup = new BaseGroup(gid, this._gid, name, childPath);
         return newGroup;
     }
 
@@ -63,10 +68,11 @@ public class BaseGroup implements Group {
         if(root == null) {
             root = container.newEStruct();
         }
-        root.set("gid", Type.INT, gid);
-        root.set("name", Type.STRING, name);
-        ((IntArray)root.getOrCreate("path", Type.INT_ARRAY)).addAll(path);
-        root.set("genIndex", Type.INT, genIndex);
+        root.set("gid", Type.INT, _gid);
+        root.set("parent", Type.INT, _parentGid);
+        root.set("name", Type.STRING, _name);
+        ((IntArray)root.getOrCreate("path", Type.INT_ARRAY)).addAll(_path);
+        root.set("genIndex", Type.INT, _genIndex);
     }
 
     static Group load(EStructArray container) {
@@ -75,15 +81,16 @@ public class BaseGroup implements Group {
         if(root == null) {
             throw new RuntimeException("Nothing to load !");
         }
-        sg.gid = (int)root.get("gid");
-        sg.name = (String) root.get("name");
-        sg.path = root.getIntArray("path").extract();
-        sg.genIndex = (int) root.get("genIndex");
+        sg._gid = (int)root.get("gid");
+        sg._parentGid = (int)root.get("parent");
+        sg._name = (String) root.get("name");
+        sg._path = root.getIntArray("path").extract();
+        sg._genIndex = (int) root.get("genIndex");
         return sg;
     }
 
     @Override
     public String toString() {
-        return "{gid: "+gid+", name: "+name+", path: "+ Arrays.toString(path)+"}";
+        return "{gid: "+ _gid +", parent: "+ _parentGid +", name: "+ _name +",_path: "+ Arrays.toString(_path)+"}";
     }
 }

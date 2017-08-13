@@ -44,7 +44,7 @@ public class BaseGroupsManager implements GroupsManager {
     public Group add(Group parent, String name) {
         Group newGroup;
         if (parent == null) {
-            newGroup = new BaseGroup(_groups.size(), name, new int[]{_rootGroups});
+            newGroup = new BaseGroup(_groups.size(), -1, name, new int[]{_rootGroups});
             _rootGroups++;
         } else {
             newGroup = parent.createSubGroup(_groups.size(), name);

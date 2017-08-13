@@ -26,6 +26,8 @@ public interface AuthenticationManager {
 
     void resetTwoFactorSecret(long uid, Callback<String> newSecret);
 
+    void setSecret(long uid, String secret, Callback<Boolean> done);
+
     String getAuthenticatorUri(Node user, String secret);
 
     void revokeTwoFactorSecret(long uid, Callback<Boolean> done);

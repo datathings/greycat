@@ -107,6 +107,17 @@ public class BaseAuthenticationManager implements AuthenticationManager {
     }
 
     @Override
+    public void setSecret(long uid, String secret, Callback<Boolean> done) {
+        if (this._otpManager == null) {
+            throw new RuntimeException("Two factor authentication not activated");
+        } else {
+            OtpSecret newSecret = new OtpSecret(uid, secret);
+            this._otpManager.setSecret(uid, newSecret, done);
+        }
+
+    }
+
+    @Override
     public String getAuthenticatorUri(Node user, String secret) {
         if (_otpManager == null) {
             throw new RuntimeException("Two Factor not activated. Cannot get Authenticator URI.");

@@ -43,6 +43,10 @@ public class OtpManager {
         });
     }
 
+    public void setSecret(long uid, OtpSecret newSecret, Callback<Boolean> done) {
+        save(uid, newSecret, done);
+    }
+
     public boolean isStrict() {
         return _strict;
     }

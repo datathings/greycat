@@ -77,18 +77,13 @@ public class BasePermissionsManager implements PermissionsManager {
                     permissionsNode = permissionNodes[0];
                 }
                 NodeState ns = _graph.resolver().resolveState(permissionsNode);
-                ArrayList<Integer> attKeys = new ArrayList<>();
                 ns.each((attributeKey, elemType, elem) -> {
                     if (elemType == Type.STRING) {
                         return;
                     }
-                    attKeys.add(attributeKey);
                     Permission p = BasePermission.load((EStructArray) elem);
                     _permissions.put(p.uid(), p);
                 });
-                for (int attKey : attKeys) {
-                    permissionsNode.removeAt(attKey);
-                }
                 _graph.save(done);
             }, "perms");
         });
@@ -107,6 +102,13 @@ public class BasePermissionsManager implements PermissionsManager {
                 } else {
                     permissionsNode = permsNodes[0];
                 }
+                NodeState ns = _graph.resolver().resolveState(permissionsNode);
+                ns.each((attributeKey, elemType, elem) -> {
+                    if (elemType == Type.STRING) {
+                        return;
+                    }
+                    permissionsNode.removeAt(attributeKey);
+                });
                 int i = 0;
                 for (Permission p : _permissions.values()) {
                     EStructArray permissionContainer = (EStructArray) permissionsNode.getOrCreateAt(i++, Type.ESTRUCT_ARRAY);
