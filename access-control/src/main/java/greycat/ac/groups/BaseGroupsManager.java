@@ -103,6 +103,13 @@ public class BaseGroupsManager implements GroupsManager {
                 } else {
                     securityGroupsNode = secGrpNodes[0];
                 }
+                NodeState ns = _graph.resolver().resolveState(securityGroupsNode);
+                ns.each((attributeKey, elemType, elem) -> {
+                    if (elemType == Type.STRING) {
+                        return;
+                    }
+                    securityGroupsNode.removeAt(attributeKey);
+                });
                 _groups.forEach((gid, securityGroup) -> {
                     EStructArray securityGroupContainer = (EStructArray) securityGroupsNode.getOrCreateAt(gid, Type.ESTRUCT_ARRAY);
                     securityGroup.save(securityGroupContainer);
