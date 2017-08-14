@@ -196,7 +196,11 @@ public class BaseAccessControlManager implements AccessControlManager {
         } else {
             //Check if group is in explicit read permissions
             int[] userReadGroups = userPermissions.read();
-            return match(resourceGroup, userReadGroups);
+            boolean matched = match(resourceGroup, userReadGroups);
+            if(!matched) {
+                System.out.println("Read rejected:"+ uid + ":"+gid);
+            }
+            return matched;
         }
     }
 

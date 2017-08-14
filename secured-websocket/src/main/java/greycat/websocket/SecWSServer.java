@@ -66,7 +66,7 @@ public class SecWSServer extends WSServer {
     private Runnable connectionsChecker = new Runnable() {
         @Override
         public void run() {
-            System.out.println("Sessions check");
+            //System.out.println("Sessions check");
             SessionManager sessionManager = _acm.getSessionsManager();
             ArrayList<WebSocketChannel> tmpPeers = new ArrayList<>(peers);
             tmpPeers.forEach(webSocketChannel -> {

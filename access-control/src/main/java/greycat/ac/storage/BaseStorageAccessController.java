@@ -112,6 +112,7 @@ public class BaseStorageAccessController implements Storage {
                     if (_acm.canRead(uid, group)) {
                         result.writeAll(in.slice(previous, cursor));
                     } else {
+                        System.out.println("GET Filtered out (uid: " + uid + ", gid: " + group + ") :" + (new String(in.slice(previous, cursor))));
                         result.write(Constants.BUFFER_SEP);
                     }
                     group = 0;
@@ -125,6 +126,7 @@ public class BaseStorageAccessController implements Storage {
                 result.writeAll(in.slice(previous, cursor - 1));
             }
         } else {
+            System.out.println("GET Filtered out (uid: " + uid + ", gid: " + group + ") :" + (new String(in.slice(previous, cursor - 1))));
             result.write(Constants.BUFFER_SEP);
         }
         return result;
@@ -151,9 +153,10 @@ public class BaseStorageAccessController implements Storage {
                     if (previous_key == -1) {
                         previous_key = previous;
                     } else {
-
                         if (_acm.canWrite(uid, group)) {
                             result.writeAll(in.slice(previous_key, cursor));
+                        } else {
+                            System.out.println("PUT Filtered out (uid: " + uid + ", gid: " + group + ") :" + (new String(in.slice(previous_key, cursor))));
                         }
                         previous_key = -1;
                     }
@@ -166,6 +169,8 @@ public class BaseStorageAccessController implements Storage {
 
         if (previous_key != -1 && _acm.canWrite(uid, group)) {
             result.writeAll(in.slice(previous_key, cursor - 1));
+        } else if (previous_key != -1) {
+            System.out.println("PUT Filtered out (uid: " + uid + ", gid: " + group + ") :" + (new String(in.slice(previous_key, cursor - 1))));
         }
         return result;
     }
