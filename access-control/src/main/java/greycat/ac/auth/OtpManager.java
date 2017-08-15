@@ -126,14 +126,14 @@ public class OtpManager {
                         done.on(true);
                     } else {
                         localIndex.unindex(secretsNodes[0]);
-                        acIndex.free();
-                        otpNode.free();
-                        secretsNodes[0].free();
-                        _graph.save((saved) -> {
-                            secretsNodes[0].drop(result ->
-                                    done.on(true));
+                        secretsNodes[0].drop(result -> {
+                            acIndex.free();
+                            otpNode.free();
+                            //secretsNodes[0].free();
+                            _graph.save((saved) -> {
+                                done.on(true);
+                            });
                         });
-
                     }
                 }, acIndex.world(), acIndex.time(), "" + uid);
             }, "secrets");
