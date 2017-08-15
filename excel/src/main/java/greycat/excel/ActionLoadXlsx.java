@@ -4,7 +4,6 @@
 package greycat.excel;
 
 import greycat.*;
-import greycat.internal.CoreNodeValue;
 import greycat.internal.task.TaskHelper;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
@@ -33,7 +32,7 @@ import static greycat.excel.ExcelActions.LOAD_XSLX;
  * Created by gnain on 27/02/17.
  */
 class ActionLoadXlsx implements Action {
-    private long _timeShiftConst = 3600 * 1000; //to convert hour to ms;
+    private long _timeShiftConst = 1000; //to convert hour to ms;
     private String _featureType;
     private String _basePath;
     private String _uri;
@@ -145,9 +144,9 @@ class ActionLoadXlsx implements Action {
             if (currentRow.getCell(firstCol + 3) != null) {
                 newFeature.set("tag_unit", Type.STRING, currentRow.getCell(firstCol + 3).getStringCellValue());
             }
-            String tagt=currentRow.getCell(firstCol + 4).getStringCellValue().toLowerCase().trim();
-            if(tagt.equals("param")){
-                tagt="ignored";
+            String tagt = currentRow.getCell(firstCol + 4).getStringCellValue().toLowerCase().trim();
+            if (tagt.equals("param")) {
+                tagt = "ignored";
             }
             newFeature.set("tag_type", Type.STRING, tagt);
 
@@ -400,37 +399,43 @@ class ActionLoadXlsx implements Action {
         if (tagType != null && tagType.equals("timeshift")) {
 
             long firstkey = featureValues.firstKey();
-            long firstshifted = firstkey + (long) ((double) featureValues.get(firstkey) * _timeShiftConst);
 
+
+            final long[] previousShift = new long[3];
 
             //todo reactivate value node once null are accepted!
 //            final NodeValue valueNode = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), featureValues.firstKey(), CoreNodeValue.NAME);
-//            final NodeValue valueNodeShifted = (NodeValue) taskContext.graph().newTypedNode(taskContext.world(), firstshifted, CoreNodeValue.NAME);
+
 
             final Node valueNode = taskContext.graph().newNode(taskContext.world(), featureValues.firstKey());
-            final Node valueNodeShifted = taskContext.graph().newNode(taskContext.world(), firstshifted);
 
             feature.addToRelation("value", valueNode);
 
 
-            feature.addToRelation("shiftedvalue", valueNodeShifted);
-
-            DeferCounter defer = feature.graph().newCounter(featureValues.size() * 2);
+            DeferCounter defer = feature.graph().newCounter(featureValues.size());
             defer.then(() -> {
 
                 if (valueNode != null) {
                     valueNode.free();
                 }
-                if (valueNodeShifted != null) {
-                    valueNodeShifted.free();
-                }
 
                 callback.run();
             });
+
             featureValues.forEach((key, value) -> {
                 long shift = (long) ((double) value * _timeShiftConst);
                 setValueInTime(feature, valueNode, key, value, type, false, null, () -> defer.count());
-                setValueInTime(feature, valueNodeShifted, key + shift, shift * 1.0, (byte) Type.DOUBLE, false, null, () -> defer.count());
+
+                if (previousShift[0] > 1) {
+                    long diff = key - previousShift[1];
+                    if (shift - previousShift[2] < -diff) {
+                        throw new RuntimeException("Feature " + feature.get("tag_name") + " can't be accepted as a timeshift at time: " + key);
+                    }
+                }
+                previousShift[0]++;
+                previousShift[1] = key;
+                previousShift[2] = shift;
+
             });
 
         } else {
