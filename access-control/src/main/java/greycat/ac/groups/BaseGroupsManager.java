@@ -61,8 +61,11 @@ public class BaseGroupsManager implements GroupsManager {
                 if (secGrpNodes != null && secGrpNodes.length != 0) {
                     securityGroupsNode = secGrpNodes[0];
                     securityGroupsNode.removeAt(gid);
+                    securityGroupsNode.free();
+                    acIndex.free();
                     _graph.save(done);
                 } else {
+                    acIndex.free();
                     done.on(true);
                 }
 
@@ -85,6 +88,8 @@ public class BaseGroupsManager implements GroupsManager {
                         _groups.put(attributeKey, BaseGroup.load((EStructArray) elem));
                     }
                 });
+                securityGroupsNode.free();
+                acIndex.free();
                 done.on(true);
             }, "secGrps");
         });
@@ -114,6 +119,8 @@ public class BaseGroupsManager implements GroupsManager {
                     EStructArray securityGroupContainer = (EStructArray) securityGroupsNode.getOrCreateAt(gid, Type.ESTRUCT_ARRAY);
                     securityGroup.save(securityGroupContainer);
                 });
+                securityGroupsNode.free();
+                acIndex.free();
                 _graph.save(done);
             }, "secGrps");
         });

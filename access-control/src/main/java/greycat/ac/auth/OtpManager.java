@@ -83,6 +83,7 @@ public class OtpManager {
             acIndex.findFrom(otpNodes -> {
                 Node otpNode;
                 if (otpNodes == null || otpNodes.length == 0) {
+                    acIndex.free();
                     done.on(null);
                     return;
                 } else {
@@ -90,9 +91,15 @@ public class OtpManager {
                 }
                 ((Index) otpNode.getAt(0)).find(secretsNodes -> {
                     if (secretsNodes == null || secretsNodes.length == 0) {
+                        otpNode.free();
+                        acIndex.free();
                         done.on(null);
                     } else {
-                        done.on(OtpSecret.load(secretsNodes[0]));
+                        OtpSecret s = OtpSecret.load(secretsNodes[0]);
+                        otpNode.free();
+                        acIndex.free();
+                        secretsNodes[0].free();
+                        done.on(s);
                     }
                 }, acIndex.world(), acIndex.time(), "" + uid);
             }, "secrets");
@@ -105,6 +112,7 @@ public class OtpManager {
             acIndex.findFrom(otpNodes -> {
                 Node otpNode;
                 if (otpNodes == null || otpNodes.length == 0) {
+                    acIndex.free();
                     done.on(true);
                     return;
                 } else {
@@ -113,9 +121,14 @@ public class OtpManager {
                 Index localIndex = (Index) otpNode.getAt(0);
                 localIndex.find(secretsNodes -> {
                     if (secretsNodes == null || secretsNodes.length == 0) {
+                        acIndex.free();
+                        otpNode.free();
                         done.on(true);
                     } else {
                         localIndex.unindex(secretsNodes[0]);
+                        acIndex.free();
+                        otpNode.free();
+                        secretsNodes[0].free();
                         _graph.save((saved) -> {
                             secretsNodes[0].drop(result ->
                                     done.on(true));
@@ -143,17 +156,24 @@ public class OtpManager {
                 }
                 Index otpIndex = (Index) otpNode.getAt(0);
                 otpIndex.find(secretsNodes -> {
-
                     if (secretsNodes == null || secretsNodes.length == 0) {
                         _graph.lookup(0, acIndex.time(), uid, userNode -> {
                             Node secretNode = _graph.newNode(acIndex.world(), acIndex.time());
                             secretNode.setGroup(userNode.group());
                             secret.save(secretNode);
                             otpIndex.update(secretNode);
+
+                            acIndex.free();
+                            otpNode.free();
+                            secretNode.free();
+                            userNode.free();
                             _graph.save(done);
                         });
                     } else {
                         secret.save(secretsNodes[0]);
+                        acIndex.free();
+                        otpNode.free();
+                        secretsNodes[0].free();
                         _graph.save(done);
                     }
 

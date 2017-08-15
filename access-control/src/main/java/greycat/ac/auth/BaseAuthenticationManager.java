@@ -151,7 +151,6 @@ public class BaseAuthenticationManager implements AuthenticationManager {
             callback.on(null);
             return;
         }
-
         _graph.index(0, System.currentTimeMillis(), _usersIndexName, indexNode -> {
             indexNode.findFrom(users -> {
                 if (users.length != 1) {
@@ -159,6 +158,7 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                         throw new RuntimeException("multiple users indexed with the same ID !");
                     }
                     System.err.println("User not found");
+                    indexNode.free();
                     callback.on(null);
                 } else {
                     Node user = users[0];
@@ -166,11 +166,16 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                     boolean passCheck = user.get(_passwordAttribute).equals(pass);
                     if (passCheck) {
                         if (_otpManager == null) {
-                            callback.on(user.id());
+                            long uid = user.id();
+                            indexNode.free();
+                            user.free();
+                            callback.on(uid);
                         } else {
                             _otpManager.verifyCredentials(user.id(), credentials, callback);
                         }
                     } else {
+                        user.free();
+                        indexNode.free();
                         callback.on(null);
                     }
                 }
@@ -185,6 +190,7 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                 UUID tmpUUID = UUID.randomUUID();
                 PasswordKey key = new PasswordKey(uid, tmpUUID.toString(), System.currentTimeMillis() + _passwordChangeKeyValidity);
                 _keyToPasswordKey.put(key.authKey(), key);
+                user.free();
                 callback.on(key.authKey());
             } else {
                 System.err.println("Lookup failed on uid:" + uid);
@@ -201,6 +207,7 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                 _graph.lookup(0, System.currentTimeMillis(), pk.uid(), user -> {
                     if (user != null) {
                         user.set(_passwordAttribute, Type.STRING, newPass);
+                        user.free();
                         _graph.save((ok) -> {
                             callback.on(1);
                         });
@@ -241,6 +248,8 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                     tmpPasswdKeysNode.removeAt(attKey);
                 }
                 this._locked = true;
+                tmpPasswdKeysNode.free();
+                acIndex.free();
                 _graph.save(done);
             }, "passwdKeys");
         });
@@ -267,6 +276,8 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                         pk.save(passwordKeyContainer);
                     }
                 }
+                passwdKeysNode.free();
+                acIndex.free();
                 _graph.save(done);
             }, "passwdKeys");
         });
@@ -288,8 +299,11 @@ public class BaseAuthenticationManager implements AuthenticationManager {
                     });
                 }
                 newUsersIndex.update(admin);
+                admin.free();
             }
             this._locked = true;
+
+            newUsersIndex.free();
             done.on(true);
         }, _loginAttribute);
     }
@@ -309,7 +323,9 @@ public class BaseAuthenticationManager implements AuthenticationManager {
             usersIndex.findFrom(users -> {
                 for (Node user : users) {
                     sb.append(user.toString() + "\n");
+                    user.free();
                 }
+                usersIndex.free();
             });
         });
 

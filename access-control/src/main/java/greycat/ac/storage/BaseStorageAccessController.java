@@ -133,44 +133,51 @@ public class BaseStorageAccessController implements Storage {
     }
 
     private Buffer filter_put(Buffer in) {
-        Session session = _acm.getSessionsManager().getSession((String) _graph.getProperty(AUTH_PARAM_KEY));
-        long uid = session.uid();
         final Buffer result = new HeapBuffer();
-        long max = in.length();
-        long cursor = 0;
-        int group = 0;
-        long previous = 0;
+        try {
+            Session session = _acm.getSessionsManager().getSession((String) _graph.getProperty(AUTH_PARAM_KEY));
 
-        long previous_key = -1;
+            long uid = session.uid();
+            long max = in.length();
+            long cursor = 0;
+            int group = 0;
+            long previous = 0;
 
-        while (cursor < max) {
-            byte elem = in.read(cursor);
-            switch (elem) {
-                case Constants.CHUNK_META_SEP:
-                    group = Base64.decodeToIntWithBounds(in, previous, cursor);
-                    break;
-                case Constants.BUFFER_SEP:
-                    if (previous_key == -1) {
-                        previous_key = previous;
-                    } else {
-                        if (_acm.canWrite(uid, group)) {
-                            result.writeAll(in.slice(previous_key, cursor));
+            long previous_key = -1;
+
+            while (cursor < max) {
+                byte elem = in.read(cursor);
+                switch (elem) {
+                    case Constants.CHUNK_META_SEP:
+                        group = Base64.decodeToIntWithBounds(in, previous, cursor);
+                        break;
+                    case Constants.BUFFER_SEP:
+                        if (previous_key == -1) {
+                            previous_key = previous;
                         } else {
-                            System.out.println("PUT Filtered out (uid: " + uid + ", gid: " + group + ") :" + (new String(in.slice(previous_key, cursor))));
+                            if (_acm.canWrite(uid, group)) {
+                                result.writeAll(in.slice(previous_key, cursor));
+                            } else {
+                                System.out.println("PUT Filtered out (uid: " + uid + ", gid: " + group + ") :" + (new String(in.slice(previous_key, cursor))));
+                            }
+                            previous_key = -1;
                         }
-                        previous_key = -1;
-                    }
-                    group = 0;
-                    previous = cursor + 1;
-                    break;
+                        group = 0;
+                        previous = cursor + 1;
+                        break;
+                }
+                cursor++;
             }
-            cursor++;
-        }
 
-        if (previous_key != -1 && _acm.canWrite(uid, group)) {
-            result.writeAll(in.slice(previous_key, cursor - 1));
-        } else if (previous_key != -1) {
-            System.out.println("PUT Filtered out (uid: " + uid + ", gid: " + group + ") :" + (new String(in.slice(previous_key, cursor - 1))));
+            if (previous_key != -1 && _acm.canWrite(uid, group)) {
+                result.writeAll(in.slice(previous_key, cursor - 1));
+            } else if (previous_key != -1) {
+                System.out.println("PUT Filtered out (uid: " + uid + ", gid: " + group + ") :" + (new String(in.slice(previous_key, cursor - 1))));
+            }
+        } catch (NullPointerException npe) {
+            System.err.println("sessionMgr:" + _acm.getSessionsManager());
+            System.err.println("sessionID:" + _graph.getProperty(AUTH_PARAM_KEY));
+            System.out.println("session" + _acm.getSessionsManager().getSession((String) _graph.getProperty(AUTH_PARAM_KEY)));
         }
         return result;
     }

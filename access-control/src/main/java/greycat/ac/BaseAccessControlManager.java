@@ -95,10 +95,10 @@ public class BaseAccessControlManager implements AccessControlManager {
                     if (!indexExists) {
 
                         boolean[] ready = new boolean[3];
-                        CountDownLatch latch = new CountDownLatch(3);
 
                         _graph.declareIndex(-1, _acIndexName, newAcmIndex -> {
                             newAcmIndex.setGroup(4);
+                            CountDownLatch latch = new CountDownLatch(3);
                             this._authManager.loadInitialData(_createAdminAtBoot, result -> {
                                 ready[0] = result;
                                 latch.countDown();
@@ -111,14 +111,20 @@ public class BaseAccessControlManager implements AccessControlManager {
                                 ready[2] = result;
                                 latch.countDown();
                             });
+                            try {
+                                latch.await();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            newAcmIndex.free();
+                            if (ready[0] && ready[1] && ready[2]) {
+                                _graph.save(callback);
+                            } else {
+                                callback.on(false);
+                            }
                         }, "name");
 
-                        latch.await();
-                        if (ready[0] && ready[1] && ready[2]) {
-                            _graph.save(callback);
-                        } else {
-                            callback.on(false);
-                        }
+
                     } else {
 
                         boolean[] ready = new boolean[4];
@@ -148,6 +154,7 @@ public class BaseAccessControlManager implements AccessControlManager {
                             callback.on(false);
                         }
                     }
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     callback.on(false);

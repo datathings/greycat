@@ -84,6 +84,8 @@ public class BasePermissionsManager implements PermissionsManager {
                     Permission p = BasePermission.load((EStructArray) elem);
                     _permissions.put(p.uid(), p);
                 });
+                permissionsNode.free();
+                acIndex.free();
                 _graph.save(done);
             }, "perms");
         });
@@ -115,6 +117,8 @@ public class BasePermissionsManager implements PermissionsManager {
                     p.save(permissionContainer);
                 }
 
+                permissionsNode.free();
+                acIndex.free();
                 _graph.save(done);
             }, "perms");
         });

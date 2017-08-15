@@ -92,6 +92,8 @@ public class BaseSessionsManager implements SessionManager {
                 for (int attKey : attKeys) {
                     sessionsNode.removeAt(attKey);
                 }
+                sessionsNode.free();
+                acIndex.free();
                 _graph.save(done);
             }, "sessions");
         });
@@ -117,6 +119,8 @@ public class BaseSessionsManager implements SessionManager {
                         session.save(securityGroupContainer);
                     }
                 }
+                sessionsNode.free();
+                acIndex.free();
                 _graph.save(done);
             }, "sessions");
         });
