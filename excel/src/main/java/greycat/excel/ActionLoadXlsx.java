@@ -398,9 +398,6 @@ class ActionLoadXlsx implements Action {
         String tagType = ((String) feature.get("tag_type"));
         if (tagType != null && tagType.equals("timeshift")) {
 
-            long firstkey = featureValues.firstKey();
-
-
             final long[] previousShift = new long[3];
 
             //todo reactivate value node once null are accepted!
