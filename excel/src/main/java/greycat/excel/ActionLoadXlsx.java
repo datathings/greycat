@@ -92,17 +92,27 @@ class ActionLoadXlsx implements Action {
                 feature.traverse("value", new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
-                        DeferCounter drops = feature.graph().newCounter(result.length);
-                        for (Node n : result) {
-                            n.drop(done -> {
-                                drops.count();
+                        if(result != null) {
+                            DeferCounter drops = feature.graph().newCounter(result.length);
+                            for (Node n : result) {
+                                if(n != null) {
+                                    n.drop(done -> {
+                                        drops.count();
+                                    });
+                                } else {
+                                    drops.count();
+                                }
+                            }
+                            drops.then(() -> {
+                                feature.drop((done) -> {
+                                    featureCounter.count();
+                                });
                             });
-                        }
-                        drops.then(() -> {
+                        } else {
                             feature.drop((done) -> {
                                 featureCounter.count();
                             });
-                        });
+                        }
                     }
                 });
             }
