@@ -87,8 +87,30 @@ class ActionLoadXlsx implements Action {
                 throw new UnsupportedOperationException("Schema: " + parsedUri.getScheme() + " not yet supported. Tried to open file from: " + _uri);
             }
         } catch (Exception e) {
-
-            taskContext.endTask(null, e);
+            DeferCounter featureCounter = taskContext.graph().newCounter(featuresMap.size());
+            for (Node feature : featuresMap.values()) {
+                feature.traverse("value", new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        DeferCounter drops = feature.graph().newCounter(result.length);
+                        for (Node n : result) {
+                            n.drop(done -> {
+                                drops.count();
+                            });
+                        }
+                        drops.then(() -> {
+                            feature.drop((done) -> {
+                                featureCounter.count();
+                            });
+                        });
+                    }
+                });
+            }
+            featureCounter.then(() -> {
+                taskContext.graph().save((saved) -> {
+                    taskContext.endTask(null, e);
+                });
+            });
         }
     }
 
@@ -133,6 +155,7 @@ class ActionLoadXlsx implements Action {
             }
 
             Node newFeature = taskContext.graph().newTypedNode(taskContext.world(), Constants.BEGINNING_OF_TIME, taskContext.template(_featureType));
+            featuresMap.put("" + featureName, newFeature);
             newFeature.setTimeSensitivity(-1, 0);
 
             newFeature.set("tag_id", Type.STRING, featureId);
@@ -190,7 +213,7 @@ class ActionLoadXlsx implements Action {
             } else {
                 newFeature.set("interpolation", Type.BOOL, false);
             }
-            featuresMap.put("" + featureName, newFeature);
+
         }
 
         for (int r = metaSheet.getFirstRowNum() + 1; r <= lastRowNum; r++) {
