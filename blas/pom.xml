@@ -9,7 +9,7 @@
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings.enterprise</groupId>
-        <version>11-SNAPSHOT</version>
+        <version>10.2</version>
         <relativePath>..</relativePath>
     </parent>
 
