@@ -17,6 +17,7 @@ package greycat;
 
 import greycat.internal.BlackHoleStorage;
 import greycat.internal.CoreGraph;
+import greycat.plugin.StorageFactory;
 import greycat.scheduler.TrampolineScheduler;
 import greycat.internal.ReadOnlyStorage;
 import greycat.plugin.Plugin;
@@ -29,6 +30,7 @@ import greycat.plugin.Storage;
 public class GraphBuilder {
 
     public Storage storage = null;
+    private StorageFactory _storageFactory = null;
     private Scheduler _scheduler = null;
     private Plugin[] _plugins = null;
     private long _memorySize = -1;
@@ -71,6 +73,29 @@ public class GraphBuilder {
      */
     public GraphBuilder withReadOnlyStorage(Storage storage) {
         this.storage = storage;
+        _readOnly = true;
+        return this;
+    }
+
+    /**
+     * Sets the storage factory to the given parameter.
+     *
+     * @param storage the storage factory will be used to create the storage to be used by the graph
+     * @return the {@link GraphBuilder}, for a fluent API
+     */
+    public final GraphBuilder withStorageFactory(StorageFactory storage) {
+        this._storageFactory = storage;
+        return this;
+    }
+
+    /**
+     * Sets the storage system to the given parameter, in read-only mode.
+     *
+     * @param storage the storage system to be used by the graph in read-only mode
+     * @return the {@link GraphBuilder}, for a fluent API
+     */
+    public GraphBuilder withReadOnlyStorageFactory(StorageFactory storage) {
+        this._storageFactory = storage;
         _readOnly = true;
         return this;
     }
@@ -144,7 +169,12 @@ public class GraphBuilder {
         if (_memorySize == -1) {
             _memorySize = 100000;
         }
-        return new CoreGraph(storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
+        if (_storageFactory != null) {
+            return new CoreGraph(_storageFactory.build(), _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
+        } else {
+            return new CoreGraph(storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
+        }
+
     }
 
 }
