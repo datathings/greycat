@@ -16,6 +16,7 @@
 package greycat.rocksdb;
 
 import greycat.*;
+import greycat.internal.BlackHoleStorage;
 import org.junit.Test;
 import greycat.scheduler.NoopScheduler;
 import greycat.plugin.Job;
@@ -41,6 +42,8 @@ public class StorageTest {
         //Unsafe.DEBUG_MODE = true;
 
         test("rocksdb_test ", new GraphBuilder().withStorage(new RocksDBStorage("data")).withScheduler(new NoopScheduler()).withMemorySize(20000).build());
+       // test("rocksdb_test ", new GraphBuilder().withStorage(new BlackHoleStorage()).withScheduler(new NoopScheduler()).withMemorySize(20000).build());
+
     }
 
     final int valuesToInsert = 1000000;
