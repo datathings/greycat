@@ -9,7 +9,7 @@ fi
 gitbook build
 cp -R _book/* public/doc
 cd public/
-#git add -A
-#MESSAGE="documentation rebuild $(date)"
-#git commit -m "$MESSAGE"
-#git push
+git add -A
+MESSAGE="documentation rebuild $(date)"
+git commit -m "$MESSAGE"
+git push

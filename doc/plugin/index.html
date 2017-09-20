@@ -1,0 +1,748 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>Extending GreyCat · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.2">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+        <link rel="stylesheet" href="../styles/greycat.css">
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    
+    <link rel="prev" href="../modeling/grammar.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../start/">
+            
+                <a href="../start/">
+            
+                    
+                    Quick start
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" data-path="../start/minimal.html">
+            
+                <a href="../start/minimal.html">
+            
+                    
+                    First minimal graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" data-path="../start/temporal.html">
+            
+                <a href="../start/temporal.html">
+            
+                    
+                    Temporal graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" data-path="../start/manyworld.html">
+            
+                <a href="../start/manyworld.html">
+            
+                    
+                    Many-World graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.4" data-path="../start/indexing.html">
+            
+                <a href="../start/indexing.html">
+            
+                    
+                    Indexing
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.5" data-path="../start/persistence.html">
+            
+                <a href="../start/persistence.html">
+            
+                    
+                    Persistence
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.6" data-path="../start/distributed.html">
+            
+                <a href="../start/distributed.html">
+            
+                    
+                    Distributed graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="../tasks/">
+            
+                <a href="../tasks/">
+            
+                    
+                    Tasks
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../tasks/Context.html">
+            
+                <a href="../tasks/Context.html">
+            
+                    
+                    Context and variables
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="../tasks/actions/">
+            
+                <a href="../tasks/actions/">
+            
+                    
+                    Actions
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.2.1" data-path="../tasks/actions/add.html">
+            
+                <a href="../tasks/actions/add.html">
+            
+                    
+                    add
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.2" data-path="../tasks/actions/addTo.html">
+            
+                <a href="../tasks/actions/addTo.html">
+            
+                    
+                    addTo
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.3" data-path="../tasks/actions/asVar.html">
+            
+                <a href="../tasks/actions/asVar.html">
+            
+                    
+                    asVar
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.4" data-path="../tasks/actions/asGlobalVar.html">
+            
+                <a href="../tasks/actions/asGlobalVar.html">
+            
+                    
+                    asGlobalVar
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.5" data-path="../tasks/actions/get.html">
+            
+                <a href="../tasks/actions/get.html">
+            
+                    
+                    get
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.6" data-path="../tasks/actions/loop.html">
+            
+                <a href="../tasks/actions/loop.html">
+            
+                    
+                    loop
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.7" data-path="../tasks/actions/loopPar.html">
+            
+                <a href="../tasks/actions/loopPar.html">
+            
+                    
+                    loopPar
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.8" data-path="../tasks/actions/setProperty.html">
+            
+                <a href="../tasks/actions/setProperty.html">
+            
+                    
+                    setProperty
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.9" data-path="../tasks/actions/traverse.html">
+            
+                <a href="../tasks/actions/traverse.html">
+            
+                    
+                    traverse
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="../tasks/Execute.html">
+            
+                <a href="../tasks/Execute.html">
+            
+                    
+                    Execution methods
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="../tasks/Hook.html">
+            
+                <a href="../tasks/Hook.html">
+            
+                    
+                    Hooks and Debug
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="../scheduler.html">
+            
+                <a href="../scheduler.html">
+            
+                    
+                    Scheduler
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" data-path="../ml/">
+            
+                <a href="../ml/">
+            
+                    
+                    Machine learning
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="../ml/polynomial.html">
+            
+                <a href="../ml/polynomial.html">
+            
+                    
+                    Polynomial compression
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" data-path="../js/">
+            
+                <a href="../js/">
+            
+                    
+                    JavaScript
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" data-path="../js/browser.html">
+            
+                <a href="../js/browser.html">
+            
+                    
+                    Browser
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" data-path="../modeling/">
+            
+                <a href="../modeling/">
+            
+                    
+                    GreyCat Modeling
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1" data-path="../modeling/getting_started.html">
+            
+                <a href="../modeling/getting_started.html">
+            
+                    
+                    Getting started
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.2" data-path="../modeling/indexes.html">
+            
+                <a href="../modeling/indexes.html">
+            
+                    
+                    Indexes
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.3" data-path="../modeling/constants.html">
+            
+                <a href="../modeling/constants.html">
+            
+                    
+                    Constants
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.4" data-path="../modeling/annotations.html">
+            
+                <a href="../modeling/annotations.html">
+            
+                    
+                    Annotations
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.5" data-path="../modeling/defaults.html">
+            
+                <a href="../modeling/defaults.html">
+            
+                    
+                    Default values
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.6" data-path="../modeling/derived_attributes.html">
+            
+                <a href="../modeling/derived_attributes.html">
+            
+                    
+                    Derived attributes
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.7" data-path="../modeling/custom_types.html">
+            
+                <a href="../modeling/custom_types.html">
+            
+                    
+                    Custom types
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.8" data-path="../modeling/grammar.html">
+            
+                <a href="../modeling/grammar.html">
+            
+                    
+                    Grammar
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.8" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    Extending GreyCat
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href=".." >Extending GreyCat</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="extending-greycat">Extending GreyCat</h1>
+<p>GreyCat can easily be extended to fit your needs using plugins. Plugins offer a modular way to define more advanced Nodes, new Types and Actions. Some Plugins are already available like the <a href="../ml/">Machine Learning Plugin</a> and others are currently under development.</p>
+<h2 id="using-an-existing-plugin">Using an Existing Plugin</h2>
+<h3 id="declare-the-plugin">Declare the plugin</h3>
+<p>The first step when using a plugin is to declare to the graph that you will use it.</p>
+<p>To declare the use of a Plugin, first make sure to add it as dependency to your current project.Then pass an instance of the class (from the Plugin you want to use) implementing the Plugin interface to the Graph Builder using &quot;.withPlugin()&quot;.</p>
+<pre><code class="lang-java">Graph g = <span class="hljs-keyword">new</span> GraphBuilder()
+    .withMemorySize(<span class="hljs-number">10000</span>) <span class="hljs-comment">//cache size before sync to disk</span>
+    .withPlugin(<span class="hljs-keyword">new</span> MLPlugin())
+    .withStorage(<span class="hljs-keyword">new</span> LevelDBStorage(<span class="hljs-string">&quot;_db&quot;</span>))
+    .build();
+
+ g.connect(isConnected -&gt; {
+    doSomething();
+    });
+</code></pre>
+<p>Note that more than one Plugin can be used with the graph as long as there is no conflict between them.</p>
+<pre><code class="lang-java">Graph g = <span class="hljs-keyword">new</span> GraphBuilder()
+    .withMemorySize(<span class="hljs-number">10000</span>) <span class="hljs-comment">//cache size before sync to disk</span>
+    .withPlugin(<span class="hljs-keyword">new</span> MLPlugin())
+    .withPlugin(<span class="hljs-keyword">new</span> MyPlugin())
+    .withPlugin(<span class="hljs-keyword">new</span> MyOtherPlugin())
+    .withStorage(<span class="hljs-keyword">new</span> LevelDBStorage(<span class="hljs-string">&quot;_db&quot;</span>))
+    .build();
+
+ g.connect(isConnected -&gt; {
+    doSomething();
+    });
+</code></pre>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="../modeling/grammar.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Grammar">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Extending GreyCat","level":"1.8","depth":1,"previous":{"title":"Grammar","level":"1.7.8","depth":2,"path":"modeling/grammar.md","ref":"modeling/grammar.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/greycat.css"}},"file":{"path":"plugin/README.md","mtime":"2017-09-20T08:56:16.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-09-20T08:57:15.824Z"},"basePath":"..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../gitbook/gitbook.js"></script>
+    <script src="../gitbook/theme.js"></script>
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

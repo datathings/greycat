@@ -1,0 +1,635 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>First minimal graph · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.2">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+        <link rel="stylesheet" href="../styles/greycat.css">
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="temporal.html" />
+    
+    
+    <link rel="prev" href="./" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    Quick start
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter active" data-level="1.2.1" data-path="minimal.html">
+            
+                <a href="minimal.html">
+            
+                    
+                    First minimal graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" data-path="temporal.html">
+            
+                <a href="temporal.html">
+            
+                    
+                    Temporal graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" data-path="manyworld.html">
+            
+                <a href="manyworld.html">
+            
+                    
+                    Many-World graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.4" data-path="indexing.html">
+            
+                <a href="indexing.html">
+            
+                    
+                    Indexing
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.5" data-path="persistence.html">
+            
+                <a href="persistence.html">
+            
+                    
+                    Persistence
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.6" data-path="distributed.html">
+            
+                <a href="distributed.html">
+            
+                    
+                    Distributed graph
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="../tasks/">
+            
+                <a href="../tasks/">
+            
+                    
+                    Tasks
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../tasks/Context.html">
+            
+                <a href="../tasks/Context.html">
+            
+                    
+                    Context and variables
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="../tasks/actions/">
+            
+                <a href="../tasks/actions/">
+            
+                    
+                    Actions
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.2.1" data-path="../tasks/actions/add.html">
+            
+                <a href="../tasks/actions/add.html">
+            
+                    
+                    add
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.2" data-path="../tasks/actions/addTo.html">
+            
+                <a href="../tasks/actions/addTo.html">
+            
+                    
+                    addTo
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.3" data-path="../tasks/actions/asVar.html">
+            
+                <a href="../tasks/actions/asVar.html">
+            
+                    
+                    asVar
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.4" data-path="../tasks/actions/asGlobalVar.html">
+            
+                <a href="../tasks/actions/asGlobalVar.html">
+            
+                    
+                    asGlobalVar
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.5" data-path="../tasks/actions/get.html">
+            
+                <a href="../tasks/actions/get.html">
+            
+                    
+                    get
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.6" data-path="../tasks/actions/loop.html">
+            
+                <a href="../tasks/actions/loop.html">
+            
+                    
+                    loop
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.7" data-path="../tasks/actions/loopPar.html">
+            
+                <a href="../tasks/actions/loopPar.html">
+            
+                    
+                    loopPar
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.8" data-path="../tasks/actions/setProperty.html">
+            
+                <a href="../tasks/actions/setProperty.html">
+            
+                    
+                    setProperty
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.9" data-path="../tasks/actions/traverse.html">
+            
+                <a href="../tasks/actions/traverse.html">
+            
+                    
+                    traverse
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="../tasks/Execute.html">
+            
+                <a href="../tasks/Execute.html">
+            
+                    
+                    Execution methods
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="../tasks/Hook.html">
+            
+                <a href="../tasks/Hook.html">
+            
+                    
+                    Hooks and Debug
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="../scheduler.html">
+            
+                <a href="../scheduler.html">
+            
+                    
+                    Scheduler
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" data-path="../ml/">
+            
+                <a href="../ml/">
+            
+                    
+                    Machine learning
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="../ml/polynomial.html">
+            
+                <a href="../ml/polynomial.html">
+            
+                    
+                    Polynomial compression
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" data-path="../js/">
+            
+                <a href="../js/">
+            
+                    
+                    JavaScript
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" data-path="../js/browser.html">
+            
+                <a href="../js/browser.html">
+            
+                    
+                    Browser
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href=".." >First minimal graph</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="a-simple-graph">A simple graph</h1>
+<p><a href="https://github.com/datathings/greycat-samples/blob/master/src/main/java/greycat/samples/Minimal.java" target="_blank">Code sample here</a></p>
+<p>The first step to use GreyCat is create and connect a simple graph using the following code</p>
+<pre><code class="lang-java"><span class="hljs-comment">//Create a minimal graph with the default configuration</span>
+Graph g = <span class="hljs-keyword">new</span> GraphBuilder().build();
+
+<span class="hljs-comment">//Connect the graph</span>
+g.connect(isConnected -&gt; {
+        <span class="hljs-comment">//Display that the graph database is connected!</span>
+        System.out.println(<span class="hljs-string">&quot;Connected : &quot;</span> + isConnected);
+        <span class="hljs-comment">//your next code goes here...</span>
+});
+</code></pre>
+<p>Next, create your first node in the graph and set some attributes:</p>
+<pre><code class="lang-java">Node sensor0 = g.newNode(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>); <span class="hljs-comment">//create a new node for world 0 and time 0</span>
+sensor0.set(<span class="hljs-string">&quot;snesorId&quot;</span>, Type.INT, <span class="hljs-number">12</span>); <span class="hljs-comment">//set the id attribute as an integer</span>
+sensor0.set(<span class="hljs-string">&quot;name&quot;</span>,Type.STRING, <span class="hljs-string">&quot;sensor0&quot;</span>); <span class="hljs-comment">//set the name attribute as a string</span>
+
+<span class="hljs-comment">//Display the first node we created</span>
+System.out.println(sensor0); <span class="hljs-comment">//print {&quot;world&quot;:0,&quot;time&quot;:0,&quot;id&quot;:1,&quot;snesorId&quot;:12,&quot;name&quot;:&quot;sensor0&quot;}</span>
+</code></pre>
+<p>Then, let&apos;s create a second node and connect the two nodes with a relation</p>
+<pre><code class="lang-java">Node room0 = g.newNode(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>); <span class="hljs-comment">//create new node called room for world 0 and time 0</span>
+room0.set(<span class="hljs-string">&quot;name&quot;</span>,Type.STRING, <span class="hljs-string">&quot;room0&quot;</span>); <span class="hljs-comment">//set the name attribute</span>
+room0.addToRelation(<span class="hljs-string">&quot;sensors&quot;</span>, sensor0); <span class="hljs-comment">//add the sensor0 to the relation sensors of room0</span>
+
+<span class="hljs-comment">//Let&apos;s display the room0 node to see what&apos;s inside</span>
+System.out.println(room0); <span class="hljs-comment">//print {&quot;world&quot;:0,&quot;time&quot;:0,&quot;id&quot;:2,&quot;name&quot;:&quot;room0&quot;,&quot;sensors&quot;:[1]}</span>
+</code></pre>
+<p>Finally, relations can be traversed as follows</p>
+<pre><code class="lang-java"><span class="hljs-comment">//iterate over the saved sensors relation from room0</span>
+room0.relation(<span class="hljs-string">&quot;sensors&quot;</span>, (Node[] sensors) -&gt; {
+        System.out.println(<span class="hljs-string">&quot;Sensors:&quot;</span>);
+        <span class="hljs-keyword">for</span> (Node sensor : sensors) {
+                System.out.println(<span class="hljs-string">&quot;\t&quot;</span> + sensor.toString()); <span class="hljs-comment">//print all the sensor in the room</span>
+        }
+        <span class="hljs-comment">//your next code goes here...</span>
+    });
+</code></pre>
+<p>Finally, the last step to do is to disconnect the graph database:</p>
+<pre><code class="lang-java"><span class="hljs-comment">//Disconnect the database</span>
+g.disconnect(result -&gt; {
+        System.out.println(<span class="hljs-string">&quot;GoodBye!&quot;</span>);
+});
+</code></pre>
+<p>Note that graph processing and traversing is fully asynchronous. So all operations are done inside of callbacks in order not to block the code execution.</p>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="./" class="navigation navigation-prev " aria-label="Previous page: Quick start">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="temporal.html" class="navigation navigation-next " aria-label="Next page: Temporal graph">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"First minimal graph","level":"1.2.1","depth":2,"next":{"title":"Temporal graph","level":"1.2.2","depth":2,"path":"start/temporal.md","ref":"start/temporal.md","articles":[]},"previous":{"title":"Quick start","level":"1.2","depth":1,"path":"start/README.md","ref":"start/README.md","articles":[{"title":"First minimal graph","level":"1.2.1","depth":2,"path":"start/minimal.md","ref":"start/minimal.md","articles":[]},{"title":"Temporal graph","level":"1.2.2","depth":2,"path":"start/temporal.md","ref":"start/temporal.md","articles":[]},{"title":"Many-World graph","level":"1.2.3","depth":2,"path":"start/manyworld.md","ref":"start/manyworld.md","articles":[]},{"title":"Indexing","level":"1.2.4","depth":2,"path":"start/indexing.md","ref":"start/indexing.md","articles":[]},{"title":"Persistence","level":"1.2.5","depth":2,"path":"start/persistence.md","ref":"start/persistence.md","articles":[]},{"title":"Distributed graph","level":"1.2.6","depth":2,"path":"start/distributed.md","ref":"start/distributed.md","articles":[]}]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/greycat.css"}},"file":{"path":"start/minimal.md","mtime":"2017-05-08T13:01:15.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-05-08T13:21:31.437Z"},"basePath":"..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../gitbook/gitbook.js"></script>
+    <script src="../gitbook/theme.js"></script>
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
