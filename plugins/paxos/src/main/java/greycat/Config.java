@@ -10,4 +10,8 @@ public class Config {
 
     public static int cacheSize = 1000000;
 
+    public static int saveEvery = 1000;
+
+    public static String expSize = "1000000";
+
 }
