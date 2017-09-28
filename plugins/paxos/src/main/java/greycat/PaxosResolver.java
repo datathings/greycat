@@ -23,7 +23,7 @@ public class PaxosResolver extends MWResolver {
     @Override
     public void init() {
         super.init();
-        AtomixReplica.Builder builder = AtomixReplica.builder(new Address("0.0.0.0", Config.clientPort));
+        AtomixReplica.Builder builder = AtomixReplica.builder(new Address("10.186.109.7", Config.clientPort));
         replica = builder.build();
         replica.bootstrap(new Address(Config.master, Config.masterPort)).join();
     }
