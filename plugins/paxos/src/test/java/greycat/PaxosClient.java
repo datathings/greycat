@@ -1,44 +1,38 @@
 package greycat;
 
-import greycat.internal.BlackHoleStorage;
-import greycat.internal.CoreGraph;
 import greycat.plugin.Resolver;
 import greycat.scheduler.TrampolineScheduler;
-import io.atomix.AtomixReplica;
-import io.atomix.catalyst.transport.Address;
+import greycat.websocket.WSClient;
 
 import static greycat.Tasks.newTask;
 
-public class Tester {
+public class PaxosClient {
 
     public static void main(String[] args) {
 
-        Graph g = new PaxosGraph(new BlackHoleStorage(), 1000000, 1000000, new TrampolineScheduler(), null, false);
+        PaxosGraph g = new PaxosGraph(new WSClient("ws://"+Config.master+":8090/ws"), Config.cacheSize, Config.cacheSize, new TrampolineScheduler(), null, false);
         Resolver r = g.resolver();
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-
+                System.out.println("Starting experiment");
                 long begin = System.currentTimeMillis();
-
                 newTask().loop("0", "10000", newTask().thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {
                         Node n = ctx.graph().newNode(0, 0);
                         r.externalLock(n);
-                        n.set("name", Type.STRING, "node_"+ctx.template("{{i}}"));
+                        n.set("name", Type.STRING, "node_" + ctx.template("{{i}}"));
                         r.externalUnlock(n);
                         ctx.continueTask();
                     }
-                })).execute(g, result1 -> {
+                })).save().execute(g, result1 -> {
                     long after = System.currentTimeMillis();
-                    System.out.println(after-begin);
+                    System.out.println((after - begin)+"ms");
+                    g.disconnect(null);
                 });
-                System.out.println("Logged");
             }
         });
-
-
     }
 
 }

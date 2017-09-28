@@ -23,9 +23,18 @@ public class PaxosResolver extends MWResolver {
     @Override
     public void init() {
         super.init();
-        AtomixReplica.Builder builder = AtomixReplica.builder(new Address("localhost", 8700));
+        AtomixReplica.Builder builder = AtomixReplica.builder(new Address("0.0.0.0", Config.clientPort));
         replica = builder.build();
-        replica.bootstrap().join();
+        replica.bootstrap(new Address(Config.master, Config.masterPort)).join();
+    }
+
+    @Override
+    public void free() {
+        super.free();
+        replica.leave();
+        replica.shutdown();
+        replica = null;
+        System.out.println("Exited Paxos Consensus");
     }
 
     @Override
@@ -38,6 +47,8 @@ public class PaxosResolver extends MWResolver {
     @Override
     public void externalUnlock(Node node) {
         super.externalUnlock(node);
-        locks.get(node.id()).unlock().join();
+        DistributedLock dlock = locks.get(node.id());
+        dlock.unlock().join();
+        locks.remove(node.id());
     }
 }

@@ -52,7 +52,7 @@ public class MWResolver implements Resolver {
     }
 
     @Override
-    public final void free() {
+    public void free() {
         if (dictionary != null) {
             _space.free(dictionary);
         }
