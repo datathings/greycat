@@ -18,6 +18,7 @@ package greycat.internal;
 import greycat.*;
 import greycat.chunk.*;
 import greycat.internal.custom.*;
+import greycat.internal.heap.HeapChunkSpace;
 import greycat.internal.heap.HeapMemoryFactory;
 import greycat.plugin.*;
 import greycat.struct.*;
@@ -57,6 +58,10 @@ public class CoreGraph implements Graph {
     //general properties
     private final HashMap<String, Object> _properties = new HashMap<String, Object>();
 
+    protected Resolver createResolver(Storage p_storage, ChunkSpace p_space, Graph selfGraph) {
+        return new MWResolver(p_storage, p_space, selfGraph);
+    }
+
     public CoreGraph(final Storage p_storage, final long memorySize, final long batchSize, final Scheduler p_scheduler, final Plugin[] p_plugins, final boolean deepPriority) {
         //initiate the two registry
         _actionRegistry = new CoreActionRegistry();
@@ -80,7 +85,7 @@ public class CoreGraph implements Graph {
         _taskHooks = temp_hooks;
         _storage = p_storage;
         _space = _memoryFactory.newSpace(memorySize, batchSize, selfPointer, deepPriority);
-        _resolver = new MWResolver(_storage, _space, selfPointer);
+        _resolver = createResolver(_storage, _space, selfPointer);
         _scheduler = p_scheduler;
         //Fourth round, initialize all taskActions and nodeTypes
         CoreTask.fillDefault(this._actionRegistry);

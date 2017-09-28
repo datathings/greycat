@@ -101,12 +101,15 @@
         <module>plugins/rocksdb</module>
         <module>plugins/websocket</module>
         <module>plugins/ml</module>
-        <!-- Modelling environment-->
+        <!-- Modelling environment -->
         <module>modeling/language</module>
         <module>modeling/generator</module>
         <module>modeling/mavenplugin</module>
         <module>modeling/gradleplugin</module>
         <module>modeling/gencli</module>
+
+        <!-- Extra -->
+        <module>plugins/paxos</module>
 
     </modules>
 

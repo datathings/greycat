@@ -25,7 +25,7 @@ import greycat.struct.*;
 import greycat.utility.*;
 import greycat.base.BaseNode;
 
-final class MWResolver implements Resolver {
+public class MWResolver implements Resolver {
 
     private final Storage _storage;
 
@@ -46,7 +46,7 @@ final class MWResolver implements Resolver {
     }
 
     @Override
-    public final void init() {
+    public void init() {
         dictionary = (StateChunk) this._space.getAndMark(ChunkType.STATE_CHUNK, CoreConstants.GLOBAL_DICTIONARY_KEY[0], CoreConstants.GLOBAL_DICTIONARY_KEY[1], CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
         globalWorldOrderChunk = (WorldOrderChunk) this._space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, Constants.NULL_LONG);
     }
@@ -140,14 +140,14 @@ final class MWResolver implements Resolver {
     }
 
     @Override
-    public final void externalLock(Node node) {
+    public void externalLock(Node node) {
         final BaseNode casted = (BaseNode) node;
         final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
         worldOrderChunk.externalLock();
     }
 
     @Override
-    public final void externalUnlock(final Node node) {
+    public void externalUnlock(final Node node) {
         final BaseNode casted = (BaseNode) node;
         final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
         worldOrderChunk.externalUnlock();
@@ -790,7 +790,7 @@ final class MWResolver implements Resolver {
                                                                     } else {
                                                                         for (int i = 0; i < idsSize; i++) {
                                                                             int timeOffset = -1;
-                                                                            if(theNodeWorldOrders[i] != null){
+                                                                            if (theNodeWorldOrders[i] != null) {
                                                                                 if (theObjectChunks[i] == null && ((WorldOrderChunk) theNodeWorldOrders[i]).type() == NodeValueType) {
                                                                                     timeOffset = (int) keys[(i * Constants.KEY_SIZE) + 2];
                                                                                     theObjectChunks[i] = ((TimeTreeEmbeddedChunk) theNodeTimeTrees[i]).state(timeOffset);
