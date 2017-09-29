@@ -520,7 +520,9 @@ class TypeGenerator {
             if (edge.opposite().edge() instanceof Relation) {
                 String oppositeName = edge.opposite().edge().name();
                 addBlock.addStatement("value.addToRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "this");
+                addBlock.beginControlFlow("if(callback != null)");
                 addBlock.addStatement("callback.on(self)");
+                addBlock.endControlFlow();
 
             } else if (edge.opposite().edge() instanceof Reference) {
                 String oppositeName = edge.opposite().edge().name();
@@ -551,7 +553,9 @@ class TypeGenerator {
                                 .addStatement("rel.clear()")
                                 .endControlFlow()
                                 .addStatement("value.addToRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "self")
+                                .beginControlFlow("if(callback != null)")
                                 .addStatement("callback.on(self)")
+                                .endControlFlow()
                                 .build())
                         .build());
 
@@ -566,7 +570,9 @@ class TypeGenerator {
                 addBlock.addStatement("index.declareAttributes(null $L)", params.toString());
                 addBlock.endControlFlow();
                 addBlock.addStatement("index.update($L)", "this");
+                addBlock.beginControlFlow("if(callback != null)");
                 addBlock.addStatement("callback.on(self)");
+                addBlock.endControlFlow();
             }
         }
         return addBlock;
