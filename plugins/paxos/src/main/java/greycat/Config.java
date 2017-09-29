@@ -2,8 +2,8 @@ package greycat;
 
 public class Config {
 
-    //public static String master = "10.186.109.9";
-    public static String master = "127.0.0.1";
+    public static String master = "10.186.109.9";
+    //public static String master = "127.0.0.1";
 
     public static int masterPort = 8070;
 
