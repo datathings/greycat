@@ -19,6 +19,7 @@ import greycat.*;
 import greycat.base.BaseTaskResult;
 import greycat.chunk.ChunkType;
 import greycat.chunk.WorldOrderChunk;
+import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.CoreProgressReport;
 import greycat.plugin.TaskExecutor;
 import greycat.struct.BufferIterator;
@@ -95,6 +96,33 @@ public class WSClient implements Storage, TaskExecutor {
     public final void unlock(Buffer previousLock, Callback<Boolean> callback) {
         send_rpc_req(WSConstants.REQ_UNLOCK, previousLock, callback);
     }
+
+    //@Override
+    public final void extLock(long nodeID, Callback<Boolean> callback) {
+        Buffer b = new HeapBuffer();
+        Base64.encodeLongToBuffer(nodeID, b);
+        send_rpc_req(WSConstants.REQ_EXT_LOCK, b, new Callback() {
+            @Override
+            public void on(Object result) {
+                b.free();
+                callback.on(true);
+            }
+        });
+    }
+
+    //@Override
+    public final void extUnlock(long nodeID, Callback<Boolean> callback) {
+        Buffer b = new HeapBuffer();
+        Base64.encodeLongToBuffer(nodeID, b);
+        send_rpc_req(WSConstants.REQ_EXT_UNLOCK, b, new Callback() {
+            @Override
+            public void on(Object result) {
+                b.free();
+                callback.on(true);
+            }
+        });
+    }
+
 
     @Override
     public final void connect(final Graph p_graph, final Callback<Boolean> callback) {
@@ -257,6 +285,7 @@ public class WSClient implements Storage, TaskExecutor {
             @Override
             public void complete(WebSocketChannel webSocketChannel, Void aVoid) {
             }
+
             @Override
             public void onError(WebSocketChannel webSocketChannel, Void aVoid, Throwable throwable) {
                 throwable.printStackTrace();

@@ -32,12 +32,18 @@ public class Process {
         readCSV("/Users/duke/Documents/datathings/greycat/plugins/paxos/src/test/java/greycat/FusionResults.csv", fusion);
         HashMap<Integer, List<Integer>> raft = new HashMap<Integer, List<Integer>>();
         readCSV("/Users/duke/Documents/datathings/greycat/plugins/paxos/src/test/java/greycat/RaftResults.csv", raft);
+
+        HashMap<Integer, List<Integer>> raft6 = new HashMap<Integer, List<Integer>>();
+        readCSV("/Users/duke/Documents/datathings/greycat/plugins/paxos/src/test/java/greycat/Raft6.csv", raft6);
+
         List<Integer> speedFusion = computeSpeed(fusion);
         List<Integer> speedRaft = computeSpeed(raft);
+        List<Integer> speedRaft6 = computeSpeed(raft6);
 
         System.out.println("fusionAvg=" + computeAvg(speedFusion));
         System.out.println("raftAvg=" + computeAvg(speedRaft));
-
+        System.out.println("raft6Avg=" + computeAvg(speedRaft6));
+        /*
         StringBuilder buffer = new StringBuilder();
         print("fusion", speedFusion, buffer);
         print("raft", speedRaft, buffer);
@@ -48,10 +54,8 @@ public class Process {
             writer.close();
         } catch (IOException e) {
             // do something
-        }
-
-        SimpleBoxPlot(speedFusion, speedRaft);
-
+        }*/
+        SimpleBoxPlot(speedFusion, speedRaft, speedRaft6);
     }
 
     public static void print(String name, List<Integer> elems, StringBuilder buffer) {
@@ -135,13 +139,13 @@ public class Process {
     protected static final Color COLOR1 = new Color(55, 170, 200);
     protected static final Color COLOR2 = new Color(200, 80, 75);
 
-    public static void SimpleBoxPlot(List<Integer> fusion, List<Integer> raft) {
+    public static void SimpleBoxPlot(List<Integer> fusion, List<Integer> raft, List<Integer> raft6) {
 
         // Create example data
-        DataTable data = new DataTable(Integer.class, Integer.class);
+        DataTable data = new DataTable(Integer.class, Integer.class, Integer.class);
 
-        for (int i = 0; i < raft.size(); i++) {
-            data.add(fusion.get(i), raft.get(i));
+        for (int i = 0; i < fusion.size(); i++) {
+            data.add(fusion.get(i), raft.get(i % raft.size()), raft6.get(i % raft6.size()));
         }
 
         // Create new box-and-whisker plot
@@ -156,8 +160,8 @@ public class Process {
         // Format axes
         plot.getAxisRenderer(BoxPlot.AXIS_X).setCustomTicks(
                 DataUtils.map(
-                        new Double[]{1.0, 2.0},
-                        new String[]{"Fusion", "Raft"}
+                        new Double[]{1.0, 2.0, 3.0},
+                        new String[]{"Fusion", "Raft", "Raft6"}
                 )
         );
 
@@ -165,7 +169,7 @@ public class Process {
         axisY.setRange(0.0, 40000);
         AxisRenderer axisRendererY = new LogarithmicRenderer2D();
         axisRendererY.setTickSpacing(1.5);
-        plot.setAxis(BoxPlot.AXIS_Y,axisY);
+        plot.setAxis(BoxPlot.AXIS_Y, axisY);
         plot.setAxisRenderer(BoxPlot.AXIS_Y, axisRendererY);
 
         // Format boxes

@@ -23,6 +23,7 @@ class WSConstants {
     static final byte REQ_PUT = 1;
     static final byte REQ_LOCK = 2;
     static final byte REQ_UNLOCK = 3;
+
     static final byte REQ_REMOVE = 4;
     static final byte REQ_TASK = 5;
     static final byte RESP_GET = 6;
@@ -38,5 +39,10 @@ class WSConstants {
 
     static final byte HEART_BEAT_PING = 15;
     static final byte HEART_BEAT_PONG = 16;
-    
+
+    static final byte REQ_EXT_LOCK = 17;
+    static final byte REQ_EXT_UNLOCK = 18;
+    static final byte RESP_EXT_LOCK = 19;
+    static final byte RESP_EXT_UNLOCK = 20;
+
 }

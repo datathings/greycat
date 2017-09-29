@@ -89,8 +89,6 @@ public class WSSharedServerTest {
                     @Override
                     public void on(NodeIndex indexNode) {
                         indexNode.update(node);
-
-
                     }
                 }, "name");
 
