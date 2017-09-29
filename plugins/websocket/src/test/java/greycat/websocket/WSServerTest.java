@@ -46,11 +46,24 @@ public class WSServerTest {
                 gclient.save(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
-                        gclient.disconnect(new Callback<Boolean>() {
+                        WSClient wsclient = (WSClient) gclient.storage();
+                        wsclient.extLock(3, new Callback<Boolean>() {
                             @Override
                             public void on(Boolean result) {
-                                System.out.println("Test over");
-                                graphServer.stop();
+                                System.out.println("ExtLock Acquired");
+                                wsclient.extUnlock(3, new Callback<Boolean>() {
+                                    @Override
+                                    public void on(Boolean result) {
+                                        System.out.println("ExtLock Released");
+                                        gclient.disconnect(new Callback<Boolean>() {
+                                            @Override
+                                            public void on(Boolean result) {
+                                                System.out.println("Test over");
+                                                graphServer.stop();
+                                            }
+                                        });
+                                    }
+                                });
                             }
                         });
                     }
@@ -61,7 +74,6 @@ public class WSServerTest {
 
     @Test
     public void test() {
-
         final Graph graph = new GraphBuilder()
                 .withMemorySize(10000)
                 .build();

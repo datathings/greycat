@@ -1,5 +1,6 @@
-package greycat;
+package greycat.raft;
 
+import greycat.*;
 import greycat.plugin.Resolver;
 import greycat.scheduler.TrampolineScheduler;
 import greycat.websocket.WSClient;

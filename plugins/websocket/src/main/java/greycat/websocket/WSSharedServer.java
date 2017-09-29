@@ -34,6 +34,8 @@ import greycat.chunk.Chunk;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buffer> {
 
@@ -137,6 +139,10 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
 
     }
 
+    private Lock lock = new ReentrantLock();
+
+    private Map<Long, List<Tuple<WebSocketChannel, byte[]>>> waiters = new HashMap<>();
+
     protected void process_rpc(final byte[] input, final WebSocketChannel channel) {
         if (input.length == 0) {
             return;
@@ -150,6 +156,60 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
             byte firstCodeView = codeView.read(0);
             //compute resp prefix
             switch (firstCodeView) {
+
+                case WSConstants.REQ_EXT_LOCK:
+                    graph.setProperty("ws.last", System.currentTimeMillis());
+                    lock.lock();
+                    final Buffer reader = it.next();
+                    long nodeID = Base64.decodeToLongWithBounds(reader, 0, reader.length());
+                    List<Tuple<WebSocketChannel, byte[]>> waiterList = waiters.get(nodeID);
+                    boolean acquired = false;
+                    if (waiterList == null) {
+                        waiterList = new ArrayList<Tuple<WebSocketChannel, byte[]>>();
+                        waiters.put(nodeID, waiterList);
+                        acquired = true;
+                    }
+                    waiterList.add(new Tuple<WebSocketChannel, byte[]>(channel, callbackCodeView.data()));
+                    lock.unlock();
+                    if (acquired) {
+                        Buffer concat = graph.newBuffer();
+                        concat.write(WSConstants.RESP_EXT_LOCK);
+                        concat.write(Constants.BUFFER_SEP);
+                        concat.writeAll(callbackCodeView.data());
+                        WSSharedServer.this.send_resp(concat, channel);
+                    }
+                    payload.free();
+                    break;
+                case WSConstants.REQ_EXT_UNLOCK:
+                    graph.setProperty("ws.last", System.currentTimeMillis());
+                    lock.lock();
+                    final Buffer readerUnlock = it.next();
+                    long nodeID_unlock = Base64.decodeToLongWithBounds(readerUnlock, 0, readerUnlock.length());
+                    List<Tuple<WebSocketChannel, byte[]>> waiterList_unlock = waiters.get(nodeID_unlock);
+                    if (waiterList_unlock.get(0).left() != channel) {
+                        System.err.println("Error Not Consistent Remote Unlock");
+                    } else {
+                        waiterList_unlock.remove(0);
+                        if (waiterList_unlock.size() == 0) {
+                            waiters.remove(nodeID_unlock);
+                        } else {
+                            Tuple<WebSocketChannel, byte[]> next = waiterList_unlock.get(0);
+                            Buffer concat = graph.newBuffer();
+                            concat.write(WSConstants.RESP_EXT_LOCK);
+                            concat.write(Constants.BUFFER_SEP);
+                            concat.writeAll(next.right());
+                            WSSharedServer.this.send_resp(concat, channel);
+                        }
+                    }
+                    lock.unlock();
+
+                    Buffer concatUnlock = graph.newBuffer();
+                    concatUnlock.write(WSConstants.RESP_EXT_UNLOCK);
+                    concatUnlock.write(Constants.BUFFER_SEP);
+                    concatUnlock.writeAll(callbackCodeView.data());
+                    WSSharedServer.this.send_resp(concatUnlock, channel);
+                    break;
+
                 case WSConstants.HEART_BEAT_PING:
                     final Buffer concat = graph.newBuffer();
                     concat.write(WSConstants.HEART_BEAT_PONG);

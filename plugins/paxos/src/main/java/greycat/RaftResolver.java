@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RaftResolver extends MWResolver {
 
+
     public RaftResolver(Storage p_storage, ChunkSpace p_space, Graph p_graph) {
         super(p_storage, p_space, p_graph);
     }

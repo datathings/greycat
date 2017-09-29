@@ -1,5 +1,6 @@
-package greycat;
+package greycat.raft;
 
+import greycat.Config;
 import io.atomix.AtomixReplica;
 import io.atomix.catalyst.transport.Address;
 
