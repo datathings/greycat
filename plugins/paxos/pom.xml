@@ -60,6 +60,13 @@
             <artifactId>greycat-websocket</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>de.erichseifert.gral</groupId>
+            <artifactId>gral-core</artifactId>
+            <version>0.11</version>
+        </dependency>
+
     </dependencies>
 
 </project>

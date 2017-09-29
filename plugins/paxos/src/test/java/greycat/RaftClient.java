@@ -3,16 +3,26 @@ package greycat;
 import greycat.plugin.Resolver;
 import greycat.scheduler.TrampolineScheduler;
 import greycat.websocket.WSClient;
+import io.atomix.AtomixReplica;
+import io.atomix.catalyst.transport.Address;
 
 import static greycat.Config.expSize;
 import static greycat.Config.saveEvery;
 import static greycat.Tasks.newTask;
 
-public class PaxosClient {
+public class RaftClient {
 
     public static void main(String[] args) {
 
-        PaxosGraph g = new PaxosGraph(new WSClient("ws://" + Config.master + ":8090/ws"), Config.cacheSize, Config.cacheSize, new TrampolineScheduler(), null, false);
+        //start client
+        for (int i = 0; i < 10; i++) {
+            AtomixReplica.Builder builder = AtomixReplica.builder(new Address("10.186.109.7", 8060 + i));
+            AtomixReplica replica = builder.build();
+            replica.bootstrap(new Address(Config.master, Config.masterPort)).join();
+        }
+
+
+        RaftGraph g = new RaftGraph(new WSClient("ws://" + Config.master + ":8090/ws"), Config.cacheSize, Config.cacheSize, new TrampolineScheduler(), null, false);
         Resolver r = g.resolver();
         g.connect(new Callback<Boolean>() {
             @Override
