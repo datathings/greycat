@@ -768,9 +768,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         //first value
         if (_k == null) {
             //we do not allocate for empty element
-            if (param_elem == null) {
+
+            /*if (param_elem == null) {
                 return;
-            }
+            }*/
             _capacity = Constants.MAP_INITIAL_CAPACITY;
             _k = new int[_capacity];
             _v = new Object[_capacity];
