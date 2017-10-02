@@ -62,7 +62,7 @@ public class Process {
         }*/
         //SimpleBoxPlot(speedFusion, speedRaft, speedRaft6);
 
-        SimpleBoxPlot(new String[]{"LockFree_Merge", "CentralServer_Lock","RaftConsensus_2_Peers","RaftConsensus_7_Peers"},speedFusion, speedDlock, speedRaft, speedRaft7);
+        SimpleBoxPlot(new String[]{"LockFree_Merge", "CentralServer_Lock", "RaftConsensus_2_Peers", "RaftConsensus_7_Peers"}, speedFusion, speedDlock, speedRaft, speedRaft7);
 
     }
 
@@ -143,10 +143,6 @@ public class Process {
         }
     }
 
-    private static final Random random = new Random();
-    protected static final Color COLOR1 = new Color(55, 170, 200);
-    protected static final Color COLOR2 = new Color(200, 80, 75);
-
     public static void SimpleBoxPlot(String[] names, List<Integer>... datasets) {
 
         // Create example data
@@ -174,7 +170,7 @@ public class Process {
         // Format plot
         plot.autoscaleAxis(BoxPlot.AXIS_Y);
 
-        plot.setInsets(new Insets2D.Double(20.0, 70.0, 40.0, 20.0));
+        plot.setInsets(new Insets2D.Double(20.0, 70.0, 50.0, 20.0));
 
         // Format axes
 
@@ -188,6 +184,7 @@ public class Process {
                         names
                 )
         );
+        plot.getAxisRenderer(BoxPlot.AXIS_X).setTickFont(new Font("TimesNewRoman", Font.PLAIN, 16));
         Axis axisY = new Axis();
 
         int max = 0;
@@ -203,31 +200,36 @@ public class Process {
 
         axisY.setRange(0.0, max);
         AxisRenderer axisRendererY = new LogarithmicRenderer2D();
-        axisRendererY.setTickSpacing(2.6);
+        axisRendererY.setTickSpacing(3.0);
         plot.setAxis(BoxPlot.AXIS_Y, axisY);
         plot.setAxisRenderer(BoxPlot.AXIS_Y, axisRendererY);
+        axisRendererY.setTickFont(new Font("TimesNewRoman", Font.PLAIN, 13));
 
         // Format boxes
-        Stroke stroke = new BasicStroke(2f);
-        ScaledContinuousColorMapper colors = new LinearGradient(GraphicsUtils.deriveBrighter(COLOR1), Color.WHITE);
-        colors.setRange(1.0, 3.0);
+        Stroke stroke = new BasicStroke(1.5f);
+        //ScaledContinuousColorMapper colors = new LinearGradient(GraphicsUtils.deriveBrighter(Color.BLACK), Color.WHITE);
+        //colors.setRange(1.0, 3.0);
         BoxWhiskerRenderer pointRenderer = (BoxWhiskerRenderer) plot.getPointRenderers(boxData).get(0);
         pointRenderer.setWhiskerStroke(stroke);
         pointRenderer.setBoxBorderStroke(stroke);
-        pointRenderer.setBoxBackground(colors);
-        pointRenderer.setBoxBorderColor(COLOR1);
-        pointRenderer.setWhiskerColor(COLOR1);
-        pointRenderer.setCenterBarColor(COLOR1);
+        //pointRenderer.setBoxBackground(colors);
+        pointRenderer.setBoxBorderColor(Color.BLACK);
+        pointRenderer.setWhiskerColor(Color.BLACK);
+        pointRenderer.setCenterBarColor(Color.RED);
         plot.getNavigator().setDirection(XYNavigationDirection.VERTICAL);
+
+        int w = 2000;)
+        int h = 800;
+
         // Add plot to Swing component
         InteractivePanel panel = new InteractivePanel(plot);
         JFrame frame = new JFrame("Hello");
-        panel.setPreferredSize(new Dimension(1200, 400));
-        panel.setSize(new Dimension(1200, 5-400));
+        panel.setPreferredSize(new Dimension(w, h));
+        panel.setSize(new Dimension(w, 5 - h));
         frame.getContentPane().add(panel, BorderLayout.CENTER);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setPreferredSize(new Dimension(1200, 400));
-        frame.setSize(new Dimension(1200, 400));
+        frame.setPreferredSize(new Dimension(w, h));
+        frame.setSize(new Dimension(w, h));
         //frame.pack();
         frame.setVisible(true);
     }
