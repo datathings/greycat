@@ -102,22 +102,24 @@ public class Gaussian {
     }
 
     public static void clearProfile(EStructArray hostnode) {
-        EStruct host = getRoot(hostnode);
+//        EStruct host = getRoot(hostnode);
+//        host.remove(NULL);
+//        host.remove(REJECTED);
+//        host.remove(ACCEPTED);
+//        host.remove(TOTAL);
+//        host.remove(SUM);
+//        host.remove(SUMSQ);
+//        host.remove(AVG);
+//        host.remove(COV);
+//        host.remove(COR);
+//        host.remove(STD);
+//        host.remove(MIN);
+//        host.remove(MAX);
+//        host.remove(HISTOGRAM_CENTERS);
+//        host.remove(HISTOGRAM_VALUES);
 
-        host.remove(NULL);
-        host.remove(REJECTED);
-        host.remove(ACCEPTED);
-        host.remove(TOTAL);
-        host.remove(SUM);
-        host.remove(SUMSQ);
-        host.remove(AVG);
-        host.remove(COV);
-        host.remove(COR);
-        host.remove(STD);
-        host.remove(MIN);
-        host.remove(MAX);
-        host.remove(HISTOGRAM_CENTERS);
-        host.remove(HISTOGRAM_VALUES);
+        hostnode.root().drop();
+        hostnode.setRoot(hostnode.newEStruct());
     }
 
     public static void histogram(EStructArray hostnode, double min, double max, Double value, int histogramBins) {
