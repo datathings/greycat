@@ -339,9 +339,10 @@ class HeapEStruct implements EStruct, HeapContainer {
         //first value
         if (_k == null) {
             //we do not allocate for empty element
-            if (param_elem == null) {
+            /*
+            if (param_elem == null) {//TODO
                 return;
-            }
+            }*/
             _capacity = Constants.MAP_INITIAL_CAPACITY;
             _k = new int[_capacity];
             _v = new Object[_capacity];
@@ -363,7 +364,7 @@ class HeapEStruct implements EStruct, HeapContainer {
             return;
         }
         int entry = -1;
-        int p_entry = -1;
+        // int p_entry = -1;
         int hashIndex = p_key % (_capacity * 2);
         if (hashIndex < 0) {
             hashIndex = hashIndex * -1;
@@ -374,12 +375,13 @@ class HeapEStruct implements EStruct, HeapContainer {
                 entry = m;
                 break;
             }
-            p_entry = m;
+            //p_entry = m;
             m = _next_hash[m];
         }
         //case already present
         if (entry != -1) {
             if (replaceIfPresent || (p_type != _type[entry])) {
+                /*
                 if (param_elem == null) {
                     //unHash previous
                     if (p_entry != -1) {
@@ -422,12 +424,12 @@ class HeapEStruct implements EStruct, HeapContainer {
                         _type[indexVictim] = -1;
                     }
                     _size--;
-                } else {
-                    _v[entry] = param_elem;
-                    if (_type[entry] != p_type) {
-                        _type[entry] = p_type;
-                    }
+                } else {*/
+                _v[entry] = param_elem;
+                if (_type[entry] != p_type) {
+                    _type[entry] = p_type;
                 }
+                //}
             }
             if (!initial) {
                 declareDirty();
