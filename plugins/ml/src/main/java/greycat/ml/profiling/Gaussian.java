@@ -20,6 +20,8 @@ import greycat.Type;
 import greycat.ml.math.Gaussian1D;
 import greycat.struct.*;
 
+import java.util.Random;
+
 public class Gaussian {
     public static final String NULL = "nullValues";
     public static final String REJECTED = "rejectedValues";
@@ -46,6 +48,8 @@ public class Gaussian {
     public static final int STATUS_ACCEPTED = 1;
     public static final int STATUS_REJECTED = 2;
 
+   // private static Random random=new Random();
+
 
     private static EStruct getRoot(EStructArray hostnode) {
         EStruct host = hostnode.root();
@@ -58,6 +62,7 @@ public class Gaussian {
 
     public static int profile(EStructArray hostnode, Double value, Double boundMin, Double boundMax) {
         EStruct host = getRoot(hostnode);
+        //host.set("RANDOM",Type.DOUBLE,random.nextDouble());
 
         if (value == null) {
             host.set(NULL, Type.LONG, host.getWithDefault(NULL, 0l) + 1);
@@ -89,6 +94,8 @@ public class Gaussian {
         host.set(SUM, Type.DOUBLE, sum);
         host.set(SUMSQ, Type.DOUBLE, sumsq);
         host.set(AVG, Type.DOUBLE, sum / total);
+
+
 
         if (total > 1) {
             double cov = Gaussian1D.getCovariance(sum, sumsq, total);
