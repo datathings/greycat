@@ -37,6 +37,7 @@ public class CoreActionNames {
     public static String DECLARE_GLOBAL_VAR = "declareGlobalVar";
     public static String DECLARE_VAR = "declareVar";
     public static String FLIP_VAR = "flipVar";
+    public static String GET_ELEMENT = "getElement";
     public static String DEFINE_AS_GLOBAL_VAR = "defineAsGlobalVar";
     public static String DEFINE_AS_VAR = "defineAsVar";
     public static String EXECUTE_EXPRESSION = "executeExpression";
