@@ -138,7 +138,9 @@ public class HeapChunkSpace implements ChunkSpace {
         Chunk result = null;
         if (found != -1) {
             result = this._chunkValues.get(found);
-            if (!result.inSync()) {
+            if (result == null) {
+                unmark(found);
+            } else if (!result.inSync()) {
                 //cache is out of sync, force refresh
                 unmark(result.index());
                 result = null;
