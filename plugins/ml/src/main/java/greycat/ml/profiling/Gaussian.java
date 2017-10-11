@@ -98,9 +98,11 @@ public class Gaussian {
         if (total > 1) {
             double cov = Gaussian1D.getCovariance(sum, sumsq, total);
             double std = Math.sqrt(cov);
-            if (Double.isInfinite(std) || Double.isNaN(std)) {
-                std = 0;
-            }
+
+//            if (Double.isInfinite(std) || Double.isNaN(std)) {
+//                std = 0;
+//            }
+
             host.set(COV, Type.DOUBLE, cov);
             host.set(STD, Type.DOUBLE, std);
         } else {
