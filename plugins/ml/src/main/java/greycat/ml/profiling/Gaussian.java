@@ -15,12 +15,12 @@
  */
 package greycat.ml.profiling;
 
-import greycat.Node;
 import greycat.Type;
 import greycat.ml.math.Gaussian1D;
-import greycat.struct.*;
-
-import java.util.Random;
+import greycat.struct.DMatrix;
+import greycat.struct.DoubleArray;
+import greycat.struct.EStruct;
+import greycat.struct.EStructArray;
 
 public class Gaussian {
     public static final String NULL = "nullValues";
@@ -48,7 +48,7 @@ public class Gaussian {
     public static final int STATUS_ACCEPTED = 1;
     public static final int STATUS_REJECTED = 2;
 
-   // private static Random random=new Random();
+    // private static Random random=new Random();
 
 
     private static EStruct getRoot(EStructArray hostnode) {
@@ -95,12 +95,14 @@ public class Gaussian {
         host.set(SUMSQ, Type.DOUBLE, sumsq);
         host.set(AVG, Type.DOUBLE, sum / total);
 
-
-
         if (total > 1) {
             double cov = Gaussian1D.getCovariance(sum, sumsq, total);
+            double std = Math.sqrt(cov);
+            if (Double.isInfinite(std) || Double.isNaN(std)) {
+                std = 0;
+            }
             host.set(COV, Type.DOUBLE, cov);
-            host.set(STD, Type.DOUBLE, Math.sqrt(cov));
+            host.set(STD, Type.DOUBLE, std);
         } else {
             host.set(COV, Type.DOUBLE, 0.0);
             host.set(STD, Type.DOUBLE, 0.0);
