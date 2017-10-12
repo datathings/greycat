@@ -31,6 +31,20 @@ public class Tasks {
         return new MathConditional(mathExpression).conditional();
     }
 
+    public static final ConditionalFunction isNotEmpty = new ConditionalFunction() {
+        @Override
+        public boolean eval(TaskContext ctx) {
+            return (ctx.result() != null && ctx.result().size() > 0);
+        }
+    };
+
+    public static final ConditionalFunction isEmpty = new ConditionalFunction() {
+        @Override
+        public boolean eval(TaskContext ctx) {
+            return (ctx.result() == null || ctx.result().size() == 0);
+        }
+    };
+
     /**
      * Creates a new task.
      *
