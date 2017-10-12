@@ -51,13 +51,14 @@ public class CoreActionNames {
     public static String READ_VAR = "readVar";
     public static String REMOVE = "remove";
     public static String SAVE = "save";
+    public static String SAVE_ABOVE = "saveAbove";
     public static String DELETE = "delete";
     public static String SCRIPT = "script";
     public static String ASYNC_SCRIPT = "asyncScript";
     public static String SELECT = "select";
     public static String SET_AS_VAR = "setAsVar";
-    public static String START_TIMER ="startTimer";
-    public static String END_TIMER ="endTimer";
+    public static String START_TIMER = "startTimer";
+    public static String END_TIMER = "endTimer";
     public static String FORCE_ATTRIBUTE = "forceAttribute";
     public static String SET_ATTRIBUTE = "setAttribute";
     public static String TIME_SENSITIVITY = "timeSensitivity";

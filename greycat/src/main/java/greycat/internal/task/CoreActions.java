@@ -442,6 +442,15 @@ public class CoreActions {
     }
 
     /**
+     * Saves the graph to a storage if the number of dirties goes above a threshold such as 0.3 for 30% for dirties elements in the cache.
+     *
+     * @return the action to chain
+     */
+    public static Action saveAbove(String threshold) {
+        return new ActionSaveAbove(threshold);
+    }
+
+    /**
      * Start a transactional task.
      *
      * @return the action to chain

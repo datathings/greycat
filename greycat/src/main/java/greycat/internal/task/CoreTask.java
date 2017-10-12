@@ -688,7 +688,7 @@ public class CoreTask implements Task {
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new ActionRemove((String)params[0]);
+                        return new ActionRemove((String) params[0]);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.TRAVEL_IN_WORLD)
@@ -965,6 +965,15 @@ public class CoreTask implements Task {
                     @Override
                     public Action create(Object[] params) {
                         return new ActionSave();
+                    }
+                });
+        registry.getOrCreateDeclaration(CoreActionNames.SAVE_ABOVE)
+                .setParams(Type.STRING)
+                .setDescription("Save current cache into persistence storage when reaching a partiular threshold")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionSaveAbove((String) params[0]);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.CLEAR_RESULT)
