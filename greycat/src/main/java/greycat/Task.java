@@ -414,7 +414,8 @@ public interface Task {
     Task delete();
 
     Task startTimer(String timerName);
-    
+
     Task endTimer(String message, String timerName);
 
+    Task getElement(String index);
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.internal.task.newactions;
+package greycat.internal.task;
 
 import greycat.Action;
 import greycat.Constants;
@@ -23,7 +23,6 @@ import greycat.internal.task.TaskHelper;
 import greycat.struct.Buffer;
 
 public class ActionGetElement implements Action {
-
 
     private final String _elemID;
 
@@ -37,10 +36,9 @@ public class ActionGetElement implements Action {
         int id;
         try {
             id = Integer.parseInt(flatID);
-            if(id<ctx.result().size()) {
+            if (id < ctx.result().size()) {
                 ctx.continueWith(ctx.wrap(ctx.result().get(id)));
-            }
-            else {
+            } else {
                 ctx.continueWith(null);
             }
         } catch (Throwable t) {
@@ -50,7 +48,7 @@ public class ActionGetElement implements Action {
 
     @Override
     public void serialize(final Buffer builder) {
-        builder.writeString(CoreActionNames.CREATE_TYPED_NODE);
+        builder.writeString(CoreActionNames.GET_ELEMENT);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_elemID, builder, true);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);

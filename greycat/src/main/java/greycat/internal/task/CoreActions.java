@@ -451,6 +451,15 @@ public class CoreActions {
     }
 
     /**
+     * Saves the graph to a storage.
+     *
+     * @return the action to chain
+     */
+    public static Action getElement(String index) {
+        return new ActionGetElement(index);
+    }
+
+    /**
      * Start a transactional task.
      *
      * @return the action to chain
@@ -542,5 +551,5 @@ public class CoreActions {
     public static Action endTimer(String message, String timerName) {
         return new ActionEndTimer(message, timerName);
     }
-    
+
 }

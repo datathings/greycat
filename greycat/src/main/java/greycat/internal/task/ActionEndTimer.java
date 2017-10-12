@@ -63,7 +63,7 @@ public class ActionEndTimer implements Action {
 
     @Override
     public void serialize(final Buffer builder) {
-        builder.writeString(CoreActionNames.CREATE_TYPED_NODE);
+        builder.writeString(CoreActionNames.END_TIMER);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_timerName, builder, true);
         builder.writeChar(Constants.TASK_PARAM_SEP);

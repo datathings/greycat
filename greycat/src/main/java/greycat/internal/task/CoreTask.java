@@ -727,6 +727,16 @@ public class CoreTask implements Task {
                         return new ActionLookup((String) params[0]);
                     }
                 });
+
+        registry.getOrCreateDeclaration(CoreActionNames.GET_ELEMENT)
+                .setParams(Type.STRING)
+                .setDescription("Get element at param index")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionGetElement((String) params[0]);
+                    }
+                });
         registry.getOrCreateDeclaration(CoreActionNames.DEFINE_AS_GLOBAL_VAR)
                 .setParams(Type.STRING)
                 .setDescription("Stores the task result as a global variable in the task context and starts a new scope (for sub tasks).")
@@ -1631,6 +1641,11 @@ public class CoreTask implements Task {
     @Override
     public Task endTimer(String message, String timerName) {
         return then(CoreActions.endTimer(message, timerName));
+    }
+
+    @Override
+    public final Task getElement(String index) {
+        return then(CoreActions.getElement(index));
     }
 
 }
