@@ -995,6 +995,25 @@ public class CoreTask implements Task {
                     }
                 });
 
+
+        registry.getOrCreateDeclaration(CoreActionNames.START_TIMER)
+                .setParams(Type.STRING)
+                .setDescription("Start a timer to track speed")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionStartTimer((String) params[0]);
+                    }
+                });
+        registry.getOrCreateDeclaration(CoreActionNames.END_TIMER)
+                .setParams(Type.STRING, Type.STRING)
+                .setDescription("End a previously open timer and print custom message associated with elapsed time")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionEndTimer((String) params[0], (String) params[1]);
+                    }
+                });
         registry.getOrCreateDeclaration(CoreActionNames.READ_INDEX)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
                 .setDescription("Retrieves indexed nodes matching the query.")
@@ -1602,6 +1621,16 @@ public class CoreTask implements Task {
     @Override
     public final Task delete() {
         return then(CoreActions.delete());
+    }
+
+    @Override
+    public Task startTimer(String timerName) {
+        return then(CoreActions.startTimer(timerName));
+    }
+
+    @Override
+    public Task endTimer(String message, String timerName) {
+        return then(CoreActions.endTimer(message, timerName));
     }
 
 }

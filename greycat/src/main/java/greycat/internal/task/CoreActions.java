@@ -535,4 +535,12 @@ public class CoreActions {
         return new ActionCloneNodes();
     }
 
+    public static Action startTimer(String timerName) {
+        return new ActionStartTimer(timerName);
+    }
+
+    public static Action endTimer(String message, String timerName) {
+        return new ActionEndTimer(message, timerName);
+    }
+    
 }
