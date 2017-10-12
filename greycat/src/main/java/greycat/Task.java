@@ -385,6 +385,8 @@ public interface Task {
 
     Task save();
 
+    Task saveAbove(String threshold);
+
     Task startTransaction();
 
     Task stopTransaction();

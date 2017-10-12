@@ -1545,6 +1545,11 @@ public class CoreTask implements Task {
     }
 
     @Override
+    public final Task saveAbove(String threshold) {
+        return then(CoreActions.saveAbove(threshold));
+    }
+
+    @Override
     public final Task startTransaction() {
         return then(CoreActions.startTransaction());
     }
