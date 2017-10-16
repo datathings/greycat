@@ -107,6 +107,17 @@ public interface Node extends Container {
     void timepoints(long beginningOfSearch, long endOfSearch, Callback<long[]> callback);
 
     /**
+     * Retrieves the number of timePoints from the timeLine of this node when alterations occurred.<br>
+     * This method also jumps over the world hierarchy to collect all available timePoints.<br>
+     * To unbound the search, please use {@link Constants#BEGINNING_OF_TIME} and {@link Constants#END_OF_TIME} as bounds.
+     *
+     * @param beginningOfSearch (inclusive) earliest bound for the search.
+     * @param endOfSearch       (inclusive) latest bound for the search.
+     * @param callback          Called when the search is finished. Provides an array containing all the timepoints required.
+     */
+    void countTimepoints(long beginningOfSearch, long endOfSearch, Callback<Long> callback);
+
+    /**
      * Informs GreyCat memory manager that this node object can be freed from the memory.<br>
      * <b>Warning: this MUST be the last method called on this node.</b><br>
      * To work with the node afterwards, a new lookup is mandatory.

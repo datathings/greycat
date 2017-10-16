@@ -526,6 +526,10 @@ public class CoreActions {
         return new ActionTimepoints(from, to);
     }
 
+    public static Action countTimepoints(String from, String to) {
+        return new ActionCountTimepoints(from, to);
+    }
+
     /**
      * Resets the result of the task context.
      *

@@ -588,6 +588,11 @@ public class BaseNode implements Node {
     }
 
     @Override
+    public void countTimepoints(long beginningOfSearch, long endOfSearch, Callback<Long> callback) {
+        this._resolver.countTimepoints(this, beginningOfSearch, endOfSearch, callback);
+    }
+
+    @Override
     public final <A extends Node> void travelInTime(final long targetTime, final Callback<A> callback) {
         _resolver.lookup(_world, targetTime, _id, callback);
     }

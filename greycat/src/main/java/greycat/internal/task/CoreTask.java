@@ -718,6 +718,15 @@ public class CoreTask implements Task {
                         return new ActionTimepoints((String) params[0], (String) params[1]);
                     }
                 });
+        registry.getOrCreateDeclaration(CoreActionNames.COUNT_TIMEPOINTS)
+                .setParams(Type.STRING, Type.STRING)
+                .setDescription("Approximates timepoints existing for a node between a start and an end time.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionCountTimepoints((String) params[0], (String) params[1]);
+                    }
+                });
         registry.getOrCreateDeclaration(CoreActionNames.LOOKUP)
                 .setParams(Type.STRING)
                 .setDescription("Looks for the node with given ID.")
@@ -1446,6 +1455,11 @@ public class CoreTask implements Task {
     @Override
     public final Task timepoints(String from, String to) {
         return then(CoreActions.timepoints(from, to));
+    }
+
+    @Override
+    public final Task countTimepoints(String from, String to) {
+        return then(CoreActions.countTimepoints(from, to));
     }
 
     @Override

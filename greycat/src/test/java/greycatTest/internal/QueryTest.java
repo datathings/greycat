@@ -322,6 +322,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public void countTimepoints(Node node, long beginningOfSearch, long endOfSearch, Callback<Long> callback) {
+        
+    }
+
+    @Override
     public int stringToHash(String name, boolean insertIfNotExists) {
         return HashHelper.hash(name);
     }

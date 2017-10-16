@@ -63,6 +63,7 @@ public class CoreActionNames {
     public static String SET_ATTRIBUTE = "setAttribute";
     public static String TIME_SENSITIVITY = "timeSensitivity";
     public static String TIMEPOINTS = "timepoints";
+    public static String COUNT_TIMEPOINTS = "countTimepoints";
     public static String TRAVEL_IN_TIME = "travelInTime";
     public static String TRAVEL_IN_WORLD = "travelInWorld";
     public static String WITH = "with";

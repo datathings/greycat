@@ -118,6 +118,8 @@ public interface Resolver {
      */
     void resolveTimepoints(Node node, long beginningOfSearch, long endOfSearch, Callback<long[]> callback);
 
+    void countTimepoints(Node node, long beginningOfSearch, long endOfSearch, Callback<Long> callback);
+
     /**
      * Maps a String to a unique long. Can be reversed using {@link #hashToString(int)}.
      *

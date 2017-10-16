@@ -337,6 +337,8 @@ public interface Task {
 
     Task timepoints(String from, String to);
 
+    Task countTimepoints(String from, String to);
+
     Task attributesWithType(int filterType);
 
     Task addVarTo(String relName, String varName);
