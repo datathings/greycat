@@ -134,7 +134,7 @@ public class NeuralNetWrapper {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
-        ExMatrix actualOutput = internalForward(cg, input, layers.length);
+        ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
         DMatrix error = cg.applyLoss(tarinLoss, actualOutput, targetOutput, reportLoss);
         cg.backpropagate();
         learner.stepUpdate(layers);
@@ -146,7 +146,7 @@ public class NeuralNetWrapper {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(inputs);
         ExMatrix targetOutput = ExMatrix.createFromW(outputs);
-        ExMatrix actualOutput = internalForward(cg, input, layers.length);
+        ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
         DMatrix error = cg.applyLoss(tarinLoss, actualOutput, targetOutput, reportLoss);
         cg.backpropagate();
         learner.setBatchSize(inputs.columns());
@@ -158,14 +158,14 @@ public class NeuralNetWrapper {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(inputs);
         ExMatrix targetOutput = ExMatrix.createFromW(outputs);
-        ExMatrix actualOutput = internalForward(cg, input, layers.length);
+        ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
         return new DMatrix[]{actualOutput, cg.applyLoss(testLoss, actualOutput, targetOutput, true)};
     }
 
     public DMatrix predictVec(DMatrix inputs) {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(inputs);
-        ExMatrix actualOutput = internalForward(cg, input, layers.length);
+        ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
         return actualOutput.getW();
     }
 
@@ -184,27 +184,27 @@ public class NeuralNetWrapper {
     public double[] predict(double[] inputs) {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
-        ExMatrix actualOutput = internalForward(cg, input, layers.length);
+        ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
         return actualOutput.data();
     }
 
-    public double[] forward(double[] inputs, int numOfLayers) {
+    public double[] forward(double[] inputs, int offset, int numOfLayers) {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
-        ExMatrix actualOutput = internalForward(cg, input, numOfLayers);
+        ExMatrix actualOutput = internalForward(cg, input, offset, numOfLayers);
         return actualOutput.data();
     }
 
-    public DMatrix forwardVec(DMatrix inputs, int numOfLayers) {
+    public DMatrix forwardVec(DMatrix inputs, int offset, int numOfLayers) {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(inputs);
-        ExMatrix actualOutput = internalForward(cg, input, numOfLayers);
+        ExMatrix actualOutput = internalForward(cg, input, offset, numOfLayers);
         return actualOutput.getW();
     }
 
-    private ExMatrix internalForward(ProcessGraph cg, ExMatrix input, int numOfLayers) {
+    private ExMatrix internalForward(ProcessGraph cg, ExMatrix input, int offset, int numOfLayers) {
         ExMatrix nextInput = input;
-        for (int i = 0; i < numOfLayers; i++) {
+        for (int i = offset; i < offset + numOfLayers; i++) {
             nextInput = layers[i].forward(nextInput, cg);
         }
         return nextInput;
