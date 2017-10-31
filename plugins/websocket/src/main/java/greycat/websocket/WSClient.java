@@ -25,16 +25,24 @@ import greycat.struct.BufferIterator;
 import greycat.utility.*;
 import io.undertow.connector.ByteBufferPool;
 import io.undertow.server.DefaultByteBufferPool;
+import io.undertow.server.protocol.http.HttpOpenListener;
 import io.undertow.websockets.client.WebSocketClient;
 import io.undertow.websockets.core.*;
 import greycat.chunk.Chunk;
 import greycat.plugin.Storage;
 import greycat.struct.Buffer;
 import org.xnio.*;
+import org.xnio.ssl.JsseXnioSsl;
 
+import javax.net.ssl.*;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -115,9 +123,46 @@ public class WSClient implements Storage, TaskExecutor {
                     .set(Options.TCP_NODELAY, true)
                     .set(Options.CORK, true)
                     .getMap());
+
+
+            SSLContext sc = null;
+            if (this._url.startsWith("wss")) {
+                // Create a trust manager that does not validate certificate chains
+                TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+
+                    }
+
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return new java.security.cert.X509Certificate[]{};
+                    }
+
+                    public void checkServerTrusted(X509Certificate[] chain,
+                                                   String authType) throws CertificateException {
+                    }
+                }};
+
+
+                // Install the all-trusting trust manager
+                try {
+                    sc = SSLContext.getInstance("TLS");
+                    sc.init(null, trustAllCerts, new java.security.SecureRandom());
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+
             ByteBufferPool _buffer = new DefaultByteBufferPool(true, 1024 * 1024);
             WebSocketClient.ConnectionBuilder builder = io.undertow.websockets.client.WebSocketClient
                     .connectionBuilder(_worker, _buffer, new URI(_url));
+            if (sc != null) {
+                builder.setSsl(new JsseXnioSsl(xnio, OptionMap.create(Options.USE_DIRECT_BUFFERS, true), sc));
+            }
 
             IoFuture<WebSocketChannel> futureChannel = builder.connect();
             futureChannel.await(5, TimeUnit.SECONDS); //Todo change this magic number!!!
@@ -127,6 +172,7 @@ public class WSClient implements Storage, TaskExecutor {
                     callback.on(null);
                 }
             }
+
             _channel = futureChannel.get();
             _channel.getReceiveSetter().set(new MessageReceiver());
             _channel.addCloseTask(channel -> {
@@ -257,6 +303,7 @@ public class WSClient implements Storage, TaskExecutor {
             @Override
             public void complete(WebSocketChannel webSocketChannel, Void aVoid) {
             }
+
             @Override
             public void onError(WebSocketChannel webSocketChannel, Void aVoid, Throwable throwable) {
                 throwable.printStackTrace();
