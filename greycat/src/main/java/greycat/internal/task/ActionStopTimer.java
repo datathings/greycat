@@ -26,7 +26,7 @@ public class ActionStopTimer implements Action {
     private final String _counterName;
     private final String _displayEach;
 
-    ActionStopTimer(final String timerName, final String message, final String counterName, final String displayEach) {
+    ActionStopTimer(final String message, final String timerName, final String counterName, final String displayEach) {
         this._timerName = timerName;
         this._msg = message;
         this._counterName = counterName;
@@ -55,7 +55,7 @@ public class ActionStopTimer implements Action {
         }
         if (disp) {
             final String timer = ctx.template(_timerName);
-            long startTime = (long) ctx.variable(timer).get(0);
+            long startTime = Long.parseLong(timer);
             long endTime = System.currentTimeMillis();
 
             double finaltime = endTime - startTime;
