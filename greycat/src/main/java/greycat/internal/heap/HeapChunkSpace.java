@@ -450,7 +450,9 @@ public class HeapChunkSpace implements ChunkSpace {
                     _hashNext.set(last, _hashNext.get(m));
                 }
             }
-            _hashNext.set(m, -1);
+            if (m != -1) {
+                _hashNext.set(m, -1);
+            }
         }
         _chunkValues.set(currentVictimIndex, toInsert);
         _chunkMarks.set(currentVictimIndex, 1);
