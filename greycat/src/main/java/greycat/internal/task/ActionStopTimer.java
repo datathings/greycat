@@ -40,13 +40,17 @@ public class ActionStopTimer implements Action {
 
         boolean disp = false;
         long cnt = 0;
-        if (counter == null || displayEach == null) {
+        if (counter == null || displayEach == null || counter.equals("") || counter.equals("")) {
             disp = true;
         } else {
-            cnt = Long.parseLong(counter);
-            long each = Long.parseLong(displayEach);
-            if (each == 0 || cnt % each == 0) {
-                disp = true;
+            try {
+                cnt = Long.parseLong(counter);
+                long each = Long.parseLong(displayEach);
+                if (each == 0 || cnt % each == 0) {
+                    disp = true;
+                }
+            } catch (Exception ex) {
+                ctx.endTask(null, ex);
             }
         }
         if (disp) {
@@ -57,7 +61,7 @@ public class ActionStopTimer implements Action {
             double finaltime = endTime - startTime;
             StringBuilder s = new StringBuilder();
             s.append(_msg);
-            if(cnt!=0) {
+            if (cnt != 0) {
                 s.append(", iter: ");
                 s.append(cnt);
             }
@@ -80,19 +84,17 @@ public class ActionStopTimer implements Action {
                 int minutes = (int) ((finaltime - hours) * 60);
                 s.append(hours).append(":").append(minutes).append(" h");
             }
-            if(cnt!=0){
-                double spd=cnt*1000.0/(endTime-startTime);
-                if(spd<1000) {
-                    spd=spd*100;
-                    s.append(", speed: ").append(((long) spd)/100.0).append(" v/s");
-                }
-                else if(spd<1000000){
-                    spd=spd/10;
-                    s.append(", speed: ").append(((long) spd)/100.0).append(" kv/s");
-                }
-                else {
-                    spd=spd/10000;
-                    s.append(", speed: ").append(((long) spd)/100.0).append(" Mv/s");
+            if (cnt != 0) {
+                double spd = cnt * 1000.0 / (endTime - startTime);
+                if (spd < 1000) {
+                    spd = spd * 100;
+                    s.append(", speed: ").append(((long) spd) / 100.0).append(" v/s");
+                } else if (spd < 1000000) {
+                    spd = spd / 10;
+                    s.append(", speed: ").append(((long) spd) / 100.0).append(" kv/s");
+                } else {
+                    spd = spd / 10000;
+                    s.append(", speed: ").append(((long) spd) / 100.0).append(" Mv/s");
                 }
             }
             System.out.println(s);
