@@ -117,6 +117,7 @@ public class LevelDBStorage implements Storage {
                 }
             }
             db.write(batch);
+            batch.close();
             for (int i = 0; i < updates.size(); i++) {
                 final Callback<Buffer> explicit = updates.get(i);
                 explicit.on(result);
