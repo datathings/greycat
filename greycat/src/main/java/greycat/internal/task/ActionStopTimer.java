@@ -46,7 +46,7 @@ public class ActionStopTimer implements Action {
             try {
                 cnt = Long.parseLong(counter);
                 long each = Long.parseLong(displayEach);
-                if (each == 0 || cnt % each == 0) {
+                if (each == 0 || each == 1 || cnt % each == 0) {
                     disp = true;
                 }
             } catch (Exception ex) {
