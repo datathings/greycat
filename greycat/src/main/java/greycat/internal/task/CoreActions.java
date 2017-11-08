@@ -552,8 +552,8 @@ public class CoreActions {
         return new ActionStartTimer(timerName);
     }
 
-    public static Action endTimer(String message, String timerName) {
-        return new ActionEndTimer(message, timerName);
+    public static Action stopTimer(String message, String timerName, String counterName, String displayEach) {
+        return new ActionStopTimer(message, timerName, counterName, displayEach);
     }
 
 }

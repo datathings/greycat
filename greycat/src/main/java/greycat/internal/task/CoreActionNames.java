@@ -58,7 +58,7 @@ public class CoreActionNames {
     public static String SELECT = "select";
     public static String SET_AS_VAR = "setAsVar";
     public static String START_TIMER = "startTimer";
-    public static String END_TIMER = "endTimer";
+    public static String STOP_TIMER = "stopTimer";
     public static String FORCE_ATTRIBUTE = "forceAttribute";
     public static String SET_ATTRIBUTE = "setAttribute";
     public static String TIME_SENSITIVITY = "timeSensitivity";

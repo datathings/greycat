@@ -1024,13 +1024,13 @@ public class CoreTask implements Task {
                         return new ActionStartTimer((String) params[0]);
                     }
                 });
-        registry.getOrCreateDeclaration(CoreActionNames.END_TIMER)
-                .setParams(Type.STRING, Type.STRING)
+        registry.getOrCreateDeclaration(CoreActionNames.STOP_TIMER)
+                .setParams(Type.STRING, Type.STRING, Type.STRING, Type.STRING)
                 .setDescription("End a previously open timer and print custom message associated with elapsed time")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new ActionEndTimer((String) params[0], (String) params[1]);
+                        return new ActionStopTimer((String) params[0], (String) params[1], (String) params[2], (String) params[3]);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.READ_INDEX)
@@ -1653,8 +1653,8 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public Task endTimer(String message, String timerName) {
-        return then(CoreActions.endTimer(message, timerName));
+    public Task stopTimer(String message, String timerName, String counterName, String displayEach) {
+        return then(CoreActions.stopTimer(message, timerName, counterName, displayEach));
     }
 
     @Override
