@@ -37,8 +37,8 @@ class ActionSaveAbove implements Action {
             ChunkSpace space = ctx.graph().space();
             long dirties = space.dirties();
             long all = space.available() + dirties;
-            double status = all / dirties;
-            if (status < limit) {
+            double status = dirties / all;
+            if (status >= limit) {
                 final Buffer notifier = ctx.notifier();
                 if (notifier == null) {
                     ctx.graph().save(new Callback<Boolean>() {
@@ -57,6 +57,8 @@ class ActionSaveAbove implements Action {
                         }
                     });
                 }
+            } else {
+                ctx.continueTask();
             }
         } catch (Exception e) {
             e.printStackTrace();
