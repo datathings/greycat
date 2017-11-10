@@ -16,8 +16,7 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
-import greycat.ml.neuralnet.Activation;
-import greycat.ml.neuralnet.Layer;
+import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
@@ -25,7 +24,7 @@ import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 
-class GRU extends Layer {
+class GRU implements Layer {
 
     private static String IHMIX = "ihmix";
     private static String HHMIX = "hhmix";
@@ -57,7 +56,6 @@ class GRU extends Layer {
 
 
     GRU(EStruct hostnode) {
-        super();
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }

@@ -15,7 +15,6 @@
  */
 package greycat.ml.neuralnet.optimiser;
 
-import greycat.ml.neuralnet.Optimiser;
 import greycat.struct.EStruct;
 
 public class Optimisers {

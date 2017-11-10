@@ -15,7 +15,7 @@
  */
 package greycat.ml.neuralnet.process;
 
-import greycat.ml.neuralnet.Activation;
+import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.struct.DMatrix;
 import greycat.struct.matrix.MatrixOps;

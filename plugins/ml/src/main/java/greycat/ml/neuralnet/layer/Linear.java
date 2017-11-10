@@ -16,7 +16,6 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
-import greycat.ml.neuralnet.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.EStruct;
@@ -27,7 +26,7 @@ import greycat.struct.matrix.RandomGenerator;
 // Can be used as PCA or dimensionality reduction of data, since here we are combining linearly outputDimensions from input
 // There is no non-linearity here, since there is no activation function.
 
-class Linear extends Layer {
+class Linear implements Layer {
     private static String WEIGHTS = "weights";
     private EStruct host;
 
@@ -35,7 +34,6 @@ class Linear extends Layer {
     private ExMatrix[] params = null;
 
     Linear(EStruct hostnode) {
-        super();
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }

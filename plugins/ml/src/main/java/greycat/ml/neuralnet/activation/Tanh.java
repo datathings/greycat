@@ -15,9 +15,7 @@
  */
 package greycat.ml.neuralnet.activation;
 
-import greycat.ml.neuralnet.Activation;
-
-class Tanh extends Activation {
+class Tanh implements Activation {
 
     private static Tanh static_unit = null;
 

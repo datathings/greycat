@@ -15,9 +15,7 @@
  */
 package greycat.ml.neuralnet.activation;
 
-import greycat.ml.neuralnet.Activation;
-
-class LeCunTanh extends Activation {
+class LeCunTanh implements Activation {
 
     private static LeCunTanh static_unit = null;
 

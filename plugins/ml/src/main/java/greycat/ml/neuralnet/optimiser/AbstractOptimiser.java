@@ -16,8 +16,7 @@
 package greycat.ml.neuralnet.optimiser;
 
 import greycat.Type;
-import greycat.ml.neuralnet.Layer;
-import greycat.ml.neuralnet.Optimiser;
+import greycat.ml.neuralnet.layer.Layer;
 import greycat.struct.EStruct;
 
 
@@ -26,7 +25,7 @@ import greycat.struct.EStruct;
 // to implement the update method and take into account the steps that
 // have passed since the last update
 
-abstract class AbstractOptimiser extends Optimiser {
+abstract class AbstractOptimiser implements Optimiser {
 
     protected static final String LEARNING_RATE = "learningrate";
     private static final double LEARNING_RATE_DEF = 0.001;
@@ -50,7 +49,6 @@ abstract class AbstractOptimiser extends Optimiser {
 
 
     AbstractOptimiser(EStruct backend) {
-        super();
         this._backend = backend;
         learningRate = backend.getWithDefault(LEARNING_RATE, LEARNING_RATE_DEF);
         regularization = backend.getWithDefault(REGULARIZATION_RATE, REGULARIZATION_RATE_DEF);

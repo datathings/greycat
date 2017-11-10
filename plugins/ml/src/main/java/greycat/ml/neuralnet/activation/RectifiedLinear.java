@@ -16,13 +16,10 @@
 package greycat.ml.neuralnet.activation;
 
 
-import greycat.ml.neuralnet.Activation;
-
-class RectifiedLinear extends Activation {
+class RectifiedLinear implements Activation {
 	private double slope;
 
 	public RectifiedLinear(double slope) {
-		super();
 		this.slope = slope;
 	}
 	

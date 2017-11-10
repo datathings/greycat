@@ -16,7 +16,6 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
-import greycat.ml.neuralnet.Layer;
 import greycat.struct.EStruct;
 
 public class Layers {
