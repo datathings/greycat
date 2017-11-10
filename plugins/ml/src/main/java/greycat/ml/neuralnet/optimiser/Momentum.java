@@ -16,7 +16,7 @@
 package greycat.ml.neuralnet.optimiser;
 
 import greycat.Type;
-import greycat.ml.neuralnet.layer.Layer;
+import greycat.ml.neuralnet.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.EStruct;

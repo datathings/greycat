@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.activation;
+package greycat.ml.neuralnet;
 
-public interface Activation {
-    double forward(double x);
-    double backward(double x, double fct);
+public abstract class Activation {
+    public abstract double forward(double x);
+    public abstract double backward(double x, double fct);
 }

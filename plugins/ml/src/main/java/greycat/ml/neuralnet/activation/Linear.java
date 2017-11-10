@@ -15,7 +15,9 @@
  */
 package greycat.ml.neuralnet.activation;
 
-class Linear implements Activation {
+import greycat.ml.neuralnet.Activation;
+
+class Linear extends Activation {
 
     private static Linear static_unit= null;
 

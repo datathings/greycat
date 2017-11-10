@@ -16,7 +16,9 @@
 package greycat.ml.neuralnet.activation;
 
 
-class Sine implements Activation {
+import greycat.ml.neuralnet.Activation;
+
+class Sine extends Activation {
 
 	private static Sine static_unit= null;
 

@@ -15,6 +15,8 @@
  */
 package greycat.ml.neuralnet.activation;
 
+import greycat.ml.neuralnet.Activation;
+
 public class Activations {
     public static final int LINEAR = 0;
     public static final int SIGMOID = 1;

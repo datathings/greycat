@@ -17,7 +17,7 @@ package greycatMLTest.neuralnet;
 
 import greycat.*;
 import greycat.ml.neuralnet.activation.Activations;
-import greycat.ml.neuralnet.layer.Layer;
+import greycat.ml.neuralnet.Layer;
 import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;

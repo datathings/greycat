@@ -13,27 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.layer;
+package greycat.ml.neuralnet;
 
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.matrix.RandomGenerator;
 
-public interface Layer {
+public abstract class Layer {
 
-    ExMatrix forward(ExMatrix input, ProcessGraph g);
+    public abstract ExMatrix forward(ExMatrix input, ProcessGraph g);
 
-    ExMatrix[] getLayerParameters();
+    public abstract ExMatrix[] getLayerParameters();
 
-    Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std);
+    public abstract Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std);
 
-    Layer reInit(RandomGenerator random, double std);
+    public abstract Layer reInit(RandomGenerator random, double std);
 
-    void resetState();
+    public abstract void resetState();
 
-    int inputDimensions();
+    public abstract int inputDimensions();
 
-    int outputDimensions();
-
+    public abstract int outputDimensions();
 
 }

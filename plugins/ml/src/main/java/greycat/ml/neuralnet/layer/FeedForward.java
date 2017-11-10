@@ -16,7 +16,8 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
-import greycat.ml.neuralnet.activation.Activation;
+import greycat.ml.neuralnet.Activation;
+import greycat.ml.neuralnet.Layer;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
@@ -26,7 +27,7 @@ import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 
-class FeedForward implements Layer {
+class FeedForward extends Layer {
 
     private static String WEIGHTS = "weights";
     private static String BIAS = "bias";
@@ -42,6 +43,7 @@ class FeedForward implements Layer {
     //Returns ActivationFct( Weights*Input + Bias )
     //Can be seen as simple fully-functional perceptron or neuron
     FeedForward(EStruct hostnode) {
+        super();
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }

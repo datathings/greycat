@@ -16,7 +16,8 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
-import greycat.ml.neuralnet.activation.Activation;
+import greycat.ml.neuralnet.Activation;
+import greycat.ml.neuralnet.Layer;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
@@ -25,7 +26,7 @@ import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 
-class RNN implements Layer {
+class RNN extends Layer {
     private static String WEIGHTS = "weights";
     private static String BIAS = "bias";
     private static String ACTIVATION = "activation";
@@ -42,6 +43,7 @@ class RNN implements Layer {
     private ExMatrix[] params = null;
 
     RNN(EStruct hostnode) {
+        super();
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }

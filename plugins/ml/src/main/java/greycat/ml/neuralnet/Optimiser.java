@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.optimiser;
+package greycat.ml.neuralnet;
 
-import greycat.ml.neuralnet.layer.Layer;
+public abstract class Optimiser {
+    public abstract void setFrequency(int n);
 
-public interface Optimiser {
-    void setFrequency(int n);
+    public abstract void setParams(double[] params);
 
-    void setParams(double[] params);
+    public abstract void setBatchSize(int batchSize);
 
-    void setBatchSize(int batchSize);
+    public abstract void stepUpdate(Layer[] layers);
 
-    void stepUpdate(Layer[] layers);
-
-    void finalUpdate(Layer[] layers);
+    public abstract void finalUpdate(Layer[] layers);
 }
