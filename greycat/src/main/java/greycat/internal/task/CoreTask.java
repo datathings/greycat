@@ -295,7 +295,11 @@ public class CoreTask implements Task {
                     aggregatedHooks = temp_hooks;
                 }
             }
-            final CoreTaskContext context = new CoreTaskContext(this, aggregatedHooks, parentContext, initial.clone(), parentContext.graph(), callback);
+            TaskResult pres = null;
+            if (initial != null) {
+                pres = initial.clone();
+            }
+            final CoreTaskContext context = new CoreTaskContext(this, aggregatedHooks, parentContext, pres, parentContext.graph(), callback);
             if (contextInitializer != null) {
                 contextInitializer.on(context);
             }
