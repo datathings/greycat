@@ -727,6 +727,8 @@ public class CoreGraph implements Graph {
             if (!ch.sync(hash)) {
                 _space.unmark(ch.index());
                 return;
+            } else {
+                _space.unmark(ch.index());
             }
         }
         //not found, or not in sync
