@@ -30,7 +30,7 @@ import greycat.plugin.Storage;
 public class GraphBuilder {
 
     public Storage storage = null;
-    private StorageFactory _storageFactory = null;
+    public StorageFactory storageFactory = null;
     private Scheduler _scheduler = null;
     private Plugin[] _plugins = null;
     private long _memorySize = -1;
@@ -84,7 +84,7 @@ public class GraphBuilder {
      * @return the {@link GraphBuilder}, for a fluent API
      */
     public final GraphBuilder withStorageFactory(StorageFactory storage) {
-        this._storageFactory = storage;
+        this.storageFactory = storage;
         return this;
     }
 
@@ -95,7 +95,7 @@ public class GraphBuilder {
      * @return the {@link GraphBuilder}, for a fluent API
      */
     public GraphBuilder withReadOnlyStorageFactory(StorageFactory storage) {
-        this._storageFactory = storage;
+        this.storageFactory = storage;
         _readOnly = true;
         return this;
     }
@@ -169,8 +169,8 @@ public class GraphBuilder {
         if (_memorySize == -1) {
             _memorySize = 100000;
         }
-        if (_storageFactory != null) {
-            return new CoreGraph(_storageFactory.build(), _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
+        if (storageFactory != null) {
+            return new CoreGraph(storageFactory.build(), _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
         } else {
             return new CoreGraph(storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
         }

@@ -75,6 +75,8 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
         server.start();
         if (builder.storage != null) {
             builder.storage.listen(this);
+        } else if (builder.storageFactory != null) {
+            builder.storageFactory.listen(this);
         }
     }
 

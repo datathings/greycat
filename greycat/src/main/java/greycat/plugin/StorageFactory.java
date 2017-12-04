@@ -15,11 +15,21 @@
  */
 package greycat.plugin;
 
+import greycat.Callback;
+import greycat.struct.Buffer;
+
 /**
  * Created by Gregory NAIN on 08/09/2017.
  */
 public interface StorageFactory {
 
     Storage build();
+
+    /**
+     * Listen for all Storage later created by this factory
+     *
+     * @param synCallback Called synchronously when update process is performed
+     */
+    void listen(Callback<Buffer> synCallback);
 
 }
