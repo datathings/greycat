@@ -31,6 +31,7 @@ import io.undertow.server.handlers.PathHandler;
 import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.core.*;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
+import org.xnio.ChannelListener;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -110,6 +111,10 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
         byte[] notificationMsg = notificationBuffer.data();
         notificationBuffer.free();
         for (int i = 0; i < others.length; i++) {
+            PeerInternalListener listener = (PeerInternalListener) ((ChannelListener.SimpleSetter) others[i].getReceiveSetter()).get();
+            //locally invalidate cache
+            listener.graph.remoteNotify(result);
+            //notify to connected peer
             send_flat_resp(notificationMsg, others[i]);
         }
     }
