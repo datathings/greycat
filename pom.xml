@@ -101,6 +101,7 @@
         <module>plugins/rocksdb</module>
         <module>plugins/websocket</module>
         <module>plugins/ml</module>
+        <module>plugins/mqtt</module>
         <!-- Modelling environment-->
         <module>modeling/language</module>
         <module>modeling/generator</module>
