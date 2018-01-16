@@ -53,6 +53,17 @@ public class RocksDBStorage implements Storage {
         this._storagePath = storagePath;
     }
 
+
+    public void backup(String path) throws Exception {
+        BackupEngine backupEngine = BackupEngine.open(Env.getDefault(), new BackupableDBOptions(path));
+        backupEngine.createNewBackup(_db, true);
+    }
+
+    public void restore(String path) throws Exception {
+        BackupEngine backupEngine = BackupEngine.open(Env.getDefault(), new BackupableDBOptions(path));
+        backupEngine.restoreDbFromLatestBackup(path, path, new RestoreOptions(true));
+    }
+
     @Override
     public void listen(Callback<Buffer> synCallback) {
         updates.add(synCallback);
