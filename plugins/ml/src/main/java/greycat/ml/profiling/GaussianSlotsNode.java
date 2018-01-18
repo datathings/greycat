@@ -98,7 +98,6 @@ public class GaussianSlotsNode extends BaseNode {
         GaussianWrapper backend = gsgraph.getGaussian(getSlotNumber());
         switch (attributeName) {
             case Gaussian.MIN:
-
                 return backend.getMin();
             case Gaussian.MAX:
                 return backend.getMax();
@@ -143,11 +142,15 @@ public class GaussianSlotsNode extends BaseNode {
     }
 
     public static int getIntTime(long time, int numOfSlot, long periodSize) {
+        if (time < 0 || periodSize < 0) {
+            throw new RuntimeException("Time or period size can't be negative");
+        }
         if (numOfSlot <= 1) {
             return 0;
         }
         long res = time % periodSize;
         res = res / (periodSize / numOfSlot);
+
         return (int) res;
     }
 
