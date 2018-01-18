@@ -55,7 +55,6 @@ public class GaussianSlotsNode extends BaseNode {
 
         if (!load()) {
             EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
-            super.set(GSEGRAPH, Type.ESTRUCT_ARRAY, eg);
             gsgraph = new GaussianSlotsEGraph(eg);
         }
         switch (name) {
