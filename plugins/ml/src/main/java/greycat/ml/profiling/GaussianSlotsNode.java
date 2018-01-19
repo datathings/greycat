@@ -86,11 +86,17 @@ public class GaussianSlotsNode extends BaseNode {
     }
 
     public double[] getAvg(int slot){
+        if (!load()) {
+            return null;
+        }
         GaussianWrapper backend = gsgraph.getGaussian(slot);
         return backend.getAvg();
     }
 
     public double[] getStd(int slot){
+        if (!load()) {
+            return null;
+        }
         GaussianWrapper backend = gsgraph.getGaussian(slot);
         return backend.getSTD();
     }
