@@ -148,8 +148,8 @@ public class GaussianSlotsNode extends BaseNode {
         if (numOfSlot <= 1) {
             return 0;
         }
-        long res = time % periodSize;
-        res = res / (periodSize / numOfSlot);
+        double res = time % periodSize;
+        res = Math.floor(res / (Math.floor(periodSize / numOfSlot)));
 
         return (int) res;
     }
