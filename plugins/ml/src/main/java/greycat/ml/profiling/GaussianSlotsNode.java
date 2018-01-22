@@ -58,7 +58,6 @@ public class GaussianSlotsNode extends BaseNode {
             gsgraph = new GaussianSlotsEGraph(eg);
         }
         switch (name) {
-
             case PERIOD_SIZE:
                 this.setTimeSensitivity((long) value * TIME_SENSITIVITY_FACTOR, 0);
                 return super.set(name, type, value);
@@ -99,6 +98,31 @@ public class GaussianSlotsNode extends BaseNode {
         }
         GaussianWrapper backend = gsgraph.getGaussian(slot);
         return backend.getSTD();
+    }
+
+
+    public double[] getMin(int slot){
+        if (!load()) {
+            return null;
+        }
+        GaussianWrapper backend = gsgraph.getGaussian(slot);
+        return backend.getMin();
+    }
+
+    public double[] getMax(int slot){
+        if (!load()) {
+            return null;
+        }
+        GaussianWrapper backend = gsgraph.getGaussian(slot);
+        return backend.getMax();
+    }
+
+    public long getTotal(int slot){
+        if (!load()) {
+            return -1L;
+        }
+        GaussianWrapper backend = gsgraph.getGaussian(slot);
+        return backend.getTotal();
     }
 
     @Override
