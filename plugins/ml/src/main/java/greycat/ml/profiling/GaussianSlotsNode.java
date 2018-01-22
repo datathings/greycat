@@ -59,7 +59,6 @@ public class GaussianSlotsNode extends BaseNode {
         }
         switch (name) {
             case PERIOD_SIZE:
-                this.setTimeSensitivity((long) value * TIME_SENSITIVITY_FACTOR, 0);
                 return super.set(name, type, value);
             case Gaussian.VALUES:
                 gsgraph.learn(getSlotNumber(), (double[]) value);
