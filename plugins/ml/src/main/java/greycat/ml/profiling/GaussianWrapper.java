@@ -46,29 +46,28 @@ public class GaussianWrapper {
     }
 
 
-    public void learnWithOccurence(double[] values, int occ){
+    public void learnWithOccurence(double[] values, int occ) {
         int features = values.length;
         long total = backend.getWithDefault(Gaussian.TOTAL, 0l);
         //Create dirac only save total and sum
         if (total == 0) {
             double[] sum = new double[features];
-            if(occ==1) {
+            if (occ == 1) {
                 System.arraycopy(values, 0, sum, 0, features);
                 total = 1;
                 backend.set(Gaussian.TOTAL, Type.LONG, total);
                 ((DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY)).initWith(sum);
-            }
-            else{
-                double[] min= new double[features];
-                double[] max= new double[features];
-                double[] sumsq= new double[features * (features + 1) / 2];
+            } else {
+                double[] min = new double[features];
+                double[] max = new double[features];
+                double[] sumsq = new double[features * (features + 1) / 2];
                 System.arraycopy(values, 0, min, 0, features);
                 System.arraycopy(values, 0, max, 0, features);
                 int count = 0;
-                for(int i=0;i<features;i++){
-                    sum[i]=values[i]*occ;
+                for (int i = 0; i < features; i++) {
+                    sum[i] = values[i] * occ;
                     for (int j = i; j < features; j++) {
-                        sumsq[count]=values[i]*values[j]*occ;
+                        sumsq[count] = values[i] * values[j] * occ;
                         count++;
                     }
                 }
@@ -82,12 +81,14 @@ public class GaussianWrapper {
 
             //set total, weight, sum, return
         } else {
-            DoubleArray sum;
+            DoubleArray sum = (DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY);
             DoubleArray min = (DoubleArray) backend.getOrCreate(Gaussian.MIN, Type.DOUBLE_ARRAY);
             DoubleArray max = (DoubleArray) backend.getOrCreate(Gaussian.MAX, Type.DOUBLE_ARRAY);
             DoubleArray sumsquares = (DoubleArray) backend.getOrCreate(Gaussian.SUMSQ, Type.DOUBLE_ARRAY);
 
-            sum = (DoubleArray) backend.get(Gaussian.SUM);
+            if (sum == null) {
+                throw new RuntimeException("Total is " + total + " but sum is null");
+            }
             if (features != sum.size()) {
                 throw new RuntimeException("Input dimensions have changed!");
             }
@@ -116,17 +117,17 @@ public class GaussianWrapper {
                 if (values[i] > max.get(i)) {
                     max.set(i, values[i]);
                 }
-                sum.set(i, sum.get(i) + values[i]*occ);
+                sum.set(i, sum.get(i) + values[i] * occ);
             }
 
             int count = 0;
             for (int i = 0; i < features; i++) {
                 for (int j = i; j < features; j++) {
-                    sumsquares.set(count, sumsquares.get(count) + values[i] * values[j]*occ);
+                    sumsquares.set(count, sumsquares.get(count) + values[i] * values[j] * occ);
                     count++;
                 }
             }
-            total+=occ;
+            total += occ;
             //Store everything
             backend.set(Gaussian.TOTAL, Type.LONG, total);
         }
@@ -136,7 +137,7 @@ public class GaussianWrapper {
     }
 
     public void learn(double[] values) {
-        learnWithOccurence(values,1);
+        learnWithOccurence(values, 1);
     }
 
     private void invalidate() {
@@ -175,11 +176,10 @@ public class GaussianWrapper {
             int dim = avg.length;
             DoubleArray errArray = ((DoubleArray) backend.get(Gaussian.PRECISIONS));
             double[] err;
-            if(errArray!=null){
-                err=errArray.extract();
-            }
-            else {
-                err=new double[avg.length];
+            if (errArray != null) {
+                err = errArray.extract();
+            } else {
+                err = new double[avg.length];
             }
 
             double[] sumsq = getSumSq();
@@ -367,6 +367,6 @@ public class GaussianWrapper {
 
 
     public void print() {
-        System.out.println("Gaussian Enode: "+ backend.toString());
+        System.out.println("Gaussian Enode: " + backend.toString());
     }
 }
