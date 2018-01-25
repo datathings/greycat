@@ -53,10 +53,9 @@ public class GaussianSlotsNode extends BaseNode {
     public Node set(String name, int type, Object value) {
         enforcer.check(name, type, value);
 
-        if (!load()) {
-            EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
-            gsgraph = new GaussianSlotsEGraph(eg);
-        }
+        EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
+        gsgraph = new GaussianSlotsEGraph(eg);
+
         switch (name) {
             case PERIOD_SIZE:
                 return super.set(name, type, value);
@@ -68,6 +67,14 @@ public class GaussianSlotsNode extends BaseNode {
                 return super.set(name, type, value);
         }
         throw new RuntimeException("can't set anything other than precisions or values on this node!");
+    }
+
+
+    public void learnWithTime(long time, double[] values){
+
+        EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
+        gsgraph = new GaussianSlotsEGraph(eg);
+        gsgraph.learn(getSlotNumberInTime(time),  values);
     }
 
     public void learn(double[] values) {
@@ -166,6 +173,13 @@ public class GaussianSlotsNode extends BaseNode {
         }
     }
 
+
+    public int getSlotNumberInTime(long time){
+        NodeState resolved = unphasedState();
+        int slots = resolved.getWithDefault(NUMBER_OF_SLOTS, NUMBER_OF_SLOTS_DEF);
+        long period = resolved.getWithDefault(PERIOD_SIZE, PERIOD_SIZE_DEF);
+        return getIntTime(time, slots, period);
+    }
 
     private int getSlotNumber() {
         long t = time();
