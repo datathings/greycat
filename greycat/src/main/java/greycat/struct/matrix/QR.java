@@ -247,6 +247,8 @@ class QR {
         return (getMatrix(X, 0, n - 1, 0, nx - 1));
     }
 
+
+
     private static DMatrix getMatrix(DMatrix B, int i0, int i1, int j0, int j1) {
         DMatrix X = VolatileDMatrix.empty(i1 - i0 + 1, j1 - j0 + 1);
         try {
