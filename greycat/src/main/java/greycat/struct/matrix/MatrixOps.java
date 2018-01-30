@@ -332,6 +332,16 @@ public class MatrixOps {
         System.out.println("");
     }
 
+
+    public static void printArray(double[] arrayA, String name) {
+        System.out.println("Matrix " + name);
+        for (int j = 0; j < arrayA.length; j++) {
+            System.out.print(arrayA[j] + "\t");
+        }
+        System.out.println("");
+    }
+
+
     public static DMatrix cloneMatrix(DMatrix source) {
         return VolatileDMatrix.cloneFrom(source);
     }
