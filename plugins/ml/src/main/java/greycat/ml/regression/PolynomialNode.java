@@ -45,6 +45,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     private static final String INTERNAL_VALUES_BUFFER = "values";
     private static final String INTERNAL_NB_PAST_KEY = "nb";
     private static final String INTERNAL_LAST_TIME_KEY = "lastTime";
+    private static final String INTERNAL_TIME_ORIGIN = "timeorigin";
 
     //Other default parameters that should not be changed externally:
     public static final String MAX_DEGREE = "maxdegree";
@@ -100,14 +101,17 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
 
         final long dephasing = timeDephasing();
         long timeOrigin = previousState.time();
-        long nodeTime;
-        if(timeOrigin== Constants.BEGINNING_OF_TIME){
-            timeOrigin=this.time();
-            nodeTime = this.time();
-        }else {
-            nodeTime = timeOrigin + dephasing;
+
+        if (timeOrigin == Constants.BEGINNING_OF_TIME) {
+            if (previousState.getWithDefault(INTERNAL_TIME_ORIGIN, null) == null) {
+                previousState.set(INTERNAL_TIME_ORIGIN, Type.LONG, this.time());
+            } else {
+                timeOrigin = (long) previousState.get(INTERNAL_TIME_ORIGIN);
+            }
         }
-       
+
+        long nodeTime = timeOrigin + dephasing;
+
 
         double precision = previousState.getWithDefault(PRECISION, PRECISION_DEF);
         DoubleArray weight = (DoubleArray) previousState.get(INTERNAL_WEIGHT_KEY);
