@@ -99,7 +99,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     public final void learn(double value, Callback<Boolean> callback) {
         NodeState previousState = unphasedState(); //past state, not cloned
 
-        final long dephasing = timeDephasing();
+        //final long dephasing = timeDephasing();
         long timeOrigin = previousState.time();
 
         if (timeOrigin == Constants.BEGINNING_OF_TIME) {
@@ -110,7 +110,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
             }
         }
 
-        long nodeTime = timeOrigin + dephasing;
+        long nodeTime = time();
 
 
         double precision = previousState.getWithDefault(PRECISION, PRECISION_DEF);
