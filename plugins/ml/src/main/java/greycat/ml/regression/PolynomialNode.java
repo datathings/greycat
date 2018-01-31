@@ -15,10 +15,7 @@
  */
 package greycat.ml.regression;
 
-import greycat.Callback;
-import greycat.Graph;
-import greycat.Node;
-import greycat.Type;
+import greycat.*;
 import greycat.ml.BaseMLNode;
 import greycat.ml.RegressionNode;
 import greycat.ml.math.PolynomialFit;
@@ -103,7 +100,14 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
 
         final long dephasing = timeDephasing();
         long timeOrigin = previousState.time();
-        long nodeTime = timeOrigin + dephasing;
+        long nodeTime;
+        if(timeOrigin== Constants.BEGINNING_OF_TIME){
+            timeOrigin=this.time();
+            nodeTime = this.time();
+        }else {
+            nodeTime = timeOrigin + dephasing;
+        }
+       
 
         double precision = previousState.getWithDefault(PRECISION, PRECISION_DEF);
         DoubleArray weight = (DoubleArray) previousState.get(INTERNAL_WEIGHT_KEY);
