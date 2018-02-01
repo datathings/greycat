@@ -1003,9 +1003,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.LONG_ARRAY:
                                     HeapLongArray larray = new HeapLongArray(this);
                                     cursor++;
-                                    cursor = larray.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, larray, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = larray.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
@@ -1017,9 +1017,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.DOUBLE_ARRAY:
                                     HeapDoubleArray darray = new HeapDoubleArray(this);
                                     cursor++;
-                                    cursor = darray.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, darray, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = darray.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
@@ -1031,9 +1031,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.INT_ARRAY:
                                     HeapIntArray iarray = new HeapIntArray(this);
                                     cursor++;
-                                    cursor = iarray.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, iarray, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = iarray.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
@@ -1045,9 +1045,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.STRING_ARRAY:
                                     HeapStringArray sarray = new HeapStringArray(this);
                                     cursor++;
-                                    cursor = sarray.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, sarray, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = sarray.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
@@ -1059,9 +1059,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.RELATION:
                                     HeapRelation relation = new HeapRelation(this, null);
                                     cursor++;
-                                    cursor = relation.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, relation, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = relation.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
@@ -1073,9 +1073,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.DMATRIX:
                                     HeapDMatrix matrix = new HeapDMatrix(this, null);
                                     cursor++;
-                                    cursor = matrix.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, matrix, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = matrix.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
@@ -1087,9 +1087,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.LMATRIX:
                                     HeapLMatrix lmatrix = new HeapLMatrix(this, null);
                                     cursor++;
-                                    cursor = lmatrix.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, lmatrix, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = lmatrix.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
@@ -1101,9 +1101,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.LONG_TO_LONG_MAP:
                                     HeapLongLongMap l2lmap = new HeapLongLongMap(this);
                                     cursor++;
-                                    cursor = l2lmap.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, l2lmap, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = l2lmap.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
@@ -1115,9 +1115,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.INT_TO_INT_MAP:
                                     HeapIntIntMap i2imap = new HeapIntIntMap(this);
                                     cursor++;
-                                    cursor = i2imap.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, i2imap, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = i2imap.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
@@ -1129,9 +1129,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.INT_TO_STRING_MAP:
                                     HeapIntStringMap i2smap = new HeapIntStringMap(this);
                                     cursor++;
-                                    cursor = i2smap.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, i2smap, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = i2smap.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
@@ -1143,9 +1143,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.LONG_TO_LONG_ARRAY_MAP:
                                     HeapLongLongArrayMap l2lrmap = new HeapLongLongArrayMap(this);
                                     cursor++;
-                                    cursor = l2lrmap.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, l2lrmap, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = l2lrmap.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
