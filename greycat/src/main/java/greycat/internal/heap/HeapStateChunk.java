@@ -1017,9 +1017,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.DOUBLE_ARRAY:
                                     HeapDoubleArray darray = new HeapDoubleArray(this);
                                     cursor++;
-                                    cursor = darray.load(buffer, cursor, payloadSize);
                                     internal_set(read_key, read_type, darray, true, initial);
                                     if (cursor < payloadSize) {
+                                        cursor = darray.load(buffer, cursor, payloadSize);
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
                                             state = LOAD_WAITING_TYPE;
