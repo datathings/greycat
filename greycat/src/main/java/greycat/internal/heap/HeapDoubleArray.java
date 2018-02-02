@@ -207,6 +207,9 @@ final class HeapDoubleArray implements DoubleArray {
     }
 
     public final long load(final Buffer buffer, final long offset, final long max) {
+        if(offset >= max) {
+            return offset;
+        }
         long cursor = offset;
         byte current = buffer.read(cursor);
         boolean isFirst = true;
