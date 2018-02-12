@@ -607,40 +607,47 @@ final class MWResolver implements Resolver {
                                                                         lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, null);
                                                                     } else {
                                                                         for (int i = 0; i < idsSize; i++) {
-                                                                            int timeOffset = -1;
-                                                                            if (theObjectChunks[i] == null && ((WorldOrderChunk) theNodeWorldOrders[i]).type() == NodeValueType) {
-                                                                                timeOffset = (int) keys[(i * Constants.KEY_SIZE) + 2];
-                                                                                theObjectChunks[i] = ((TimeTreeEmbeddedChunk) theNodeTimeTrees[i]).state(timeOffset);
-                                                                            }
-                                                                            if (theObjectChunks[i] != null) {
-                                                                                WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrders[i];
-                                                                                int extraCode = (int) castedNodeWorldOrder.type();
-                                                                                NodeFactory resolvedFactory = null;
-                                                                                if (extraCode != -1) {
-                                                                                    resolvedFactory = ((CoreGraph) selfPointer._graph).factoryByCode(extraCode);
+                                                                            if (theNodeWorldOrders[i] != null && theNodeSuperTimeTrees[i] != null && theNodeTimeTrees[i] != null) {
+                                                                                int timeOffset = -1;
+                                                                                //only for value node
+                                                                                if (theObjectChunks[i] == null && ((WorldOrderChunk) theNodeWorldOrders[i]).type() == NodeValueType) {
+                                                                                    timeOffset = (int) keys[(i * Constants.KEY_SIZE) + 2];
+                                                                                    theObjectChunks[i] = ((TimeTreeEmbeddedChunk) theNodeTimeTrees[i]).state(timeOffset);
                                                                                 }
-                                                                                BaseNode resolvedNode;
-                                                                                if (resolvedFactory == null) {
-                                                                                    resolvedNode = new BaseNode(worlds[i], times[i], ids[i], selfPointer._graph);
+                                                                                if (theObjectChunks[i] != null) {
+                                                                                    WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrders[i];
+                                                                                    int extraCode = (int) castedNodeWorldOrder.type();
+                                                                                    NodeFactory resolvedFactory = null;
+                                                                                    if (extraCode != -1) {
+                                                                                        resolvedFactory = ((CoreGraph) selfPointer._graph).factoryByCode(extraCode);
+                                                                                    }
+                                                                                    BaseNode resolvedNode;
+                                                                                    if (resolvedFactory == null) {
+                                                                                        resolvedNode = new BaseNode(worlds[i], times[i], ids[i], selfPointer._graph);
+                                                                                    } else {
+                                                                                        resolvedNode = (BaseNode) resolvedFactory.create(worlds[i], times[i], ids[i], selfPointer._graph);
+                                                                                    }
+                                                                                    resolvedNode._dead = false;
+                                                                                    resolvedNode._index_stateChunk = theObjectChunks[i].index();
+                                                                                    resolvedNode._index_superTimeTree = theNodeSuperTimeTrees[i].index();
+                                                                                    resolvedNode._index_timeTree = theNodeTimeTrees[i].index();
+                                                                                    resolvedNode._index_worldOrder = theNodeWorldOrders[i].index();
+                                                                                    resolvedNode._index_timeTree_offset = timeOffset;
+                                                                                    if (theObjectChunks[i].world() == worlds[i] && theObjectChunks[i].time() == times[i]) {
+                                                                                        resolvedNode._world_magic = -1;
+                                                                                        resolvedNode._super_time_magic = -1;
+                                                                                        resolvedNode._time_magic = -1;
+                                                                                    } else {
+                                                                                        resolvedNode._world_magic = ((WorldOrderChunk) theNodeWorldOrders[i]).magic();
+                                                                                        resolvedNode._super_time_magic = ((SuperTimeTreeChunk) theNodeSuperTimeTrees[i]).magic();
+                                                                                        resolvedNode._time_magic = ((TimeTreeChunk) theNodeTimeTrees[i]).magic();
+                                                                                    }
+                                                                                    finalResult[i] = resolvedNode;
                                                                                 } else {
-                                                                                    resolvedNode = (BaseNode) resolvedFactory.create(worlds[i], times[i], ids[i], selfPointer._graph);
+                                                                                    finalResult[i] = null;
                                                                                 }
-                                                                                resolvedNode._dead = false;
-                                                                                resolvedNode._index_stateChunk = theObjectChunks[i].index();
-                                                                                resolvedNode._index_superTimeTree = theNodeSuperTimeTrees[i].index();
-                                                                                resolvedNode._index_timeTree = theNodeTimeTrees[i].index();
-                                                                                resolvedNode._index_worldOrder = theNodeWorldOrders[i].index();
-                                                                                resolvedNode._index_timeTree_offset = timeOffset;
-                                                                                if (theObjectChunks[i].world() == worlds[i] && theObjectChunks[i].time() == times[i]) {
-                                                                                    resolvedNode._world_magic = -1;
-                                                                                    resolvedNode._super_time_magic = -1;
-                                                                                    resolvedNode._time_magic = -1;
-                                                                                } else {
-                                                                                    resolvedNode._world_magic = ((WorldOrderChunk) theNodeWorldOrders[i]).magic();
-                                                                                    resolvedNode._super_time_magic = ((SuperTimeTreeChunk) theNodeSuperTimeTrees[i]).magic();
-                                                                                    resolvedNode._time_magic = ((TimeTreeChunk) theNodeTimeTrees[i]).magic();
-                                                                                }
-                                                                                finalResult[i] = resolvedNode;
+                                                                            } else {
+                                                                                finalResult[i] = null;
                                                                             }
                                                                         }
                                                                         lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, theObjectChunks);
