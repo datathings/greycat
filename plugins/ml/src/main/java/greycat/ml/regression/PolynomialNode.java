@@ -31,6 +31,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     public static final String PRECISION = "precision";
     public static final double PRECISION_DEF = 1;
     public static final String VALUE = "value";
+    public static final String DERIVATE = "derivate";
 
     /**
      * Name of the algorithm to be used in the meta model
@@ -84,6 +85,16 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
             final Double[] res = {null};
             //ToDo fix callback - return
             extrapolate(new Callback<Double>() {
+                @Override
+                public void on(Double result) {
+                    res[0] = result;
+                }
+            });
+            return res[0];
+        } else if (propertyName.equals(DERIVATE)) {
+            final Double[] res = {null};
+            //ToDo fix callback - return
+            derivate(new Callback<Double>() {
                 @Override
                 public void on(Double result) {
                     res[0] = result;
