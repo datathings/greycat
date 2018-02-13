@@ -325,6 +325,54 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         }
     }
 
+    public final void derivate(Callback<Double> callback) {
+        //long time = time();
+        NodeState state = unphasedState();
+        //long timeOrigin = state.time();
+        DoubleArray dw = (DoubleArray) state.get(INTERNAL_WEIGHT_KEY);
+        double[] oldweight = null;
+        if (dw != null) {
+            oldweight = dw.extract();
+        }
+        if (oldweight == null) {
+            if (callback != null) {
+                callback.on(0.0);
+            }
+            return;
+        }
+        double[] weight = calculateDerivative(oldweight);
+
+        Long inferSTEP = (Long) state.get(INTERNAL_STEP_KEY);
+        if (inferSTEP == null || inferSTEP == 0) {
+            if (callback != null) {
+                callback.on(weight[0]);
+            }
+            return;
+        }
+        double t = timeDephasing();// (time - timeOrigin);
+        Long lastTime = (Long) state.get(INTERNAL_LAST_TIME_KEY);
+        if (t > lastTime) {
+            t = (double) lastTime;
+        }
+        t = t / inferSTEP;
+        if (callback != null) {
+            callback.on(PolynomialFit.extrapolate(t, weight));
+        }
+    }
+
+    private double[] calculateDerivative(double[] oldweight) {
+        if (oldweight.length == 1 || oldweight.length == 0) {
+            return new double[]{0.0};
+        }
+        else {
+            double[] res= new double[oldweight.length-1];
+            for(int i=1;i<oldweight.length;i++){
+                res[i-1]=oldweight[i]*i;
+            }
+            return res;
+        }
+    }
+
     private double maxErr(double precision, int degree) {
         //double tol = precision;
     /*    if (_prioritization == Prioritization.HIGHDEGREES) {
