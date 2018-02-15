@@ -20,7 +20,7 @@
     <groupId>com.datathings</groupId>
     <artifactId>greycat-parent</artifactId>
     <packaging>pom</packaging>
-    <version>10.8</version>
+    <version>11-SNAPSHOT</version>
     <name>greycat-parent</name>
 
     <url>https://github.com/datathings/greycat</url>
