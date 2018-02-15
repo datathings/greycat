@@ -61,7 +61,7 @@ public class RocksDBStorage implements Storage {
 
     public void restore(String path) throws Exception {
         BackupEngine backupEngine = BackupEngine.open(Env.getDefault(), new BackupableDBOptions(path));
-        backupEngine.restoreDbFromLatestBackup(path, path, new RestoreOptions(true));
+        backupEngine.restoreDbFromLatestBackup(this._storagePath, this._storagePath, new RestoreOptions(true));
     }
 
     @Override
@@ -278,10 +278,8 @@ public class RocksDBStorage implements Storage {
         if (!location.exists()) {
             location.mkdirs();
         }
-        File targetDB = new File(location, "data");
-        targetDB.mkdirs();
         try {
-            _db = RocksDB.open(_options, targetDB.getAbsolutePath());
+            _db = RocksDB.open(_options, location.getAbsolutePath());
             _isConnected = true;
             if (callback != null) {
                 callback.on(true);
