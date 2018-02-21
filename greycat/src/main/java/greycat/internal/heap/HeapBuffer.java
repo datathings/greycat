@@ -73,8 +73,9 @@ public class HeapBuffer implements Buffer {
             writeCursor = bytes.length;
         } else if (writeCursor + bytes.length > buffer.length) {
             int newSize = (int) getNewSize(buffer.length, buffer.length + bytes.length);
-            final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(newSize) / Math.log(2)));
-            byte[] tmp = new byte[closePowerOfTwo];
+            //final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(newSize) / Math.log(2)));
+            //byte[] tmp = new byte[closePowerOfTwo];
+            byte[] tmp = new byte[newSize];//already power of two
             System.arraycopy(buffer, 0, tmp, 0, buffer.length);
             System.arraycopy(bytes, 0, tmp, writeCursor, bytes.length);
             buffer = tmp;
