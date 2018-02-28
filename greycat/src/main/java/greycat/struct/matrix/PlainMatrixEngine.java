@@ -147,6 +147,11 @@ public class PlainMatrixEngine implements MatrixEngine {
         return new SVD(matA);
     }
 
+    @Override
+    public EVDDecompose decomposeEVD(DMatrix matA, boolean workInPlace) {
+        return EVD.decompose(matA,workInPlace);
+    }
+
 
     /**
      * Solve A*X = B
