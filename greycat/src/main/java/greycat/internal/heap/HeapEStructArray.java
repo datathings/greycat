@@ -196,7 +196,7 @@ class HeapEStructArray implements EStructArray {
         byte current = buffer.read(cursor);
         boolean isFirst = true;
         int insertIndex = 0;
-        while (cursor < max && current != Constants.CHUNK_SEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.BLOCK_CLOSE) {
             if (current == Constants.BLOCK_OPEN) {
                 if (isFirst) {
                     allocate(Base64.decodeToIntWithBounds(buffer, offset, cursor));
