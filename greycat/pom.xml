@@ -141,13 +141,13 @@
                                 if (tscProcess.exitValue() != 0) {
                                     exit
                                 }
-                                ant.delete(file: "${gbasedir}/target/classes-npm/greycat.ts")
                                 def npmPackProcess = (prefix + "npm pack classes-npm/").execute(null, new File("${gbasedir}/target/"))
                                 npmPackProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmPackProcess.exitValue() != 0) {
                                     exit
                                 }
                                 project.properties.put("generatedTGZ", "greycat-${project_version}".toString())
+                                ant.delete(file: "${gbasedir}/target/classes-npm/tsconfig.json")
                             </source>
                         </configuration>
                     </execution>
