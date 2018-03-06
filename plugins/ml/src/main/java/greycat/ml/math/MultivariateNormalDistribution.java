@@ -67,6 +67,8 @@ public class MultivariateNormalDistribution {
                 rank = pinvsvd.getRank();
             }
 
+            int x=0;
+
             //Solve complete covariance dependence
          /*   if(this.rank<means.length){
                 this.covariance=cov.clone();
@@ -177,17 +179,20 @@ public class MultivariateNormalDistribution {
         }
     }
 
-    private double getExponentTerm(double[] features) {
+    public double getExponentTerm(double[] features) {
         double[] f = new double[features.length];
         System.arraycopy(features, 0, f, 0, features.length);
         //double[] f = features.clone();
         for (int i = 0; i < features.length; i++) {
             f[i] = f[i] - means[i];
         }
+
         DMatrix ft = VolatileDMatrix.wrap(f, 1, f.length);
         DMatrix ftt = VolatileDMatrix.wrap(f, f.length, 1);
+
         DMatrix res = MatrixOps.multiply(ft, inv);
         DMatrix res2 = MatrixOps.multiply(res, ftt);
+
         double d = Math.exp(-0.5 * res2.get(0, 0));
         return d;
     }

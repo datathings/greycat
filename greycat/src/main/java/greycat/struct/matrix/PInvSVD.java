@@ -36,10 +36,7 @@ public class PInvSVD {
     public PInvSVD factor(DMatrix A, boolean invertInPlace) {
         _svd = MatrixOps.defaultEngine().decomposeSVD(A, invertInPlace);
         //We get UxSxVt
-        DMatrix[] svd = new VolatileDMatrix[3];
-        svd[0] = _svd.getU();
-        svd[1] = _svd.getSMatrix();
-        svd[2] = _svd.getVt();
+
         //  debug purpose
         //  KMatrix t1= DMatrix.multiply(svd[0],svd[1]);
         //  KMatrix t2= DMatrix.multiply(t1,svd[2]);
