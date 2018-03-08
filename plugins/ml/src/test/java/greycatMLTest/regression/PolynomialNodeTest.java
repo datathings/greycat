@@ -18,20 +18,38 @@ package greycatMLTest.regression;
 import greycat.*;
 import greycat.ml.MLPlugin;
 import greycat.ml.regression.PolynomialNode;
-import org.junit.Assert;
-import org.junit.Test;
 import greycat.scheduler.NoopScheduler;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
 
 public class PolynomialNodeTest {
-    private static final int size = 100;
-    private static final double precision = 0.5;
+
+    /**
+     * Default values to apply in test if not precised
+     */
+    private static class Defaults {
+        public static final long WORLD = 0;
+        public static final long TIME = 0;
+        public static final int SIZE = 100;
+        public static final double PRECISION = 0.5;
+        public static final int MAX_DEGREE = PolynomialNode.MAX_DEGREE_DEF;
+    }
+
+    private Graph graph;
+
+    @Before
+    public void setup() {
+        graph = new GraphBuilder().withPlugin(new MLPlugin()).withScheduler(new NoopScheduler()).build();
+    }
 
     /**
      * @native ts
      */
     @Test
     public void testConstant() {
-        final Graph graph = new GraphBuilder().withPlugin(new MLPlugin()).withScheduler(new NoopScheduler()).build();
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
@@ -41,6 +59,7 @@ public class PolynomialNodeTest {
                     bme.setBlas(new F2JBlas());
                 } catch (Exception ignored) {
                 }*/
+                final int size = Defaults.SIZE;
                 long[] times = new long[size];
                 double[] values = new double[size];
                 //test degree 0
@@ -73,8 +92,55 @@ public class PolynomialNodeTest {
         });
     }
 
+    /**
+     * @native ts
+     */
+    @Test
+    public void testWithoutFuturePrediction() {
+        graph.connect(isConnected -> {
+            // Given a PolynomialNode with future prediction disabled
+            final PolynomialNode node = createDefaultPolynomialNode(graph);
+
+            // When PolynomialNode is trained to learn the 0.0 + t * 2.0 polynomial
+            Arrays
+                    .asList(0, 1, 2, 5, 8, 10)
+                    .forEach(time -> node.travelInTime(
+                            time,
+                            result -> result.set(PolynomialNode.VALUE, Type.DOUBLE, time * 2.0)
+                    ));
+
+            // Then PolynomialNode should not predict future values and keep the last known value
+            node.travelInTime(20, result -> Assert.assertEquals(20.0, (double) result.get(PolynomialNode.VALUE), 0.000001));
+        });
+    }
+
+    /**
+     * @native ts
+     */
+    @Test
+    public void testWithFuturePrediction() {
+        graph.connect(isConnected -> {
+            // Given a PolynomialNode with future prediction enabled
+            final PolynomialNode node = createDefaultPolynomialNode(graph);
+            node.set(PolynomialNode.FUTURE_PREDICTION, Type.BOOL, true);
+
+            // When PolynomialNode is trained to learn the 0.0 + t * 2.0 polynomial
+            Arrays
+                    .asList(0, 1, 2, 5, 8, 10)
+                    .forEach(time -> node.travelInTime(
+                            time,
+                            result -> result.set(PolynomialNode.VALUE, Type.DOUBLE, time * 2.0)
+                    ));
+
+            // Then PolynomialNode should predict future values
+            node.travelInTime(20, result -> Assert.assertEquals(40.0, (double) result.get(PolynomialNode.VALUE), 0.000001));
+        });
+    }
+
 
     public static void testPoly(long[] times, final double[] values, final int numOfPoly, final Graph graph) {
+        final double precision = Defaults.PRECISION;
+        final int size = Defaults.SIZE;
         PolynomialNode polynomialNode = (PolynomialNode) graph.newTypedNode(0, times[0], PolynomialNode.NAME);
         polynomialNode.set(PolynomialNode.PRECISION, Type.DOUBLE, precision);
 
@@ -116,6 +182,18 @@ public class PolynomialNodeTest {
                 Assert.assertTrue(result.length <= numOfPoly);
             }
         });
+    }
+
+    /**
+     * Create a {@link PolynomialNode} by setting all {@link Defaults} values
+     *
+     * @param graph the {@link Graph} from within the {@link PolynomialNode} has to be created
+     * @return a {@link PolynomialNode} based on default test values
+     */
+    private static PolynomialNode createDefaultPolynomialNode(final Graph graph) {
+        return (PolynomialNode) graph.newTypedNode(Defaults.WORLD, Defaults.TIME, PolynomialNode.NAME)
+                .set(PolynomialNode.MAX_DEGREE, Type.INT, Defaults.MAX_DEGREE)
+                .set(PolynomialNode.PRECISION, Type.DOUBLE, Defaults.PRECISION);
     }
 
 }

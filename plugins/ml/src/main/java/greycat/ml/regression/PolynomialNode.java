@@ -32,6 +32,8 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     public static final double PRECISION_DEF = 1;
     public static final String VALUE = "value";
     public static final String DERIVATE = "derivate";
+    public static final String FUTURE_PREDICTION = "futurePrediction";
+    public static final boolean FUTURE_PREDICTION_DEF = false;
 
     /**
      * Name of the algorithm to be used in the meta model
@@ -55,6 +57,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     private final static String NOT_MANAGED_ATT_ERROR = "Polynomial node can only handle value attribute, please use a super node to store other data";
     private static final Enforcer enforcer = new Enforcer().asPositiveDouble(PRECISION);
     private static final Enforcer degenforcer = new Enforcer().asPositiveInt(MAX_DEGREE);
+    private static final Enforcer futurePredictionEnforcer = new Enforcer().asBool(FUTURE_PREDICTION);
 
 
     public PolynomialNode(long p_world, long p_time, long p_id, Graph p_graph) {
@@ -73,6 +76,9 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         } else if (propertyName.equals(MAX_DEGREE)) {
             degenforcer.check(propertyName, propertyType, propertyValue);
             super.set(propertyName, Type.INT, propertyValue);
+        } else if (propertyName.equals(FUTURE_PREDICTION)) {
+              futurePredictionEnforcer.check(propertyName, propertyType, propertyValue);
+              super.set(propertyName, Type.BOOL, propertyValue);
         } else {
             throw new RuntimeException(NOT_MANAGED_ATT_ERROR);
         }
@@ -327,7 +333,8 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         }
         double t = timeDephasing();// (time - timeOrigin);
         Long lastTime = (Long) state.get(INTERNAL_LAST_TIME_KEY);
-        if (t > lastTime) {
+        boolean futurePrediction = state.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF);
+        if (!futurePrediction && t > lastTime) {
             t = (double) lastTime;
         }
         t = t / inferSTEP;
@@ -362,7 +369,8 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         }
         double t = timeDephasing();// (time - timeOrigin);
         Long lastTime = (Long) state.get(INTERNAL_LAST_TIME_KEY);
-        if (t > lastTime) {
+        boolean futurePrediction = state.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF);
+        if (!futurePrediction && t > lastTime) {
             t = (double) lastTime;
         }
         t = t / inferSTEP;
