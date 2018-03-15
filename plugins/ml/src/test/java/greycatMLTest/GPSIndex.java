@@ -53,6 +53,9 @@ public class GPSIndex {
                 boundMax[0] = 90;
                 boundMax[1] = 180;
                 kdTree.setResolution(precisions);
+                kdTree.setMinBound(boundMin);
+                kdTree.setMaxBound(boundMax);
+
 
 
                 Random random = new Random();
