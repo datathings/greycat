@@ -149,6 +149,8 @@ public interface Graph {
 
     void savePartialSilent(Callback<Buffer> callback);
 
+    boolean isConnected();
+
     /**
      * Connects the current graph to its storage (mandatory before any other method call)
      *

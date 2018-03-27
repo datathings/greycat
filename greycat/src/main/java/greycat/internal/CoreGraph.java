@@ -379,6 +379,11 @@ public class CoreGraph implements Graph {
     }
 
     @Override
+    public boolean isConnected() {
+        return this._isConnected.get();
+    }
+
+    @Override
     public final void connect(final Callback<Boolean> callback) {
         final CoreGraph selfPointer = this;
         //negociate a lock
