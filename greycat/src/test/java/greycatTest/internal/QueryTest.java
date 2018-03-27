@@ -185,6 +185,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public boolean isConnected() {
+        return false;
+    }
+
+    @Override
     public void connect(Callback<Boolean> callback) {
 
     }
