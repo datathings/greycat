@@ -1219,13 +1219,13 @@ final class MWResolver implements Resolver {
         if (nbRounds < 0) {
             internal_getOrLoadAndMarkAll(nbKeys, types, keys, callback);
         } else {
-            final Chunk[] result = new Chunk[nbKeys];
+            final Chunk[] finalResult = new Chunk[nbKeys];
             int nbCalls = (int) Math.ceil(nbRounds);
             DeferCounter counter = new CoreDeferCounter(nbCalls);
             counter.then(new Job() {
                 @Override
                 public void run() {
-                    callback.on(result);
+                    callback.on(finalResult);
                 }
             });
             int loaded = 0;
@@ -1234,16 +1234,17 @@ final class MWResolver implements Resolver {
                 if ((loaded + truncatedSize) > nbKeys) {
                     truncatedSize = nbKeys - loaded;
                 }
-                loaded = loaded + truncatedSize;
                 final byte[] t_types = new byte[truncatedSize];
                 final long[] t_keys = new long[truncatedSize * KEY_SIZE];
                 System.arraycopy(types, loaded, t_types, 0, truncatedSize);
                 System.arraycopy(keys, (loaded * KEY_SIZE), t_keys, 0, truncatedSize * KEY_SIZE);
                 final int f_loaded = loaded;
+                loaded = loaded + truncatedSize;
                 internal_getOrLoadAndMarkAll(truncatedSize, t_types, t_keys, new Callback<Chunk[]>() {
                     @Override
                     public void on(Chunk[] result) {
-                        System.arraycopy(result, 0, result, f_loaded, result.length);
+                        System.arraycopy(result, 0, finalResult, f_loaded, result.length);
+                        counter.count();
                     }
                 });
             }
