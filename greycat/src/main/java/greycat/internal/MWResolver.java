@@ -17,10 +17,7 @@ package greycat.internal;
 
 import greycat.*;
 import greycat.chunk.*;
-import greycat.plugin.NodeFactory;
-import greycat.plugin.NodeState;
-import greycat.plugin.Resolver;
-import greycat.plugin.Storage;
+import greycat.plugin.*;
 import greycat.struct.*;
 import greycat.utility.*;
 import greycat.base.BaseNode;
@@ -1214,8 +1211,47 @@ final class MWResolver implements Resolver {
         }
     }*/
 
+    private static double max_load_keys = 100.0;
+
     private void getOrLoadAndMarkAll(final byte[] types, final long[] keys, final Callback<Chunk[]> callback) {
         int nbKeys = keys.length / KEY_SIZE;
+        double nbRounds = ((double) nbKeys) / max_load_keys;
+        if (nbRounds < 0) {
+            internal_getOrLoadAndMarkAll(nbKeys, types, keys, callback);
+        } else {
+            final Chunk[] result = new Chunk[nbKeys];
+            int nbCalls = (int) Math.ceil(nbRounds);
+            DeferCounter counter = new CoreDeferCounter(nbCalls);
+            counter.then(new Job() {
+                @Override
+                public void run() {
+                    callback.on(result);
+                }
+            });
+            int loaded = 0;
+            for (int i = 0; i < nbCalls; i++) {
+                int truncatedSize = (int) max_load_keys;
+                if ((loaded + truncatedSize) > nbKeys) {
+                    truncatedSize = nbKeys - loaded;
+                }
+                loaded = loaded + truncatedSize;
+                final byte[] t_types = new byte[truncatedSize];
+                final long[] t_keys = new long[truncatedSize * KEY_SIZE];
+                System.arraycopy(types, loaded, t_types, 0, truncatedSize);
+                System.arraycopy(keys, (loaded * KEY_SIZE), t_keys, 0, truncatedSize * KEY_SIZE);
+                final int f_loaded = loaded;
+                internal_getOrLoadAndMarkAll(truncatedSize, t_types, t_keys, new Callback<Chunk[]>() {
+                    @Override
+                    public void on(Chunk[] result) {
+                        System.arraycopy(result, 0, result, f_loaded, result.length);
+                    }
+                });
+            }
+        }
+    }
+
+    private void internal_getOrLoadAndMarkAll(final int nbKeys, final byte[] types, final long[] keys, final Callback<Chunk[]> callback) {
+        //int nbKeys = keys.length / KEY_SIZE;
         final boolean[] toLoadIndexes = new boolean[nbKeys];
         int nbElem = 0;
         final Chunk[] result = new Chunk[nbKeys];
