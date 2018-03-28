@@ -229,6 +229,10 @@ public class HeapChunkSpace implements ChunkSpace {
         }
         if (reverse != null) {
             final int[] finalReverse = reverse;
+
+            //TODO //TODO
+
+
             graph().storage().get(toLoadKeys, new Callback<Buffer>() {
                 @Override
                 public void on(final Buffer loadAllResult) {

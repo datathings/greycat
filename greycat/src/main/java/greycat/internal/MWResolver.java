@@ -690,6 +690,41 @@ final class MWResolver implements Resolver {
 
     @Override
     public final void lookupAll(final long world, final long reqTime, final long ids[], final Callback<Node[]> callback) {
+        double nbRounds = ((double) ids.length) / max_load_keys;
+        if (nbRounds < 0) {
+            internal_lookupAll(world, reqTime, ids, callback);
+        } else {
+            final Node[] finalResult = new Node[ids.length];
+            int nbCalls = (int) Math.ceil(nbRounds);
+            DeferCounter counter = new CoreDeferCounter(nbCalls);
+            counter.then(new Job() {
+                @Override
+                public void run() {
+                    callback.on(finalResult);
+                }
+            });
+            int loaded = 0;
+            for (int i = 0; i < nbCalls; i++) {
+                int truncatedSize = (int) max_load_keys;
+                if ((loaded + truncatedSize) > ids.length) {
+                    truncatedSize = ids.length - loaded;
+                }
+                final long[] t_ids = new long[truncatedSize];
+                System.arraycopy(ids, loaded, t_ids, 0, truncatedSize);
+                final int f_loaded = loaded;
+                loaded = loaded + truncatedSize;
+                internal_lookupAll(world, reqTime, t_ids, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        System.arraycopy(result, 0, finalResult, f_loaded, result.length);
+                        counter.count();
+                    }
+                });
+            }
+        }
+    }
+
+    private final void internal_lookupAll(final long world, final long reqTime, final long ids[], final Callback<Node[]> callback) {
         final MWResolver selfPointer = this;
         final int idsSize = ids.length;
         final Node[] finalResult = new Node[idsSize];
