@@ -17,13 +17,17 @@ package greycat.internal.heap;
 
 import greycat.Callback;
 import greycat.Constants;
+import greycat.DeferCounter;
 import greycat.Graph;
 import greycat.chunk.*;
+import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.struct.EStructArray;
 import greycat.utility.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -478,8 +482,8 @@ public class HeapChunkSpace implements ChunkSpace {
     public final synchronized void save(final boolean silent, final boolean partial, final LMap filter, final Callback<Buffer> callback) {
 
         java.util.Map<Long, Tuple<Listeners, LArray>> events = null;
-
-        final Buffer stream = this._graph.newBuffer();
+        Buffer stream = this._graph.newBuffer();
+        List<Buffer> stacked = null;
         boolean isFirst = true;
         int counter = 0;
         while (_dirtiesStack.size() != 0 && (!partial || _batchSize == -1 || counter <= _batchSize)) {
@@ -492,6 +496,14 @@ public class HeapChunkSpace implements ChunkSpace {
                 }
             }
             if (!filtered) {
+                if (stream.length() > (100 * 1024 * 1024)) {
+                    if (stacked == null) {
+                        stacked = new ArrayList<Buffer>();
+                    }
+                    stacked.add(stream);
+                    stream = this._graph.newBuffer();
+                    isFirst = true;
+                }
                 //Save chunk Key
                 if (isFirst) {
                     isFirst = false;
@@ -522,7 +534,6 @@ public class HeapChunkSpace implements ChunkSpace {
                         }
                     }
                 }
-
                 //Save chunk payload
                 stream.write(Constants.BUFFER_SEP);
                 try {
@@ -545,27 +556,93 @@ public class HeapChunkSpace implements ChunkSpace {
             }
         }
         if (silent) {
-            this.graph().storage().putSilent(stream, new Callback<Buffer>() {
-                @Override
-                public void on(final Buffer result) {
-                    //free all value
-                    stream.free();
-                    if (callback != null) {
-                        callback.on(result);
+            if (stacked == null) {
+                Buffer finalStream = stream;
+                this.graph().storage().putSilent(stream, new Callback<Buffer>() {
+                    @Override
+                    public void on(final Buffer result) {
+                        //free all value
+                        finalStream.free();
+                        if (callback != null) {
+                            callback.on(result);
+                        }
                     }
+                });
+            } else {
+                DeferCounter saveCounter = _graph.newCounter(stacked.size() + 1);
+                for (int i = 0; i < stacked.size(); i++) {
+                    Buffer finalStream = stacked.get(i);
+                    this.graph().storage().putSilent(finalStream, new Callback<Buffer>() {
+                        @Override
+                        public void on(final Buffer result) {
+                            //free all value
+                            finalStream.free();
+                            saveCounter.count();
+                        }
+                    });
                 }
-            });
+                Buffer finalStream = stream;
+                this.graph().storage().putSilent(finalStream, new Callback<Buffer>() {
+                    @Override
+                    public void on(final Buffer result) {
+                        //free all value
+                        finalStream.free();
+                        saveCounter.count();
+                    }
+                });
+                saveCounter.then(new Job() {
+                    @Override
+                    public void run() {
+                        if (callback != null) {
+                            callback.on(null);
+                        }
+                    }
+                });
+            }
         } else {
-            this.graph().storage().put(stream, new Callback<Boolean>() {
-                @Override
-                public void on(final Boolean result) {
-                    //free all value
-                    stream.free();
-                    if (callback != null) {
-                        callback.on(null);
+            if (stacked == null) {
+                Buffer finalStream = stream;
+                this.graph().storage().put(finalStream, new Callback<Boolean>() {
+                    @Override
+                    public void on(final Boolean result) {
+                        //free all value
+                        finalStream.free();
+                        if (callback != null) {
+                            callback.on(null);
+                        }
                     }
+                });
+            } else {
+                DeferCounter saveCounter = _graph.newCounter(stacked.size() + 1);
+                for (int i = 0; i < stacked.size(); i++) {
+                    Buffer finalStream = stacked.get(i);
+                    this.graph().storage().put(finalStream, new Callback<Boolean>() {
+                        @Override
+                        public void on(final Boolean result) {
+                            //free all value
+                            finalStream.free();
+                            saveCounter.count();
+                        }
+                    });
                 }
-            });
+                Buffer finalStream = stream;
+                this.graph().storage().put(finalStream, new Callback<Boolean>() {
+                    @Override
+                    public void on(final Boolean result) {
+                        //free all value
+                        finalStream.free();
+                        saveCounter.count();
+                    }
+                });
+                saveCounter.then(new Job() {
+                    @Override
+                    public void run() {
+                        if (callback != null) {
+                            callback.on(null);
+                        }
+                    }
+                });
+            }
         }
     }
 
