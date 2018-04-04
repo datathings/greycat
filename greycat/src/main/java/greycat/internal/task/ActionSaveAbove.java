@@ -37,7 +37,7 @@ class ActionSaveAbove implements Action {
             ChunkSpace space = ctx.graph().space();
             long dirties = space.dirties();
             long all = space.available() + dirties;
-            double status = dirties / all;
+            double status = dirties * 1.0 / all;
             if (status >= limit) {
                 final Buffer notifier = ctx.notifier();
                 if (notifier == null) {
