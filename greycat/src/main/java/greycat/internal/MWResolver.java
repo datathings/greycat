@@ -36,6 +36,8 @@ final class MWResolver implements Resolver {
 
     private static int KEY_SIZE = 3;
 
+    private static double max_load_keys = 3000.0;
+
     public MWResolver(final Storage p_storage, final ChunkSpace p_space, final Graph p_graph) {
         _space = p_space;
         _storage = p_storage;
@@ -1246,7 +1248,7 @@ final class MWResolver implements Resolver {
         }
     }*/
 
-    private static double max_load_keys = 100.0;
+
 
     private void getOrLoadAndMarkAll(final byte[] types, final long[] keys, final Callback<Chunk[]> callback) {
         int nbKeys = keys.length / KEY_SIZE;
