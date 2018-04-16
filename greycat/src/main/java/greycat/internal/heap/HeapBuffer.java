@@ -88,7 +88,7 @@ public class HeapBuffer implements Buffer {
 
     /**
      * @native ts
-     * var ua = new Uint8Array(input.length);
+     * var ua = new Int8Array(input.length);
      * Array.prototype.forEach.call(input, function (ch:string, i:number) { ua[i] = ch.charCodeAt(0);});
      * return this.writeAll(ua);
      */

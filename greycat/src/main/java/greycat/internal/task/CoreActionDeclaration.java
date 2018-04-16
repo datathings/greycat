@@ -47,7 +47,7 @@ class CoreActionDeclaration implements ActionDeclaration {
 
     /**
      * @native ts
-     * this._params = Int8Array.from(params);
+     * this._params = Int32Array.from(params);
      * return this;
      */
     @Override
