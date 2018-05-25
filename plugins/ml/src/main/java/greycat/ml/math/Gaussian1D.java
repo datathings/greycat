@@ -35,7 +35,16 @@ public class Gaussian1D {
         return Math.abs(value - avg) / Math.max(std, epsSTD) < numberOfAcceptedSTD;
     }
 
-    
+
+    public static double getProbability(double value, double avg, double std) {
+        double cov = std * std;
+        return 1 / Math.sqrt(2 * Math.PI * cov) * Math.exp(-(value - avg) * (value - avg) / (2 * cov));
+    }
+
+    public static double getConfidence(double value, double avg, double std) {
+        double cov = std * std;
+        return Math.exp(-(value - avg) * (value - avg) / (2 * cov));
+    }
 
 //    public static double draw(double sum, double sumSq, int total){
 //        double avg=sum/total;
