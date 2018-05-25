@@ -42,8 +42,22 @@ public class Gaussian1D {
     }
 
     public static double getConfidence(double value, double avg, double std) {
-        double cov = std * std;
-        return Math.exp(-(value - avg) * (value - avg) / (2 * cov));
+        double x = Math.abs(value - avg) / std;
+        return CNDF(-x) + 1 - CNDF(x);
+    }
+
+
+    public static double CNDF(double x) {
+        int neg = (x < 0d) ? 1 : 0;
+        if (neg == 1)
+            x *= -1d;
+
+        double k = (1d / (1d + 0.2316419 * x));
+        double y = ((((1.330274429 * k - 1.821255978) * k + 1.781477937) *
+                k - 0.356563782) * k + 0.319381530) * k;
+        y = 1.0 - 0.398942280401 * Math.exp(-0.5 * x * x) * y;
+
+        return (1d - neg) * y + neg * (1d - y);
     }
 
 //    public static double draw(double sum, double sumSq, int total){
@@ -66,4 +80,12 @@ public class Gaussian1D {
         }
         return proba;
     }
+
+
+//    public static void main(String[] arg) {
+//        double v = 0.1;
+//        double avg = 0;
+//        double std = 1;
+//        System.out.println(getConfidence(v, avg, std));
+//    }
 }
