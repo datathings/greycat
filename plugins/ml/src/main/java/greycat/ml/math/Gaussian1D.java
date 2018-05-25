@@ -30,6 +30,13 @@ public class Gaussian1D {
         return 1 / Math.sqrt(2 * Math.PI * cov) * Math.exp(-(feature - avg) * (feature - avg) / (2 * cov));
     }
 
+
+    public static boolean isAccepted(double value, double avg, double std, double epsSTD, double numberOfAcceptedSTD) {
+        return Math.abs(value - avg) / Math.max(std, epsSTD) < numberOfAcceptedSTD;
+    }
+
+    
+
 //    public static double draw(double sum, double sumSq, int total){
 //        double avg=sum/total;
 //        double cov=getCovariance(sum,sumSq,total);

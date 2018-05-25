@@ -37,7 +37,9 @@ class ActionSave implements Action {
             ctx.graph().saveSilent(new Callback<Buffer>() {
                 @Override
                 public void on(final Buffer result) {
-                    notifier.writeAll(result.data());
+                    if(result.data()!=null) {
+                        notifier.writeAll(result.data());
+                    }
                     result.free();
                     ctx.continueTask();
                 }
