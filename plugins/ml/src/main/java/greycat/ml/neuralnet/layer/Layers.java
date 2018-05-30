@@ -26,7 +26,8 @@ public class Layers {
     public final static int GRU_LAYER = 2;
     public final static int LSTM_LAYER = 3;
     public final static int RNN_LAYER = 4;
-
+    public final static int SOFTMAX_LAYER = 5;
+    public final static int LINEAR_SOFTMAX_LAYER = 6;
 
     public static Layer loadLayer(EStruct node) {
         switch ((int) node.get(TYPE)) {
@@ -40,6 +41,10 @@ public class Layers {
                 return new LSTM(node);
             case RNN_LAYER:
                 return new RNN(node);
+            case SOFTMAX_LAYER:
+                return new SoftMax(node);
+            case LINEAR_SOFTMAX_LAYER:
+                return new LinearSoftMax(node);
         }
         throw new RuntimeException("Layer type unknown!");
     }
@@ -47,19 +52,6 @@ public class Layers {
 
     public static Layer createLayer(EStruct node, int type) {
         node.set(Layers.TYPE, Type.INT, type);
-
-        switch (type) {
-            case FEED_FORWARD_LAYER:
-                return new FeedForward(node);
-            case LINEAR_LAYER:
-                return new Linear(node);
-            case GRU_LAYER:
-                return new GRU(node);
-            case LSTM_LAYER:
-                return new LSTM(node);
-            case RNN_LAYER:
-                return new RNN(node);
-        }
-        throw new RuntimeException("Layer type unknown!");
+        return loadLayer(node);
     }
 }

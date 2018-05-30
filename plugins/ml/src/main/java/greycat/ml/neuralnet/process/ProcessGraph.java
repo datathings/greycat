@@ -160,7 +160,7 @@ public class ProcessGraph {
         final ExMatrix out = new ExMatrix(null, null);
         out.init(matA.rows(), matA.columns());
         final int len = matA.length();
-        for (int i = 0; i < matA.length(); i++) {
+        for (int i = 0; i < len; i++) {
             out.unsafeSet(i, 1 - matA.unsafeGet(i));
         }
 
@@ -173,7 +173,7 @@ public class ProcessGraph {
             backprop.add(bp);
         }
 
-        return null;
+        return out;
     }
 
     public ExMatrix concatVectors(final ExMatrix matA, final ExMatrix matB) {
@@ -265,7 +265,44 @@ public class ProcessGraph {
             backprop.add(bp);
         }
         return out;
+    }
+
+    public ExMatrix softmax(ExMatrix input) {
+        final ExMatrix out = new ExMatrix(null, null);
+        out.init(input.rows(), input.columns());
+
+        //todo implement forward propa here
+
+        double maxval = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < input.length(); i++) {
+            if (input.unsafeGet(i) > maxval) {
+                maxval = input.unsafeGet(i);
+            }
+        }
+
+        double v;
+        for (int col = 0; col < input.columns(); col++) {
+            double sum = 0;
+            for (int row = 0; row < input.rows(); row++) {
+                v = Math.exp(input.get(row, col) - maxval);
+                out.set(row, col, v);
+                sum += v;
+            }
+            for (int row = 0; row < input.rows(); row++) {
+                out.set(row, col, out.get(row, col) / sum);
+            }
+        }
 
 
+
+        if (this.applyBackprop) {
+            ProcessStep bp = new ProcessStep() {
+                public void execute() {
+                    //todo implement back propa here
+                }
+            };
+            backprop.add(bp);
+        }
+        return out;
     }
 }
