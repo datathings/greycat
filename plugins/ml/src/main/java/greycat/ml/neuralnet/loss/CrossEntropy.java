@@ -16,13 +16,13 @@
 package greycat.ml.neuralnet.loss;
 
 import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.VolatileDMatrix;
 
 public class CrossEntropy implements Loss {
 
-    private static double EPS = 1e-15;
     private static CrossEntropy static_unit = null;
 
     public static Loss instance() {
@@ -34,7 +34,12 @@ public class CrossEntropy implements Loss {
 
     @Override
     public void backward(ExMatrix actualOutput, ExMatrix targetOutput) {
+        final int len = targetOutput.length();
 
+        for (int i = 0; i < len; i++) {
+            double errDelta = targetOutput.unsafeGet(i)/Math.max(actualOutput.unsafeGet(i), ProcessGraph.PROBA_EPS);  //double errDelta = 2*(actualOutput.w[i] - targetOutput.w[i]);
+            actualOutput.getDw().unsafeSet(i, actualOutput.getDw().unsafeGet(i) + errDelta); //actualOutput.dw[i] += errDelta;
+        }
     }
 
     @Override
@@ -44,7 +49,7 @@ public class CrossEntropy implements Loss {
 
         int len = targetOutput.length();
         for (int i = 0; i < len; i++) {
-            res.unsafeSet(i, -targetOutput.unsafeGet(i) * Math.log(Math.max(actualOutput.unsafeGet(i), EPS)));
+            res.unsafeSet(i, - targetOutput.unsafeGet(i) * Math.log(Math.max(actualOutput.unsafeGet(i), ProcessGraph.PROBA_EPS)));
         }
         return res;
     }

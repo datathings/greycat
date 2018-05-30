@@ -27,6 +27,7 @@ import java.util.List;
 
 public class ProcessGraph {
 
+    public static double PROBA_EPS = 1e-15;
     private boolean applyBackprop;
     private List<ProcessStep> backprop = new ArrayList<ProcessStep>();
 
@@ -289,16 +290,23 @@ public class ProcessGraph {
                 sum += v;
             }
             for (int row = 0; row < input.rows(); row++) {
-                out.set(row, col, out.get(row, col) / sum);
+                out.set(row, col, Math.min(out.get(row, col) / sum, PROBA_EPS));
             }
         }
-
 
 
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
                 public void execute() {
-                    //todo implement back propa here
+                    double p;
+                    for (int col = 0; col < input.columns(); col++) {
+                        for (int row = 0; row < input.rows(); row++) {
+                            p = out.get(row, col);
+                            input.getDw().add(row, col, p * (1 - p) * out.getDw().get(row, col));
+                        }
+                    }
+
+
                 }
             };
             backprop.add(bp);
