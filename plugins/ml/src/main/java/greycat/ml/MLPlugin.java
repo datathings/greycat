@@ -28,7 +28,7 @@ import greycat.plugin.ActionFactory;
 import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;
 
-public class MLPlugin  implements Plugin  {
+public class MLPlugin implements Plugin {
 
     @Override
     public void start(Graph graph) {

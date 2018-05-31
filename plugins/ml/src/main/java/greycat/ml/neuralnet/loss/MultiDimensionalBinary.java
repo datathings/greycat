@@ -22,7 +22,7 @@ import greycat.struct.matrix.VolatileDMatrix;
 
 class MultiDimensionalBinary implements Loss {
 
-    private static MultiDimensionalBinary static_unit= null;
+    private static MultiDimensionalBinary static_unit = null;
 
     public static MultiDimensionalBinary instance() {
         if (static_unit == null) {
@@ -38,12 +38,12 @@ class MultiDimensionalBinary implements Loss {
 
     @Override
     public DMatrix forward(DMatrix actualOutput, DMatrix targetOutput) {
-        MatrixOps.testDim(actualOutput,targetOutput);
+        MatrixOps.testDim(actualOutput, targetOutput);
         DMatrix res = VolatileDMatrix.empty(actualOutput.rows(), actualOutput.columns());
-        int len= actualOutput.length();
-        for(int i=0;i<len;i++){
-            if ((targetOutput.unsafeGet(i) >= 0.5 && actualOutput.unsafeGet(i) < 0.5) || (targetOutput.unsafeGet(i) < 0.5 && actualOutput.unsafeGet(i) >= 0.5) ){
-                res.unsafeSet(i,1);
+        int len = actualOutput.length();
+        for (int i = 0; i < len; i++) {
+            if ((targetOutput.unsafeGet(i) >= 0.5 && actualOutput.unsafeGet(i) < 0.5) || (targetOutput.unsafeGet(i) < 0.5 && actualOutput.unsafeGet(i) >= 0.5)) {
+                res.unsafeSet(i, 1);
             }
         }
         return res;

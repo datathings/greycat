@@ -44,30 +44,29 @@ public class Losses {
     }
 
 
-
     public static DMatrix sumOverOutputsMatrix(DMatrix losses) {
-        DMatrix res = VolatileDMatrix.empty(losses.rows(),1);
+        DMatrix res = VolatileDMatrix.empty(losses.rows(), 1);
         for (int i = 0; i < losses.rows(); i++) {
             for (int j = 0; j < losses.columns(); j++) {
-                res.add(i,0,losses.get(i, j));
+                res.add(i, 0, losses.get(i, j));
             }
         }
         return res;
     }
 
 
-    public static void processRMSE(DMatrix err, int counter){
-        for(int i=0;i<err.rows();i++){
-            for(int j=0;j<err.columns();j++){
-                err.set(i,j,Math.sqrt(err.get(i,j)*2/counter));
+    public static void processRMSE(DMatrix err, int counter) {
+        for (int i = 0; i < err.rows(); i++) {
+            for (int j = 0; j < err.columns(); j++) {
+                err.set(i, j, Math.sqrt(err.get(i, j) * 2 / counter));
             }
         }
     }
 
-    public static void processAVGErr(DMatrix err, int counter){
-        for(int i=0;i<err.rows();i++){
-            for(int j=0;j<err.columns();j++){
-                err.set(i,j,err.get(i,j)/counter);
+    public static void processAVGErr(DMatrix err, int counter) {
+        for (int i = 0; i < err.rows(); i++) {
+            for (int j = 0; j < err.columns(); j++) {
+                err.set(i, j, err.get(i, j) / counter);
             }
         }
     }
@@ -80,7 +79,6 @@ public class Losses {
             }
         }
     }
-
 
 
     public static double[] sumOverOutputs(DMatrix losses) {
@@ -103,7 +101,7 @@ public class Losses {
     }
 
     public static double avgOfLosses(DMatrix losses) {
-        return sumOfLosses(losses)/losses.length();
+        return sumOfLosses(losses) / losses.length();
     }
 
     public static double[] avgLossPerOutput(DMatrix losses) {

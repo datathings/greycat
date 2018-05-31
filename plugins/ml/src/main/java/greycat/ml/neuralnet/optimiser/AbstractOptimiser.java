@@ -28,35 +28,28 @@ import greycat.struct.EStruct;
 abstract class AbstractOptimiser implements Optimiser {
 
     protected static final String LEARNING_RATE = "learningrate";
-    private static final double LEARNING_RATE_DEF = 0.001;
-
     protected static final String REGULARIZATION_RATE = "regularizationrate";
+    private static final double LEARNING_RATE_DEF = 0.001;
     private static final double REGULARIZATION_RATE_DEF = 0.000001;
-
-    protected double learningRate;
-    protected double regularization;
-
-
     private static final String STEPS = "steps";
     private static final String MAX_STEPS = "max_steps";
     private static final String BATCH_SIZE = "batch_size";
-
-
+    protected double learningRate;
+    protected double regularization;
+    protected EStruct _backend;
     int steps;
     private int batchSize;
     private int maxSteps;
-    protected EStruct _backend;
 
 
     AbstractOptimiser(EStruct backend) {
         this._backend = backend;
         learningRate = backend.getWithDefault(LEARNING_RATE, LEARNING_RATE_DEF);
         regularization = backend.getWithDefault(REGULARIZATION_RATE, REGULARIZATION_RATE_DEF);
-        steps=backend.getWithDefault(STEPS,0);
-        maxSteps=backend.getWithDefault(MAX_STEPS,1);
-        batchSize=backend.getWithDefault(BATCH_SIZE,1);
+        steps = backend.getWithDefault(STEPS, 0);
+        maxSteps = backend.getWithDefault(MAX_STEPS, 1);
+        batchSize = backend.getWithDefault(BATCH_SIZE, 1);
     }
-
 
 
     @Override
@@ -75,7 +68,7 @@ abstract class AbstractOptimiser implements Optimiser {
 
     @Override
     public void stepUpdate(Layer[] layers) {
-        steps+=batchSize;
+        steps += batchSize;
         if (maxSteps > 0 && steps >= maxSteps) {
             update(layers);
             steps = 0;

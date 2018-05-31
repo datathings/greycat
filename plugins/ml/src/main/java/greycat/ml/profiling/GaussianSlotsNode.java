@@ -25,17 +25,12 @@ import greycat.utility.Enforcer;
 
 public class GaussianSlotsNode extends BaseNode {
     public final static String NAME = "GaussianSlotsNode";
-
-    private static final String GSEGRAPH = "gsegraph";
-
     public static final String PERIOD_SIZE = "PERIOD_SIZE"; //The period over which the profile returns to the initial slot
     public static final long PERIOD_SIZE_DEF = 24 * 3600 * 1000; //By default it is 24 hours
-
     public static final String NUMBER_OF_SLOTS = "numberOfSlots"; //Number of slots to create in the profile, default is 1
     public static final int NUMBER_OF_SLOTS_DEF = 2;
-
     public static final int TIME_SENSITIVITY_FACTOR = 4;
-
+    private static final String GSEGRAPH = "gsegraph";
     private static final Enforcer enforcer = new Enforcer()
             .asPositiveInt(NUMBER_OF_SLOTS)
             .asPositiveLong(PERIOD_SIZE);
@@ -48,6 +43,18 @@ public class GaussianSlotsNode extends BaseNode {
         super(p_world, p_time, p_id, p_graph);
     }
 
+    public static int getIntTime(long time, int numOfSlot, long periodSize) {
+        if (time < 0 || periodSize < 0) {
+            throw new RuntimeException("Time or period size can't be negative");
+        }
+        if (numOfSlot <= 1) {
+            return 0;
+        }
+        double res = time % periodSize;
+        res = Math.floor(res / (Math.floor(periodSize / numOfSlot)));
+
+        return (int) res;
+    }
 
     @Override
     public Node set(String name, int type, Object value) {
@@ -69,12 +76,11 @@ public class GaussianSlotsNode extends BaseNode {
         throw new RuntimeException("can't set anything other than precisions or values on this node!");
     }
 
-
-    public void learnWithTime(long time, double[] values){
+    public void learnWithTime(long time, double[] values) {
 
         EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
         gsgraph = new GaussianSlotsEGraph(eg);
-        gsgraph.learn(getSlotNumberInTime(time),  values);
+        gsgraph.learn(getSlotNumberInTime(time), values);
     }
 
     public void learn(double[] values) {
@@ -90,7 +96,7 @@ public class GaussianSlotsNode extends BaseNode {
         return backend.getAvg();
     }
 
-    public double[] getAvg(int slot){
+    public double[] getAvg(int slot) {
         if (!load()) {
             return null;
         }
@@ -98,7 +104,7 @@ public class GaussianSlotsNode extends BaseNode {
         return backend.getAvg();
     }
 
-    public double[] getStd(int slot){
+    public double[] getStd(int slot) {
         if (!load()) {
             return null;
         }
@@ -106,8 +112,7 @@ public class GaussianSlotsNode extends BaseNode {
         return backend.getSTD();
     }
 
-
-    public double[] getMin(int slot){
+    public double[] getMin(int slot) {
         if (!load()) {
             return null;
         }
@@ -115,7 +120,7 @@ public class GaussianSlotsNode extends BaseNode {
         return backend.getMin();
     }
 
-    public double[] getMax(int slot){
+    public double[] getMax(int slot) {
         if (!load()) {
             return null;
         }
@@ -123,7 +128,7 @@ public class GaussianSlotsNode extends BaseNode {
         return backend.getMax();
     }
 
-    public long getTotal(int slot){
+    public long getTotal(int slot) {
         if (!load()) {
             return -1L;
         }
@@ -158,7 +163,6 @@ public class GaussianSlotsNode extends BaseNode {
         throw new RuntimeException("Attribute " + attributeName + " not found!");
     }
 
-
     private boolean load() {
         if (gsgraph != null) {
             return true;
@@ -173,8 +177,7 @@ public class GaussianSlotsNode extends BaseNode {
         }
     }
 
-
-    public int getSlotNumberInTime(long time){
+    public int getSlotNumberInTime(long time) {
         NodeState resolved = unphasedState();
         int slots = resolved.getWithDefault(NUMBER_OF_SLOTS, NUMBER_OF_SLOTS_DEF);
         long period = resolved.getWithDefault(PERIOD_SIZE, PERIOD_SIZE_DEF);
@@ -187,19 +190,6 @@ public class GaussianSlotsNode extends BaseNode {
         int slots = resolved.getWithDefault(NUMBER_OF_SLOTS, NUMBER_OF_SLOTS_DEF);
         long period = resolved.getWithDefault(PERIOD_SIZE, PERIOD_SIZE_DEF);
         return getIntTime(t, slots, period);
-    }
-
-    public static int getIntTime(long time, int numOfSlot, long periodSize) {
-        if (time < 0 || periodSize < 0) {
-            throw new RuntimeException("Time or period size can't be negative");
-        }
-        if (numOfSlot <= 1) {
-            return 0;
-        }
-        double res = time % periodSize;
-        res = Math.floor(res / (Math.floor(periodSize / numOfSlot)));
-
-        return (int) res;
     }
 
 

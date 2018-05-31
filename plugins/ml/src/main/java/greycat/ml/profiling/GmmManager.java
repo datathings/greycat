@@ -15,15 +15,16 @@
  */
 package greycat.ml.profiling;
 
-import greycat.struct.EStructArray;
 import greycat.struct.EStruct;
+import greycat.struct.EStructArray;
 import greycat.struct.NDManager;
 
 public class GmmManager implements NDManager {
 
     EStructArray _backend;
-    public GmmManager(EStructArray eStructArray){
-        _backend= eStructArray;
+
+    public GmmManager(EStructArray eStructArray) {
+        _backend = eStructArray;
     }
 
     @Override
@@ -33,9 +34,9 @@ public class GmmManager implements NDManager {
 
     @Override
     public long updateExistingLeafNode(long oldKey, double[] key, Object valueToInsert) {
-        EStruct node= _backend.estruct((int) oldKey);
-        GaussianWrapper gn= new GaussianWrapper(node);
-        gn.learnWithOccurence(key,(int)(long)valueToInsert);
+        EStruct node = _backend.estruct((int) oldKey);
+        GaussianWrapper gn = new GaussianWrapper(node);
+        gn.learnWithOccurence(key, (int) (long) valueToInsert);
         return oldKey;
     }
 
@@ -56,23 +57,23 @@ public class GmmManager implements NDManager {
 
     @Override
     public long getNewLeafNode(double[] key, Object valueToInsert) {
-        EStruct node= _backend.newEStruct();
-        GaussianWrapper gn= new GaussianWrapper(node);
-        gn.learnWithOccurence(key,(int)(long)valueToInsert);
+        EStruct node = _backend.newEStruct();
+        GaussianWrapper gn = new GaussianWrapper(node);
+        gn.learnWithOccurence(key, (int) (long) valueToInsert);
         return node.id();
     }
 
     @Override
     public long getNewParentNode() {
-        EStruct node= _backend.newEStruct();
+        EStruct node = _backend.newEStruct();
         return node.id();
     }
 
     @Override
     public long updateParent(long parentkey, double[] key, Object valueToInsert) {
-        EStruct node= _backend.estruct((int) parentkey);
-        GaussianWrapper gn= new GaussianWrapper(node);
-        gn.learnWithOccurence(key,(int)(long)valueToInsert);
+        EStruct node = _backend.estruct((int) parentkey);
+        GaussianWrapper gn = new GaussianWrapper(node);
+        gn.learnWithOccurence(key, (int) (long) valueToInsert);
         return parentkey;
     }
 }

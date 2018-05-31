@@ -18,15 +18,15 @@ package greycat.ml.neuralnet;
 import greycat.Type;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.layer.Layers;
-import greycat.ml.neuralnet.optimiser.Optimiser;
-import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;
+import greycat.ml.neuralnet.optimiser.Optimiser;
+import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
-import greycat.struct.EStructArray;
 import greycat.struct.EStruct;
+import greycat.struct.EStructArray;
 import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.VolatileDMatrix;
 

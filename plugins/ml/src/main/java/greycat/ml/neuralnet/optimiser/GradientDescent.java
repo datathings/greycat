@@ -28,7 +28,7 @@ class GradientDescent extends AbstractOptimiser {
     GradientDescent(EStruct backend) {
         super(backend);
     }
-    
+
     // w= reg * w -learning * dw
     //
     @Override

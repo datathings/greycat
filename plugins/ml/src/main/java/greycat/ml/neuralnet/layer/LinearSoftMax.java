@@ -23,7 +23,7 @@ import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 
-public class LinearSoftMax implements Layer{
+public class LinearSoftMax implements Layer {
     private static String WEIGHTS = "weights";
     private static String BIAS = "bias";
     private EStruct host;
@@ -62,7 +62,7 @@ public class LinearSoftMax implements Layer{
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
-        ExMatrix res =  g.add(g.mul(weights, input), g.expand(bias, input.columns()));
+        ExMatrix res = g.add(g.mul(weights, input), g.expand(bias, input.columns()));
         return g.softmax(res);
     }
 

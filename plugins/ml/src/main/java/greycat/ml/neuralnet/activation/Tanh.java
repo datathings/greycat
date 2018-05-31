@@ -28,6 +28,15 @@ class Tanh implements Activation {
 
     /**
      * {@native ts
+     * return (Math.exp(x) + Math.exp(-x)) / 2;
+     * }
+     */
+    private static double cosh(double x) {
+        return Math.cosh(x);
+    }
+
+    /**
+     * {@native ts
      * if (x === Infinity) {return 1;}
      * if (x === -Infinity) {return -1;}
      * let y = Math.exp(x * 2);
@@ -42,15 +51,6 @@ class Tanh implements Activation {
     @Override
     public double backward(double x, double fct) {
         return 1 - fct * fct;
-    }
-
-    /**
-     * {@native ts
-     * return (Math.exp(x) + Math.exp(-x)) / 2;
-     * }
-     */
-    private static double cosh(double x) {
-        return Math.cosh(x);
     }
 
 

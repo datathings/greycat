@@ -16,9 +16,9 @@
 package greycat.ml.profiling;
 
 import greycat.Type;
-import greycat.struct.EStructArray;
-import greycat.struct.EStruct;
 import greycat.struct.ERelation;
+import greycat.struct.EStruct;
+import greycat.struct.EStructArray;
 
 public class GaussianSlotsEGraph {
 

@@ -299,10 +299,19 @@ public class ProcessGraph {
             ProcessStep bp = new ProcessStep() {
                 public void execute() {
                     double p;
+                    DMatrix da = input.getDw();
+                    DMatrix dS = out.getDw();
+                    DMatrix S = out.getW();
                     for (int col = 0; col < input.columns(); col++) {
                         for (int row = 0; row < input.rows(); row++) {
-                            p = out.get(row, col);
-                            input.getDw().add(row, col, p * (1 - p) * out.getDw().get(row, col));
+                            p = S.get(row, col);
+                            for (int k = 0; k < input.rows(); k++) {
+                                if (k == row) {
+                                    da.add(row, col, S.get(k, col) * (1 - p) * dS.get(k, col));
+                                } else {
+                                    da.add(row, col, -S.get(k, col) * p * dS.get(k, col));
+                                }
+                            }
                         }
                     }
 

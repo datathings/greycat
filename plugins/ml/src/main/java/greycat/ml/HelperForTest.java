@@ -16,13 +16,13 @@
 package greycat.ml;
 
 public class HelperForTest {
-    public static boolean assertArrayEquals(double[] p1, double[] p2, double eps){
-        if(p1.length!=p2.length){
+    public static boolean assertArrayEquals(double[] p1, double[] p2, double eps) {
+        if (p1.length != p2.length) {
             return false;
         }
 
-        for(int i=0;i<p1.length;i++){
-            if(Math.abs(p1[i]-p2[i])>eps){
+        for (int i = 0; i < p1.length; i++) {
+            if (Math.abs(p1[i] - p2[i]) > eps) {
                 return false;
             }
         }

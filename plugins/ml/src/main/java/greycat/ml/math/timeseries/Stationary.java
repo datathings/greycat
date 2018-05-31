@@ -20,33 +20,32 @@ public class Stationary {
 
     public static double autoCorrelation(double[] series, int stepBack) {
 
-        if(stepBack>series.length){
+        if (stepBack > series.length) {
             throw new RuntimeException("Step back can be maximum equal to array length!");
         }
 
         double xy = 0, x = 0, x2 = 0, y = 0, y2 = 0;
 
         for (int i = stepBack; i < series.length; i++) {
-            xy += series[i] * series[i-stepBack];
+            xy += series[i] * series[i - stepBack];
             x += series[i];
-            y += series[i-stepBack];
+            y += series[i - stepBack];
             x2 += series[i] * series[i];
-            y2 += series[i-stepBack] * series[i-stepBack];
+            y2 += series[i - stepBack] * series[i - stepBack];
         }
-        int n = series.length-stepBack;
+        int n = series.length - stepBack;
         return (xy - (x * y) / n) / Math.sqrt((x2 - (x * x) / n) * (y2 - (y * y) / n));
     }
 
 
-    public static double[] autoCorrelationFunction(double[] series, int elements){
-        double[] res=new double[elements];
+    public static double[] autoCorrelationFunction(double[] series, int elements) {
+        double[] res = new double[elements];
 
-        for(int i=0;i<elements;i++){
-            res[i]=autoCorrelation(series,i);
+        for (int i = 0; i < elements; i++) {
+            res[i] = autoCorrelation(series, i);
         }
         return res;
     }
-
 
 
     public static double[] difference(double[] series) {
@@ -72,7 +71,6 @@ public class Stationary {
         }
         throw new RuntimeException("Series should be at least N elements!");
     }
-
 
 
 }

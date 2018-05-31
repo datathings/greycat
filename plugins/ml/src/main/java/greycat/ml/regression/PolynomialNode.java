@@ -43,17 +43,14 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     //Internal state variables private and starts with _
     public static final String INTERNAL_WEIGHT_KEY = "weight";
     public static final String INTERNAL_STEP_KEY = "step";
-
+    //Other default parameters that should not be changed externally:
+    public static final String MAX_DEGREE = "maxdegree";
+    public static final int MAX_DEGREE_DEF = 20; // maximum polynomial degree
     private static final String INTERNAL_TIME_BUFFER = "times";
     private static final String INTERNAL_VALUES_BUFFER = "values";
     private static final String INTERNAL_NB_PAST_KEY = "nb";
     private static final String INTERNAL_LAST_TIME_KEY = "lastTime";
     private static final String INTERNAL_TIME_ORIGIN = "timeorigin";
-
-    //Other default parameters that should not be changed externally:
-    public static final String MAX_DEGREE = "maxdegree";
-    public static final int MAX_DEGREE_DEF = 20; // maximum polynomial degree
-
     private final static String NOT_MANAGED_ATT_ERROR = "Polynomial node can only handle value attribute, please use a super node to store other data";
     private static final Enforcer enforcer = new Enforcer().asPositiveDouble(PRECISION);
     private static final Enforcer degenforcer = new Enforcer().asPositiveInt(MAX_DEGREE);
@@ -64,6 +61,34 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         super(p_world, p_time, p_id, p_graph);
     }
 
+    private static double[] updateBuffer(NodeState state, double t, int maxdeg, String key) {
+        DoubleArray tsa = (DoubleArray) state.get(key);
+        double[] ts = null;
+        if (tsa != null) {
+            ts = tsa.extract();
+        }
+        if (ts == null) {
+            ts = new double[1];
+            ts[0] = t;
+            tsa = (DoubleArray) state.getOrCreate(key, Type.DOUBLE_ARRAY);
+            tsa.initWith(ts);
+            return ts;
+        } else if (ts.length < maxdeg * 4) {
+            double[] nts = new double[ts.length + 1];
+            System.arraycopy(ts, 0, nts, 0, ts.length);
+            nts[ts.length] = t;
+            tsa = (DoubleArray) state.getOrCreate(key, Type.DOUBLE_ARRAY);
+            tsa.initWith(nts);
+            return nts;
+        } else {
+            double[] nts = new double[ts.length];
+            System.arraycopy(ts, 1, nts, 0, ts.length - 1);
+            nts[ts.length - 1] = t;
+            tsa = (DoubleArray) state.getOrCreate(key, Type.DOUBLE_ARRAY);
+            tsa.initWith(nts);
+            return nts;
+        }
+    }
 
     //Override default Abstract node default setters and getters
     @Override
@@ -77,8 +102,8 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
             degenforcer.check(propertyName, propertyType, propertyValue);
             super.set(propertyName, Type.INT, propertyValue);
         } else if (propertyName.equals(FUTURE_PREDICTION)) {
-              futurePredictionEnforcer.check(propertyName, propertyType, propertyValue);
-              super.set(propertyName, Type.BOOL, propertyValue);
+            futurePredictionEnforcer.check(propertyName, propertyType, propertyValue);
+            super.set(propertyName, Type.BOOL, propertyValue);
         } else {
             throw new RuntimeException(NOT_MANAGED_ATT_ERROR);
         }
@@ -279,35 +304,6 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         }
     }
 
-    private static double[] updateBuffer(NodeState state, double t, int maxdeg, String key) {
-        DoubleArray tsa = (DoubleArray) state.get(key);
-        double[] ts = null;
-        if (tsa != null) {
-            ts = tsa.extract();
-        }
-        if (ts == null) {
-            ts = new double[1];
-            ts[0] = t;
-            tsa = (DoubleArray) state.getOrCreate(key, Type.DOUBLE_ARRAY);
-            tsa.initWith(ts);
-            return ts;
-        } else if (ts.length < maxdeg * 4) {
-            double[] nts = new double[ts.length + 1];
-            System.arraycopy(ts, 0, nts, 0, ts.length);
-            nts[ts.length] = t;
-            tsa = (DoubleArray) state.getOrCreate(key, Type.DOUBLE_ARRAY);
-            tsa.initWith(nts);
-            return nts;
-        } else {
-            double[] nts = new double[ts.length];
-            System.arraycopy(ts, 1, nts, 0, ts.length - 1);
-            nts[ts.length - 1] = t;
-            tsa = (DoubleArray) state.getOrCreate(key, Type.DOUBLE_ARRAY);
-            tsa.initWith(nts);
-            return nts;
-        }
-    }
-
     @Override
     public final void extrapolate(Callback<Double> callback) {
         //long time = time();
@@ -382,11 +378,10 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     private double[] calculateDerivative(double[] oldweight) {
         if (oldweight.length == 1 || oldweight.length == 0) {
             return new double[]{0.0};
-        }
-        else {
-            double[] res= new double[oldweight.length-1];
-            for(int i=1;i<oldweight.length;i++){
-                res[i-1]=oldweight[i]*i;
+        } else {
+            double[] res = new double[oldweight.length - 1];
+            for (int i = 1; i < oldweight.length; i++) {
+                res[i - 1] = oldweight[i] * i;
             }
             return res;
         }

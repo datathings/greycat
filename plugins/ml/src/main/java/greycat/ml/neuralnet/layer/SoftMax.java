@@ -18,14 +18,12 @@ package greycat.ml.neuralnet.layer;
 import greycat.Type;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
-import greycat.struct.DMatrix;
 import greycat.struct.EStruct;
-import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
 
-public class SoftMax implements Layer{
-    private EStruct host;
+public class SoftMax implements Layer {
     private static String INPUTS = "inputs";
+    private EStruct host;
 
     SoftMax(EStruct hostnode) {
         this.host = hostnode;
@@ -34,10 +32,10 @@ public class SoftMax implements Layer{
     @Override
     public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std) {
         //First always set the type
-        if(inputs!=outputs){
+        if (inputs != outputs) {
             throw new RuntimeException("SoftMax is stateless, inputs and outputs should be the same size, otherwise use LinearSoftMax");
         }
-        host.set(INPUTS,Type.INT,inputs);
+        host.set(INPUTS, Type.INT, inputs);
         host.set(Layers.TYPE, Type.INT, Layers.SOFTMAX_LAYER);
         return this;
     }

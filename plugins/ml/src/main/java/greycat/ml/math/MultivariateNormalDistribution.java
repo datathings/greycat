@@ -67,7 +67,7 @@ public class MultivariateNormalDistribution {
                 rank = pinvsvd.getRank();
             }
 
-            int x=0;
+            int x = 0;
 
             //Solve complete covariance dependence
          /*   if(this.rank<means.length){
@@ -94,30 +94,6 @@ public class MultivariateNormalDistribution {
         }
     }
 
-    public double[] getMin() {
-        return min;
-    }
-
-    public double[] getMax() {
-        return max;
-    }
-
-    public double[] getAvg() {
-        return means;
-    }
-
-    public double[] getCovDiag() {
-        return covDiag;
-    }
-
-    public void setMin(double[] min) {
-        this.min = min;
-    }
-
-    public void setMax(double[] max) {
-        this.max = max;
-    }
-
     public static DMatrix getCovariance(double[] sum, double[] sumsquares, int total) {
         if (total < 2) {
             return null;
@@ -140,7 +116,6 @@ public class MultivariateNormalDistribution {
         }
         return VolatileDMatrix.wrap(covariances, features, features);
     }
-
 
     //Sum is a n-vector sum of features
     //Sum squares is a n(n+1)/2 vector of sumsquares of features, in upper-triangle row shapes
@@ -168,6 +143,30 @@ public class MultivariateNormalDistribution {
         }
         DMatrix cov = VolatileDMatrix.wrap(covariances, features, features);
         return new MultivariateNormalDistribution(avg, cov, allowSingular);
+    }
+
+    public double[] getMin() {
+        return min;
+    }
+
+    public void setMin(double[] min) {
+        this.min = min;
+    }
+
+    public double[] getMax() {
+        return max;
+    }
+
+    public void setMax(double[] max) {
+        this.max = max;
+    }
+
+    public double[] getAvg() {
+        return means;
+    }
+
+    public double[] getCovDiag() {
+        return covDiag;
     }
 
     public double density(double[] features, boolean normalizeOnAvg) {

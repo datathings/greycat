@@ -96,9 +96,6 @@ public class PCA {
         }
 
 
-
-
-
         for (int i = 0; i < dim; i++) {
             singularValues.set(i, Math.sqrt(evdValues[i] * (total - 1)));
         }
@@ -184,7 +181,7 @@ public class PCA {
             dataclone = data;
         } else {
             dataclone = new double[data.length];
-            System.arraycopy(data,0,dataclone,0,data.length);
+            System.arraycopy(data, 0, dataclone, 0, data.length);
         }
 
         double[] avg = _backend.getDoubleArray(AVG).extract();
@@ -225,7 +222,7 @@ public class PCA {
             dataclone = data;
         } else {
             dataclone = new double[data.length];
-            System.arraycopy(data,0,dataclone,0,data.length);
+            System.arraycopy(data, 0, dataclone, 0, data.length);
         }
 
         double[] avg = _backend.getDoubleArray(AVG).extract();
@@ -353,10 +350,10 @@ public class PCA {
         double[] explainedVariance = ((DoubleArray) _backend.get(EXPLAINED_VARIANCE)).extract();
 
 
-        int originalDim= (int) _backend.get(ORIGINAL_DIM);
-        int selectedDim= (int) _backend.get(SELECTED_DIM);
-        int bestDim= (int) _backend.get(BEST_DIM);
-        double percentAtBestDim= (double)_backend.get(PERCENT_AT_BEST_DIM);
+        int originalDim = (int) _backend.get(ORIGINAL_DIM);
+        int selectedDim = (int) _backend.get(SELECTED_DIM);
+        int bestDim = (int) _backend.get(BEST_DIM);
+        double percentAtBestDim = (double) _backend.get(PERCENT_AT_BEST_DIM);
         DMatrix spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
 
         MatrixOps.printArray(singularValues, "PCA Singular values:");

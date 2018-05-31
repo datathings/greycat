@@ -18,22 +18,22 @@ package greycat.ml.neuralnet.activation;
 
 class Sine implements Activation {
 
-	private static Sine static_unit= null;
+    private static Sine static_unit = null;
 
-	public static Sine instance() {
-		if (static_unit == null) {
-			static_unit = new Sine();
-		}
-		return static_unit;
-	}
+    public static Sine instance() {
+        if (static_unit == null) {
+            static_unit = new Sine();
+        }
+        return static_unit;
+    }
 
-	@Override
-	public double forward(double x) {
-		return Math.sin(x);
-	}
+    @Override
+    public double forward(double x) {
+        return Math.sin(x);
+    }
 
-	@Override
-	public double backward(double x, double fct) {
-		return Math.cos(x);
-	}
+    @Override
+    public double backward(double x, double fct) {
+        return Math.cos(x);
+    }
 }

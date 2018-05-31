@@ -36,11 +36,10 @@ public class AbstractValue implements Loss {
         for (int i = 0; i < len; i++) {
             double errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);  //double errDelta = actualOutput.w[i] - targetOutput.w[i];
             //the derivation of Abstract value is either 1 or -1 |X| = x or -x.
-            if(errDelta>0){
-                errDelta=1;
-            }
-            else {
-                errDelta=-1;
+            if (errDelta > 0) {
+                errDelta = 1;
+            } else {
+                errDelta = -1;
             }
             actualOutput.getDw().unsafeSet(i, actualOutput.getDw().unsafeGet(i) + errDelta); //actualOutput.dw[i] += errDelta;
         }

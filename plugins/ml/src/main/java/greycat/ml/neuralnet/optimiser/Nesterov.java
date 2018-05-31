@@ -27,6 +27,7 @@ class Nesterov extends AbstractOptimiser {
     static final String DECAY_RATE = "decayrate";
     static final double DECAY_RATE_DEF = 0.9;
     double decayRate;
+
     Nesterov(EStruct backend) {
         super(backend);
         decayRate = backend.getWithDefault(DECAY_RATE, DECAY_RATE_DEF);

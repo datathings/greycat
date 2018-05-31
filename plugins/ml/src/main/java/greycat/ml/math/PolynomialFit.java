@@ -29,6 +29,27 @@ public class PolynomialFit {
         this.degree = degree;
     }
 
+    public static double extrapolate(double time, double[] weights) {
+        double result = 0;
+        double power = 1;
+        for (int j = 0; j < weights.length; j++) {
+            result += weights[j] * power;
+            power = power * time;
+        }
+        return result;
+    }
+
+    public static double rmse(double[] time, double[] values, double[] coef) {
+        double rmse = 0;
+        double ex;
+        for (int i = 0; i < time.length; i++) {
+            ex = extrapolate(time[i], coef);
+            rmse += (ex - values[i]) * (ex - values[i]);
+        }
+        rmse = rmse / time.length;
+        return Math.sqrt(rmse);
+    }
+
     public double[] getCoef() {
         return coef.data();
     }
@@ -46,27 +67,6 @@ public class PolynomialFit {
         }
         // processValues the A matrix and see if it failed
         coef = MatrixOps.defaultEngine().solveQR(a, y, true, TransposeType.NOTRANSPOSE);
-    }
-
-    public static double extrapolate(double time, double[] weights) {
-        double result = 0;
-        double power = 1;
-        for (int j = 0; j < weights.length; j++) {
-            result += weights[j] * power;
-            power = power * time;
-        }
-        return result;
-    }
-
-    public static double rmse(double[] time, double[] values, double[] coef){
-        double rmse=0;
-        double ex;
-        for(int i=0;i<time.length;i++){
-            ex=extrapolate(time[i],coef);
-            rmse+=(ex-values[i])*(ex-values[i]);
-        }
-        rmse=rmse/time.length;
-        return Math.sqrt(rmse);
     }
 
 

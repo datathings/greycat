@@ -48,7 +48,7 @@ class SumOfSquares implements Loss {
         double errDelta;
         for (int i = 0; i < len; i++) {
             errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);
-            res.unsafeSet(i, 0.5*errDelta * errDelta);
+            res.unsafeSet(i, 0.5 * errDelta * errDelta);
         }
         return res;
     }

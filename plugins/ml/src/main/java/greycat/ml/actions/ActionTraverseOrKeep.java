@@ -80,7 +80,7 @@ public class ActionTraverseOrKeep implements Action {
     public final void serialize(final Buffer builder) {
         builder.writeString(NAME);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder,true);
+        TaskHelper.serializeString(_name, builder, true);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 

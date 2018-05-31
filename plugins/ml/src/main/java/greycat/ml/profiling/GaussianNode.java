@@ -19,7 +19,6 @@ import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
-import greycat.struct.DoubleArray;
 import greycat.struct.EStructArray;
 
 public class GaussianNode extends BaseNode {
