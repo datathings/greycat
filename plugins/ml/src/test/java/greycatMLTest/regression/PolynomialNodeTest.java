@@ -27,18 +27,65 @@ import java.util.Arrays;
 
 public class PolynomialNodeTest {
 
-    /**
-     * Default values to apply in test if not precised
-     */
-    private static class Defaults {
-        public static final long WORLD = 0;
-        public static final long TIME = 0;
-        public static final int SIZE = 100;
-        public static final double PRECISION = 0.5;
-        public static final int MAX_DEGREE = PolynomialNode.MAX_DEGREE_DEF;
+    private Graph graph;
+
+    public static void testPoly(long[] times, final double[] values, final int numOfPoly, final Graph graph) {
+        final double precision = Defaults.PRECISION;
+        final int size = Defaults.SIZE;
+        PolynomialNode polynomialNode = (PolynomialNode) graph.newTypedNode(0, times[0], PolynomialNode.NAME);
+        polynomialNode.set(PolynomialNode.PRECISION, Type.DOUBLE, precision);
+
+        for (int i = 0; i < size; i++) {
+            final int ia = i;
+            polynomialNode.travelInTime(times[ia], new Callback<PolynomialNode>() {
+                @Override
+                public void on(PolynomialNode result) {
+                    result.learn(values[ia], new Callback<Boolean>() {
+                        @Override
+                        public void on(Boolean result) {
+
+                        }
+                    });
+                }
+            });
+        }
+
+        //System.out.println(polynomialNode);
+
+        for (int i = 0; i < size; i++) {
+            final int ia = i;
+            polynomialNode.travelInTime(times[ia], new Callback<PolynomialNode>() {
+                @Override
+                public void on(PolynomialNode result) {
+                    result.extrapolate(new Callback<Double>() {
+                        @Override
+                        public void on(Double v) {
+                            Assert.assertTrue(Math.abs(values[ia] - v) <= precision);
+                        }
+                    });
+                }
+            });
+        }
+
+        polynomialNode.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback<long[]>() {
+            @Override
+            public void on(long[] result) {
+                Assert.assertTrue(result.length <= numOfPoly);
+            }
+        });
     }
 
-    private Graph graph;
+    /**
+     * Create a {@link PolynomialNode} by setting all {@link Defaults} values
+     *
+     * @param graph the {@link Graph} from within the {@link PolynomialNode} has to be created
+     * @return a {@link PolynomialNode} based on default test values
+     */
+    private static PolynomialNode createDefaultPolynomialNode(final Graph graph) {
+        return (PolynomialNode) graph.newTypedNode(Defaults.WORLD, Defaults.TIME, PolynomialNode.NAME)
+                .set(PolynomialNode.MAX_DEGREE, Type.INT, Defaults.MAX_DEGREE)
+                .set(PolynomialNode.PRECISION, Type.DOUBLE, Defaults.PRECISION);
+    }
 
     @Before
     public void setup() {
@@ -137,63 +184,15 @@ public class PolynomialNodeTest {
         });
     }
 
-
-    public static void testPoly(long[] times, final double[] values, final int numOfPoly, final Graph graph) {
-        final double precision = Defaults.PRECISION;
-        final int size = Defaults.SIZE;
-        PolynomialNode polynomialNode = (PolynomialNode) graph.newTypedNode(0, times[0], PolynomialNode.NAME);
-        polynomialNode.set(PolynomialNode.PRECISION, Type.DOUBLE, precision);
-
-        for (int i = 0; i < size; i++) {
-            final int ia = i;
-            polynomialNode.travelInTime(times[ia], new Callback<PolynomialNode>() {
-                @Override
-                public void on(PolynomialNode result) {
-                    result.learn(values[ia], new Callback<Boolean>() {
-                        @Override
-                        public void on(Boolean result) {
-
-                        }
-                    });
-                }
-            });
-        }
-
-        //System.out.println(polynomialNode);
-
-        for (int i = 0; i < size; i++) {
-            final int ia = i;
-            polynomialNode.travelInTime(times[ia], new Callback<PolynomialNode>() {
-                @Override
-                public void on(PolynomialNode result) {
-                    result.extrapolate(new Callback<Double>() {
-                        @Override
-                        public void on(Double v) {
-                            Assert.assertTrue(Math.abs(values[ia] - v) <= precision);
-                        }
-                    });
-                }
-            });
-        }
-
-        polynomialNode.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback<long[]>() {
-            @Override
-            public void on(long[] result) {
-                Assert.assertTrue(result.length <= numOfPoly);
-            }
-        });
-    }
-
     /**
-     * Create a {@link PolynomialNode} by setting all {@link Defaults} values
-     *
-     * @param graph the {@link Graph} from within the {@link PolynomialNode} has to be created
-     * @return a {@link PolynomialNode} based on default test values
+     * Default values to apply in test if not precised
      */
-    private static PolynomialNode createDefaultPolynomialNode(final Graph graph) {
-        return (PolynomialNode) graph.newTypedNode(Defaults.WORLD, Defaults.TIME, PolynomialNode.NAME)
-                .set(PolynomialNode.MAX_DEGREE, Type.INT, Defaults.MAX_DEGREE)
-                .set(PolynomialNode.PRECISION, Type.DOUBLE, Defaults.PRECISION);
+    private static class Defaults {
+        public static final long WORLD = 0;
+        public static final long TIME = 0;
+        public static final int SIZE = 100;
+        public static final double PRECISION = 0.5;
+        public static final int MAX_DEGREE = PolynomialNode.MAX_DEGREE_DEF;
     }
 
 }

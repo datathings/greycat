@@ -15,17 +15,36 @@
  */
 package greycatMLTest.neuralnet;
 
+import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;
-import greycat.ml.neuralnet.activation.Activation;
-import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Test;
 
 public class TestCalcGraph {
+
+    private static double EPS = 1e-16;
+
+    private static void testdouble(double d1, double d2) {
+        if (Math.abs(d1 - d2) > EPS) {
+            System.out.println("d1: " + d1 + " d2: " + d2);
+            throw new RuntimeException("d1 != d2");
+        }
+    }
+
+    private static void applyLearningRate(ExMatrix mat, double learningRate) {
+        int len = mat.length();
+        DMatrix dw = mat.getDw();
+        for (int i = 0; i < len; i++) {
+            mat.unsafeSet(i, mat.unsafeGet(i) - learningRate * dw.unsafeGet(i));
+        }
+        //Empty the learning
+        dw.fill(0);
+    }
 
     @Test
     public void testcalc() {
@@ -122,25 +141,6 @@ public class TestCalcGraph {
         testdouble(bias2.get(1, 0), 0.6190491182582781);
 
 
-    }
-
-    private static double EPS = 1e-16;
-
-    private static void testdouble(double d1, double d2) {
-        if (Math.abs(d1 - d2) > EPS) {
-            System.out.println("d1: " + d1 + " d2: " + d2);
-            throw new RuntimeException("d1 != d2");
-        }
-    }
-
-    private static void applyLearningRate(ExMatrix mat, double learningRate) {
-        int len = mat.length();
-        DMatrix dw = mat.getDw();
-        for (int i = 0; i < len; i++) {
-            mat.unsafeSet(i, mat.unsafeGet(i) - learningRate * dw.unsafeGet(i));
-        }
-        //Empty the learning
-        dw.fill(0);
     }
 
 

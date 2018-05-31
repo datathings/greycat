@@ -19,6 +19,7 @@ import greycat.struct.DMatrix;
 
 public class MatrixOps {
 
+    public static double PROBA_EPS = 1e-15;
     private static MatrixEngine _defaultEngine = null;
 
     public static MatrixEngine defaultEngine() {
@@ -371,5 +372,31 @@ public class MatrixOps {
             }
         }
         return res;
+    }
+
+    public static void softmax(DMatrix input, DMatrix output) {
+        double maxval = Double.NEGATIVE_INFINITY;
+        int len = input.length();
+        for (int i = 0; i < len; i++) {
+            if (input.unsafeGet(i) > maxval) {
+                maxval = input.unsafeGet(i);
+            }
+        }
+
+        double p;
+        for (int col = 0; col < input.columns(); col++) {
+            double sum = 0;
+            for (int row = 0; row < input.rows(); row++) {
+                p = Math.exp(input.get(row, col) - maxval);
+                output.set(row, col, p);
+                sum += p;
+            }
+            for (int row = 0; row < input.rows(); row++) {
+                p = output.get(row, col) / sum;
+                p = Math.min(p, 1 - PROBA_EPS);
+                p = Math.max(p, PROBA_EPS);
+                output.set(row, col, p);
+            }
+        }
     }
 }

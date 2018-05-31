@@ -27,7 +27,7 @@ import java.util.List;
 
 public class ProcessGraph {
 
-    public static double PROBA_EPS = 1e-15;
+
     private boolean applyBackprop;
     private List<ProcessStep> backprop = new ArrayList<ProcessStep>();
 
@@ -271,33 +271,7 @@ public class ProcessGraph {
     public ExMatrix softmax(ExMatrix input) {
         final ExMatrix out = new ExMatrix(null, null);
         out.init(input.rows(), input.columns());
-
-        //todo implement forward propa here
-
-
-        double maxval = Double.NEGATIVE_INFINITY;
-        int len = input.length();
-        for (int i = 0; i < len; i++) {
-            if (input.unsafeGet(i) > maxval) {
-                maxval = input.unsafeGet(i);
-            }
-        }
-
-        double p;
-        for (int col = 0; col < input.columns(); col++) {
-            double sum = 0;
-            for (int row = 0; row < input.rows(); row++) {
-                p = Math.exp(input.get(row, col) - maxval);
-                out.set(row, col, p);
-                sum += p;
-            }
-            for (int row = 0; row < input.rows(); row++) {
-                p = out.get(row, col) / sum;
-                p = Math.min(p, 1 - ProcessGraph.PROBA_EPS);
-                p = Math.max(p, ProcessGraph.PROBA_EPS);
-                out.set(row, col, p);
-            }
-        }
+        MatrixOps.softmax(input.getW(), out.getW());
 
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {

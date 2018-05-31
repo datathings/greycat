@@ -18,8 +18,8 @@ package greycatMLTest.profiling;
 import greycat.*;
 import greycat.ml.HelperForTest;
 import greycat.ml.profiling.GaussianWrapper;
-import greycat.struct.EStructArray;
 import greycat.struct.EStruct;
+import greycat.struct.EStructArray;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,8 +28,8 @@ import org.junit.Test;
  */
 public class TestGmmEnode {
     @Test
-    public void Test(){
-        Graph graph= GraphBuilder
+    public void Test() {
+        Graph graph = GraphBuilder
                 .newBuilder()
                 .build();
 
@@ -37,44 +37,44 @@ public class TestGmmEnode {
             @Override
             public void on(Boolean result) {
 
-                Node node = graph.newNode(0,0);
+                Node node = graph.newNode(0, 0);
 
-                EStructArray eg= (EStructArray) node.getOrCreate("graph", Type.ESTRUCT_ARRAY);
-                EStruct en=eg.newEStruct();
-                EStruct en2=eg.newEStruct();
-                EStruct en3=eg.newEStruct();
+                EStructArray eg = (EStructArray) node.getOrCreate("graph", Type.ESTRUCT_ARRAY);
+                EStruct en = eg.newEStruct();
+                EStruct en2 = eg.newEStruct();
+                EStruct en3 = eg.newEStruct();
 
-                GaussianWrapper gaussian= new GaussianWrapper(en);
-                GaussianWrapper gaussian2= new GaussianWrapper(en2);
-                GaussianWrapper gaussian3= new GaussianWrapper(en3);
+                GaussianWrapper gaussian = new GaussianWrapper(en);
+                GaussianWrapper gaussian2 = new GaussianWrapper(en2);
+                GaussianWrapper gaussian3 = new GaussianWrapper(en3);
 
-                double[] key={1.1,2.2,3.3};
-                int n=10;
+                double[] key = {1.1, 2.2, 3.3};
+                int n = 10;
 
-                for(int i=0;i<n;i++){
+                for (int i = 0; i < n; i++) {
                     gaussian.learn(key);
                 }
 
-                gaussian2.learnWithOccurence(key,n);
+                gaussian2.learnWithOccurence(key, n);
 
                 gaussian3.learn(key);
-                gaussian3.learnWithOccurence(key,n-1);
+                gaussian3.learnWithOccurence(key, n - 1);
 
-                double[] sumsq=gaussian.getSumSq();
-                double[] sumsq2=gaussian2.getSumSq();
-                double[] sumsq3=gaussian3.getSumSq();
-
-
-                Assert.assertTrue(HelperForTest.assertArrayEquals(sumsq,sumsq2,1e-7));
-                Assert.assertTrue(HelperForTest.assertArrayEquals(sumsq,sumsq3,1e-7));
+                double[] sumsq = gaussian.getSumSq();
+                double[] sumsq2 = gaussian2.getSumSq();
+                double[] sumsq3 = gaussian3.getSumSq();
 
 
-                double[] sum=gaussian.getSum();
-                double[] sum2=gaussian2.getSum();
-                double[] sum3=gaussian3.getSum();
+                Assert.assertTrue(HelperForTest.assertArrayEquals(sumsq, sumsq2, 1e-7));
+                Assert.assertTrue(HelperForTest.assertArrayEquals(sumsq, sumsq3, 1e-7));
 
-                Assert.assertTrue(HelperForTest.assertArrayEquals(sum,sum2,1e-7));
-                Assert.assertTrue(HelperForTest.assertArrayEquals(sum,sum3,1e-7));
+
+                double[] sum = gaussian.getSum();
+                double[] sum2 = gaussian2.getSum();
+                double[] sum3 = gaussian3.getSum();
+
+                Assert.assertTrue(HelperForTest.assertArrayEquals(sum, sum2, 1e-7));
+                Assert.assertTrue(HelperForTest.assertArrayEquals(sum, sum3, 1e-7));
             }
         });
 

@@ -15,8 +15,8 @@
  */
 package greycat.ml;
 
-import greycat.Node;
 import greycat.Callback;
+import greycat.Node;
 
 public interface ClassificationNode extends Node {
     /**

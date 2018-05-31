@@ -16,11 +16,11 @@
 package greycatMLTest.regression;
 
 import greycat.*;
+import greycat.ml.MLPlugin;
 import greycat.ml.regression.PolynomialNode;
+import greycat.scheduler.NoopScheduler;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.scheduler.NoopScheduler;
-import greycat.ml.MLPlugin;
 
 import java.util.Random;
 

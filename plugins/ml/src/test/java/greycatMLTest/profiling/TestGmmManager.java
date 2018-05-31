@@ -41,19 +41,19 @@ public class TestGmmManager {
                 Node host = graph.newNode(0, 0);
 
                 EStructArray ndTree = (EStructArray) host.getOrCreate("graphNDTree", Type.ESTRUCT_ARRAY);
-               // EStructArray gmmTree = (EStructArray) host.getOrCreate("graphgmm", Type.ESTRUCT_ARRAY);
+                // EStructArray gmmTree = (EStructArray) host.getOrCreate("graphgmm", Type.ESTRUCT_ARRAY);
 
                 GmmManager manager = new GmmManager(ndTree);
 
                 NDTree tree = new NDTree(ndTree, manager);
 
-                int len=1000;
+                int len = 1000;
                 double[][] keys = new double[len][4];
 
                 Random rand = new Random();
                 for (int i = 0; i < len; i++) {
-                    for(int j=0;j<4;j++){
-                        keys[i][j]=rand.nextDouble();
+                    for (int j = 0; j < 4; j++) {
+                        keys[i][j] = rand.nextDouble();
                     }
                 }
 
@@ -62,23 +62,21 @@ public class TestGmmManager {
                 tree.setResolution(new double[]{0.1, 0.1, 0.1, 0.1});
 
                 for (int i = 0; i < len; i++) {
-                    tree.insert(keys[i],1);
+                    tree.insert(keys[i], 1);
                 }
 
-                ProfileResult res= tree.queryAround(new double[]{0.4,0.5,0.6,0.7},4);
+                ProfileResult res = tree.queryAround(new double[]{0.4, 0.5, 0.6, 0.7}, 4);
 
-                System.out.println("result: "+res.size());
-                for(int i=0;i<res.size();i++){
-                    int ind= (int)res.value(i);
+                System.out.println("result: " + res.size());
+                for (int i = 0; i < res.size(); i++) {
+                    int ind = (int) res.value(i);
                     //System.out.println(ind);
-                    GaussianWrapper gn= new GaussianWrapper(ndTree.estruct(ind));
-                    double[] av1=gn.getAvg();
-                    double[] k1=res.keys(i);
-                    System.out.println("Id: "+ind+" distance: "+res.distance(i)+" keys: ["+k1[0]+" "+k1[1]+" "+k1[2]+" "+k1[3]+" "+"] gmm avg:["+av1[0]+" "+av1[1]+" "+av1[2]+" "+av1[3]+" "+"] gmm Total: "+gn.getTotal());
+                    GaussianWrapper gn = new GaussianWrapper(ndTree.estruct(ind));
+                    double[] av1 = gn.getAvg();
+                    double[] k1 = res.keys(i);
+                    System.out.println("Id: " + ind + " distance: " + res.distance(i) + " keys: [" + k1[0] + " " + k1[1] + " " + k1[2] + " " + k1[3] + " " + "] gmm avg:[" + av1[0] + " " + av1[1] + " " + av1[2] + " " + av1[3] + " " + "] gmm Total: " + gn.getTotal());
                     //gn.print();
                 }
-
-
 
 
             }

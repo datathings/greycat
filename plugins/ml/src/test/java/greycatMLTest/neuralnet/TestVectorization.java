@@ -49,16 +49,16 @@ public class TestVectorization {
 
                 double learningrate = 0.1;
                 double regularisation = 0;
-                boolean display=false;
-                RandomGenerator randomGenerator=new RandomGenerator();
+                boolean display = false;
+                RandomGenerator randomGenerator = new RandomGenerator();
                 randomGenerator.setSeed(1234);
 
                 DMatrix inputs = VolatileDMatrix.random(inputdim, trainset, randomGenerator, -1, 1);
-                DMatrix linearsys = VolatileDMatrix.random(outputdim, inputdim, randomGenerator,-2, 2);
+                DMatrix linearsys = VolatileDMatrix.random(outputdim, inputdim, randomGenerator, -2, 2);
                 DMatrix outputs = MatrixOps.multiply(linearsys, inputs);
 
                 DMatrix inputsBackup = MatrixOps.cloneMatrix(inputs);
-                DMatrix outputsBackup= MatrixOps.cloneMatrix(outputs);
+                DMatrix outputsBackup = MatrixOps.cloneMatrix(outputs);
 
                 //System.out.println(outputDimensions.rows() + " , " + outputDimensions.columns());
 
@@ -67,7 +67,7 @@ public class TestVectorization {
                 NeuralNetWrapper net1 = new NeuralNetWrapper(egraph1);
                 net1.setRandom(1234, 0.1);
                 net1.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
-                net1.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate/trainset, regularisation}, 1);
+                net1.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate / trainset, regularisation}, 1);
                 net1.setTrainLoss(Losses.SUM_OF_SQUARES);
 
 
@@ -80,8 +80,7 @@ public class TestVectorization {
                 net2.setTrainLoss(Losses.SUM_OF_SQUARES);
 
 
-
-                long start=System.currentTimeMillis();
+                long start = System.currentTimeMillis();
                 for (int j = 0; j < rounds; j++) {
                     DMatrix[] err = net1.learnVec(inputs, outputs, true);
                     double[] reserr = Losses.avgLossPerOutput(err[1]);
@@ -93,21 +92,21 @@ public class TestVectorization {
 //                        System.out.println("");
 //                    }
                 }
-                long end=System.currentTimeMillis();
+                long end = System.currentTimeMillis();
 //                System.out.println("time Vectorized: "+(end-start)+" ms");
 
 //                System.out.println("");
 
-                start=System.currentTimeMillis();
+                start = System.currentTimeMillis();
                 for (int j = 0; j < rounds; j++) {
-                    double[] lossround=new double[outputdim];
-                    for(int i=0;i<trainset;i++){
-                        DMatrix[] res= net2.learn(inputs.column(i),outputs.column(i),true);
-                        for(int k=0;k<outputdim;k++){
-                            lossround[k]+=res[1].get(k,0);
+                    double[] lossround = new double[outputdim];
+                    for (int i = 0; i < trainset; i++) {
+                        DMatrix[] res = net2.learn(inputs.column(i), outputs.column(i), true);
+                        for (int k = 0; k < outputdim; k++) {
+                            lossround[k] += res[1].get(k, 0);
                         }
                     }
-                    if(display||j==rounds-1) {
+                    if (display || j == rounds - 1) {
 //                        System.out.print("error nonVectorized at round " + (j+1) + ": ");
                         for (int k = 0; k < outputdim; k++) {
                             lossround[k] = lossround[k] / trainset;
@@ -117,13 +116,13 @@ public class TestVectorization {
                     }
                     net2.finalLearn();
                 }
-                end=System.currentTimeMillis();
+                end = System.currentTimeMillis();
 //                System.out.println("time nonVectorized: "+(end-start)+" ms");
 
 
                 //Validate that the inputs and outputs are unchanged!
-                Assert.assertTrue(MatrixOps.compare(inputs,inputsBackup)==0);
-                Assert.assertTrue(MatrixOps.compare(outputs,outputsBackup)==0);
+                Assert.assertTrue(MatrixOps.compare(inputs, inputsBackup) == 0);
+                Assert.assertTrue(MatrixOps.compare(outputs, outputsBackup) == 0);
 
             }
         });

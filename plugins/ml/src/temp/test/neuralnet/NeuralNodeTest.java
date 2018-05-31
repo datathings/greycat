@@ -15,11 +15,11 @@
  */
 package greycat.ml.neuralnet;
 
+import greycat.Callback;
 import greycat.Graph;
+import greycat.GraphBuilder;
 import greycat.Node;
 import greycat.ml.MLPlugin;
-import greycat.Callback;
-import greycat.GraphBuilder;
 
 import java.util.Random;
 
@@ -61,8 +61,8 @@ public class NeuralNodeTest {
                 nn.configure(input, 1, 1, hidden);
                 root.addToRelation("ml", nn);
 
-                g.index(0,0,"TREE", result1 -> {
-                    result1.addToIndex(root,"name");
+                g.index(0, 0, "TREE", result1 -> {
+                    result1.addToIndex(root, "name");
                 });
 
 //                WSServer ws=new WSServer(g,5678);

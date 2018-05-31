@@ -21,7 +21,6 @@ import greycat.ml.profiling.GaussianWrapper;
 import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
 import greycat.struct.matrix.MatrixOps;
-import org.junit.Test;
 
 public class TestNDG {
 

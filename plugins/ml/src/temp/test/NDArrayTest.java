@@ -15,10 +15,10 @@
  */
 package greycat.ml;
 
-import org.junit.Assert;
-import org.junit.Test;
 import greycat.ml.common.NDimentionalArray;
 import greycat.ml.common.matrix.VolatileDMatrix;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @ignore ts
@@ -31,7 +31,7 @@ public class NDArrayTest {
         int level;
         do {
             tot++;
-            level=0;
+            level = 0;
 //            for (int i = 0; i < seed.length; i++) {
 //                System.out.print(seed[i] + ",");
 //            }
@@ -73,16 +73,14 @@ public class NDArrayTest {
                     //  System.out.println(k+ ": " + pos[0] + "," + pos[1] + "," + pos[2] + ", ->" + posF);
                     Assert.assertTrue(k == posF);
 
-                    double[] temps=array.revertFlatIndex(k);
-                    Assert.assertTrue(VolatileDMatrix.compare(vals,temps,1e-6));
+                    double[] temps = array.revertFlatIndex(k);
+                    Assert.assertTrue(VolatileDMatrix.compare(vals, temps, 1e-6));
 
                     k++;
 
                 }
             }
         }
-
-
 
 
         double[] seed = new double[min.length];

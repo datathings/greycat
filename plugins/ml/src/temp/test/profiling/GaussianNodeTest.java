@@ -15,16 +15,16 @@
  */
 package greycat.ml.profiling;
 
-import org.junit.Assert;
-import org.junit.Test;
 import greycat.Callback;
 import greycat.Graph;
 import greycat.GraphBuilder;
-import greycat.scheduler.NoopScheduler;
 import greycat.ml.MLPlugin;
 import greycat.ml.algorithm.profiling.GaussianMixtureNode;
 import greycat.ml.common.matrix.VolatileDMatrix;
+import greycat.scheduler.NoopScheduler;
 import greycat.struct.DMatrix;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class GaussianNodeTest {
 

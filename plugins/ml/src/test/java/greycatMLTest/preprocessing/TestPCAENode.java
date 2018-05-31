@@ -39,7 +39,7 @@ public class TestPCAENode {
         double randomness = 0;       // Strength of the noise from 0 to 1 on the non real dimensions. if randomness ->1 they become somehow real dimension
 
 
-        int len = dim*100;  //Number of data point to generate
+        int len = dim * 100;  //Number of data point to generate
         double maxsignal = 20; //Maximum signal strength
 
         Random random = new Random();
@@ -84,7 +84,6 @@ public class TestPCAENode {
                 PCAWrapper pca = new PCAWrapper(hostarray.newEStruct());
 
 
-
                 for (int i = 0; i < len; i++) {
                     gaussianNode.learn(trainingData[i]);
                 }
@@ -101,7 +100,7 @@ public class TestPCAENode {
                 Gaussian.inversenormaliseMatrix(originalback, gaussianNode.getAvg(), gaussianNode.getSTD());
 
                 double err = MatrixOps.compare(originalback, backup);
-                Assert.assertTrue(err<1e-5);
+                Assert.assertTrue(err < 1e-5);
 //                System.out.println("pca error: " + err);
 
 

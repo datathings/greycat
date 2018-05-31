@@ -15,29 +15,27 @@
  */
 package greycat.ml.neuralnet.bio;
 
-import greycat.*;
 import greycat.base.BaseNode;
+import greycat.struct.DMatrix;
 import greycat.struct.LongLongMap;
 import greycat.struct.LongLongMapCallBack;
 import greycat.struct.Relation;
-import greycat.struct.DMatrix;
 
 import java.util.Random;
 
 public class BioNeuralNetwork extends BaseNode {
 
-    public static String NAME = "BioNeuralNetworkNode";
     public static final String RELATION_INPUTS = "inputDimensions";
-    private static final String RELATION_INPUTS_MAP = "inputs_map";
     public static final String RELATION_OUTPUTS = "outputDimensions";
-    private static final String RELATION_OUTPUTS_MAP = "outputs_map";
-
     public static final String BUFFER_SPIKE_SUM = "spike_sum";
     public static final String BUFFER_SPIKE_NB = "spike_nb";
     public static final String WEIGHTS = "weights";
     public static final String BIAS = "bias";
     public static final String SPIKE_LIMIT = "spikeLimit";
     public static final String THRESHOLD = "threshold";
+    private static final String RELATION_INPUTS_MAP = "inputs_map";
+    private static final String RELATION_OUTPUTS_MAP = "outputs_map";
+    public static String NAME = "BioNeuralNetworkNode";
 
     public BioNeuralNetwork(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
@@ -55,7 +53,7 @@ public class BioNeuralNetwork extends BaseNode {
             this.addToRelation(RELATION_INPUTS, input);
         }
         BioNeuralNode[] previousLayer = new BioNeuralNode[nodesPerLayer];
-        Random rand=new Random();
+        Random rand = new Random();
         rand.setSeed(1234);
 
         //create hidden layer
@@ -73,7 +71,7 @@ public class BioNeuralNetwork extends BaseNode {
                     spikeNb.fill(0d);
                     DMatrix weights = (DMatrix) neuralNode.getOrCreate(WEIGHTS, Type.DMATRIX);
                     weights.init(inputs, 1);
-                    weights.fillWithRandom(rand,-1d, 1d);
+                    weights.fillWithRandom(rand, -1d, 1d);
                     previousLayer[j] = neuralNode;
                     for (int k = 0; k < inputs; k++) {
                         ((LongLongMap) inputNodes[k].getOrCreate(RELATION_OUTPUTS, Type.LONG_TO_LONG_MAP)).put(neuralNode.id(), j);

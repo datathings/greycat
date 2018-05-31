@@ -15,12 +15,12 @@
  */
 package greycat.ml.algorithm.profiling;
 
-import greycat.ml.common.matrix.operation.MultivariateNormalDistribution;
 import greycat.ml.ProgressReporter;
+import greycat.ml.common.matrix.operation.MultivariateNormalDistribution;
 
 
 public class ProbaDistribution {
-    
+
     public MultivariateNormalDistribution[] distributions;
     public int total[];
     public int global;

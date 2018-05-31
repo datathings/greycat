@@ -21,15 +21,36 @@ import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;
-import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
-import greycat.struct.EStructArray;
 import greycat.struct.EStruct;
+import greycat.struct.EStructArray;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Test;
 
 public class TestFeedForward {
+    private static double EPS = 1e-16;
+
+    private static void testdouble(double d1, double d2) {
+
+        //Assert.assertTrue(Math.abs(d1 - d2) < EPS);
+        if (Math.abs(d1 - d2) > EPS) {
+            System.out.println("d1: " + d1 + " d2: " + d2);
+            throw new RuntimeException("d1 != d2");
+        }
+    }
+
+    private static void applyLearningRate(ExMatrix mat, double learningRate) {
+        int len = mat.length();
+        DMatrix dw = mat.getDw();
+        for (int i = 0; i < len; i++) {
+            mat.unsafeSet(i, mat.unsafeGet(i) - learningRate * dw.unsafeGet(i));
+        }
+        //Empty the learning
+        dw.fill(0);
+    }
+
     @Test
     public void testcalc() {
         //Simulating example found in: https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
@@ -60,30 +81,30 @@ public class TestFeedForward {
 
 
                 //weights matrix 1
-                DMatrix weights1 = new ExMatrix(l1node,"weights");
-                weights1.init(2,2);
+                DMatrix weights1 = new ExMatrix(l1node, "weights");
+                weights1.init(2, 2);
                 weights1.set(0, 0, 0.15);
                 weights1.set(0, 1, 0.2);
                 weights1.set(1, 0, 0.25);
                 weights1.set(1, 1, 0.3);
 
                 //bias matrix 1
-                DMatrix bias1 = new ExMatrix(l1node,"bias");
-                bias1.init(2,1);
+                DMatrix bias1 = new ExMatrix(l1node, "bias");
+                bias1.init(2, 1);
                 bias1.set(0, 0, 0.35);
                 bias1.set(1, 0, 0.35);
 
                 //weights matrix 2
-                DMatrix weights2 = new ExMatrix(l2node,"weights");
-                weights2.init(2,2);
+                DMatrix weights2 = new ExMatrix(l2node, "weights");
+                weights2.init(2, 2);
                 weights2.set(0, 0, 0.4);
                 weights2.set(0, 1, 0.45);
                 weights2.set(1, 0, 0.5);
                 weights2.set(1, 1, 0.55);
 
                 //bias matrix 2
-                DMatrix bias2 = new ExMatrix(l2node,"bias");
-                bias2.init(2,1);
+                DMatrix bias2 = new ExMatrix(l2node, "bias");
+                bias2.init(2, 1);
                 bias2.set(0, 0, 0.6);
                 bias2.set(1, 0, 0.6);
 
@@ -102,7 +123,7 @@ public class TestFeedForward {
                 //The calculation steps are here
 
 
-                DMatrix err = calcgraph.applyLoss(sumsq, actualOutput, ExMatrix.createFromW(targetOutput),true);
+                DMatrix err = calcgraph.applyLoss(sumsq, actualOutput, ExMatrix.createFromW(targetOutput), true);
                 //System.out.println("Error: "+err);
                 testdouble(Losses.sumOfLosses(err), 0.2983711087600027);
 
@@ -147,26 +168,5 @@ public class TestFeedForward {
             }
         });
 
-    }
-
-    private static double EPS = 1e-16;
-
-    private static void testdouble(double d1, double d2) {
-
-        //Assert.assertTrue(Math.abs(d1 - d2) < EPS);
-        if (Math.abs(d1 - d2) > EPS) {
-            System.out.println("d1: " + d1 + " d2: " + d2);
-            throw new RuntimeException("d1 != d2");
-        }
-    }
-
-    private static void applyLearningRate(ExMatrix mat, double learningRate) {
-        int len = mat.length();
-        DMatrix dw = mat.getDw();
-        for (int i = 0; i < len; i++) {
-            mat.unsafeSet(i, mat.unsafeGet(i) - learningRate * dw.unsafeGet(i));
-        }
-        //Empty the learning
-        dw.fill(0);
     }
 }

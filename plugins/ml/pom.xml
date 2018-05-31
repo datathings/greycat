@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-ml</artifactId>
     <version>11-SNAPSHOT</version>
@@ -89,7 +90,8 @@
                             <headers>
                                 <header>import {java,Long} from '@greycat/j2ts-jre';</header>
                                 <header>import {org} from '@greycat/j2ts-junit';</header>
-                                <header>import * as greycat from '../classes-npm/node_modules/@greycat/greycat';</header>
+                                <header>import * as greycat from '../classes-npm/node_modules/@greycat/greycat';
+                                </header>
                                 <header>import {greycatML} from '../classes-npm';</header>
                             </headers>
                             <testHeaders>

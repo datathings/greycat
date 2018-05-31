@@ -57,7 +57,6 @@ public class GPSIndex {
                 kdTree.setMaxBound(boundMax);
 
 
-
                 Random random = new Random();
                 random.setSeed(125362l);
                 int inserts = 10000;

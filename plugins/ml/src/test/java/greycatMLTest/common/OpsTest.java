@@ -15,14 +15,14 @@
  */
 package greycatMLTest.common;
 
+import greycat.struct.DMatrix;
 import greycat.struct.matrix.*;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.struct.DMatrix;
 
 public class OpsTest {
 
-    RandomGenerator rand=new RandomGenerator();
+    RandomGenerator rand = new RandomGenerator();
     int exec = 1000;
     boolean enablebench = false;
     int dim = 10;

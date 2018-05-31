@@ -15,9 +15,9 @@
  */
 package greycat.ml;
 
+import greycat.Callback;
 import greycat.Graph;
 import greycat.Type;
-import greycat.Callback;
 
 public class NoopRegressionNode extends BaseMLNode implements RegressionNode {
 

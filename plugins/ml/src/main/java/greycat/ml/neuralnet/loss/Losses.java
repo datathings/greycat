@@ -21,9 +21,10 @@ import greycat.struct.matrix.VolatileDMatrix;
 public class Losses {
     public static final int SUM_OF_SQUARES = 0;
     public static final int ABSTRACT_VALUE = 1;
-    public static final int CROSSENTROPY = 2;
-    public static final int ARGMAX = 3;
+    public static final int LOG_LOSS = 2;
+    public static final int ARG_MAX = 3;
     public static final int MULTI_DIM_BINARY = 4;
+    public static final int SOFTMAX_LOG_LOSS = 5;
 
     public static final int DEFAULT = SUM_OF_SQUARES;
 
@@ -33,12 +34,14 @@ public class Losses {
                 return SumOfSquares.instance();
             case ABSTRACT_VALUE:
                 return AbstractValue.instance();
-            case CROSSENTROPY:
-                return CrossEntropy.instance();
-            case ARGMAX:
+            case LOG_LOSS:
+                return LogLoss.instance();
+            case ARG_MAX:
                 return ArgMax.instance();
             case MULTI_DIM_BINARY:
                 return MultiDimensionalBinary.instance();
+            case SOFTMAX_LOG_LOSS:
+                return SoftMaxLogLoss.instance();
         }
         return getUnit(DEFAULT);
     }

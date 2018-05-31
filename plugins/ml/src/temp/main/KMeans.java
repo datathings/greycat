@@ -19,6 +19,18 @@ import java.util.Random;
 
 class KMeans {
 
+    static double distance(double[] features, double[] avg, double[] precisions) {
+        double max = 0;
+        double temp;
+        for (int i = 0; i < features.length; i++) {
+            temp = (features[i] - avg[i]) * (features[i] - avg[i]) / precisions[i];
+            if (temp > max) {
+                max = temp;
+            }
+        }
+        return Math.sqrt(max);
+    }
+
     int[][] getClusterIds(double[][] data, int numOfCluster, int numOfIterations, double[] div) {
         int[][] result = new int[numOfCluster][];
         int features = data[0].length;
@@ -99,18 +111,6 @@ class KMeans {
             }
         }
         return pos;
-    }
-
-    static double distance(double[] features, double[] avg, double[] precisions) {
-        double max = 0;
-        double temp;
-        for (int i = 0; i < features.length; i++) {
-            temp = (features[i] - avg[i]) * (features[i] - avg[i]) / precisions[i];
-            if (temp > max) {
-                max = temp;
-            }
-        }
-        return Math.sqrt(max);
     }
 
 

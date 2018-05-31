@@ -15,21 +15,20 @@
  */
 package greycat.ml.algorithm.profiling;
 
-import greycat.*;
-import greycat.ml.ProfilingNode;
-import greycat.ml.common.matrix.operation.MultivariateNormalDistribution;
-import greycat.struct.Relation;
-import greycat.utility.Enforcer;
 import greycat.ml.BaseMLNode;
+import greycat.ml.ProfilingNode;
 import greycat.ml.actions.ActionTraverseOrKeep;
 import greycat.ml.common.NDimentionalArray;
 import greycat.ml.common.matrix.VolatileDMatrix;
+import greycat.ml.common.matrix.operation.MultivariateNormalDistribution;
 import greycat.plugin.NodeState;
 import greycat.struct.DMatrix;
+import greycat.struct.Relation;
+import greycat.utility.Enforcer;
 
+import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.defineAsGlobalVar;
 import static greycat.internal.task.CoreActions.traverse;
-import static greycat.Tasks.newTask;
 
 public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
 
@@ -62,17 +61,97 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
     private static final String INTERNAL_TOTAL_KEY = "_total";
     private static final String INTERNAL_MIN_KEY = "_min";
     private static final String INTERNAL_MAX_KEY = "_max";
-
-    public GaussianMixtureNode(long p_world, long p_time, long p_id, Graph p_graph) {
-        super(p_world, p_time, p_id, p_graph);
-    }
-
     private static final Enforcer enforcer = new Enforcer()
             .asIntWithin(LEVEL, 0, 1000)
             .asIntWithin(WIDTH, 1, 1000)
             .asPositiveDouble(COMPRESSION_FACTOR)
             .asPositiveDouble(THRESHOLD)
             .asDoubleArray(RESOLUTION);
+    private static Task traverseTask = getTraverseTask();
+    private static Task selectTraverseTask = getSelectTraverseTask();
+    private static Task deepTraverseTask = getDeepTraverseTask();
+
+    public GaussianMixtureNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
+    }
+
+    private static Task getTraverseTask() {
+        Task traverseTask = newTask();
+        traverseTask
+                .then(defineAsGlobalVar("parent"))
+                .then(traverse(INTERNAL_SUBGAUSSIAN))
+                .thenDo(new ActionFunction() {
+                    @Override
+                    public void eval(TaskContext ctx) {
+                        final int width = (int) ctx.variable("width").get(0);
+                        final double compressionFactor = (double) ctx.variable("compressionFactor").get(0);
+                        final int compressionIter = (int) ctx.variable("compressionIter").get(0);
+                        final double[] resolution = (double[]) ctx.variable("resolution").get(0);
+                        final double threshold = (double) ctx.variable("threshold").get(0);
+                        final double[] values = (double[]) ctx.variable("values").get(0);
+                        final GaussianMixtureNode root = (GaussianMixtureNode) ctx.variable("root").get(0);
+
+                        TaskResult<Node> result = ctx.resultAsNodes();
+                        GaussianMixtureNode parent = (GaussianMixtureNode) ctx.variable("parent").get(0);
+                        GaussianMixtureNode resultChild = root.filter(result, values, resolution, threshold, parent.getLevel() - 1.0);
+                        if (resultChild != null) {
+                            parent.internallearn(values, width, compressionFactor, compressionIter, resolution, threshold, false);
+                            ctx.continueWith(ctx.wrapClone(resultChild));
+                        } else {
+                            parent.internallearn(values, width, compressionFactor, compressionIter, resolution, threshold, true);
+                            ctx.continueWith(null);
+                        }
+
+                    }
+                })
+                .ifThen(new ConditionalFunction() {
+                    @Override
+                    public boolean eval(TaskContext ctx) {
+                        return (ctx.result() != null);
+                    }
+                }, traverseTask);
+        return traverseTask;
+    }
+
+    private static Task getSelectTraverseTask() {
+        Task deepTraverse = newTask()
+                .loop("0", "{{requestedLev}}", newTask()
+                        .then(new ActionTraverseOrKeep(INTERNAL_SUBGAUSSIAN))
+                        .select(new TaskFunctionSelect() {
+                            @Override
+                            public boolean select(Node node, TaskContext context) {
+                                int childlev = (int) context.variable("rootLevel").get(0);
+                                int i = (int) context.variable("i").get(0);
+                                double[] finalMin = (double[]) context.variable("finalMin").get(0);
+                                double[] finalMax = (double[]) context.variable("finalMax").get(0);
+                                double[] err = (double[]) context.variable("err").get(0);
+                                double threshold = (double) context.variable("threshold").get(0);
+
+                                return ((GaussianMixtureNode) node).checkInside(finalMin, finalMax, err, threshold, childlev - i);
+                            }
+                        }));
+        return deepTraverse;
+    }
+
+    private static Task getDeepTraverseTask() {
+        Task deepTraverse = newTask()
+                .loop("0", "{{requestedLev}}", newTask()
+                        .then(new ActionTraverseOrKeep(INTERNAL_SUBGAUSSIAN))
+                );
+        return deepTraverse;
+    }
+
+    public static double distance(double[] features, double[] avg, double[] resolution) {
+        double max = 0;
+        double temp;
+        for (int i = 0; i < features.length; i++) {
+            temp = (features[i] - avg[i]) * (features[i] - avg[i]) / resolution[i];
+            if (temp > max) {
+                max = temp;
+            }
+        }
+        return Math.sqrt(max);
+    }
 
     @Override
     public Node set(String propertyName, byte propertyType, Object propertyValue) {
@@ -123,7 +202,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         }
     }
 
-
     @Override
     public void learn(final Callback<Boolean> callback) {
         extractFeatures(new Callback<double[]>() {
@@ -134,48 +212,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
             }
         });
     }
-
-
-    private static Task traverseTask = getTraverseTask();
-
-    private static Task getTraverseTask() {
-        Task traverseTask = newTask();
-        traverseTask
-                .then(defineAsGlobalVar("parent"))
-                .then(traverse(INTERNAL_SUBGAUSSIAN))
-                .thenDo(new ActionFunction() {
-                    @Override
-                    public void eval(TaskContext ctx) {
-                        final int width = (int) ctx.variable("width").get(0);
-                        final double compressionFactor = (double) ctx.variable("compressionFactor").get(0);
-                        final int compressionIter = (int) ctx.variable("compressionIter").get(0);
-                        final double[] resolution = (double[]) ctx.variable("resolution").get(0);
-                        final double threshold = (double) ctx.variable("threshold").get(0);
-                        final double[] values = (double[]) ctx.variable("values").get(0);
-                        final GaussianMixtureNode root = (GaussianMixtureNode) ctx.variable("root").get(0);
-
-                        TaskResult<Node> result = ctx.resultAsNodes();
-                        GaussianMixtureNode parent = (GaussianMixtureNode) ctx.variable("parent").get(0);
-                        GaussianMixtureNode resultChild = root.filter(result, values, resolution, threshold, parent.getLevel() - 1.0);
-                        if (resultChild != null) {
-                            parent.internallearn(values, width, compressionFactor, compressionIter, resolution, threshold, false);
-                            ctx.continueWith(ctx.wrapClone(resultChild));
-                        } else {
-                            parent.internallearn(values, width, compressionFactor, compressionIter, resolution, threshold, true);
-                            ctx.continueWith(null);
-                        }
-
-                    }
-                })
-                .ifThen(new ConditionalFunction() {
-                    @Override
-                    public boolean eval(TaskContext ctx) {
-                        return (ctx.result() != null);
-                    }
-                }, traverseTask);
-        return traverseTask;
-    }
-
 
     //ToDO temporal hack to avoid features extractions - to remove later
     //TODO ASSAD
@@ -266,7 +302,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
     public void predictWith(double[] features, Callback<double[]> callback) {
 
     }
-
 
     public int getLevel() {
         return this._resolver.resolveState(this).getFromKeyWithDefault(LEVEL, LEVEL_DEF);
@@ -359,7 +394,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         }
     }
 
-
     private void move(GaussianMixtureNode subgaus) {
         //manage total
         int total = getTotal();
@@ -418,41 +452,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
             }
         }
     }
-
-
-    private static Task getSelectTraverseTask() {
-        Task deepTraverse = newTask()
-                .loop("0", "{{requestedLev}}", newTask()
-                        .then(new ActionTraverseOrKeep(INTERNAL_SUBGAUSSIAN))
-                        .select(new TaskFunctionSelect() {
-                            @Override
-                            public boolean select(Node node, TaskContext context) {
-                                int childlev = (int) context.variable("rootLevel").get(0);
-                                int i = (int) context.variable("i").get(0);
-                                double[] finalMin = (double[]) context.variable("finalMin").get(0);
-                                double[] finalMax = (double[]) context.variable("finalMax").get(0);
-                                double[] err = (double[]) context.variable("err").get(0);
-                                double threshold = (double) context.variable("threshold").get(0);
-
-                                return ((GaussianMixtureNode) node).checkInside(finalMin, finalMax, err, threshold, childlev - i);
-                            }
-                        }));
-        return deepTraverse;
-    }
-
-    private static Task selectTraverseTask = getSelectTraverseTask();
-
-
-    private static Task getDeepTraverseTask() {
-        Task deepTraverse = newTask()
-                .loop("0", "{{requestedLev}}", newTask()
-                        .then(new ActionTraverseOrKeep(INTERNAL_SUBGAUSSIAN))
-                );
-        return deepTraverse;
-    }
-
-    private static Task deepTraverseTask = getDeepTraverseTask();
-
 
     public void query(int level, double[] min, double[] max, final Callback<ProbaDistribution> callback) {
         final int nbfeature = this.getNumberOfFeatures();
@@ -597,7 +596,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
     public String toString() {
         return NAME;
     }
-
 
     private void internallearn(final double[] values, final int width, final double compressionFactor, final int compressionIter, final double[] resolution, double threshold, final boolean createNode) {
         int features = values.length;
@@ -774,7 +772,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         }
     }
 
-
     public double[] getAvg() {
         int total = getTotal();
         if (total == 0) {
@@ -791,7 +788,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         }
 
     }
-
 
     public double[] getCovarianceArray(double[] avg, double[] err) {
         if (avg == null) {
@@ -830,7 +826,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
             return errClone;
         }
     }
-
 
     public DMatrix getCovariance(double[] avg, double[] err) {
         int features = avg.length;
@@ -905,20 +900,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         }
         return reslong;
     }
-
-
-    public static double distance(double[] features, double[] avg, double[] resolution) {
-        double max = 0;
-        double temp;
-        for (int i = 0; i < features.length; i++) {
-            temp = (features[i] - avg[i]) * (features[i] - avg[i]) / resolution[i];
-            if (temp > max) {
-                max = temp;
-            }
-        }
-        return Math.sqrt(max);
-    }
-
 
     /**
      * @ignore ts

@@ -17,13 +17,13 @@ package greycat.ml.neuralnet.bio;
 
 import greycat.Callback;
 import greycat.Graph;
+import greycat.Task;
+import greycat.TaskContext;
 import greycat.base.BaseNode;
 import greycat.plugin.Job;
 import greycat.plugin.SchedulerAffinity;
 import greycat.struct.LongLongArrayMap;
 import greycat.struct.LongLongMap;
-import greycat.Task;
-import greycat.TaskContext;
 import greycat.utility.Tuple;
 
 import java.util.ArrayList;
@@ -31,9 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.lookup;
 import static greycat.internal.task.CoreActions.readVar;
-import static greycat.Tasks.newTask;
 
 class BioInputNeuralNode extends BaseNode {
 

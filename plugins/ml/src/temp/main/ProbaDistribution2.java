@@ -15,9 +15,9 @@
  */
 package greycat.ml.algorithm.profiling;
 
+import greycat.ml.ProgressReporter;
 import greycat.ml.common.NDimentionalArray;
 import greycat.ml.common.matrix.operation.MultivariateNormalDistribution;
-import greycat.ml.ProgressReporter;
 
 
 /**
@@ -73,7 +73,7 @@ public class ProbaDistribution2 {
         int level;
         do {
             result.add(seed, distribution.density(seed, false) * weight);
-            level=0;
+            level = 0;
             while (level < min.length && seed[level] >= max[level]) {
                 level++;
             }
@@ -82,7 +82,7 @@ public class ProbaDistribution2 {
                 System.arraycopy(min, 0, seed, 0, level);
             }
         }
-        while (level!= min.length);
+        while (level != min.length);
     }
 
 

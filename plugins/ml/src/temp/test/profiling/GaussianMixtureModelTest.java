@@ -17,13 +17,13 @@ package greycat.ml.profiling;
 
 import greycat.Callback;
 import greycat.Graph;
+import greycat.GraphBuilder;
 import greycat.Type;
-import greycat.scheduler.NoopScheduler;
 import greycat.ml.MLPlugin;
 import greycat.ml.algorithm.profiling.GaussianMixtureNode;
+import greycat.scheduler.NoopScheduler;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.GraphBuilder;
 
 import java.util.Random;
 

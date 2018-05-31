@@ -16,9 +16,9 @@
 package greycat.ml.neuralnet;
 
 import greycat.Graph;
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.Type;
 import greycat.base.BaseNode;
+import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.plugin.NodeState;
 import greycat.struct.DMatrix;
@@ -29,15 +29,18 @@ public class FlatNeuralNode extends BaseNode {
 
     //Inputs are organized in one row
 
-    public static String NAME = "FlatNeuralNode";
     private static final int NB_INPUTS = 1;
     private static final int NB_OUTPUTS = 2;
     private static final int NB_LAYERS = 3;
     private static final int NB_PER_LAYER = 4;
     private static final int LEARNING_RATE = 5;
-
     private static final int MATRICES_OFFSET = 10; // matrix offset
+    public static String NAME = "FlatNeuralNode";
 
+
+    public FlatNeuralNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
+    }
 
     private static DMatrix layerWeights(NodeState state, int layer) {
         return (DMatrix) state.getOrCreate(MATRICES_OFFSET + layer * 2, Type.DMATRIX);
@@ -45,11 +48,6 @@ public class FlatNeuralNode extends BaseNode {
 
     private static DMatrix layerBias(NodeState state, int layer) {
         return (DMatrix) state.getOrCreate(MATRICES_OFFSET + layer * 2 + 1, Type.DMATRIX);
-    }
-
-
-    public FlatNeuralNode(long p_world, long p_time, long p_id, Graph p_graph) {
-        super(p_world, p_time, p_id, p_graph);
     }
 
     //4,2,2,3

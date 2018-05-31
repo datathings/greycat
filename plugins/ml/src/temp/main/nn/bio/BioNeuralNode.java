@@ -17,10 +17,10 @@ package greycat.ml.neuralnet.bio;
 
 import greycat.Graph;
 import greycat.Type;
-import greycat.ml.common.matrix.MatrixOps;
-import greycat.struct.LongLongMap;
 import greycat.base.BaseNode;
+import greycat.ml.common.matrix.MatrixOps;
 import greycat.struct.DMatrix;
+import greycat.struct.LongLongMap;
 
 import java.util.Random;
 

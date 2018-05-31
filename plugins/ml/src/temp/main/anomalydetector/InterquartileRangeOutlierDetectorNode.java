@@ -15,12 +15,12 @@
  */
 package greycat.ml.temp.anomalydetector;
 
+import greycat.Callback;
 import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
-import greycat.Callback;
-import greycat.ml.BaseMLNode;
 import greycat.ml.AnomalyDetectionNode;
+import greycat.ml.BaseMLNode;
 import greycat.plugin.NodeState;
 import greycat.utility.Enforcer;
 
@@ -36,11 +36,6 @@ public class InterquartileRangeOutlierDetectorNode extends BaseMLNode implements
     public static final int MAX_BUFFER_LIMIT = 100000;
 
     public static final String NAME = "InterquartileRangeAnomalyDetection";
-
-    /**
-     * Attribute key - sliding window of values
-     */
-    private static final String INTERNAL_VALUE_BUFFER_KEY = "_valueBuffer";
     /**
      * Buffer size
      */
@@ -53,27 +48,25 @@ public class InterquartileRangeOutlierDetectorNode extends BaseMLNode implements
      * Number of input dimensions
      */
     public static final String INPUT_DIM_KEY = "InputDimensions";
-
     /**
      * Number of input dimensions - default (unknown so far)
      */
     public static final int INPUT_DIM_DEF = -1;
-
-
     public static final double UPPER_PERCENTILE = 0.75;
     public static final double LOWER_PERCENTILE = 0.25;
     public static final double RANGE_COEF = 1.5;
-
     /**
      * Upper bound for some dimension (dimension added to the key)
      */
     public static final String UPPER_BOUND_KEY_PREFIX = "UpperBoundDimension";
-
     /**
      * Lower bound for some dimension (dimension added to the key)
      */
     public static final String LOWER_BOUND_KEY_PREFIX = "LowerBoundDimension";
-
+    /**
+     * Attribute key - sliding window of values
+     */
+    private static final String INTERNAL_VALUE_BUFFER_KEY = "_valueBuffer";
     private static final Enforcer enforcer = new Enforcer()
             .asIntWithin(BUFFER_SIZE_KEY, 1, MAX_BUFFER_LIMIT);
 

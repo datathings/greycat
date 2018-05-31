@@ -15,7 +15,6 @@
  */
 package greycat.ml;
 
-import greycat.*;
 import greycat.plugin.NodeFactory;
 import org.junit.Assert;
 import org.junit.Test;

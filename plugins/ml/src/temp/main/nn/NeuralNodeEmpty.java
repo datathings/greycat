@@ -15,44 +15,114 @@
  */
 package greycat.ml.neuralnet;
 
-import greycat.struct.LongLongMap;
-import greycat.ActionFunction;
-import greycat.ConditionalFunction;
-import greycat.Task;
-import greycat.Callback;
-import greycat.Graph;
-import greycat.Type;
+import greycat.*;
 import greycat.base.BaseNode;
 import greycat.internal.task.CoreActions;
 import greycat.plugin.NodeState;
+import greycat.struct.LongLongMap;
 import greycat.struct.Relation;
-import greycat.TaskContext;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import static greycat.internal.task.CoreActions.setAsVar;
 import static greycat.Tasks.newTask;
+import static greycat.internal.task.CoreActions.setAsVar;
 
 public class NeuralNodeEmpty extends BaseNode {
+    public static final double LEARNINGRATE_DEF = 0.01;
     public static String NAME = "NeuralNodeEmpty";
-
     public static String INPUTS = "inputDimensions"; //Input relationships
     public static String INPUTS_MAP = "inputs_map"; //order of the relationships
-
     public static String OUTPUTS = "outputDimensions"; //output relationships
     public static String OUTPUTS_MAP = "outputs_map"; //order of the relationships
-
+    public static String LEARNINGRATE = "learning";
     private static String WEIGHTS = "weights"; //weights of the network
     private static String NODE_TYPE = "node_type";
-
-    public static String LEARNINGRATE = "learning";
-    public static final double LEARNINGRATE_DEF = 0.01;
+    private static Random random = new Random();
+    private static Task predictTask = createPredictTask();
 
     public NeuralNodeEmpty(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
     }
 
+    // todo to be replaced in more generic way after
+    private static double integrationFct(double[] values, double[] weights) {
+        double value = 0;
+        for (int i = 0; i < values.length; i++) {
+            value += weights[i] * values[i];
+        }
+        //Add bias
+        value += weights[values.length];
+        return value;
+    }
+
+    private static double activationFunction(double x, int type) {
+        if (type == NeuralNodeType.HIDDEN) {
+            return 1 / (1 + Math.exp(-x)); //Sigmoid by default, todo to be changed later to a generic activation
+        } else {
+            return x;
+        }
+    }
+
+    private static double derivateActivationFunction(double fctVal, double x, int type) {
+        if (type == NeuralNodeType.HIDDEN) {
+            return fctVal * (1 - fctVal);
+        } else {
+            return 1;
+        }
+        // return fctVal * (1 - fctVal);
+
+    }
+
+    private static double calculateErr(double calculated, double target) {
+        return (target - calculated) * (target - calculated) / 2;
+    }
+
+    private static double calculateDerivativeErr(double calculated, double target) {
+        return -(target - calculated);
+    }
+
+    private static Task createPredictTask() {
+        Task t = newTask();
+        t.then(setAsVar("parent")).then(CoreActions.traverse(OUTPUTS))
+                .forEach(
+                        newTask().thenDo(new ActionFunction() {
+                            @Override
+                            public void eval(TaskContext ctx) {
+                                //Bufferize values here
+
+                                ctx.continueTask();
+                            }
+                        }).ifThen(new ConditionalFunction() {
+                                      @Override
+                                      public boolean eval(TaskContext ctx) {
+                                          return false; //should return if buffer is full
+                                      }
+                                  }, newTask().thenDo(new ActionFunction() {
+                                    @Override
+                                    public void eval(TaskContext ctx) {
+                                        //Calculate the integration function
+
+                                        //Cache calculation result, set the context
+
+                                        ctx.continueTask();
+                                    }
+                                }).ifThenElse(new ConditionalFunction() {
+                                    @Override
+                                    public boolean eval(TaskContext ctx) {
+                                        return false; //should return true if the node is hidden or input or root
+                                    }
+                                }, t, newTask().thenDo(new ActionFunction() {
+                                    @Override
+                                    public void eval(TaskContext ctx) {
+                                        //store output in result here
+
+                                        ctx.continueTask();
+                                    }
+                                }))
+                        ));
+        return t;
+    }
 
     public NeuralNodeEmpty configure(int inputs, int outputs, int hiddenlayers, int nodesPerLayer) {
         ArrayList<NeuralNodeEmpty> internalNodes = new ArrayList<NeuralNodeEmpty>();//inputDimensions + outputDimensions + hiddenlayers * nodesPerLayer + 1
@@ -109,8 +179,6 @@ public class NeuralNodeEmpty extends BaseNode {
         return this;
     }
 
-    private static Random random = new Random();
-
     private void initWeightsRadomly(double maxValue) {
         NodeState state = phasedState();
         int type = state.getFromKeyWithDefault(NODE_TYPE, NeuralNodeType.HIDDEN);
@@ -143,89 +211,6 @@ public class NeuralNodeEmpty extends BaseNode {
         NeuralNodeEmpty temp = (NeuralNodeEmpty) graph().newTypedNode(world(), time(), NAME);
         temp.set(NODE_TYPE, Type.INT, neuralNodeType);
         return temp;
-    }
-
-
-    // todo to be replaced in more generic way after
-    private static double integrationFct(double[] values, double[] weights) {
-        double value = 0;
-        for (int i = 0; i < values.length; i++) {
-            value += weights[i] * values[i];
-        }
-        //Add bias
-        value += weights[values.length];
-        return value;
-    }
-
-    private static double activationFunction(double x, int type) {
-        if (type == NeuralNodeType.HIDDEN) {
-            return 1 / (1 + Math.exp(-x)); //Sigmoid by default, todo to be changed later to a generic activation
-        } else {
-            return x;
-        }
-    }
-
-    private static double derivateActivationFunction(double fctVal, double x, int type) {
-        if (type == NeuralNodeType.HIDDEN) {
-            return fctVal * (1 - fctVal);
-        } else {
-            return 1;
-        }
-        // return fctVal * (1 - fctVal);
-
-    }
-
-    private static double calculateErr(double calculated, double target) {
-        return (target - calculated) * (target - calculated) / 2;
-    }
-
-    private static double calculateDerivativeErr(double calculated, double target) {
-        return -(target - calculated);
-    }
-
-
-    private static Task predictTask = createPredictTask();
-
-    private static Task createPredictTask() {
-        Task t = newTask();
-        t.then(setAsVar("parent")).then(CoreActions.traverse(OUTPUTS))
-                .forEach(
-                        newTask().thenDo(new ActionFunction() {
-                            @Override
-                            public void eval(TaskContext ctx) {
-                                //Bufferize values here
-
-                                ctx.continueTask();
-                            }
-                        }).ifThen(new ConditionalFunction() {
-                                      @Override
-                                      public boolean eval(TaskContext ctx) {
-                                          return false; //should return if buffer is full
-                                      }
-                                  }, newTask().thenDo(new ActionFunction() {
-                                    @Override
-                                    public void eval(TaskContext ctx) {
-                                        //Calculate the integration function
-
-                                        //Cache calculation result, set the context
-
-                                        ctx.continueTask();
-                                    }
-                                }).ifThenElse(new ConditionalFunction() {
-                                    @Override
-                                    public boolean eval(TaskContext ctx) {
-                                        return false; //should return true if the node is hidden or input or root
-                                    }
-                                }, t, newTask().thenDo(new ActionFunction() {
-                                    @Override
-                                    public void eval(TaskContext ctx) {
-                                        //store output in result here
-
-                                        ctx.continueTask();
-                                    }
-                                }))
-                        ));
-        return t;
     }
 
     public void predict(final double[] inputs, final Callback<double[]> callback) {
