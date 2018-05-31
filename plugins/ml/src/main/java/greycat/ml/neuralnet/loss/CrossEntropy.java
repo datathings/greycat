@@ -37,7 +37,7 @@ public class CrossEntropy implements Loss {
         final int len = targetOutput.length();
 
         for (int i = 0; i < len; i++) {
-            double errDelta = targetOutput.unsafeGet(i) / Math.max(actualOutput.unsafeGet(i), ProcessGraph.PROBA_EPS);  //double errDelta = 2*(actualOutput.w[i] - targetOutput.w[i]);
+            double errDelta = -targetOutput.unsafeGet(i) / Math.max(actualOutput.unsafeGet(i), ProcessGraph.PROBA_EPS);  //double errDelta = 2*(actualOutput.w[i] - targetOutput.w[i]);
             actualOutput.getDw().unsafeSet(i, actualOutput.getDw().unsafeGet(i) + errDelta); //actualOutput.dw[i] += errDelta;
         }
     }

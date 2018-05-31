@@ -274,15 +274,18 @@ public class ProcessGraph {
 
         //todo implement forward propa here
 
-        double maxval = Double.NEGATIVE_INFINITY;
-        for (int i = 0; i < input.length(); i++) {
-            if (input.unsafeGet(i) > maxval) {
-                maxval = input.unsafeGet(i);
-            }
-        }
 
         double p;
         for (int col = 0; col < input.columns(); col++) {
+
+            double maxval = Double.NEGATIVE_INFINITY;
+            for (int row = 0; row < input.rows(); row++) {
+                p = input.get(row, col);
+                if (p > maxval) {
+                    maxval = p;
+                }
+            }
+
             double sum = 0;
             for (int row = 0; row < input.rows(); row++) {
                 p = Math.exp(input.get(row, col) - maxval);
