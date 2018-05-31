@@ -281,19 +281,21 @@ public class ProcessGraph {
             }
         }
 
-        double v;
+        double p;
         for (int col = 0; col < input.columns(); col++) {
             double sum = 0;
             for (int row = 0; row < input.rows(); row++) {
-                v = Math.exp(input.get(row, col) - maxval);
-                out.set(row, col, v);
-                sum += v;
+                p = Math.exp(input.get(row, col) - maxval);
+                out.set(row, col, p);
+                sum += p;
             }
             for (int row = 0; row < input.rows(); row++) {
-                out.set(row, col, Math.min(out.get(row, col) / sum, PROBA_EPS));
+                p = out.get(row, col) / sum;
+                p = Math.min(p, 1 - ProcessGraph.PROBA_EPS);
+                p = Math.max(p, ProcessGraph.PROBA_EPS);
+                out.set(row, col, p);
             }
         }
-
 
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
