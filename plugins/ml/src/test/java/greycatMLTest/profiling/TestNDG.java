@@ -25,7 +25,7 @@ import org.junit.Test;
 
 public class TestNDG {
 
-    @Test
+    //@Test
     public void TestNDG() {
 
         Graph g = GraphBuilder.newBuilder().build();
