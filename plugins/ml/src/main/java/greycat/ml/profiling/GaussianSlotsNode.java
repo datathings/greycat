@@ -77,7 +77,6 @@ public class GaussianSlotsNode extends BaseNode {
     }
 
     public void learnWithTime(long time, double[] values) {
-
         EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
         gsgraph = new GaussianSlotsEGraph(eg);
         gsgraph.learn(getSlotNumberInTime(time), values);
@@ -86,6 +85,12 @@ public class GaussianSlotsNode extends BaseNode {
     public void learn(double[] values) {
         //this should be fine no need to fix here
         set(Gaussian.VALUES, Type.DOUBLE_ARRAY, values);
+    }
+
+    public void learnAtSlot(int slot, double[] values) {
+        EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
+        gsgraph = new GaussianSlotsEGraph(eg);
+        gsgraph.learn(slot, values);
     }
 
     public double[] predict() {
