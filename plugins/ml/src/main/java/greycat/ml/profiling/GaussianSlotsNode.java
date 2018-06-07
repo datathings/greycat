@@ -146,6 +146,13 @@ public class GaussianSlotsNode extends BaseNode {
         if (!load()) {
             return null;
         }
+        switch (attributeName) {
+            case PERIOD_SIZE:
+                return super.get(attributeName);
+            case NUMBER_OF_SLOTS:
+                return super.get(attributeName);
+        }
+
         GaussianWrapper backend = gsgraph.getGaussian(getSlotNumber());
         switch (attributeName) {
             case Gaussian.MIN:
