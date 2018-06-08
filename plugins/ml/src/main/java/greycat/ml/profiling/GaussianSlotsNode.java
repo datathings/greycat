@@ -58,10 +58,10 @@ public class GaussianSlotsNode extends BaseNode {
 
     @Override
     public Node set(String name, int type, Object value) {
-        if(name.equals(GSEGRAPH)){
+        if (name.equals(GSEGRAPH)) {
             return super.set(name, type, value);
         }
-        
+
         enforcer.check(name, type, value);
 
         EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
@@ -91,8 +91,11 @@ public class GaussianSlotsNode extends BaseNode {
         set(Gaussian.VALUES, Type.DOUBLE_ARRAY, values);
     }
 
-    public void reset(){
+    public void reset() {
         super.remove(GSEGRAPH);
+        EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
+        gsgraph = new GaussianSlotsEGraph(eg);
+        gsgraph.setNumberOfSlots((int) get(NUMBER_OF_SLOTS));
     }
 
     public void learnAtSlot(int slot, double[] values) {
