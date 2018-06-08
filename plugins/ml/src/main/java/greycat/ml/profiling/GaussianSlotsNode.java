@@ -64,6 +64,8 @@ public class GaussianSlotsNode extends BaseNode {
         gsgraph = new GaussianSlotsEGraph(eg);
 
         switch (name) {
+            case GSEGRAPH:
+                return super.set(name, type, value);
             case PERIOD_SIZE:
                 return super.set(name, type, value);
             case Gaussian.VALUES:
