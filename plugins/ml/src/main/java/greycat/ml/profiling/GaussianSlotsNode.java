@@ -58,14 +58,16 @@ public class GaussianSlotsNode extends BaseNode {
 
     @Override
     public Node set(String name, int type, Object value) {
+        if(name.equals(GSEGRAPH)){
+            return super.set(name, type, value);
+        }
+        
         enforcer.check(name, type, value);
 
         EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
         gsgraph = new GaussianSlotsEGraph(eg);
 
         switch (name) {
-            case GSEGRAPH:
-                return super.set(name, type, value);
             case PERIOD_SIZE:
                 return super.set(name, type, value);
             case Gaussian.VALUES:
