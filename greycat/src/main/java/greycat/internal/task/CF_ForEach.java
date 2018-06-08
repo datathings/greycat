@@ -59,8 +59,9 @@ class CF_ForEach extends CF_Action {
                         }
                         res.free();
                     }
+                    boolean isBreak = (boolean) ctx.variable("break").get(0);
                     final Tuple<Integer, Object> nextResult = it.nextWithIndex();
-                    if (nextResult == null || exceptionDuringTask != null) {
+                    if (isBreak || nextResult == null || exceptionDuringTask != null) {
                         if (exceptionDuringTask != null) {
                             ctx.endTask(null, exceptionDuringTask);
                         } else {
@@ -78,6 +79,7 @@ class CF_ForEach extends CF_Action {
             };
             final Tuple<Integer, Object> nextRes = it.nextWithIndex();
             if (nextRes != null) {
+                ctx.defineVariable("break", false);
                 _subTask.executeFromUsing(ctx, ctx.wrap(nextRes.right()), SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                     @Override
                     public void on(TaskContext result) {

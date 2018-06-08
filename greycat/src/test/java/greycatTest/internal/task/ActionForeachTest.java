@@ -15,18 +15,41 @@
  */
 package greycatTest.internal.task;
 
-import greycat.ActionFunction;
+import greycat.*;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.Node;
-import greycat.TaskContext;
-import greycat.TaskResult;
 
 import static greycat.internal.task.CoreActions.inject;
 import static greycat.internal.task.CoreActions.readIndex;
 import static greycat.Tasks.newTask;
 
 public class ActionForeachTest extends AbstractActionTest {
+
+    @Test
+    public void testForeachBreak() {
+        initGraph();
+        final long[] i = {0};
+        newTask().then(inject(new long[]{1, 2, 3})).forEach(
+                newTask().thenDo(new ActionFunction() {
+                    @Override
+                    public void eval(TaskContext ctx) {
+                        i[0]++;
+                        Assert.assertEquals(ctx.result().get(0), i[0]);
+                        if (i[0] == 2) {
+                            ctx.setVariable("break", true);
+                        }
+                        ctx.continueTask();
+                    }
+                })
+        ).execute(graph, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+                Assert.assertEquals(2, i[0]);
+            }
+        });
+
+        removeGraph();
+    }
 
     @Test
     public void testForeachWhere() {
