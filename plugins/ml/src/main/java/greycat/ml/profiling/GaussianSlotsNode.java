@@ -87,6 +87,10 @@ public class GaussianSlotsNode extends BaseNode {
         set(Gaussian.VALUES, Type.DOUBLE_ARRAY, values);
     }
 
+    public void reset(){
+        super.remove(GSEGRAPH);
+    }
+
     public void learnAtSlot(int slot, double[] values) {
         EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
         gsgraph = new GaussianSlotsEGraph(eg);
