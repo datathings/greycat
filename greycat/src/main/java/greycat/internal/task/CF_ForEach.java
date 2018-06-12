@@ -62,6 +62,7 @@ class CF_ForEach extends CF_Action {
                     boolean isBreak = (boolean) ctx.variable("break").get(0);
                     final Tuple<Integer, Object> nextResult = it.nextWithIndex();
                     if (isBreak || nextResult == null || exceptionDuringTask != null) {
+                        ctx.undeclareVariable("break");
                         if (exceptionDuringTask != null) {
                             ctx.endTask(null, exceptionDuringTask);
                         } else {

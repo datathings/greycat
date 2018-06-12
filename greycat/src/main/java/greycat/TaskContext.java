@@ -51,6 +51,8 @@ public interface TaskContext {
 
     TaskContext declareVariable(String name);
 
+    void undeclareVariable(String name);
+
     TaskContext defineVariable(String name, Object initialResult);
 
     TaskContext defineVariableForSubTask(String name, Object initialResult);

@@ -29,8 +29,9 @@ public class ActionForeachTest extends AbstractActionTest {
     public void testForeachBreak() {
         initGraph();
         final long[] i = {0};
-        newTask().then(inject(new long[]{1, 2, 3})).forEach(
-                newTask().thenDo(new ActionFunction() {
+        newTask().then(inject(new long[]{1, 2, 3})).setAsVar("mbs").forEach(
+                newTask().setAsVar("mb")
+                        .forEach(newTask()).thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {
                         i[0]++;

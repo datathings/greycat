@@ -239,6 +239,14 @@ class CoreTaskContext implements TaskContext {
         return this;
     }
 
+    @Override
+    public void undeclareVariable(final String name) {
+        if (this._localVariables != null) {
+            this._localVariables.remove(name);
+        }
+    }
+
+
     private TaskResult lazyWrap(Object input) {
         if (input instanceof BaseTaskResult) {
             return (TaskResult) input;
