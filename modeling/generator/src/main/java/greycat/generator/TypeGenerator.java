@@ -297,6 +297,16 @@ class TypeGenerator {
 
                             .addStatement("$T self = this", ClassName.get(packageName, gType.name()))
                             .addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase())
+                            .beginControlFlow("if(index == null)")
+                            .addStatement("index = ($T) this.getOrCreateAt($L.hash,greycat.Type.INDEX)", gIndex, li.name().toUpperCase());
+                    if (li.attributes().size() > 0) {
+                        CodeBlock.Builder declareIndexinit = CodeBlock.builder();
+                        li.attributes().forEach(attributeRef -> {
+                            declareIndexinit.add(", $T.$L.name", clazz(li.type()), attributeRef.ref().name().toUpperCase());
+                        });
+                        indexMethod.addStatement("index.declareAttributes(null$L)", declareIndexinit.build());
+                    }
+                    indexMethod.endControlFlow()
                             .addStatement("index.update(value)")
                             .addCode(createAddOppositeBlock(li.type(), li, ClassName.get(packageName, gType.name())).build());
                     javaClass.addMethod(indexMethod.build());
@@ -306,6 +316,16 @@ class TypeGenerator {
                             .returns(ClassName.get(packageName, gType.name()))
                             .addParameter(ClassName.get(packageName, li.type()), "value")
                             .addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase())
+                            .beginControlFlow("if(index == null)")
+                            .addStatement("index = ($T) this.getOrCreateAt($L.hash,greycat.Type.INDEX)", gIndex, li.name().toUpperCase());
+                    if (li.attributes().size() > 0) {
+                        CodeBlock.Builder declareIndexinit = CodeBlock.builder();
+                        li.attributes().forEach(attributeRef -> {
+                            declareIndexinit.add(", $T.$L.name", clazz(li.type()), attributeRef.ref().name().toUpperCase());
+                        });
+                        indexMethod.addStatement("index.declareAttributes(null$L)", declareIndexinit.build());
+                    }
+                    indexMethod.endControlFlow()
                             .addStatement("index.update(value)")
                             .addStatement("return this");
                     javaClass.addMethod(indexMethod.build());
@@ -318,12 +338,12 @@ class TypeGenerator {
                         .addParameter(ClassName.bestGuess(Generator.upperCaseFirstChar(li.type())), "value");
 
                 unindexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
-                //unindexMethod.beginControlFlow("if(index != null)");
+                unindexMethod.beginControlFlow("if(index != null)");
                 unindexMethod.addStatement("index.unindex(value)");
                 if (li.opposite() != null) {
                     unindexMethod.addCode(createRemoveOppositeBlock(li.type(), li).build());
                 }
-                //unindexMethod.endControlFlow();
+                unindexMethod.endControlFlow();
                 unindexMethod.addStatement("return this");
                 javaClass.addMethod(unindexMethod.build());
 
