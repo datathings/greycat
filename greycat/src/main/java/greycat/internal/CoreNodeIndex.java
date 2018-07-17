@@ -40,56 +40,104 @@ final class CoreNodeIndex extends BaseNode implements NodeIndex {
 
     @Override
     public final int size() {
-        return ((Index) getAt(0)).size();
+        Index i = (Index) getAt(0);
+        if (i != null) {
+            return i.size();
+        } else {
+            return 0;
+        }
     }
 
     @Override
     public final long[] all() {
-        return ((Index) getAt(0)).all();
+        Index i = (Index) getAt(0);
+        if (i != null) {
+            return i.all();
+        } else {
+            return new long[0];
+        }
     }
 
     @Override
     public final Index update(Node node) {
-        return ((Index) getAt(0)).update(node);
+        return ((Index) getOrCreateAt(0, HashHelper.hash(CoreIndexAttribute.NAME))).update(node);
     }
 
     @Override
     public final Index unindex(Node node) {
-        return ((Index) getAt(0)).unindex(node);
+        Index i = (Index) getAt(0);
+        if (i != null) {
+            i.unindex(node);
+        }
+        return this;
     }
 
     @Override
     public final Index clear() {
-        return ((Index) getAt(0)).clear();
+        Index i = (Index) getAt(0);
+        if (i != null) {
+            i.clear();
+        }
+        return this;
     }
 
     @Override
     public final void find(Callback<Node[]> callback, long world, long time, String... params) {
-        ((Index) getAt(0)).find(callback, world, time, params);
+        Index i = (Index) getAt(0);
+        if (i != null) {
+            i.find(callback, world, time, params);
+        } else {
+            callback.on(new Node[0]);
+        }
     }
 
     @Override
     public final void findByQuery(Query query, Callback<Node[]> callback) {
-        ((Index) getAt(0)).findByQuery(query, callback);
+        Index i = (Index) getAt(0);
+        if (i != null) {
+            i.findByQuery(query, callback);
+        } else {
+            callback.on(new Node[0]);
+        }
     }
 
     @Override
     public final long[] select(String... params) {
-        return ((Index) getAt(0)).select(params);
+        Index i = (Index) getAt(0);
+        if (i != null) {
+            return i.select(params);
+        } else {
+            return new long[0];
+        }
     }
 
     @Override
     public final long[] selectByQuery(Query query) {
-        return ((Index) getAt(0)).selectByQuery(query);
+        Index i = (Index) getAt(0);
+        if (i != null) {
+            return i.selectByQuery(query);
+        } else {
+            return new long[0];
+        }
     }
 
     @Override
     public final int[] keys() {
-        return ((Index) getAt(0)).keys();
+        Index i = (Index) getAt(0);
+        if (i != null) {
+            return i.keys();
+        } else {
+            return new int[0];
+        }
     }
 
     @Override
     public final void findFrom(Callback<Node[]> callback, String... params) {
-        ((Index) getAt(0)).find(callback, _world, _time, params);
+        Index i = (Index) getAt(0);
+        if (i != null) {
+            i.find(callback, _world, _time, params);
+        } else {
+            callback.on(new Node[0]);
+        }
     }
 }
