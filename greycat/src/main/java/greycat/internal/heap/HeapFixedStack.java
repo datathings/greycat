@@ -106,9 +106,11 @@ public final class HeapFixedStack implements Stack {
 
         if (p == -1 && n == -1) {
             if (_count == 1) {
-                this._first = -1;
-                this._last = -1;
-                this._count = 0;
+                if (this._first == castedIndex) {
+                    this._first = -1;
+                    this._last = -1;
+                    this._count = 0;
+                }
             }
             return false;
         }
