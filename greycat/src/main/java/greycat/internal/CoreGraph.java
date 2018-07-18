@@ -19,6 +19,7 @@ import greycat.*;
 import greycat.chunk.*;
 import greycat.internal.custom.*;
 import greycat.internal.heap.HeapMemoryFactory;
+import greycat.internal.task.CoreTaskContextRegistry;
 import greycat.plugin.*;
 import greycat.struct.*;
 import greycat.utility.*;
@@ -29,7 +30,6 @@ import greycat.TaskHook;
 import greycat.utility.Base64;
 
 import java.util.*;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CoreGraph implements Graph {
@@ -50,6 +50,8 @@ public class CoreGraph implements Graph {
     private final ActionRegistry _actionRegistry;
     private final NodeRegistry _nodeRegistry;
     private final TypeRegistry _typeRegistry;
+    private final TaskContextRegistry _taskContextRegistry;
+
     private MemoryFactory _memoryFactory;
     private TaskHook[] _taskHooks;
     private List<Callback<Callback<Boolean>>> _connectHooks;
@@ -63,6 +65,7 @@ public class CoreGraph implements Graph {
         _nodeRegistry = new CoreNodeRegistry();
         _typeRegistry = new CoreTypeRegistry();
         _memoryFactory = new HeapMemoryFactory();
+        _taskContextRegistry = new CoreTaskContextRegistry();
         this._isConnected = new AtomicBoolean(false);
         this._lock = new AtomicBoolean(false);
         this._plugins = p_plugins;
@@ -277,6 +280,11 @@ public class CoreGraph implements Graph {
     @Override
     public final TypeRegistry typeRegistry() {
         return _typeRegistry;
+    }
+
+    @Override
+    public final TaskContextRegistry taskContextRegistry() {
+        return _taskContextRegistry;
     }
 
     @Override

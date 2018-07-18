@@ -55,7 +55,13 @@ class CoreTaskContext implements TaskContext {
     private boolean _taskProgressAutoReporting = false;
     private LMap _transactionTracker = null;
 
+    int in_registry_id;
+    boolean ext_stop;
+
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
+        this.in_registry_id = -1;
+        this.ext_stop = false;
+
         this._origin = origin;
         this._hooks = p_hooks;
         if (parentContext != null) {
@@ -443,6 +449,10 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public final void continueTask() {
+        if (this.ext_stop) {
+            endTask(this._result, new RuntimeException("stopped from external!"));
+            return;
+        }
         final TaskHook[] globalHooks = this._graph.taskHooks();
         final Action currentAction = _origin.actions[cursor];
         //next step now...
@@ -497,13 +507,16 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public void endTask(final TaskResult preFinalResult, final Exception e) {
+        if (this.in_registry_id != -1) {
+            CoreTaskContextRegistry reg = (CoreTaskContextRegistry) this.graph().taskContextRegistry();
+            reg.unregister(this.in_registry_id);
+        }
         if (preFinalResult != null) {
             if (_result != null) {
                 _result.free();
             }
             _result = preFinalResult;
         }
-
         final TaskHook[] globalHooks = this._graph.taskHooks();
         /* Clean */
         if (this._localVariables != null) {
@@ -956,7 +969,10 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public final void reportProgress(final double progress, final String comment) {
-
+        if (this.in_registry_id != -1) {
+            CoreTaskContextRegistry reg = (CoreTaskContextRegistry) this.graph().taskContextRegistry();
+            reg.reportProgress(this.in_registry_id, progress, comment);
+        }
         Callback<TaskProgressReport> progressHook = this._progressHook;
         TaskContext localParent = _parent;
         while (progressHook == null && localParent != null) {

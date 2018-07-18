@@ -283,9 +283,11 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                                     });
                                 }
                                 ctx.loadFromBuffer(it.next(), loaded -> {
+                                    graph.taskContextRegistry().register(ctx);
                                     t.executeUsing(ctx);
                                 });
                             } else {
+                                graph.taskContextRegistry().register(ctx);
                                 t.executeUsing(ctx);
                             }
                         } catch (Exception e) {

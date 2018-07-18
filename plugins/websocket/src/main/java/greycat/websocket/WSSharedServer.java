@@ -260,9 +260,11 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                                     });
                                 }
                                 ctx.loadFromBuffer(it.next(), loaded -> {
+                                    graph.taskContextRegistry().register(ctx);
                                     t.executeUsing(ctx);
                                 });
                             } else {
+                                graph.taskContextRegistry().register(ctx);
                                 t.executeUsing(ctx);
                             }
                         } catch (Exception e) {
