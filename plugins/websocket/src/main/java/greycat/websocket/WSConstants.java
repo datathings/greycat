@@ -38,5 +38,11 @@ class WSConstants {
 
     static final byte HEART_BEAT_PING = 15;
     static final byte HEART_BEAT_PONG = 16;
-    
+
+    static final byte REQ_TASK_STATS = 17;
+    static final byte RESP_TASK_STATS = 18;
+
+    static final byte REQ_TASK_STOP = 19;
+    static final byte RESP_TASK_STOP = 20;
+
 }

@@ -21,8 +21,6 @@ import greycat.TaskContextRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.BiConsumer;
 
 public class CoreTaskContextRegistry implements TaskContextRegistry {
 
@@ -32,6 +30,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
         TaskContext ctx;
         long start_timestamp;
         double progress;
+        long progress_timestamp;
         String progress_comment;
     }
 
@@ -59,7 +58,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
         boolean is_first = true;
 
         Integer[] ids = this.contexts.keySet().toArray(new Integer[this.contexts.size()]);
-        for(int i=0;i<ids.length;i++){
+        for (int i = 0; i < ids.length; i++) {
             Integer key = ids[i];
             TaskContextRecord rec = this.contexts.get(key);
 
@@ -79,10 +78,28 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
 
             builder.append(Constants.SUB_TASK_OPEN);
             builder.append("\"");
+            builder.append("start_timestamp");
+            builder.append("\"");
+            builder.append(Constants.CHUNK_VAL_SEP);
+            builder.append(String.valueOf(rec.start_timestamp));
+
+            builder.append(Constants.TASK_PARAM_SEP);
+
+            builder.append(Constants.SUB_TASK_OPEN);
+            builder.append("\"");
             builder.append("progress");
             builder.append("\"");
             builder.append(Constants.CHUNK_VAL_SEP);
             builder.append(String.valueOf(rec.progress));
+
+            builder.append(Constants.TASK_PARAM_SEP);
+
+            builder.append(Constants.SUB_TASK_OPEN);
+            builder.append("\"");
+            builder.append("progress_timestamp");
+            builder.append("\"");
+            builder.append(Constants.CHUNK_VAL_SEP);
+            builder.append(String.valueOf(rec.progress_timestamp));
 
             builder.append(Constants.TASK_PARAM_SEP);
 
@@ -121,6 +138,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
         if (rec != null) {
             rec.progress = progress;
             rec.progress_comment = comment;
+            rec.progress_timestamp = System.currentTimeMillis();
         }
     }
 

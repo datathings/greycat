@@ -150,6 +150,31 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
             byte firstCodeView = codeView.read(0);
             //compute resp prefix
             switch (firstCodeView) {
+                case WSConstants.REQ_TASK_STATS:
+                    graph.setProperty("ws.last", System.currentTimeMillis());
+                    final Buffer task_stats_buf = graph.newBuffer();
+                    task_stats_buf.write(WSConstants.RESP_TASK_STATS);
+                    task_stats_buf.write(Constants.BUFFER_SEP);
+                    task_stats_buf.writeAll(callbackCodeView.data());
+                    task_stats_buf.write(Constants.BUFFER_SEP);
+                    Base64.encodeStringToBuffer(graph.taskContextRegistry().stats(), task_stats_buf);
+                    payload.free();
+                    WSSharedServer.this.send_resp(task_stats_buf, channel);
+                    break;
+                case WSConstants.REQ_TASK_STOP:
+                    graph.setProperty("ws.last", System.currentTimeMillis());
+                    if (it.hasNext()) {
+                        Buffer view = it.next();
+                        int taskCode = Base64.decodeToIntWithBounds(view, 0, view.length());
+                        graph.taskContextRegistry().forceStop(taskCode);
+                    }
+                    final Buffer task_stop_buf = graph.newBuffer();
+                    task_stop_buf.write(WSConstants.RESP_TASK_STOP);
+                    task_stop_buf.write(Constants.BUFFER_SEP);
+                    task_stop_buf.writeAll(callbackCodeView.data());
+                    payload.free();
+                    WSSharedServer.this.send_resp(task_stop_buf, channel);
+                    break;
                 case WSConstants.HEART_BEAT_PING:
                     final Buffer concat = graph.newBuffer();
                     concat.write(WSConstants.HEART_BEAT_PONG);

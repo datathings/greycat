@@ -105,6 +105,19 @@ public class WSClient implements Storage, TaskExecutor {
     }
 
     @Override
+    public final void taskStats(Callback<String> callback) {
+        send_rpc_req(WSConstants.REQ_TASK_STATS, null, callback);
+    }
+
+    @Override
+    public final void taskStop(Integer id, Callback<Boolean> callback) {
+        Buffer buf = this._graph.newBuffer();
+        Base64.encodeIntToBuffer(id, buf);
+        send_rpc_req(WSConstants.REQ_TASK_STATS, buf, callback);
+        buf.free();
+    }
+
+    @Override
     public final void connect(final Graph p_graph, final Callback<Boolean> callback) {
         if (_channel != null) {
             if (callback != null) {
@@ -476,6 +489,23 @@ public class WSClient implements Storage, TaskExecutor {
                     _callbacks.remove(callbackCode);
                     resolvedCallback.on(newBuf);
                     break;
+                case WSConstants.RESP_TASK_STATS: {
+                    final Buffer callbackStatsCodeView = it.next();
+                    final Buffer statsContentView = it.next();
+                    final int callbackStatsCode = Base64.decodeToIntWithBounds(callbackStatsCodeView, 0, callbackStatsCodeView.length());
+                    final String statsContent = Base64.decodeToStringWithBounds(statsContentView, 0, statsContentView.length());
+                    final Callback statCallback = _callbacks.get(callbackStatsCode);
+                    statCallback.on(statsContent);
+                    break;
+                }
+                case WSConstants.RESP_TASK_STOP: {
+                    Buffer genericCodeView = it.next();
+                    final int genericCode = Base64.decodeToIntWithBounds(genericCodeView, 0, genericCodeView.length());
+                    Callback genericCallback = _callbacks.get(genericCode);
+                    _callbacks.remove(genericCode);
+                    genericCallback.on(true);
+                    break;
+                }
                 default:
                     Buffer genericCodeView = it.next();
                     final int genericCode = Base64.decodeToIntWithBounds(genericCodeView, 0, genericCodeView.length());
