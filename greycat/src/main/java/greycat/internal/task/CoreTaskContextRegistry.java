@@ -54,7 +54,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
     @Override
     public synchronized final String stats() {
         StringBuilder builder = new StringBuilder();
-        builder.append(Constants.BLOCK_OPEN);
+        builder.append('[');
         boolean is_first = true;
 
         Integer[] ids = this.contexts.keySet().toArray(new Integer[this.contexts.size()]);
@@ -65,59 +65,31 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
             if (is_first) {
                 is_first = false;
             } else {
-                builder.append(Constants.TASK_PARAM_SEP);
+                builder.append(',');
             }
-            builder.append(Constants.SUB_TASK_OPEN);
-            builder.append("\"");
-            builder.append("id");
-            builder.append("\"");
-            builder.append(Constants.CHUNK_VAL_SEP);
+            builder.append("{");
+
+            builder.append("\"id\":");
             builder.append(String.valueOf(key));
-
-            builder.append(Constants.TASK_PARAM_SEP);
-
-            builder.append(Constants.SUB_TASK_OPEN);
-            builder.append("\"");
-            builder.append("start_timestamp");
-            builder.append("\"");
-            builder.append(Constants.CHUNK_VAL_SEP);
+            
+            builder.append(",\"start_timestamp\":");
             builder.append(String.valueOf(rec.start_timestamp));
 
-            builder.append(Constants.TASK_PARAM_SEP);
-
-            builder.append(Constants.SUB_TASK_OPEN);
-            builder.append("\"");
-            builder.append("progress");
-            builder.append("\"");
-            builder.append(Constants.CHUNK_VAL_SEP);
+            builder.append(",\"progress\":");
             builder.append(String.valueOf(rec.progress));
 
-            builder.append(Constants.TASK_PARAM_SEP);
-
-            builder.append(Constants.SUB_TASK_OPEN);
-            builder.append("\"");
-            builder.append("progress_timestamp");
-            builder.append("\"");
-            builder.append(Constants.CHUNK_VAL_SEP);
+            builder.append(",\"progress_timestamp\":");
             builder.append(String.valueOf(rec.progress_timestamp));
 
-            builder.append(Constants.TASK_PARAM_SEP);
-
-            builder.append(Constants.SUB_TASK_OPEN);
-            builder.append("\"");
-            builder.append("comment");
-            builder.append("\"");
-            builder.append(Constants.CHUNK_VAL_SEP);
-            builder.append("\"");
+            builder.append(",\"comment\":\"");
             builder.append(rec.progress_comment);//TODO manage auto-escape
             builder.append("\"");
 
-            builder.append(Constants.SUB_TASK_CLOSE);
-
+            builder.append('}');
         }
 
-        builder.append(Constants.BLOCK_CLOSE);
-        return null;
+        builder.append(']');
+        return builder.toString();
     }
 
     @Override
