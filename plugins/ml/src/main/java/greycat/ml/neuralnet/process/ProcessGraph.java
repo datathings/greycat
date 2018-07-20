@@ -142,6 +142,52 @@ public class ProcessGraph {
         }
     }
 
+
+    public ExMatrix extractColumn(final ExMatrix input, final int colNumber) {
+        final ExMatrix out = ExMatrix.empty(input.rows(), 1);
+
+        for (int i = 0; i < input.rows(); i++) {
+            out.set(i, 0, input.get(i, colNumber));
+        }
+
+        if (this.applyBackprop) {
+            ProcessStep bp = new ProcessStep() {
+                public void execute() {
+                    for (int i = 0; i < input.rows(); i++) {
+                        input.getDw().add(i, colNumber, out.getDw().get(i, 0));
+                    }
+                }
+            };
+            backprop.add(bp);
+        }
+
+        return out;
+    }
+
+    public ExMatrix concatColumns(final ExMatrix[] input) {
+        final ExMatrix out = ExMatrix.empty(input[0].rows(), input.length);
+
+        for (int i = 0; i < input[0].rows(); i++) {
+            for (int j = 0; j < input.length; j++) {
+                out.set(i, j, input[j].get(i, 0));
+            }
+        }
+
+        if (this.applyBackprop) {
+            ProcessStep bp = new ProcessStep() {
+                public void execute() {
+                    for (int j = 0; j < input.length; j++) {
+                        for (int i = 0; i < input[0].rows(); i++) {
+                            input[j].getDw().add(i, 0, out.getDw().get(i, j));
+                        }
+                    }
+                }
+            };
+            backprop.add(bp);
+        }
+        return out;
+    }
+
     public ExMatrix elmul(final ExMatrix matA, final ExMatrix matB) {
         final ExMatrix out = ExMatrix.createFromW(MatrixOps.HadamardMult(matA, matB));
 

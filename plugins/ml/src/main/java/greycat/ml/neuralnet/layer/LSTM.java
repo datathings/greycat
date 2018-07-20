@@ -146,9 +146,19 @@ class LSTM implements Layer {
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
 
         if (input.columns() != 1) {
-            throw new RuntimeException("LSTM can't process more than 1 input vector at a time!");
-        }
+            ExMatrix[] outSplit = new ExMatrix[input.columns()];
+            for (int i = 0; i < input.columns(); i++) {
+                outSplit[i] = internalForward(g.extractColumn(input, i), g);
+            }
+            return g.concatColumns(outSplit);
 
+        } else {
+            return internalForward(input, g);
+        }
+    }
+
+
+    private ExMatrix internalForward(ExMatrix input, ProcessGraph g) {
         //input gate
         ExMatrix sum0 = g.mul(wix, input);
         ExMatrix sum1 = g.mul(wih, hiddenContext);
@@ -182,7 +192,6 @@ class LSTM implements Layer {
         cellContext = cellAct;
 
         return output;
-
     }
 
 
