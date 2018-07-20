@@ -15,9 +15,9 @@
  */
 package greycat.internal.task;
 
+import greycat.Action;
 import greycat.Callback;
 import greycat.Constants;
-import greycat.Action;
 import greycat.TaskContext;
 import greycat.struct.Buffer;
 
@@ -37,10 +37,12 @@ class ActionSave implements Action {
             ctx.graph().saveSilent(new Callback<Buffer>() {
                 @Override
                 public void on(final Buffer result) {
-                    if(result.data()!=null) {
-                        notifier.writeAll(result.data());
+                    if (result != null) {
+                        if (result.data() != null) {
+                            notifier.writeAll(result.data());
+                        }
+                        result.free();
                     }
-                    result.free();
                     ctx.continueTask();
                 }
             });
