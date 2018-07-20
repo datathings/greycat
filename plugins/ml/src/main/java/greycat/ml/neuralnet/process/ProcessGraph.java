@@ -295,7 +295,7 @@ public class ProcessGraph {
 
                     for (int i = 0; i < matA.rows(); i++) {
                         for (int j = 0; j < matA.columns(); j++) {
-                            adw.set(i, j, outdw.get(i, j));
+                            adw.add(i, j, outdw.get(i, j));
                         }
                     }
 
@@ -303,7 +303,7 @@ public class ProcessGraph {
 
                     for (int i = 0; i < matB.rows(); i++) {
                         for (int j = 0; j < matB.columns(); j++) {
-                            bdw.set(i, j, outdw.get(i + r, j));
+                            bdw.add(i, j, outdw.get(i + r, j));
                         }
                     }
                 }
