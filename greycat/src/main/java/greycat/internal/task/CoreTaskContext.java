@@ -66,9 +66,7 @@ class CoreTaskContext implements TaskContext {
         } else {
             this.ext_stop = false;
         }
-
-        this.ext_stop = false;
-
+        
         this._origin = origin;
         this._hooks = p_hooks;
         if (parentContext != null) {
