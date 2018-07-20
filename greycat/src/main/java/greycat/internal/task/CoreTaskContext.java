@@ -56,10 +56,17 @@ class CoreTaskContext implements TaskContext {
     private LMap _transactionTracker = null;
 
     int in_registry_id;
-    boolean ext_stop;
+    Boolean ext_stop;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this.in_registry_id = -1;
+
+        if(parentContext != null){
+            this.ext_stop = ((CoreTaskContext)parentContext).ext_stop;
+        } else {
+            this.ext_stop = false;
+        }
+
         this.ext_stop = false;
 
         this._origin = origin;
