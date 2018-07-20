@@ -15,9 +15,9 @@
  */
 package greycat.internal.task;
 
-import greycat.Constants;
 import greycat.TaskContext;
 import greycat.TaskContextRegistry;
+import greycat.TaskProgressReport;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,9 +29,8 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
     private final class TaskContextRecord {
         TaskContext ctx;
         long start_timestamp;
-        double progress;
         long progress_timestamp;
-        String progress_comment;
+        TaskProgressReport lastReport;
     }
 
     private final Map<Integer, TaskContextRecord> contexts = new HashMap<Integer, TaskContextRecord>();
@@ -45,8 +44,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
         TaskContextRecord rec = new TaskContextRecord();
         rec.ctx = casted;
         rec.start_timestamp = System.currentTimeMillis();
-        rec.progress = 0.0d;
-        rec.progress_comment = null;
+        rec.lastReport = null;
 
         contexts.put(casted.in_registry_id, rec);
     }
@@ -75,15 +73,15 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
             builder.append(",\"start_timestamp\":");
             builder.append(String.valueOf(rec.start_timestamp));
 
-            builder.append(",\"progress\":");
-            builder.append(String.valueOf(rec.progress));
-
             builder.append(",\"progress_timestamp\":");
             builder.append(String.valueOf(rec.progress_timestamp));
 
-            builder.append(",\"comment\":\"");
-            builder.append(rec.progress_comment);//TODO manage auto-escape
-            builder.append("\"");
+            builder.append(",\"last_report\":");
+            if(rec.lastReport != null) {
+                rec.lastReport.toJson(builder);
+            } else {
+                builder.append("null");
+            }
 
             builder.append('}');
         }
@@ -105,12 +103,11 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
         contexts.remove(task_id);
     }
 
-    public final void reportProgress(final Integer ctx_id, final double progress, final String comment) {
+    public final void reportProgress(final Integer ctx_id, final CoreProgressReport report) {
         TaskContextRecord rec = this.contexts.get(ctx_id);
         if (rec != null) {
-            rec.progress = progress;
-            rec.progress_comment = comment;
             rec.progress_timestamp = System.currentTimeMillis();
+            rec.lastReport = report;
         }
     }
 

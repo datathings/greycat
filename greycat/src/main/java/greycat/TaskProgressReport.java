@@ -15,6 +15,8 @@
  */
 package greycat;
 
+import greycat.struct.Buffer;
+
 /**
  * Created by Gregory NAIN on 14/04/17.
  */
@@ -25,4 +27,9 @@ public interface TaskProgressReport {
     String actionSumPath();
     String comment();
 
+    void loadFromBuffer(Buffer buffer);
+
+    void saveToBuffer(Buffer buffer);
+
+    String toJson(StringBuilder builder);
 }

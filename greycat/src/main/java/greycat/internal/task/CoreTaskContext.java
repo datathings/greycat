@@ -967,12 +967,10 @@ class CoreTaskContext implements TaskContext {
     }
 
 
+    private CoreProgressReport currentReport;
     @Override
     public final void reportProgress(final double progress, final String comment) {
-        if (this.in_registry_id != -1) {
-            CoreTaskContextRegistry reg = (CoreTaskContextRegistry) this.graph().taskContextRegistry();
-            reg.reportProgress(this.in_registry_id, progress, comment);
-        }
+
         Callback<TaskProgressReport> progressHook = this._progressHook;
         TaskContext localParent = _parent;
         while (progressHook == null && localParent != null) {
@@ -980,17 +978,34 @@ class CoreTaskContext implements TaskContext {
             localParent = ((CoreTaskContext) localParent)._parent;
         }
 
-        if (progressHook != null) {
-            CoreProgressReport report = new CoreProgressReport()
-                    .setActionPath(currentActionPath())
+        int regId = this.in_registry_id;
+        localParent = _parent;
+        while (regId == -1 && localParent != null) {
+            progressHook = localParent.progressHook();
+            regId = ((CoreTaskContext) localParent).in_registry_id;
+        }
+
+        if(progressHook != null || regId != -1) {
+            if(currentReport == null) {
+                currentReport = new CoreProgressReport();
+            }
+            currentReport.setActionPath(currentActionPath())
                     .setSumPath(sumPath())
                     .setProgress(progress);
             if (comment != null) {
-                report.setComment(comment);
+                currentReport.setComment(comment);
             } else {
-                report.setComment(_origin.actions[cursor].name());
+                currentReport.setComment(_origin.actions[cursor].name());
             }
-            progressHook.on(report);
+        }
+
+        if (regId != -1) {
+            CoreTaskContextRegistry reg = (CoreTaskContextRegistry) this.graph().taskContextRegistry();
+            reg.reportProgress(regId, currentReport);
+        }
+
+        if (progressHook != null) {
+            progressHook.on(currentReport);
         }
     }
 

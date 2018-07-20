@@ -75,6 +75,7 @@ public class CoreProgressReport implements TaskProgressReport {
         return this;
     }
 
+    @Override
     public void loadFromBuffer(Buffer buffer) {
         int cursor = 0;
         int previous = 0;
@@ -107,6 +108,7 @@ public class CoreProgressReport implements TaskProgressReport {
         }
     }
 
+    @Override
     public void saveToBuffer(Buffer buffer) {
         Base64.encodeStringToBuffer(this._actionPath, buffer);
         buffer.write(CoreConstants.CHUNK_SEP);
@@ -119,6 +121,39 @@ public class CoreProgressReport implements TaskProgressReport {
         }
 
     }
+
+    @Override
+    public String toJson(StringBuilder builder) {
+
+        StringBuilder localBuilder;
+        if (builder == null) {
+            localBuilder = new StringBuilder();
+        } else {
+            localBuilder = builder;
+        }
+
+        localBuilder.append("{");
+
+        localBuilder.append("\"actionPath\":");
+        localBuilder.append("\"" + this._actionPath + "\"");
+
+        localBuilder.append(",\"actionSumPath\":");
+        localBuilder.append("\"" + this._actionSumPath + "\"");
+
+        localBuilder.append(",\"progress\":");
+        localBuilder.append(this._progress);
+
+        localBuilder.append(",\"comment\":");
+        localBuilder.append("\"" + this._comment + "\"");
+
+        localBuilder.append('}');
+        if (builder == null) {
+            return localBuilder.toString();
+        } else {
+            return null;
+        }
+    }
+
 
     public String toString() {
         return this._actionPath + "\t" + this._actionSumPath + "\t" + _progress + ":" + _comment;
