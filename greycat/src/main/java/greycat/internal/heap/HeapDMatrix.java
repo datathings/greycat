@@ -317,9 +317,14 @@ class HeapDMatrix implements DMatrix {
     }
 
     private void unsafe_init(int size) {
-        _backend = new double[size+2];
+        if(size < INDEX_OFFSET){
+            _backend = new double[INDEX_OFFSET];
+        } else {
+            _backend = new double[size];
+        }
         _backend[INDEX_ROWS] = 0;
         _backend[INDEX_COLUMNS] = 0;
+        _backend[INDEX_MAX_COLUMN] = 0;
         aligned = true;
     }
 

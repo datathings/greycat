@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static greycat.utility.L3GMap.GROUP;
 
@@ -56,17 +57,17 @@ class CoreTaskContext implements TaskContext {
     private LMap _transactionTracker = null;
 
     int in_registry_id;
-    Boolean ext_stop;
+    AtomicBoolean ext_stop;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this.in_registry_id = -1;
 
-        if(parentContext != null){
-            this.ext_stop = ((CoreTaskContext)parentContext).ext_stop;
+        if (parentContext != null) {
+            this.ext_stop = ((CoreTaskContext) parentContext).ext_stop;
         } else {
-            this.ext_stop = false;
+            this.ext_stop = new AtomicBoolean(false);
         }
-        
+
         this._origin = origin;
         this._hooks = p_hooks;
         if (parentContext != null) {
@@ -454,7 +455,7 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public final void continueTask() {
-        if (this.ext_stop) {
+        if (this.ext_stop.get()) {
             endTask(this._result, new RuntimeException("stopped from external!"));
             return;
         }
@@ -973,6 +974,7 @@ class CoreTaskContext implements TaskContext {
 
 
     private CoreProgressReport currentReport;
+
     @Override
     public final void reportProgress(final double progress, final String comment) {
 
@@ -990,8 +992,8 @@ class CoreTaskContext implements TaskContext {
             regId = ((CoreTaskContext) localParent).in_registry_id;
         }
 
-        if(progressHook != null || regId != -1) {
-            if(currentReport == null) {
+        if (progressHook != null || regId != -1) {
+            if (currentReport == null) {
                 currentReport = new CoreProgressReport();
             }
             currentReport.setActionPath(currentActionPath())

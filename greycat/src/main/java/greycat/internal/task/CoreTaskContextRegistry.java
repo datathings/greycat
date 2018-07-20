@@ -95,7 +95,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
         TaskContextRecord rec = this.contexts.get(taskContextID);
         if (rec != null) {
             CoreTaskContext ctx = (CoreTaskContext) rec.ctx;
-            ctx.ext_stop = true;
+            ctx.ext_stop.set(true);
         }
     }
 
