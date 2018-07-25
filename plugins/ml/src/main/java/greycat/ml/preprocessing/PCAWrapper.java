@@ -188,8 +188,11 @@ public class PCAWrapper {
         }
 
 
-        DMatrix _spaceCropped = MatrixOps.cropMatrix(_spaceOrigin, _spaceOrigin.rows(), dim);
-        _backend.set(SPACE_CROPPED, Type.DMATRIX, _spaceCropped);
+        DMatrix res = MatrixOps.cropMatrix(_spaceOrigin, _spaceOrigin.rows(), dim);
+
+        DMatrix _spaceCropped = (DMatrix) _backend.getOrCreate(SPACE_CROPPED,Type.DMATRIX);
+        MatrixOps.copy(res,_spaceCropped);
+
         _backend.set(SELECTED_DIM, Type.INT, dim);
     }
 
