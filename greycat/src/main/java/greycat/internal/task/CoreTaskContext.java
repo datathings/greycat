@@ -988,8 +988,8 @@ class CoreTaskContext implements TaskContext {
         int regId = this.in_registry_id;
         localParent = _parent;
         while (regId == -1 && localParent != null) {
-            progressHook = localParent.progressHook();
             regId = ((CoreTaskContext) localParent).in_registry_id;
+            localParent = ((CoreTaskContext) localParent)._parent;
         }
 
         if (progressHook != null || regId != -1) {
