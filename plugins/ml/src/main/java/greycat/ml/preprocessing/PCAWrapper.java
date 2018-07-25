@@ -33,7 +33,7 @@ public class PCAWrapper {
     public static String SINGULAR_VALUES = "singularValues";
     public static String EXPLAINED_VARIANCE = "explainedVariance";
 
-    public static String SPACE_DENSITY = "spaceDensity";
+    public static String SPACE_DENSITY = "spaceDensityInformation";
 
     public static String ORIGINAL_DIM = "originalDim";
     public static String BEST_DIM = "bestDim";
@@ -42,7 +42,7 @@ public class PCAWrapper {
     public static String TOTAL = "total";
     public static String AVG = "avg";
     public static String WHITEN = "whiten";
-
+    public static String COV = "cov";
 
     public static String PERCENT_AT_BEST_DIM = "percentAtBestDim";
 
@@ -50,6 +50,7 @@ public class PCAWrapper {
     public static double THRESHOLD_DEF = 92.0;
 
     public static double EPS = 1e-30;
+
 
     private EStruct _backend;
 
@@ -62,6 +63,9 @@ public class PCAWrapper {
         if (covariance == null || covariance.rows() != covariance.columns() || covariance.rows() == 0) {
             throw new RuntimeException("Correlation Matrix can't be empty");
         }
+
+        DMatrix cov = (DMatrix) _backend.getOrCreate(COV, Type.DMATRIX);
+        MatrixOps.copy(covariance, cov);
 
         DMatrix cov_internal = (DMatrix) _backend.getOrCreate(Gaussian.COV, Type.DMATRIX);
         MatrixOps.copy(covariance, cov_internal);
