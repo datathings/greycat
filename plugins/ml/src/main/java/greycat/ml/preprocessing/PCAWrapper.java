@@ -114,6 +114,25 @@ public class PCAWrapper {
     }
 
 
+    public void print(String pcaName, boolean fullinfo) {
+        DoubleArray _information = (DoubleArray) _backend.getOrCreate(DIM_INFORMATION, Type.DOUBLE_ARRAY);
+        System.out.println("");
+        System.out.println("PCA " + pcaName);
+        if (fullinfo) {
+            for (int i = 0; i < _information.size(); i++) {
+                System.out.println("Dim " + i + ": " + _information.get(i));
+            }
+
+            System.out.println("");
+            System.out.println("Space density");
+            DoubleArray density = (DoubleArray) _backend.get(SPACE_DENSITY);
+            for (int i = 0; i < density.size(); i++) {
+                System.out.println("Dim " + i + ": " + density.get(i));
+            }
+        }
+        System.out.println("Best dim: " + getBestDim() + " percent retained: " + getPercentRetained());
+    }
+
     private int retainDynamic() {
 
         double[] _explainedVariance = _backend.getDoubleArray(EXPLAINED_VARIANCE).extract();
@@ -398,5 +417,9 @@ public class PCAWrapper {
 
     public int getBestDim() {
         return (int) _backend.get(BEST_DIM);
+    }
+
+    public double getPercentRetained() {
+        return (double) _backend.get(PERCENT_AT_BEST_DIM);
     }
 }
