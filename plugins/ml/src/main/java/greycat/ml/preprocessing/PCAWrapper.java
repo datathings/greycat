@@ -20,21 +20,28 @@ import greycat.ml.profiling.Gaussian;
 import greycat.struct.DMatrix;
 import greycat.struct.DoubleArray;
 import greycat.struct.EStruct;
+import greycat.struct.matrix.EVDDecompose;
 import greycat.struct.matrix.MatrixOps;
-import greycat.struct.matrix.SVDDecompose;
 import greycat.struct.matrix.TransposeType;
 import greycat.struct.matrix.VolatileDMatrix;
 
 public class PCAWrapper {
-    public static String MATRIX_V_ORIGIN = "matrixVOrigin";
-    public static String MATRIX_V_TRANS = "matrixVTrans";
+
+    public static String SPACE_ORIGIN = "spaceOrigin";
+    public static String SPACE_CROPPED = "spaceCropped";
+
     public static String SINGULAR_VALUES = "singularValues";
-    public static String SPACE_DENSITY_INFORMATION = "spaceDensityInformation";
+    public static String EXPLAINED_VARIANCE = "explainedVariance";
+
+    public static String SPACE_DENSITY = "spaceDensity";
 
     public static String ORIGINAL_DIM = "originalDim";
     public static String BEST_DIM = "bestDim";
     public static String SELECTED_DIM = "selectedDim";
     public static String DIM_INFORMATION = "dimInformation";
+    public static String TOTAL = "total";
+    public static String AVG = "avg";
+    public static String WHITEN = "whiten";
 
 
     public static String PERCENT_AT_BEST_DIM = "percentAtBestDim";
@@ -44,46 +51,78 @@ public class PCAWrapper {
 
     public static double EPS = 1e-30;
 
-    EStruct _backend;
+    private EStruct _backend;
 
     public PCAWrapper(EStruct backend) {
         this._backend = backend;
     }
 
 
-    public PCAWrapper setCorrelation(DMatrix correlation) {
-        if (correlation == null || correlation.rows() != correlation.columns() || correlation.rows() == 0) {
+    public PCAWrapper setCovariance(DMatrix covariance, double[] avg, long total, boolean whiten) {
+        if (covariance == null || covariance.rows() != covariance.columns() || covariance.rows() == 0) {
             throw new RuntimeException("Correlation Matrix can't be empty");
         }
 
-        DMatrix correlation_internal = (DMatrix) _backend.getOrCreate(Gaussian.COR, Type.DMATRIX);
-        MatrixOps.copy(correlation, correlation_internal);
+        DMatrix cov_internal = (DMatrix) _backend.getOrCreate(Gaussian.COV, Type.DMATRIX);
+        MatrixOps.copy(covariance, cov_internal);
 
-        SVDDecompose _svdDecompose = MatrixOps.defaultEngine().decomposeSVD(correlation_internal, false);
-        DoubleArray sv = (DoubleArray) _backend.getOrCreate(SINGULAR_VALUES, Type.DOUBLE_ARRAY);
-        sv.initWith(_svdDecompose.getS());
+        EVDDecompose evd = MatrixOps.defaultEngine().decomposeEVD(covariance, false);
 
-        DMatrix v_origin = (DMatrix) _backend.getOrCreate(MATRIX_V_ORIGIN, Type.DMATRIX);
-        MatrixOps.copy(_svdDecompose.getVt(), v_origin);
+        DMatrix _spaceOrigin = (DMatrix) _backend.getOrCreate(SPACE_ORIGIN, Type.DMATRIX);
+        MatrixOps.copy(evd.getEigenVectors(), _spaceOrigin);
 
-        _backend.set(ORIGINAL_DIM, Type.INT, correlation.rows());
+        double[] evdValues = evd.getEigenValues();
+        ((DoubleArray) _backend.getOrCreate(EXPLAINED_VARIANCE, Type.DOUBLE_ARRAY)).initWith(evdValues);
 
-        retainDynamic(_svdDecompose.getS());
+        DoubleArray singularValues = (DoubleArray) _backend.getOrCreate(SINGULAR_VALUES, Type.DOUBLE_ARRAY);
+        int dim = covariance.rows();
+
+        singularValues.init(dim);
+        ((DoubleArray) _backend.getOrCreate(AVG, Type.DOUBLE_ARRAY)).initWith(avg);
+        _backend.set(TOTAL, Type.LONG, total);
+        _backend.set(WHITEN, Type.BOOL, whiten);
+        _backend.set(ORIGINAL_DIM, Type.INT, dim);
+
+
+        DoubleArray spaceInfo = (DoubleArray) _backend.getOrCreate(SPACE_DENSITY, Type.DOUBLE_ARRAY);
+
+        spaceInfo.init(dim + 1);
+        double power = total;
+        spaceInfo.set(0, power);
+
+        for (int i = 1; i <= dim; i++) {
+            power = power / 2;
+            spaceInfo.set(i, power);
+        }
+
+
+        DoubleArray explainedVariance = (DoubleArray) _backend.getOrCreate(EXPLAINED_VARIANCE, Type.DOUBLE_ARRAY);
+
+        for (int i = 0; i < evdValues.length; i++) {
+            int revI = evdValues.length - i - 1;
+            explainedVariance.set(revI, evdValues[i]);
+            singularValues.set(revI, Math.sqrt(explainedVariance.get(revI) * (total - 1)));
+
+            for (int j = 0; j < evdValues.length; j++) {
+                _spaceOrigin.set(j, revI, evd.getEigenVectors().get(j, i));
+            }
+        }
+
+        retainDynamic();
 
         return this;
     }
 
 
-    private int retainDynamic(double[] svector) {
+    private int retainDynamic() {
 
+        double[] _explainedVariance = _backend.getDoubleArray(EXPLAINED_VARIANCE).extract();
         double totalenergy = 0;
-        for (double aSvector : svector) {
+        for (double aSvector : _explainedVariance) {
             totalenergy += aSvector;
         }
 
-
-        DoubleArray _information = (DoubleArray) _backend.getOrCreate(DIM_INFORMATION, Type.DOUBLE_ARRAY);
-        _information.init(svector.length + 1);
+        double[] _explainedVarianceRatio = new double[_explainedVariance.length + 1];
         double threshold = _backend.getWithDefault(THRESHOLD, THRESHOLD_DEF);
 
 
@@ -91,163 +130,273 @@ public class PCAWrapper {
         double t = 1;
         int xi = 0;
 
-        double integrator = svector[0];
+        double integrator = _explainedVariance[0];
 
-        for (int i = 1; i < svector.length; i++) {
-
+        for (int i = 1; i < _explainedVariance.length; i++) {
             previoust = t;
-            t = svector[i] * svector[i] / (svector[i - 1] * svector[i - 1]);
-            _information.set(i, (integrator * 100) / totalenergy);
-            if (t / previoust < 0.85 && xi == 0 && i != 1 && _information.get(i) >= threshold) {
+            t = _explainedVariance[i] * _explainedVariance[i] / (_explainedVariance[i - 1] * _explainedVariance[i - 1]);
+            _explainedVarianceRatio[i] = ((integrator * 100) / totalenergy);
+            if (t / previoust < 0.85 && xi == 0 && i != 1 && _explainedVarianceRatio[i] >= threshold) {
                 xi = i;
             }
-            integrator += svector[i];
+            integrator += _explainedVariance[i];
         }
-        _information.set(svector.length, 100);
+        _explainedVarianceRatio[_explainedVariance.length] = 100;
 
         if (xi == 0) {
-            for (int i = 0; i < _information.size(); i++) {
-                if (_information.get(i) >= threshold) {
+            for (int i = 0; i < _explainedVarianceRatio.length; i++) {
+                if (_explainedVarianceRatio[i] >= threshold) {
                     xi = i;
                     break;
                 }
             }
         }
+
         _backend.set(BEST_DIM, Type.INT, xi);
-        _backend.set(PERCENT_AT_BEST_DIM, Type.DOUBLE, _information.get(xi));
+        _backend.set(PERCENT_AT_BEST_DIM, Type.DOUBLE, _explainedVarianceRatio[xi]);
+        ((DoubleArray) _backend.getOrCreate(DIM_INFORMATION, Type.DOUBLE_ARRAY)).initWith(_explainedVarianceRatio);
         return xi;
     }
 
 
-    public double[] getDimInformation() {
-        if (_backend.getDoubleArray(DIM_INFORMATION) != null) {
-            return _backend.getDoubleArray(DIM_INFORMATION).extract();
-        } else {
-            return null;
-        }
-    }
-
-    public int getBestDim() {
-        return (int) _backend.get(BEST_DIM);
-    }
-
-    public double getPercentRetained() {
-        return (double) _backend.get(PERCENT_AT_BEST_DIM);
-    }
-
-
-    public void print(String pcaName, boolean fullinfo) {
-        DoubleArray _information = (DoubleArray) _backend.getOrCreate(DIM_INFORMATION, Type.DOUBLE_ARRAY);
-        System.out.println("");
-        System.out.println("PCA " + pcaName);
-        if (fullinfo) {
-            for (int i = 0; i < _information.size(); i++) {
-                System.out.println("Dim " + i + ": " + _information.get(i));
-            }
-
-            System.out.println("");
-            System.out.println("Space density");
-            DoubleArray density = (DoubleArray) _backend.get(SPACE_DENSITY_INFORMATION);
-            for (int i = 0; i < density.size(); i++) {
-                System.out.println("Dim " + i + ": " + density.get(i));
-            }
-        }
-        System.out.println("Best dim: " + getBestDim() + " percent retained: " + getPercentRetained());
-    }
-
-
     public void setDimension(int dim) {
-
-        DMatrix v_origin = _backend.getDMatrix(MATRIX_V_ORIGIN);
-        if (v_origin == null) {
-            throw new RuntimeException("You should set Correlation Matrix first!");
+        DMatrix _spaceOrigin = _backend.getDMatrix(SPACE_ORIGIN);
+        if (_spaceOrigin == null) {
+            throw new RuntimeException("You should fit data first!");
         }
-        int origin_dim = (int) _backend.get(ORIGINAL_DIM);
-        if (dim <= 0 || dim > origin_dim) {
+        if (dim <= 0 || dim > _spaceOrigin.rows()) {
             throw new RuntimeException("Dim should be >0 and less than original dimension");
         }
 
-        DMatrix v_trans = (DMatrix) _backend.getOrCreate(MATRIX_V_TRANS, Type.DMATRIX);
-        v_trans.init(dim, origin_dim);
 
+        DMatrix _spaceCropped = MatrixOps.cropMatrix(_spaceOrigin, _spaceOrigin.rows(), dim);
+        _backend.set(SPACE_CROPPED, Type.DMATRIX, _spaceCropped);
         _backend.set(SELECTED_DIM, Type.INT, dim);
+    }
 
-        DoubleArray eigenvalues = _backend.getDoubleArray(SINGULAR_VALUES);
 
-        for (int i = 0; i < dim; i++) {
-            //double v=Math.sqrt(eigenvalues.get(i));
-            for (int j = 0; j < origin_dim; j++) {
-                v_trans.set(i, j, v_origin.get(i, j));
+    public double[] convertVector(double[] data, boolean workInPlace) {
+        DMatrix _spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
+
+        if (_spaceCropped == null) {
+            throw new RuntimeException("Please set dimension first before calling PCA");
+        }
+
+        DMatrix v;
+        double[] dataclone;
+
+        if (workInPlace) {
+            dataclone = data;
+        } else {
+            dataclone = new double[data.length];
+            System.arraycopy(data, 0, dataclone, 0, data.length);
+        }
+
+        double[] avg = _backend.getDoubleArray(AVG).extract();
+        long total = (long) _backend.get(TOTAL);
+        boolean whiten = (boolean) _backend.get(WHITEN);
+        double[] singularValues = ((DoubleArray) _backend.get(SINGULAR_VALUES)).extract();
+
+        for (int i = 0; i < dataclone.length; i++) {
+            dataclone[i] = dataclone[i] - avg[i];
+        }
+
+        v = VolatileDMatrix.wrap(dataclone, dataclone.length, 1);
+
+        DMatrix res = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, _spaceCropped, TransposeType.NOTRANSPOSE, v);
+        double[] resV = res.column(0);
+
+
+        if (whiten) {
+            double sqrt = Math.sqrt(total);
+            for (int i = 0; i < resV.length; i++) {
+                resV[i] = resV[i] * sqrt / singularValues[i];
             }
         }
+
+        return resV;
     }
 
-    public void setDataSetSize(long datasetSize) {
-        DoubleArray spaceInfo = (DoubleArray) _backend.getOrCreate(SPACE_DENSITY_INFORMATION, Type.DOUBLE_ARRAY);
-        int origin_dim = (int) _backend.get(ORIGINAL_DIM);
+    public double[] inverseConvertVector(double[] data, boolean workInPlace) {
+        DMatrix _spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
 
-        if (origin_dim <= 0 || origin_dim > origin_dim) {
-            throw new RuntimeException("Please set the PCA correlation matrix before using this");
-        }
-        spaceInfo.init(origin_dim + 1);
-        double power = datasetSize;
-        spaceInfo.set(0, power);
-
-        for (int i = 1; i <= origin_dim; i++) {
-            power = power / 2;
-            spaceInfo.set(i, power);
-        }
-    }
-
-
-    public double[] convertVector(double[] data) {
-        DMatrix _matrixV = (DMatrix) _backend.get(MATRIX_V_TRANS);
-        if (_matrixV == null) {
+        if (_spaceCropped == null) {
             throw new RuntimeException("Please set dimension first before calling PCA");
         }
 
-        DMatrix v = VolatileDMatrix.wrap(data, data.length, 1);
+        double[] dataclone;
 
-        DMatrix res = MatrixOps.multiply(_matrixV, v);
-        return res.column(0);
-    }
-
-    public double[] inverseConvertVector(double[] data) {
-        DMatrix _matrixV = (DMatrix) _backend.get(MATRIX_V_TRANS);
-        if (_matrixV == null) {
-            throw new RuntimeException("Please set dimension first before calling PCA");
+        if (workInPlace) {
+            dataclone = data;
+        } else {
+            dataclone = new double[data.length];
+            System.arraycopy(data, 0, dataclone, 0, data.length);
         }
 
+        double[] avg = _backend.getDoubleArray(AVG).extract();
+        long total = (long) _backend.get(TOTAL);
+        boolean whiten = (boolean) _backend.get(WHITEN);
+        double[] singularValues = ((DoubleArray) _backend.get(SINGULAR_VALUES)).extract();
 
-        DMatrix v = VolatileDMatrix.wrap(data, data.length, 1);
-        DMatrix res = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, _matrixV, TransposeType.NOTRANSPOSE, v);
-        return res.column(0);
+        if (whiten) {
+            double sqrt = Math.sqrt(total);
+            for (int i = 0; i < dataclone.length; i++) {
+                dataclone[i] = dataclone[i] * singularValues[i] / sqrt;
+            }
+        }
+
+        DMatrix v = VolatileDMatrix.wrap(dataclone, dataclone.length, 1);
+        DMatrix res = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, _spaceCropped, TransposeType.NOTRANSPOSE, v);
+        double[] result = res.column(0);
+        for (int i = 0; i < result.length; i++) {
+            result[i] += avg[i];
+        }
+
+        return result;
     }
 
 
     //Column vectors based
-    public DMatrix convertSpace(DMatrix initial) {
-        DMatrix _matrixV = (DMatrix) _backend.get(MATRIX_V_TRANS);
-        if (_matrixV == null) {
+    public DMatrix convertSpace(DMatrix initial, boolean workInPlace) {
+        DMatrix _spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
+
+        if (_spaceCropped == null) {
             throw new RuntimeException("Please set dimension first before calling PCA");
         }
 
-        return MatrixOps.multiply(_matrixV, initial);
-    }
 
+        DMatrix input;
 
-    public DMatrix inverseConvertSpace(DMatrix initial) {
-        DMatrix _matrixV = (DMatrix) _backend.get(MATRIX_V_TRANS);
-        if (_matrixV == null) {
-            throw new RuntimeException("Please set dimension first before calling PCA");
+        if (workInPlace) {
+            input = initial;
+        } else {
+            input = MatrixOps.cloneMatrix(initial);
         }
 
-        DMatrix res = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, _matrixV, TransposeType.NOTRANSPOSE, initial);
+        double[] avg = _backend.getDoubleArray(AVG).extract();
+        long total = (long) _backend.get(TOTAL);
+        boolean whiten = (boolean) _backend.get(WHITEN);
+        double[] singularValues = ((DoubleArray) _backend.get(SINGULAR_VALUES)).extract();
+
+        for (int i = 0; i < input.rows(); i++) {
+            double av = avg[i];
+            for (int j = 0; j < input.columns(); j++) {
+                input.set(i, j, input.get(i, j) - av);
+            }
+        }
+
+
+        DMatrix res = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, _spaceCropped, TransposeType.NOTRANSPOSE, input);
+
+
+        if (whiten) {
+            double sqrt = Math.sqrt(total);
+            for (int i = 0; i < res.columns(); i++) {
+                for (int j = 0; j < res.rows(); j++) {
+                    res.set(j, i, res.get(j, i) * sqrt / singularValues[j]);
+                }
+            }
+        }
         return res;
     }
 
 
-    public DMatrix getVT() {
-        return _backend.getDMatrix(MATRIX_V_TRANS);
+    public DMatrix inverseConvertSpace(DMatrix initial, boolean workInPlace) {
+
+        DMatrix _spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
+
+
+        if (_spaceCropped == null) {
+            throw new RuntimeException("Please set dimension first before calling PCA");
+        }
+
+        DMatrix input;
+
+        if (workInPlace) {
+            input = initial;
+        } else {
+            input = MatrixOps.cloneMatrix(initial);
+        }
+
+        double[] avg = _backend.getDoubleArray(AVG).extract();
+        long total = (long) _backend.get(TOTAL);
+        boolean whiten = (boolean) _backend.get(WHITEN);
+        double[] singularValues = ((DoubleArray) _backend.get(SINGULAR_VALUES)).extract();
+
+        if (whiten) {
+            double sqrt = Math.sqrt(total);
+            for (int i = 0; i < input.columns(); i++) {
+                for (int j = 0; j < input.rows(); j++) {
+                    input.set(j, i, input.get(j, i) * singularValues[j] / sqrt);
+                }
+            }
+        }
+
+        DMatrix res = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, _spaceCropped, TransposeType.NOTRANSPOSE, input);
+
+        for (int i = 0; i < res.rows(); i++) {
+            double av = avg[i];
+            for (int j = 0; j < res.columns(); j++) {
+                res.set(i, j, res.get(i, j) + av);
+            }
+        }
+        return res;
+    }
+
+    public double[] getComponent(int i) {
+        return _backend.getDMatrix(SPACE_ORIGIN).column(i);
+    }
+
+    public double[] getDimInformation() {
+        return ((DoubleArray) _backend.get(DIM_INFORMATION)).extract();
+    }
+
+
+    public void printInfo() {
+        double[] singularValues = ((DoubleArray) _backend.get(SINGULAR_VALUES)).extract();
+        double[] dimInfo = ((DoubleArray) _backend.get(DIM_INFORMATION)).extract();
+        double[] explainedVariance = ((DoubleArray) _backend.get(EXPLAINED_VARIANCE)).extract();
+
+
+        int originalDim = (int) _backend.get(ORIGINAL_DIM);
+        int selectedDim = (int) _backend.get(SELECTED_DIM);
+        int bestDim = (int) _backend.get(BEST_DIM);
+        double percentAtBestDim = (double) _backend.get(PERCENT_AT_BEST_DIM);
+        DMatrix spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
+
+        MatrixOps.printArray(singularValues, "PCA Singular values:");
+        System.out.println("");
+
+        MatrixOps.printArray(explainedVariance, "PCA variances:");
+        System.out.println("");
+
+        MatrixOps.printArray(dimInfo, "PCA Dimension info:");
+        System.out.println("");
+
+        DoubleArray density = (DoubleArray) _backend.get(SPACE_DENSITY);
+        for (int i = 0; i < density.size(); i++) {
+            System.out.println("Dim " + i + ": " + density.get(i));
+        }
+        System.out.println("");
+
+        System.out.println("Original dimension:\t" + originalDim);
+        System.out.println("Selected dimension:\t" + selectedDim);
+        System.out.println("Best dimension:\t" + bestDim);
+        System.out.println("Percentage at best dim:\t" + percentAtBestDim);
+        System.out.println("");
+
+        System.out.println("PCA main components:");
+        for (int i = 0; i < selectedDim; i++) {
+            System.out.print("vector " + i + ":\t");
+            for (int j = 0; j < originalDim; j++) {
+                System.out.print(spaceCropped.get(j, i) + "\t");
+            }
+            System.out.println("");
+        }
+        System.out.println("");
+    }
+
+    public int getBestDim() {
+        return (int) _backend.get(BEST_DIM);
     }
 }

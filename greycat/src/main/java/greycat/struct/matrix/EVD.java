@@ -907,11 +907,14 @@ public class EVD implements EVDDecompose {
         DMatrix res = VolatileDMatrix.empty(this.dim, this.dim);
         for (int i = 0; i < this.dim; i++) {
             for (int j = 0; j < this.dim; j++) {
-                res.set(j, i, V[i][j]);
+                res.set(i, j, V[i][j]);
             }
         }
         return res;
     }
+
+
+
 
     /**
      * Return the real parts of the eigenvalues
@@ -955,6 +958,8 @@ public class EVD implements EVDDecompose {
         }
         return X;
     }
+
+
 
     public static EVDDecompose decompose(DMatrix A, boolean workInPlace) {
         if (workInPlace) {

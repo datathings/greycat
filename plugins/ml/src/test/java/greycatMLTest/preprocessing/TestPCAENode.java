@@ -88,20 +88,21 @@ public class TestPCAENode {
                     gaussianNode.learn(trainingData[i]);
                 }
 
-                pca.setCorrelation(gaussianNode.getCorrelation());
+                pca.setCovariance(gaussianNode.getCovariance(), gaussianNode.getAvg(), gaussianNode.getTotal(), false);
+
                 int bestdim = pca.getBestDim();
-//                System.out.println("best dim:" + bestdim);
+                System.out.println("best dim:" + bestdim);
                 Assert.assertTrue(bestdim == realdim);
                 pca.setDimension(bestdim);
 
                 Gaussian.normaliseMatrix(trainMatrix, gaussianNode.getAvg(), gaussianNode.getSTD());
-                DMatrix converted = pca.convertSpace(trainMatrix);
-                DMatrix originalback = pca.inverseConvertSpace(converted);
+                DMatrix converted = pca.convertSpace(trainMatrix, false);
+                DMatrix originalback = pca.inverseConvertSpace(converted, false);
                 Gaussian.inversenormaliseMatrix(originalback, gaussianNode.getAvg(), gaussianNode.getSTD());
 
                 double err = MatrixOps.compare(originalback, backup);
                 Assert.assertTrue(err < 1e-5);
-//                System.out.println("pca error: " + err);
+                System.out.println("pca error: " + err);
 
 
             }
