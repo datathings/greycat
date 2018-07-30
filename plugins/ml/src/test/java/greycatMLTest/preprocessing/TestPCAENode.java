@@ -98,7 +98,7 @@ public class TestPCAENode {
                 Gaussian.normaliseMatrix(trainMatrix, gaussianNode.getAvg(), gaussianNode.getSTD());
                 DMatrix converted = pca.convertSpace(trainMatrix, false);
                 DMatrix originalback = pca.inverseConvertSpace(converted, false);
-                Gaussian.inversenormaliseMatrix(originalback, gaussianNode.getAvg(), gaussianNode.getSTD());
+                Gaussian.inverseNormaliseMatrix(originalback, gaussianNode.getAvg(), gaussianNode.getSTD());
 
                 double err = MatrixOps.compare(originalback, backup);
                 Assert.assertTrue(err < 1e-5);

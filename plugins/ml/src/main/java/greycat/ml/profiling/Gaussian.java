@@ -172,7 +172,7 @@ public class Gaussian {
     }
 
 
-    public static void inversenormaliseMatrix(DMatrix input, double[] avg, double[] std) {
+    public static void inverseNormaliseMatrix(DMatrix input, double[] avg, double[] std) {
         for (int i = 0; i < input.columns(); i++) {
             for (int j = 0; j < input.rows(); j++) {
                 input.set(j, i, inverseNormaliseValue(input.get(j, i), avg[j], std[j]));
@@ -181,19 +181,19 @@ public class Gaussian {
     }
 
 
-    public static void normaliseMinMaxMatrix(DMatrix input, double[] avg, double[] std) {
+    public static void normaliseMinMaxMatrix(DMatrix input, final double[] min, final double[] max) {
         for (int i = 0; i < input.columns(); i++) {
             for (int j = 0; j < input.rows(); j++) {
-                input.set(j, i, normaliseMinMaxValue(input.get(j, i), avg[j], std[j]));
+                input.set(j, i, normaliseMinMaxValue(input.get(j, i), min[j], max[j]));
             }
         }
     }
 
 
-    public static void inversenormaliseMinMaxMatrix(DMatrix input, double[] avg, double[] std) {
+    public static void inverseNormaliseMinMaxMatrix(DMatrix input, final double[] min, final double[] max) {
         for (int i = 0; i < input.columns(); i++) {
             for (int j = 0; j < input.rows(); j++) {
-                input.set(j, i, inverseNormaliseMinMaxValue(input.get(j, i), avg[j], std[j]));
+                input.set(j, i, inverseNormaliseMinMaxValue(input.get(j, i), min[j], max[j]));
             }
         }
     }
@@ -216,9 +216,7 @@ public class Gaussian {
     }
 
     public static double normaliseMinMaxValue(final double input, final double min, final double max) {
-
-        double res = 0;
-
+        double res;
         if ((max - min) != 0) {
             res = (input - min) / (max - min);
         } else {
