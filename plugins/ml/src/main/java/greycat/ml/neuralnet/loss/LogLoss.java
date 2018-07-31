@@ -41,6 +41,7 @@ public class LogLoss implements Loss {
         }
     }
 
+    //todo divide by batch size
     @Override
     public DMatrix forward(DMatrix actualOutput, DMatrix targetOutput) {
         MatrixOps.testDim(actualOutput, targetOutput);
