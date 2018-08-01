@@ -88,15 +88,15 @@ public class PCAWrapper {
         _backend.set(ORIGINAL_DIM, Type.INT, dim);
 
 
-        DoubleArray spaceInfo = (DoubleArray) _backend.getOrCreate(SPACE_DENSITY, Type.DOUBLE_ARRAY);
+        DoubleArray spaceDensity = (DoubleArray) _backend.getOrCreate(SPACE_DENSITY, Type.DOUBLE_ARRAY);
 
-        spaceInfo.init(dim + 1);
+        spaceDensity.init(dim + 1);
         double power = total;
-        spaceInfo.set(0, power);
+        spaceDensity.set(0, power);
 
         for (int i = 1; i <= dim; i++) {
             power = power / 2;
-            spaceInfo.set(i, power);
+            spaceDensity.set(i, power);
         }
 
 
@@ -243,7 +243,7 @@ public class PCAWrapper {
         return resV;
     }
 
-    public double[] inverseConvertVector(double[] data, boolean workInPlace) {
+    public double[] invertVector(double[] data, boolean workInPlace) {
         DMatrix _spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
 
         if (_spaceCropped == null) {
@@ -283,7 +283,7 @@ public class PCAWrapper {
 
 
     //Column vectors based
-    public DMatrix convertSpace(DMatrix initial, boolean workInPlace) {
+    public DMatrix convertMatrix(DMatrix initial, boolean workInPlace) {
         DMatrix _spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
 
         if (_spaceCropped == null) {
@@ -327,7 +327,7 @@ public class PCAWrapper {
     }
 
 
-    public DMatrix inverseConvertSpace(DMatrix initial, boolean workInPlace) {
+    public DMatrix invertMatrix(DMatrix initial, boolean workInPlace) {
 
         DMatrix _spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
 
