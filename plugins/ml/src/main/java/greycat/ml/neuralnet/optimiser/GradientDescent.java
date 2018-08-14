@@ -36,7 +36,7 @@ class GradientDescent extends AbstractOptimiser {
         DMatrix w;
         DMatrix dw;
         double reg = 1 - learningRate * regularization / steps;
-        double stepsize = -learningRate / steps;
+        double stepsize = learningRate / steps;
         for (int i = 0; i < layers.length; i++) {
             ExMatrix[] weights = layers[i].getLayerParameters();
             for (int j = 0; j < weights.length; j++) {
@@ -44,7 +44,7 @@ class GradientDescent extends AbstractOptimiser {
                 dw = weights[j].getDw();
                 //w= (1- learningRate * regularization / samples ) * w - learningRate * dw / samples ;
                 //Ref: https://www.coursera.org/learn/machine-learning/lecture/QrMXd/regularized-linear-regression
-                MatrixOps.addInPlace(w, reg, dw, stepsize);
+                MatrixOps.addInPlace(w, reg, dw, -stepsize);
                 dw.fill(0);
             }
         }

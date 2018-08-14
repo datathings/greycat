@@ -27,9 +27,10 @@ class RMSProp extends AbstractOptimiser {
     public final static String GRADIENT_CLIP_RATE = "gradientclip";
     public final static double GRADIENT_CLIP_DEF = 5;
     static final String SMOOTH_EPSILON = "smoothepsilon";
+    static final double DECAY_RATE_DEF = 0.9999;
     static final double SMOOTH_EPSILON_DEF = 1e-8;
     static final String DECAY_RATE = "decayrate";
-    static final double DECAY_RATE_DEF = 0.9999;
+
     private double smoothEpsilon;
     private double decayRate;
     private double gradientClip;

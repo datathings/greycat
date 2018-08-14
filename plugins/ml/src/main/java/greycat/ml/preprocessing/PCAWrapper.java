@@ -182,6 +182,11 @@ public class PCAWrapper {
     }
 
 
+    public void setWhiten(boolean whiten) {
+        _backend.set(WHITEN, Type.BOOL, whiten);
+    }
+
+
     public void setDimension(int dim) {
         DMatrix _spaceOrigin = _backend.getDMatrix(SPACE_ORIGIN);
         if (_spaceOrigin == null) {
