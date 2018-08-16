@@ -21,6 +21,7 @@ import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.RandomInterface;
 
 // Returns Weights*Input
 // Can be used as PCA or dimensionality reduction of data, since here we are combining linearly outputDimensions from input
@@ -42,7 +43,7 @@ class Linear implements Layer {
     }
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std) {
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.LINEAR_LAYER);
         weights.init(outputs, inputs);
@@ -51,7 +52,7 @@ class Linear implements Layer {
     }
 
     @Override
-    public Layer reInit(RandomGenerator random, double std) {
+    public Layer reInit(RandomInterface random, double std) {
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(weights, random, std);
         }

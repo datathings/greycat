@@ -13,28 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.layer;
+package greycat.ml.neuralnet.process;
 
-import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.ml.neuralnet.process.ProcessGraph;
-import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.RandomInterface;
 
-public interface Layer {
+public class CRandomGenerator implements RandomInterface {
+    @Override
+    public double nextDouble() {
+        return 0;
+    }
 
-    ExMatrix forward(ExMatrix input, ProcessGraph g);
+    @Override
+    public double nextGaussian() {
+        return 0;
+    }
 
-    ExMatrix[] getLayerParameters();
+    @Override
+    public void setSeed(long seed) {
 
-    Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std);
-
-    Layer reInit(RandomInterface random, double std);
-
-    void resetState();
-
-    int inputDimensions();
-
-    int outputDimensions();
-
-
+    }
 }

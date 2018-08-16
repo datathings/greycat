@@ -17,7 +17,7 @@ package greycat.struct.matrix;
 
 import java.util.Random;
 
-public class RandomGenerator {
+public class RandomGenerator implements RandomInterface{
 
     private Random random = new Random();
 

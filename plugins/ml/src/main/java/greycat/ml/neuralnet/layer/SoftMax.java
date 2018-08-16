@@ -20,6 +20,7 @@ import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.RandomInterface;
 
 public class SoftMax implements Layer {
     private static String INPUTS = "inputs";
@@ -30,7 +31,7 @@ public class SoftMax implements Layer {
     }
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std) {
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
         //First always set the type
         if (inputs != outputs) {
             throw new RuntimeException("SoftMax is stateless, inputs and outputs should be the same size, otherwise use LinearSoftMax");
@@ -41,7 +42,7 @@ public class SoftMax implements Layer {
     }
 
     @Override
-    public Layer reInit(RandomGenerator random, double std) {
+    public Layer reInit(RandomInterface random, double std) {
         return this;
     }
 

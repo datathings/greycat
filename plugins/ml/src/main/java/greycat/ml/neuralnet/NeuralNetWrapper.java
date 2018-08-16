@@ -28,6 +28,7 @@ import greycat.struct.DMatrix;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
 import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.RandomInterface;
 import greycat.struct.matrix.VolatileDMatrix;
 
 public class NeuralNetWrapper {
@@ -46,7 +47,7 @@ public class NeuralNetWrapper {
     private Loss testLoss;
     private Optimiser learner;
 
-    private RandomGenerator random;
+    private RandomInterface random;
     private double std;
 
     public NeuralNetWrapper(EStructArray p_backend) {

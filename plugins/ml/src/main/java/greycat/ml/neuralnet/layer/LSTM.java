@@ -23,6 +23,7 @@ import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.RandomInterface;
 
 class LSTM implements Layer {
 
@@ -91,7 +92,7 @@ class LSTM implements Layer {
 
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std) {
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
         host.set(Layers.TYPE, Type.INT, Layers.LSTM_LAYER);
 
         wix.init(outputs, inputs);
@@ -118,7 +119,7 @@ class LSTM implements Layer {
     }
 
     @Override
-    public Layer reInit(RandomGenerator random, double std) {
+    public Layer reInit(RandomInterface random, double std) {
         //todo check why bias are not initialized randomly
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(wix, random, std);

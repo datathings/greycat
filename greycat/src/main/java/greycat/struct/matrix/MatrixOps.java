@@ -57,7 +57,7 @@ public class MatrixOps {
         return matrix;
     }
 
-    public static DMatrix fillWithRandomStd(DMatrix matrix, RandomGenerator random, double std) {
+    public static DMatrix fillWithRandomStd(DMatrix matrix, RandomInterface random, double std) {
         int len = matrix.length();
         for (int i = 0; i < len; i++) {
             matrix.unsafeSet(i, random.nextGaussian() * std);

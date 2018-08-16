@@ -23,6 +23,7 @@ import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.RandomInterface;
 
 class GRU implements Layer {
 
@@ -77,7 +78,7 @@ class GRU implements Layer {
 
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std) {
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
         host.set(Layers.TYPE, Type.INT, Layers.GRU_LAYER);
 
         ihmix.init(outputs, inputs);
@@ -98,7 +99,7 @@ class GRU implements Layer {
     }
 
     @Override
-    public Layer reInit(RandomGenerator random, double std) {
+    public Layer reInit(RandomInterface random, double std) {
         //todo check why bias are not initialized randomly
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(ihmix, random, std);

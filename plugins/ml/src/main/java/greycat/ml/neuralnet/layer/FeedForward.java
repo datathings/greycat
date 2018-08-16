@@ -25,6 +25,7 @@ import greycat.struct.DoubleArray;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.RandomInterface;
 
 class FeedForward implements Layer {
 
@@ -59,7 +60,7 @@ class FeedForward implements Layer {
     }
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std) {
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.FEED_FORWARD_LAYER);
         weights.init(outputs, inputs);
@@ -73,7 +74,7 @@ class FeedForward implements Layer {
     }
 
     @Override
-    public Layer reInit(RandomGenerator random, double std) {
+    public Layer reInit(RandomInterface random, double std) {
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(weights, random, std);
             MatrixOps.fillWithRandomStd(bias, random, std);
