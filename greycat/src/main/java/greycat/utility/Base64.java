@@ -401,6 +401,9 @@ public class Base64 {
      * @param buffer    the buffer to fill
      */
     public static void encodeStringToBuffer(String s, Buffer buffer) {
+        if(s == null) {
+            return;
+        }
         int sLength = s.length();
         char currentSourceChar;
         int currentEncodedChar = 0;
