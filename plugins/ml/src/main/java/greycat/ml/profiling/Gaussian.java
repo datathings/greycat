@@ -21,6 +21,9 @@ import greycat.struct.DMatrix;
 import greycat.struct.DoubleArray;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
+import greycat.struct.matrix.RandomGenerator;
+
+import java.util.Random;
 
 public class Gaussian {
     public static final String NULL = "nullValues";
@@ -160,6 +163,35 @@ public class Gaussian {
             index--;
         }
         hist_values.set(index, hist_values.get(index) + 1);
+    }
+
+    public static double drawFromHistogram(EStructArray hostnode, RandomGenerator rnd) {
+        EStruct host = getRoot(hostnode);
+
+        DoubleArray hist_center = host.getDoubleArray(HISTOGRAM_CENTERS);
+        DoubleArray hist_values = host.getDoubleArray(HISTOGRAM_VALUES);
+
+        if (hist_center == null || hist_values == null) {
+            throw new RuntimeException("histogram is empty");
+        }
+
+        double total = 0;
+        double[] sum = new double[hist_values.size()];
+        for (int i = 0; i < hist_values.size(); i++) {
+            total += hist_values.get(i);
+            if (i == 0) {
+                sum[0] = hist_values.get(0);
+            } else {
+                sum[i] = sum[i - 1] + hist_values.get(0);
+            }
+        }
+        double d = rnd.nextDouble() * total;
+
+        int count = 0;
+        while (count < hist_values.size() && sum[count] < d) {
+            count++;
+        }
+        return hist_center.get(count);
     }
 
 

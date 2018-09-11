@@ -15,6 +15,76 @@
  */
 package greycatMLTest.profiling;
 
+import greycat.*;
+import greycat.ml.profiling.GaussianWrapper;
+import greycat.struct.DMatrix;
+import greycat.struct.EStruct;
+import greycat.struct.EStructArray;
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.RandomGenerator;
+import org.junit.Test;
+
 public class TestGaussianNode {
+    @Test
+    public void Test() {
+        Graph graph = GraphBuilder
+                .newBuilder()
+                .build();
+
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+
+                Node node = graph.newNode(0, 0);
+
+                EStructArray eg = (EStructArray) node.getOrCreate("graph", Type.ESTRUCT_ARRAY);
+                EStruct en = eg.newEStruct();
+                EStruct en2 = eg.newEStruct();
+
+                GaussianWrapper gaussian = new GaussianWrapper(en);
+                GaussianWrapper gaussianTest = new GaussianWrapper(en2);
+
+                double[] key = {1.1, 2.2, 3.3, 4.4, 5.5};
+                int n = 10;
+
+                for (int i = 0; i < n; i++) {
+                    for (int j = 0; j < key.length; j++) {
+                        key[j] += j * 0.5 - n / 2.0;
+                    }
+
+                    key[3] = key[2];
+                    key[4] = key[3];
+                    gaussian.learn(key);
+                }
+
+//                MatrixOps.print(gaussian.getCovariance(), "Covariance");
+//                MatrixOps.printArray(gaussian.getAvg(), "avg");
+
+
+//                System.out.println("");
+//                System.out.println("");
+
+                RandomGenerator rnd = new RandomGenerator();
+                rnd.setSeed(1234);
+
+
+                int sample = 1000;
+                DMatrix rand = gaussian.drawMatrix(sample, rnd);
+//                MatrixOps.print(rand,"drawn");
+
+                for (int i = 0; i < rand.columns(); i++) {
+                    gaussianTest.learn(rand.column(i));
+                }
+
+
+//                MatrixOps.print(gaussianTest.getCovariance(), "Covariance");
+//                MatrixOps.printArray(gaussianTest.getAvg(), "avg");
+
+                assert (MatrixOps.compare(gaussianTest.getCovariance(), gaussian.getCovariance())<7);
+
+            }
+        });
+
+    }
 
 }

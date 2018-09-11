@@ -20,6 +20,8 @@ import greycat.struct.DMatrix;
 import greycat.struct.DoubleArray;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.SVDDecompose;
 import greycat.struct.matrix.VolatileDMatrix;
 
 public class GaussianWrapper {
@@ -138,6 +140,34 @@ public class GaussianWrapper {
 
     public void learn(double[] values) {
         learnWithOccurence(values, 1);
+    }
+
+    public double[] drawVector(RandomGenerator rnd) {
+        return drawMatrix(1, rnd).column(0);
+    }
+
+    public DMatrix drawMatrix(int sample, RandomGenerator rnd) {
+        DMatrix cov = getCovariance();
+
+        SVDDecompose svd = MatrixOps.defaultEngine().decomposeSVD(cov, true);
+        DMatrix s = svd.getSMatrix();
+        for (int i = 0; i < s.columns(); i++) {
+            s.set(i, i, Math.sqrt(s.get(i, i)));
+        }
+        DMatrix a = MatrixOps.multiply(svd.getU(), s);
+
+        DMatrix rand = VolatileDMatrix.randomGaussian(cov.rows(), sample, rnd);
+
+        DMatrix mult = MatrixOps.multiply(a, rand);
+
+        double[] avg = getAvg();
+
+        for (int col = 0; col < mult.columns(); col++) {
+            for (int row = 0; row < mult.rows(); row++) {
+                mult.add(row, col, avg[row]);
+            }
+        }
+        return mult;
     }
 
     private void invalidate() {

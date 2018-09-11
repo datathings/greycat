@@ -230,6 +230,13 @@ public class VolatileDMatrix implements DMatrix {
         return res;
     }
 
+    public static DMatrix randomGaussian(int rows, int columns, RandomGenerator rand) {
+        VolatileDMatrix res = new VolatileDMatrix(null, rows, columns);
+        for (int i = 0; i < rows * columns; i++) {
+            res.unsafeSet(i, rand.nextGaussian());
+        }
+        return res;
+    }
     public static double compareMatrix(VolatileDMatrix matA, VolatileDMatrix matB) {
         double err = 0;
 
