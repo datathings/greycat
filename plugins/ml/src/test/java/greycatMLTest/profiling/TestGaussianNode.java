@@ -51,9 +51,6 @@ public class TestGaussianNode {
                     for (int j = 0; j < key.length; j++) {
                         key[j] += j * 0.5 - n / 2.0;
                     }
-
-                    key[3] = key[2];
-                    key[4] = key[3];
                     gaussian.learn(key);
                 }
 
