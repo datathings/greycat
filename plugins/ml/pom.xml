@@ -156,7 +156,7 @@
                                     exit
                                 }
 
-                                ant.delete(file: "${gbasedir}/target/classes-npm/greycat.ml.ts")
+                                ant.delete(file: "${gbasedir}/target/classes-npm/tsconfig.json")
                                 ant.replace(file: "${gbasedir}/target/classes-npm/package.json", token: greycatPtr, value: project_version)
 
                                 def npmPackProcess = (prefix + "npm pack classes-npm/").execute(null, new File("${gbasedir}/target/"))
