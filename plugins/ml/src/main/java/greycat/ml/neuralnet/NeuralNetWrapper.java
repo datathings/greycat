@@ -218,4 +218,8 @@ public class NeuralNetWrapper {
         layers = temp;
     }
 
+    public Layer[] getLayers(){
+        return this.layers;
+    }
+
 }
