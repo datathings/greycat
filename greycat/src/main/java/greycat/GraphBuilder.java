@@ -158,7 +158,7 @@ public class GraphBuilder {
         return this;
     }
 
-    public GraphBuilder setPostBuildHook(Callback<Graph> postBuildHook) {
+    public GraphBuilder withPostBuildHook(Callback<Graph> postBuildHook) {
         this.postBuildHook = postBuildHook;
         return this;
     }
