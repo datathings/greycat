@@ -38,6 +38,8 @@ public class GraphBuilder {
     private boolean _readOnly = false;
     private boolean _deepPriority = true;
 
+    private Callback<Graph> postBuildHook;
+
     public static GraphBuilder newBuilder() {
         return new GraphBuilder();
     }
@@ -156,6 +158,11 @@ public class GraphBuilder {
         return this;
     }
 
+    public GraphBuilder setPostBuildHook(Callback<Graph> postBuildHook) {
+        this.postBuildHook = postBuildHook;
+        return this;
+    }
+
     public Graph build() {
         if (storage == null) {
             storage = new BlackHoleStorage();
@@ -169,11 +176,18 @@ public class GraphBuilder {
         if (_memorySize == -1) {
             _memorySize = 100000;
         }
+        Graph graph;
         if (storageFactory != null) {
-            return new CoreGraph(storageFactory.build(), _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
+            graph = new CoreGraph(storageFactory.build(), _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
         } else {
-            return new CoreGraph(storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
+            graph = new CoreGraph(storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
         }
+
+        if (this.postBuildHook != null) {
+            this.postBuildHook.on(graph);
+        }
+
+        return graph;
 
     }
 
