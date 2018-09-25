@@ -27,18 +27,24 @@ public class Constants {
 
     public static final int PREFIX_SIZE = 16;
 
-    public static final long BEGINNING_OF_TIME = -0x001FFFFFFFFFFFFEl;
-    public static final String BEGINNING_OF_TIME_STR = -0x001FFFFFFFFFFFFEl + "";
+    public static final long BEGINNING_OF_TIME = -0x001FFFFFFFFFFFFEL;
+    public static final String BEGINNING_OF_TIME_STR = BEGINNING_OF_TIME + "";
 
-    public static final long END_OF_TIME = 0x001FFFFFFFFFFFFEl;
-    public static final String END_OF_TIME_STR = 0x001FFFFFFFFFFFFEl + "";
+    public static final long END_OF_TIME = 0x001FFFFFFFFFFFFEL;
+    public static final String END_OF_TIME_STR = END_OF_TIME + "";
 
-    public static final long NULL_LONG = 0x001FFFFFFFFFFFFFl;
+    public static final long BEGINNING_OF_TIME_PLUS_ONE = BEGINNING_OF_TIME + 1;
+    public static final String BEGINNING_OF_TIME_PLUS_ONE_STR = BEGINNING_OF_TIME_PLUS_ONE + "";
+
+    public static final long END_OF_TIME_MINUS_ONE = END_OF_TIME - 1;
+    public static final String END_OF_TIME_MINUS_ONE_STR = END_OF_TIME_MINUS_ONE + "";
+
+    public static final long NULL_LONG = 0x001FFFFFFFFFFFFFL;
 
     public static final int NULL_INT = 0x7FFFFFFF;
 
     // Limit limit local index to LONG limit - prefix size
-    public static final long KEY_PREFIX_MASK = 0x0000001FFFFFFFFFl;
+    public static final long KEY_PREFIX_MASK = 0x0000001FFFFFFFFFL;
 
     public static final String CACHE_MISS_ERROR = "Cache miss error";
 
