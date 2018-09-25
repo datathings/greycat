@@ -17,20 +17,19 @@ package greycat.websocket;
 
 import greycat.*;
 import greycat.base.BaseTaskResult;
-import greycat.chunk.ChunkType;
-import greycat.chunk.WorldOrderChunk;
 import greycat.internal.task.CoreProgressReport;
+import greycat.plugin.Storage;
 import greycat.plugin.TaskExecutor;
+import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
-import greycat.utility.*;
+import greycat.utility.Base64;
+import greycat.utility.L3GMap;
+import greycat.utility.Tuple;
 import io.undertow.connector.ByteBufferPool;
 import io.undertow.server.DefaultByteBufferPool;
 import io.undertow.server.protocol.http.HttpOpenListener;
 import io.undertow.websockets.client.WebSocketClient;
 import io.undertow.websockets.core.*;
-import greycat.chunk.Chunk;
-import greycat.plugin.Storage;
-import greycat.struct.Buffer;
 import org.xnio.*;
 import org.xnio.ssl.JsseXnioSsl;
 
@@ -44,7 +43,6 @@ import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -182,7 +180,7 @@ public class WSClient implements Storage, TaskExecutor {
             if (futureChannel.getStatus() != IoFuture.Status.DONE) {
                 System.err.println("Error during connexion with webSocket");
                 if (callback != null) {
-                    callback.on(null);
+                    callback.on(false);
                 }
             }
 
