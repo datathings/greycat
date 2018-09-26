@@ -1109,4 +1109,17 @@ public class BaseNode implements Node {
         return this._graph.space().get(_index_worldOrder).group();
     }
 
+    @Override
+    public final int hashCode() {
+        return (int) (this._id ^ this._time ^ this._world);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof BaseNode){
+            BaseNode other = (BaseNode) obj;
+            return other._id == this._id && other._time == this._time && other._world == this._world;
+        }
+        return false;
+    }
 }
