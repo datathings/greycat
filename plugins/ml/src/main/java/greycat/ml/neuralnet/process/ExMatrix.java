@@ -142,6 +142,12 @@ public class ExMatrix implements DMatrix {
         return this;
     }
 
+    @Override
+    public DMatrix unsafeAdd(int index, double value) {
+        w.unsafeAdd(index, value);
+        return this;
+    }
+
     public DMatrix getW() {
         return w;
     }

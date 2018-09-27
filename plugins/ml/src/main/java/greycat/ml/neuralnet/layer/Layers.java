@@ -28,6 +28,7 @@ public class Layers {
     public final static int RNN_LAYER = 4;
     public final static int SOFTMAX_LAYER = 5;
     public final static int LINEAR_SOFTMAX_LAYER = 6;
+    public final static int DROPOUT_LAYER = 7;
 
     public static Layer loadLayer(EStruct node) {
         switch ((int) node.get(TYPE)) {
@@ -45,6 +46,8 @@ public class Layers {
                 return new SoftMax(node);
             case LINEAR_SOFTMAX_LAYER:
                 return new LinearSoftMax(node);
+            case DROPOUT_LAYER:
+                return new Dropout(node);
         }
         throw new RuntimeException("Layer type unknown!");
     }

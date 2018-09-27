@@ -48,4 +48,6 @@ public interface DMatrix {
 
     DMatrix unsafeSet(int index, double value);
 
+    DMatrix unsafeAdd(int index, double value);
+
 }

@@ -297,6 +297,25 @@ class HeapDMatrix implements DMatrix {
         return this;
     }
 
+    @Override
+    public DMatrix unsafeAdd(int index, double value) {
+        synchronized (parent) {
+            if (_backend != null) {
+                if (!aligned) {
+                    double[] next_backend = new double[_backend.length];
+                    System.arraycopy(_backend, 0, next_backend, 0, _backend.length);
+                    _backend = next_backend;
+                    aligned = true;
+                }
+                _backend[INDEX_OFFSET + index] += value;
+                parent.declareDirty();
+            } else {
+                throw new RuntimeException("Please init the Matrix first!");
+            }
+        }
+        return this;
+    }
+
     private void internal_unsafeSet(int index, double value) {
         if (_backend != null) {
             if (!aligned) {

@@ -120,6 +120,12 @@ public final class DMatrixProxy implements DMatrix {
     }
 
     @Override
+    public DMatrix unsafeAdd(int index, double value) {
+        check();
+        return _elem.unsafeAdd(index, value);
+    }
+
+    @Override
     public final String toString() {
         return _elem.toString();
     }

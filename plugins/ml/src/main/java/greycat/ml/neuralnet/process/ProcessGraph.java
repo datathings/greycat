@@ -19,6 +19,7 @@ import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.struct.DMatrix;
 import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.TransposeType;
 import greycat.struct.matrix.VolatileDMatrix;
 
@@ -30,9 +31,14 @@ public class ProcessGraph {
 
     private boolean applyBackprop;
     private List<ProcessStep> backprop = new ArrayList<ProcessStep>();
+    private RandomGenerator random = null;
 
     public ProcessGraph(boolean applyBackprop) {
         this.applyBackprop = applyBackprop;
+    }
+
+    public void setRandom(RandomGenerator random) {
+        this.random = random;
     }
 
     public final void backpropagate() {
@@ -340,6 +346,41 @@ public class ProcessGraph {
                     }
 
 
+                }
+            };
+            backprop.add(bp);
+        }
+        return out;
+    }
+
+    public ExMatrix dropout(ExMatrix input, double dropout) {
+        final ExMatrix out = new ExMatrix(null, null);
+        final ExMatrix temp = new ExMatrix(null, null);
+        out.init(input.rows(), input.columns());
+        temp.init(input.rows(), input.columns());
+        MatrixOps.copy(input.getW(), out.getW());
+
+        if (random == null) {
+            random = new RandomGenerator();
+        }
+        int len = input.length();
+        for (int i = 0; i < len; i++) {
+            if (random.nextDouble() < dropout) {
+                out.unsafeSet(i, 0.0);
+                temp.unsafeSet(i, 1);
+            }
+        }
+
+        if (this.applyBackprop) {
+            ProcessStep bp = new ProcessStep() {
+                public void execute() {
+                    DMatrix inDw = input.getDw();
+                    DMatrix outDw = out.getDw();
+                    for (int i = 0; i < len; i++) {
+                        if (temp.unsafeGet(i) != 1.0) {
+                            inDw.unsafeAdd(i, outDw.unsafeGet(i));
+                        }
+                    }
                 }
             };
             backprop.add(bp);

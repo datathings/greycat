@@ -149,6 +149,12 @@ public class VolatileDMatrix implements DMatrix {
         return this;
     }
 
+    @Override
+    public DMatrix unsafeAdd(int index, double value) {
+        this._data[index] += value;
+        return this;
+    }
+
     public static boolean compare(double[] a, double[] b, double eps) {
         if (a == null || b == null) {
             return false;
