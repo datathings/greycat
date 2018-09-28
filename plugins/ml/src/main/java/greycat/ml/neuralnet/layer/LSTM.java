@@ -161,24 +161,24 @@ class LSTM implements Layer {
 
     private ExMatrix internalForward(ExMatrix input, ProcessGraph g) {
         //input gate
-        ExMatrix sum0 = g.mul(wix, input);
-        ExMatrix sum1 = g.mul(wih, hiddenContext);
-        ExMatrix inputGate = g.activate(fInputGate, g.add(g.add(sum0, sum1), bi));
+        ExMatrix mul0 = g.mul(wix, input);
+        ExMatrix mul1 = g.mul(wih, hiddenContext);
+        ExMatrix inputGate = g.activate(fInputGate, g.add(g.add(mul0, mul1), bi));
 
         //forget gate
-        ExMatrix sum2 = g.mul(wfx, input);
-        ExMatrix sum3 = g.mul(wfh, hiddenContext);
-        ExMatrix forgetGate = g.activate(fForgetGate, g.add(g.add(sum2, sum3), bf));
+        ExMatrix mul2 = g.mul(wfx, input);
+        ExMatrix mul3 = g.mul(wfh, hiddenContext);
+        ExMatrix forgetGate = g.activate(fForgetGate, g.add(g.add(mul2, mul3), bf));
 
         //output gate
-        ExMatrix sum4 = g.mul(wox, input);
-        ExMatrix sum5 = g.mul(woh, hiddenContext);
-        ExMatrix outputGate = g.activate(fOutputGate, g.add(g.add(sum4, sum5), bo));
+        ExMatrix mul4 = g.mul(wox, input);
+        ExMatrix mul5 = g.mul(woh, hiddenContext);
+        ExMatrix outputGate = g.activate(fOutputGate, g.add(g.add(mul4, mul5), bo));
 
         //write operation on cells
-        ExMatrix sum6 = g.mul(wcx, input);
-        ExMatrix sum7 = g.mul(wch, hiddenContext);
-        ExMatrix cellInput = g.activate(fCellInput, g.add(g.add(sum6, sum7), bc));
+        ExMatrix mul6 = g.mul(wcx, input);
+        ExMatrix mul7 = g.mul(wch, hiddenContext);
+        ExMatrix cellInput = g.activate(fCellInput, g.add(g.add(mul6, mul7), bc));
 
         //compute new cell activation
         ExMatrix retainCell = g.elmul(forgetGate, cellContext);
