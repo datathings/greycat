@@ -295,4 +295,6 @@ public interface Graph {
 
     Log log();
 
+    Graph logDirectory(String path, String maxSize);
+
 }

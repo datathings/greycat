@@ -18,7 +18,10 @@ package greycatTest;
 import greycat.Graph;
 import greycat.GraphBuilder;
 import greycat.scheduler.NoopScheduler;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.File;
 
 public class LogTest {
 
@@ -29,7 +32,39 @@ public class LogTest {
         g.log().error("hello from {}, mode: {}", "GreyCat", "test");
         g.log().warn("hello from {}, mode: {}", "GreyCat", "test");
         g.log().debug("hello from {}, mode: {}", "GreyCat", "test");
+    }
+
+    /**
+     * {@native ts
+     * }
+     */
+    @Test
+    public void simpleFileTest() {
+        Graph g = GraphBuilder.newBuilder()
+                .withScheduler(new NoopScheduler())
+                .build();
+        g.logDirectory("log_out", "10KB");
+
+        g.log().info("=> Say Hi: ", "GreyCat");
+        for (int i = 0; i < 100; i++) {
+            g.log().info("hello from {}, mode: {}", "GreyCat", "test");
+            g.log().error("hello from {}, mode: {}", "GreyCat", "test");
+            g.log().warn("hello from {}, mode: {}", "GreyCat", "test");
+            g.log().debug("hello from {}, mode: {}", "GreyCat", "test");
+        }
+
+
+        File out_dir = new File("log_out");
+        File[] children = out_dir.listFiles();
+
+        Assert.assertNotNull(children);
+        Assert.assertEquals(2, children.length);
+        for (int i = 0; i < children.length; i++) {
+            children[i].delete();
+        }
+        out_dir.delete();
 
     }
+
 
 }

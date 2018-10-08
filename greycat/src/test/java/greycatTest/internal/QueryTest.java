@@ -322,6 +322,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public Graph logDirectory(String path, String maxSize) {
+        return null;
+    }
+
+    @Override
     public NodeState resolveState(Node node) {
         return null;
     }

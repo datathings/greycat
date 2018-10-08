@@ -61,7 +61,7 @@ class CoreGraphLog implements Log {
         return this;
     }
 
-    private static void writeMessage(StringBuilder builder) {
+    void writeMessage(StringBuilder builder) {
         System.out.println(builder.toString());
     }
 
@@ -81,7 +81,7 @@ class CoreGraphLog implements Log {
                 if (currentChar == endParam) {
                     if (param == 0) {
                         buffer = new StringBuilder();
-                        buffer.append(message.substring(0, i-1));
+                        buffer.append(message.substring(0, i - 1));
                     }
                     if (params.length > param && params[param] != null) {
                         buffer.append(params[param].toString());

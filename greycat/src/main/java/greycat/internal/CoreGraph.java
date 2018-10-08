@@ -38,7 +38,7 @@ public class CoreGraph implements Graph {
     private final ChunkSpace _space;
     private final Scheduler _scheduler;
     private final Resolver _resolver;
-    private final Log _log;
+    private Log _log;
 
     private final AtomicBoolean _isConnected;
     private final AtomicBoolean _lock;
@@ -851,6 +851,17 @@ public class CoreGraph implements Graph {
     @Override
     public final Log log() {
         return _log;
+    }
+
+    /**
+     * {@native ts
+     * return this;
+     * }
+     */
+    @Override
+    public Graph logDirectory(String path, String maxSize) {
+        this._log = new CoreGraphLogFile(path, maxSize);
+        return this;
     }
 
 }
