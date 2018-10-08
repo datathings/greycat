@@ -128,6 +128,8 @@ public interface Graph {
      */
     void savePartial(Callback<Boolean> callback);
 
+    void lookupTimesSparse(long world, long from, long to, long id, int limit, Callback<Node[]> callback);
+
     /**
      * Triggers a save task for the current graph.<br>
      * This method synchronizes the physical storage with the current in-memory graph.

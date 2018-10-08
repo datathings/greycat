@@ -84,6 +84,8 @@ public interface Resolver {
 
     void lookupTimes(long world, long rfrom, long rto, long id, int limit, Callback<Node[]> callback);
 
+    void lookupTimesSparse(long world, long rfrom, long rto, long id, int limit, Callback<Node[]> callback);
+
     /**
      * Resolves the state of a node, to access attributes, relations, and indexes.
      *

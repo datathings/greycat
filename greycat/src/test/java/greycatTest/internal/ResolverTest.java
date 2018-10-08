@@ -24,6 +24,7 @@ import greycat.scheduler.NoopScheduler;
 import org.junit.Assert;
 import org.junit.Test;
 
+@SuppressWarnings("Duplicates")
 public class ResolverTest {
 
     @Test
@@ -135,6 +136,44 @@ public class ResolverTest {
             public void on(Node result) {
                 Assert.assertEquals("{\"world\":0,\"time\":1100,\"id\":1,\"group\":0,\"name\":\"myName\"}", result.toString());
                 Assert.assertEquals(100, result.timeDephasing());
+            }
+        });
+    }
+
+    @Test
+    public void lookupTimesSparseTest() {
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean connectionResult) {
+                long availableBefore = g.space().available();
+
+                BaseNode n = (BaseNode) g.newNode(0, 0);
+                for (long i = 1000; i < 2000; i++) {
+                    final long finalI = i;
+                    g.lookup(0, i, n.id(), new Callback<Node>() {
+                        @Override
+                        public void on(Node result) {
+                            result.set("time", Type.LONG, finalI);
+                            result.free();
+                        }
+                    });
+                }
+
+                int limit = 50;
+                g.lookupTimesSparse(0, 100, 10000, n.id(), limit, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        //check size
+                        Assert.assertEquals(limit, result.length);
+                        g.freeNodes(result);
+                    }
+                });
+                n.free();
+                g.save(null);
+
+                long availableAfter = g.space().available();
+                Assert.assertEquals(availableBefore, availableAfter);
             }
         });
     }

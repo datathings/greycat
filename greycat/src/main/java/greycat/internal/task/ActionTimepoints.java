@@ -64,15 +64,14 @@ class ActionTimepoints implements Action {
                     casted.timepoints(parsedFrom, parsedTo, new Callback<long[]>() {
                         @Override
                         public void on(long[] result) {
-                            for (int i = result.length-1; i >=0; i--) {
+                            for (int i = result.length - 1; i >= 0; i--) {
                                 next.add(result[i]);
                             }
                             casted.free();
                             defer.count();
                         }
                     });
-                }
-                else {
+                } else {
                     defer.count();
                 }
             }

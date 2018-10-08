@@ -22,6 +22,7 @@ import greycat.struct.*;
 import greycat.utility.*;
 import greycat.base.BaseNode;
 
+@SuppressWarnings("Duplicates")
 final class MWResolver implements Resolver {
 
     private final Storage _storage;
@@ -1194,6 +1195,318 @@ final class MWResolver implements Resolver {
         });
     }
 
+    @Override
+    public final void lookupTimesSparse(long world, long rfrom, long rto, long id, int limit, Callback<Node[]> callback) {
+        final MWResolver selfPointer = this;
+        _space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
+            @Override
+            public void on(final Chunk resolved) {
+                if (resolved == null) {
+                    callback.on(new Node[0]);
+                    return;
+                }
+                final WorldOrderChunk objectWorldOrder = (WorldOrderChunk) resolved;
+                final long from;
+                final long to;
+                final boolean reversed;
+                if (rfrom > rto) {
+                    reversed = true;
+                    from = rto;
+                    to = rfrom;
+                } else {
+                    reversed = false;
+                    from = rfrom;
+                    to = rto;
+                }
+                //worlds collector
+                final LArray worldCollector = new LArray();
+                long currentWorld = world;
+                while (currentWorld != CoreConstants.NULL_LONG) {
+                    long divergenceTimepoint = objectWorldOrder.get(currentWorld);
+                    if (divergenceTimepoint != CoreConstants.NULL_LONG) {
+                        if (divergenceTimepoint <= from) {
+                            //take the first one before leaving
+                            worldCollector.add(currentWorld);
+                            break;
+                        } else if (divergenceTimepoint > to) {
+                            //next round, go to parent world
+                            currentWorld = selfPointer.globalWorldOrderChunk.get(currentWorld);
+                        } else {
+                            //that's fit, add to search
+                            worldCollector.add(currentWorld);
+                            //go to parent
+                            currentWorld = selfPointer.globalWorldOrderChunk.get(currentWorld);
+                        }
+                    } else {
+                        //go to parent
+                        currentWorld = selfPointer.globalWorldOrderChunk.get(currentWorld);
+                    }
+                }
+                if (worldCollector.size() == 0) {
+                    callback.on(new Node[0]);
+                    return;
+                }
+                final long[] call_keys = new long[worldCollector.size() * 3];
+                final byte[] call_types = new byte[worldCollector.size()];
+                for (int i = 0; i < worldCollector.size(); i++) {
+                    call_types[i] = ChunkType.SUPER_TIME_TREE_CHUNK;
+                    call_keys[i * Constants.KEY_SIZE] = worldCollector.get(i);
+                    call_keys[(i * Constants.KEY_SIZE) + 1] = 0;
+                    call_keys[(i * Constants.KEY_SIZE) + 2] = id;
+                }
+                getOrLoadAndMarkAll(call_types, call_keys, new Callback<Chunk[]>() {
+                    @Override
+                    public void on(final Chunk[] superTimeTrees) {
+                        if (superTimeTrees == null) {
+                            selfPointer._space.unmark(objectWorldOrder.index());
+                            callback.on(new Node[0]);
+                        } else {
+                            //time collector
+                            long[] call_keys2;
+                            byte[] call_types2;
+                            final LMap tempSuperTimeCollector = new LMap(true);
+
+                            if (reversed) {
+                                final int[] over_all_capacity = {0};
+                                long previousDivergenceTime = to;
+                                for (int i = 0; i < worldCollector.size(); i++) {
+                                    final SuperTimeTreeChunk timeTree = (SuperTimeTreeChunk) superTimeTrees[i];
+                                    if (timeTree != null) {
+                                        long currentDivergenceTime = objectWorldOrder.get(worldCollector.get(i));
+                                        int finalI = i;
+                                        timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
+                                            @Override
+                                            public void elem(final long superTime, final long superCapacity) {
+                                                if (!tempSuperTimeCollector.contains(superTime)) {
+                                                    tempSuperTimeCollector.put(superTime, finalI);
+                                                    over_all_capacity[0] = over_all_capacity[0] + ((int) superCapacity);
+                                                }
+                                            }
+                                        });
+                                        previousDivergenceTime = currentDivergenceTime;
+                                    }
+                                }
+                                call_keys2 = new long[tempSuperTimeCollector.size() * 3];
+                                call_types2 = new byte[tempSuperTimeCollector.size()];
+                                for (int i = 0; i < tempSuperTimeCollector.size(); i++) {
+                                    call_keys2[i * 3] = worldCollector.get((int) tempSuperTimeCollector.getValue(i));
+                                    call_keys2[i * 3 + 1] = tempSuperTimeCollector.getKey(i);
+                                    call_keys2[i * 3 + 2] = id;
+                                    if (objectWorldOrder.type() == NodeValueType) {
+                                        call_types2[i] = ChunkType.TIME_TREE_DVALUE_CHUNK;
+                                    } else {
+                                        call_types2[i] = ChunkType.TIME_TREE_CHUNK;
+                                    }
+                                }
+                            } else {
+                                final LMap tempSuperTimeCollectorCapacity = new LMap(true);
+                                long previousDivergenceTime = to;
+                                for (int i = 0; i < worldCollector.size(); i++) {
+                                    final SuperTimeTreeChunk timeTree = (SuperTimeTreeChunk) superTimeTrees[i];
+                                    if (timeTree != null) {
+                                        long currentDivergenceTime = objectWorldOrder.get(worldCollector.get(i));
+                                        int finalI = i;
+                                        timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
+                                            @Override
+                                            public void elem(final long superTime, final long superCapacity) {
+                                                if (!tempSuperTimeCollector.contains(superTime)) {
+                                                    tempSuperTimeCollector.put(superTime, finalI);
+                                                    tempSuperTimeCollectorCapacity.put(superTime, superCapacity);
+                                                }
+                                            }
+                                        });
+                                        previousDivergenceTime = currentDivergenceTime;
+                                    }
+                                }
+                                int neededSubTrees = 0;
+                                int over_all_capacity = 0;
+                                for (int i = tempSuperTimeCollectorCapacity.size() - 1; i >= 0; i--) {
+                                    over_all_capacity = over_all_capacity + ((int) tempSuperTimeCollectorCapacity.getValue(i));
+                                    neededSubTrees++;
+                                }
+                                call_keys2 = new long[neededSubTrees * 3];
+                                call_types2 = new byte[neededSubTrees];
+                                int write_cursor = 0;
+                                for (int i = tempSuperTimeCollector.size() - neededSubTrees; i < tempSuperTimeCollector.size(); i++) {
+                                    call_keys2[write_cursor * 3] = worldCollector.get((int) tempSuperTimeCollector.getValue(i));
+                                    call_keys2[write_cursor * 3 + 1] = tempSuperTimeCollector.getKey(i);
+                                    call_keys2[write_cursor * 3 + 2] = id;
+                                    if (objectWorldOrder.type() == NodeValueType) {
+                                        call_types2[write_cursor] = ChunkType.TIME_TREE_DVALUE_CHUNK;
+                                    } else {
+                                        call_types2[write_cursor] = ChunkType.TIME_TREE_CHUNK;
+                                    }
+                                    write_cursor++;
+                                }
+                            }
+                            getOrLoadAndMarkAll(call_types2, call_keys2, new Callback<Chunk[]>() {
+                                @Override
+                                public void on(final Chunk[] timeTrees) {
+                                    if (timeTrees == null) {
+                                        final ChunkSpace space = selfPointer._space;
+                                        space.unmark(objectWorldOrder.index());
+                                        for (int i = 0; i < worldCollector.size(); i++) {
+                                            space.unmark(superTimeTrees[i].index());
+                                        }
+                                        callback.on(new Node[0]);
+                                    } else {
+                                        //time collector
+                                        final LMap timeCollector_pre = new LMap(true);
+                                        long previousDivergenceTime = to;
+                                        final int[] skip = {0};
+
+                                        for (int i = 0; i < call_types2.length; i++) {
+                                            final TimeTreeChunk timeTree = (TimeTreeChunk) timeTrees[i];
+                                            if (timeTree != null) {
+                                                long currentDivergenceTime = objectWorldOrder.get(call_keys2[i * 3]);
+                                                if (currentDivergenceTime < from) {
+                                                    currentDivergenceTime = from;
+                                                }
+                                                int finalI = i;
+                                                timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new TreeWalker() {
+                                                    @Override
+                                                    public void elem(long t) {
+                                                        if (!timeCollector_pre.contains(t)) {
+                                                            //if (skip[0] == 0) {
+                                                            timeCollector_pre.put(t, finalI);
+                                                            //skip[0] = skip_times;
+                                                            //}
+                                                            //skip[0]--;
+                                                        }
+                                                    }
+                                                });
+                                                if (i < call_types2.length - 1) {
+                                                    if (call_keys2[(i + 1) * 3] != call_keys2[i * 3]) {
+                                                        //world overriding semantic
+                                                        previousDivergenceTime = currentDivergenceTime;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        final LMap timeCollector = new LMap(true);
+                                        int skip_times = (timeCollector_pre.size() - limit) / limit;
+                                        for (int i = 0; i < timeCollector_pre.size(); i = i + (skip_times + 1)) {
+                                            timeCollector.put(timeCollector_pre.getKey(i), timeCollector_pre.getValue(i));
+                                        }
+
+                                        //filter with max now
+                                        int firmLimit;
+                                        if (limit == -1 || limit >= timeCollector.size()) {
+                                            firmLimit = timeCollector.size();
+                                        } else {
+                                            firmLimit = limit;
+                                        }
+                                        final int extraCode = (int) objectWorldOrder.type();
+                                        NodeFactory resolvedFactory = null;
+                                        if (extraCode != -1) {
+                                            resolvedFactory = ((CoreGraph) selfPointer._graph).factoryByCode(extraCode);
+                                        }
+                                        final BaseNode[] result = new BaseNode[firmLimit];
+                                        if (reversed) {
+                                            for (int i = 0; i < firmLimit; i++) {
+                                                final int reversedIndex = (int) timeCollector.getValue(i);
+                                                if (resolvedFactory == null) {
+                                                    result[i] = new BaseNode(call_keys2[reversedIndex * 3], timeCollector.getKey(i), id, selfPointer._graph);
+                                                } else {
+                                                    result[i] = (BaseNode) resolvedFactory.create(call_keys2[reversedIndex * 3], timeCollector.getKey(i), id, selfPointer._graph);
+                                                }
+                                                result[i]._dead = false;
+                                                final SuperTimeTreeChunk stc = (SuperTimeTreeChunk) superTimeTrees[(int) tempSuperTimeCollector.get(timeTrees[reversedIndex].time())];
+                                                final TimeTreeChunk ttc = (TimeTreeChunk) timeTrees[reversedIndex];
+                                                _space.mark(stc.index());
+                                                _space.mark(ttc.index());
+                                                _space.mark(objectWorldOrder.index());
+                                                result[i]._index_superTimeTree = stc.index();
+                                                result[i]._index_timeTree = ttc.index();
+                                                result[i]._index_worldOrder = objectWorldOrder.index();
+                                                if (call_keys2[reversedIndex * 3] == world) { //time is always precise here
+                                                    result[i]._world_magic = -1;
+                                                    result[i]._super_time_magic = -1;
+                                                    result[i]._time_magic = -1;
+                                                } else {
+                                                    result[i]._world_magic = objectWorldOrder.magic();
+                                                    result[i]._super_time_magic = stc.magic();
+                                                    result[i]._time_magic = ttc.magic();
+                                                }
+                                                //we need to marks
+                                            }
+                                        } else {
+                                            int nodeIndex = 0;
+                                            for (int i = timeCollector.size() - 1; i >= timeCollector.size() - firmLimit; i--) {
+                                                final int reversedIndex = (int) timeCollector.getValue(i);
+                                                if (resolvedFactory == null) {
+                                                    result[nodeIndex] = new BaseNode(call_keys2[reversedIndex * 3], timeCollector.getKey(i), id, selfPointer._graph);
+                                                } else {
+                                                    result[nodeIndex] = (BaseNode) resolvedFactory.create(call_keys2[reversedIndex * 3], timeCollector.getKey(i), id, selfPointer._graph);
+                                                }
+                                                result[nodeIndex]._dead = false;
+                                                final SuperTimeTreeChunk stc = (SuperTimeTreeChunk) superTimeTrees[(int) tempSuperTimeCollector.get(timeTrees[reversedIndex].time())];
+                                                final TimeTreeChunk ttc = (TimeTreeChunk) timeTrees[reversedIndex];
+                                                _space.mark(stc.index());
+                                                _space.mark(ttc.index());
+                                                _space.mark(objectWorldOrder.index());
+                                                result[nodeIndex]._index_superTimeTree = stc.index();
+                                                result[nodeIndex]._index_timeTree = ttc.index();
+                                                result[nodeIndex]._index_worldOrder = objectWorldOrder.index();
+                                                if (call_keys2[reversedIndex * 3] == world) { //time is always precise here
+                                                    result[nodeIndex]._world_magic = -1;
+                                                    result[nodeIndex]._super_time_magic = -1;
+                                                    result[nodeIndex]._time_magic = -1;
+                                                } else {
+                                                    result[nodeIndex]._world_magic = objectWorldOrder.magic();
+                                                    result[nodeIndex]._super_time_magic = stc.magic();
+                                                    result[nodeIndex]._time_magic = ttc.magic();
+                                                }
+                                                nodeIndex++;
+                                            }
+                                        }
+                                        long[] call_keys3 = new long[firmLimit * 3];
+                                        byte[] call_types3 = new byte[firmLimit];
+                                        for (int i = 0; i < firmLimit; i++) {
+                                            call_keys3[i * 3] = result[i].world();
+                                            call_keys3[i * 3 + 1] = result[i].time();
+                                            call_keys3[i * 3 + 2] = id;
+                                            call_types3[i] = ChunkType.STATE_CHUNK;
+                                            if (objectWorldOrder.type() == NodeValueType) {
+                                                call_types3[i] = -1;
+                                                result[i]._index_timeTree_offset = ((TimeTreeDValueChunk) timeTrees[i]).previousOrEqualOffset(result[i].time());
+                                            }
+                                        }
+                                        _space.unmark(objectWorldOrder.index());
+                                        for (int i = 0; i < timeTrees.length; i++) {
+                                            if (timeTrees[i] != null) {
+                                                _space.unmark(timeTrees[i].index());
+                                            }
+                                        }
+                                        for (int i = 0; i < superTimeTrees.length; i++) {
+                                            if (superTimeTrees[i] != null) {
+                                                _space.unmark(superTimeTrees[i].index());
+                                            }
+                                        }
+                                        getOrLoadAndMarkAll(call_types3, call_keys3, new Callback<Chunk[]>() {
+                                            @Override
+                                            public void on(Chunk[] stateChunks) {
+                                                for (int i = 0; i < firmLimit; i++) {
+                                                    if (stateChunks[i] != null) {
+                                                        result[i]._index_stateChunk = stateChunks[i].index();
+                                                    } else {
+                                                        result[i]._index_stateChunk = -1;
+                                                    }
+                                                }
+                                                callback.on(result);
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
     private long resolve_world(final LongLongMap globalWorldOrder, final LongLongMap nodeWorldOrder, final long timeToResolve, long originWorld) {
         if (globalWorldOrder == null || nodeWorldOrder == null) {
             return originWorld;
@@ -1247,7 +1560,6 @@ final class MWResolver implements Resolver {
 
         }
     }*/
-
 
 
     private void getOrLoadAndMarkAll(final byte[] types, final long[] keys, final Callback<Chunk[]> callback) {

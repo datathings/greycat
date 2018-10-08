@@ -160,6 +160,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public void lookupTimesSparse(long world, long rfrom, long rto, long id, int limit, Callback<Node[]> callback) {
+
+    }
+
+    @Override
     public long fork(long world) {
         return 0;
     }
@@ -333,7 +338,7 @@ public class QueryTest implements Resolver, Graph {
 
     @Override
     public void countTimepoints(Node node, long beginningOfSearch, long endOfSearch, Callback<Long> callback) {
-        
+
     }
 
     @Override
