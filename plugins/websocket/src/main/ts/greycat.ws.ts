@@ -50,6 +50,7 @@ export class WSClient implements greycat.plugin.Storage {
 
     private static REQ_TASK_STOP = 19;
     private static RESP_TASK_STOP = 20;
+    private static LOG = 21;
 
     private heartBeatFunctionId;
 
@@ -161,6 +162,15 @@ export class WSClient implements greycat.plugin.Storage {
         let reqBuffer = this.graph.newBuffer();
         greycat.utility.Base64.encodeIntToBuffer(id, reqBuffer);
         this.send_rpc_req(WSClient.REQ_TASK_STOP, reqBuffer, callback);
+        reqBuffer.free();
+    }
+
+    log(msg: string): void {
+        let reqBuffer = this.graph.newBuffer();
+        greycat.utility.Base64.encodeStringToBuffer(msg, reqBuffer);
+        this.send_rpc_req(WSClient.LOG, reqBuffer, function (res) {
+
+        });
         reqBuffer.free();
     }
 
