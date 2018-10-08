@@ -61,7 +61,7 @@ public class CoreGraph implements Graph {
     private final HashMap<String, Object> _properties = new HashMap<String, Object>();
 
     public CoreGraph(final Storage p_storage, final long memorySize, final long batchSize, final Scheduler p_scheduler, final Plugin[] p_plugins, final boolean deepPriority) {
-        _log = new CoreGraphLog();
+        _log = new CoreGraphLog(this);
         //initiate the two registry
         _actionRegistry = new CoreActionRegistry();
         _nodeRegistry = new CoreNodeRegistry();
@@ -860,7 +860,7 @@ public class CoreGraph implements Graph {
      */
     @Override
     public Graph logDirectory(String path, String maxSize) {
-        this._log = new CoreGraphLogFile(path, maxSize);
+        this._log = new CoreGraphLogFile(this, path, maxSize);
         return this;
     }
 

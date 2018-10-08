@@ -45,4 +45,6 @@ class WSConstants {
     static final byte REQ_TASK_STOP = 19;
     static final byte RESP_TASK_STOP = 20;
 
+    static final byte LOG = 21;
+
 }

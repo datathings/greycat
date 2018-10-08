@@ -25,4 +25,6 @@ public interface Log {
 
     Log error(String message, Object... params);
 
+    Log activateRemote();
+
 }

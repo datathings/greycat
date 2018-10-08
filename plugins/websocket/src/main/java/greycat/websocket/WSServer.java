@@ -17,6 +17,7 @@ package greycat.websocket;
 
 import greycat.*;
 import greycat.chunk.Chunk;
+import greycat.internal.CoreGraphLog;
 import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.CoreProgressReport;
 import greycat.plugin.Job;
@@ -171,6 +172,15 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
             byte firstCodeView = codeView.read(0);
             //compute resp prefix
             switch (firstCodeView) {
+                case WSConstants.LOG:
+                    if (it.hasNext()) {
+                        Buffer b = it.next();
+                        StringBuilder buf = new StringBuilder();
+                        buf.append(Base64.decodeToStringWithBounds(b, 0, b.length()));
+                        ((CoreGraphLog) graph.log()).writeMessage(buf);
+                        payload.free();
+                    }
+                    break;
                 case WSConstants.REQ_TASK_STATS:
                     graph.setProperty("ws.last", System.currentTimeMillis());
                     final Buffer task_stats_buf = graph.newBuffer();

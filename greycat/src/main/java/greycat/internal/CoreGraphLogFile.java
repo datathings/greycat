@@ -15,6 +15,8 @@
  */
 package greycat.internal;
 
+import greycat.Graph;
+
 import java.io.*;
 
 /**
@@ -29,7 +31,8 @@ public class CoreGraphLogFile extends CoreGraphLog {
     private File file;
     private OutputStream stream;
 
-    public CoreGraphLogFile(final String target, final String maxSize) {
+    public CoreGraphLogFile(final Graph g, final String target, final String maxSize) {
+        super(g);
         this.mutex = new Object();
         this.dir = new File(target);
         this.dir.mkdirs();
@@ -61,7 +64,7 @@ public class CoreGraphLogFile extends CoreGraphLog {
     }
 
     @Override
-    void writeMessage(final StringBuilder builder) {
+    public void writeMessage(final StringBuilder builder) {
         byte[] raw = builder.toString().getBytes();
         synchronized (mutex) {
             try {

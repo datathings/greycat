@@ -281,6 +281,20 @@ public class WSClient implements Storage, TaskExecutor {
         });
     }
 
+    @Override
+    public final void log(String msg) {
+        Buffer buf = this._graph.newBuffer();
+        Base64.encodeStringToBuffer(msg, buf);
+        send_rpc_req(WSConstants.LOG, buf, new Callback() {
+            @Override
+            public void on(Object result) {
+                buf.free();
+                //noop
+            }
+        });
+
+    }
+
     private class MessageReceiver extends AbstractReceiveListener {
         @Override
         protected void onFullBinaryMessage(WebSocketChannel channel, BufferedBinaryMessage message) throws IOException {

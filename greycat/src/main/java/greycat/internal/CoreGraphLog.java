@@ -15,15 +15,25 @@
  */
 package greycat.internal;
 
+import greycat.Graph;
 import greycat.Log;
+import greycat.plugin.TaskExecutor;
 
 @SuppressWarnings("Duplicates")
-class CoreGraphLog implements Log {
+public class CoreGraphLog implements Log {
 
     private static final String debug_msg = "DEBUG  ";
     private static final String info_msg = "INFO   ";
     private static final String warn_msg = "WARN   ";
     private static final String error_msg = "ERROR  ";
+
+    Graph graph;
+    boolean remote;
+
+    public CoreGraphLog(Graph graph) {
+        this.graph = graph;
+    }
+
 
     @Override
     public final Log debug(String message, Object... params) {
@@ -61,8 +71,20 @@ class CoreGraphLog implements Log {
         return this;
     }
 
-    void writeMessage(StringBuilder builder) {
-        System.out.println(builder.toString());
+    @Override
+    public final Log activateRemote() {
+        this.remote = true;
+        return this;
+    }
+
+    public void writeMessage(StringBuilder builder) {
+        String msg = builder.toString();
+        System.out.println(msg);
+        Object str = graph.storage();
+        if (str != null && remote) {
+            TaskExecutor exec = (TaskExecutor) str;
+            exec.log(msg);
+        }
     }
 
     private static final char beginParam = '{';

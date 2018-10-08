@@ -28,4 +28,6 @@ public interface TaskExecutor {
 
     void execute(Callback<TaskResult> callback, Task task, TaskContext prepared);
 
+    void log(String msg);
+
 }
