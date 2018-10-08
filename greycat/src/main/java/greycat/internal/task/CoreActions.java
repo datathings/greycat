@@ -163,6 +163,10 @@ public class CoreActions {
         return new ActionTraverseTimeline(start, end, limit);
     }
 
+    public static Action traverseTimelineSparse(String start, String end, String limit) {
+        return new ActionTraverseTimelineSparse(start, end, limit);
+    }
+
     /**
      * Forces the value of an attribute for all nodes present in the current result.
      * If value is similar to the previously stored one, nodes will still be modified and their timeline will be affected.

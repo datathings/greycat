@@ -18,6 +18,7 @@ package greycat.internal.task;
 public class CoreActionNames {
 
     public static String TRAVERSE_TIMELINE = "traverseTimeline";
+    public static String TRAVERSE_TIMELINE_SPARSE = "traverseTimelineSparse";
     public static String ADD_VAR_TO = "addVarTo";
     public static String REMOVE_VAR_FROM = "removeVarFrom";
     public static String UNINDEX_FROM = "unindexFrom";

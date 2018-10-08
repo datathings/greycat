@@ -201,6 +201,8 @@ public interface Task {
 
     Task traverseTimeline(String start, String end, String limit);
 
+    Task traverseTimelineSparse(String start, String end, String limit);
+
     /**
      * Parses a string to build the current task.
      * Syntax is as follows: actionName(param).actionName2(param2)...

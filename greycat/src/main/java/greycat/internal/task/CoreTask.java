@@ -160,6 +160,11 @@ public class CoreTask implements Task {
     }
 
     @Override
+    public Task traverseTimelineSparse(String start, String end, String limit) {
+        return then(CoreActions.traverseTimelineSparse(start, end, limit));
+    }
+
+    @Override
     public final Task atomic(Task protectedTask, String... variablesToLock) {
         return then(new CF_Atomic(protectedTask, variablesToLock));
     }
@@ -830,6 +835,16 @@ public class CoreTask implements Task {
                     public Action create(Object[] params) {
                         final String[] varrags = (String[]) params[3];
                         return new ActionTraverseTimeline((String) params[0], (String) params[1], (String) params[2]);
+                    }
+                });
+        registry.getOrCreateDeclaration(CoreActionNames.TRAVERSE_TIMELINE_SPARSE)
+                .setParams(Type.STRING, Type.STRING, Type.STRING)
+                .setDescription("Extract timelineSparse is current nodes into result.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        final String[] varrags = (String[]) params[3];
+                        return new ActionTraverseTimelineSparse((String) params[0], (String) params[1], (String) params[2]);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.REMOVE_VAR_FROM)
