@@ -317,6 +317,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public Log log() {
+        return null;
+    }
+
+    @Override
     public NodeState resolveState(Node node) {
         return null;
     }
