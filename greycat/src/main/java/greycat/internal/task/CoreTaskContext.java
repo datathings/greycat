@@ -39,7 +39,9 @@ class CoreTaskContext implements TaskContext {
     private final Map<String, TaskResult> _globalVariables;
     private final TaskContext _parent;
     private final Graph _graph;
+
     final Callback<TaskResult> _callback;
+    private Callback<TaskContext> _end_hook;
 
     private Map<String, TaskResult> _localVariables = null;
     private Map<String, TaskResult> _nextVariables = null;
@@ -91,6 +93,12 @@ class CoreTaskContext implements TaskContext {
         }
         this._result = initial;
         this._callback = p_callback;
+    }
+
+    @Override
+    public final TaskContext setEndHook(final Callback<TaskContext> endHook) {
+        this._end_hook = endHook;
+        return this;
     }
 
     @Override
@@ -525,6 +533,9 @@ class CoreTaskContext implements TaskContext {
         }
         final TaskHook[] globalHooks = this._graph.taskHooks();
         /* Clean */
+        if (_end_hook != null) {
+            _end_hook.on(this);
+        }
         if (this._localVariables != null) {
             Set<String> localValues = this._localVariables.keySet();
             String[] flatLocalValues = localValues.toArray(new String[localValues.size()]);

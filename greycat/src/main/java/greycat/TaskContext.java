@@ -21,6 +21,8 @@ import greycat.utility.Tuple;
 
 public interface TaskContext {
 
+    TaskContext setEndHook(final Callback<TaskContext> endHook);
+
     Graph graph();
 
     long world();
