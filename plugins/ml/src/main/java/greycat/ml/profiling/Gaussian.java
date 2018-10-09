@@ -23,8 +23,6 @@ import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
 import greycat.struct.matrix.RandomGenerator;
 
-import java.util.Random;
-
 public class Gaussian {
     public static final String NULL = "nullValues";
     public static final String REJECTED = "rejectedValues";
@@ -146,9 +144,12 @@ public class Gaussian {
             throw new RuntimeException("Histogram bins should be at least 1");
         }
 
+        Long total = (Long) host.get(TOTAL);
+
         double stepsize = (max - min) / histogramBins;
         DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTERS, Type.DOUBLE_ARRAY);
         DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY);
+
 
         if (hist_center.size() == 0) {
             hist_values.init(histogramBins);
@@ -156,6 +157,7 @@ public class Gaussian {
             for (int i = 0; i < histogramBins; i++) {
                 hist_center.set(i, min + stepsize * (i + 0.5));
             }
+            total = 0L;
         }
 
         int index = (int) ((value - min) / stepsize);
@@ -163,6 +165,7 @@ public class Gaussian {
             index--;
         }
         hist_values.set(index, hist_values.get(index) + 1);
+        host.set(TOTAL, Type.LONG, total + 1);
     }
 
     public static double drawFromHistogram(EStructArray hostnode, RandomGenerator rnd) {
