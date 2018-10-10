@@ -1386,6 +1386,10 @@ final class MWResolver implements Resolver {
 
                                         final LMap timeCollector = new LMap(true);
                                         int skip_times = (timeCollector_pre.size() - limit) / limit;
+                                        if(skip_times < 0){
+                                            skip_times = 0;
+                                        }
+                                        skip_times = Math.round(skip_times);
                                         for (int i = 0; i < timeCollector_pre.size(); i = i + (skip_times + 1)) {
                                             timeCollector.put(timeCollector_pre.getKey(i), timeCollector_pre.getValue(i));
                                         }
