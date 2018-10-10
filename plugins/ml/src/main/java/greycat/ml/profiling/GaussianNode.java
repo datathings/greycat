@@ -84,6 +84,8 @@ public class GaussianNode extends BaseNode {
                 return backend.getAvg();
             case Gaussian.COV:
                 return backend.getCovariance();
+            case Gaussian.COR:
+                return backend.getCorrelation();
             case Gaussian.STD:
                 return backend.getSTD();
             case Gaussian.SUM:
