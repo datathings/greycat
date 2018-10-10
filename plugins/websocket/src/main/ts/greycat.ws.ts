@@ -50,7 +50,9 @@ export class WSClient implements greycat.plugin.Storage {
 
     private static REQ_TASK_STOP = 19;
     private static RESP_TASK_STOP = 20;
-    private static LOG = 21;
+
+    private static REQ_LOG = 21;
+    private static RESP_LOG = 22;
 
     private heartBeatFunctionId;
 
@@ -168,10 +170,9 @@ export class WSClient implements greycat.plugin.Storage {
     log(msg: string): void {
         let reqBuffer = this.graph.newBuffer();
         greycat.utility.Base64.encodeStringToBuffer(msg, reqBuffer);
-        this.send_rpc_req(WSClient.LOG, reqBuffer, function (res) {
-
+        this.send_rpc_req(WSClient.REQ_LOG, reqBuffer, function (res) {
+            reqBuffer.free();
         });
-        reqBuffer.free();
     }
 
     execute(callback: greycat.Callback<greycat.TaskResult<any>>, task: greycat.Task, prepared: greycat.TaskContext): void {
@@ -385,6 +386,7 @@ export class WSClient implements greycat.plugin.Storage {
                 case WSClient.RESP_LOCK:
                 case WSClient.RESP_GET:
                 case WSClient.RESP_TASK:
+                case WSClient.RESP_LOG:
                     let callBackCodeView = it.next();
                     let callbackCode = greycat.utility.Base64.decodeToIntWithBounds(callBackCodeView, 0, callBackCodeView.length());
                     let resolvedCallback = this.callbacks[callbackCode];

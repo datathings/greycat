@@ -151,14 +151,20 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
             byte firstCodeView = codeView.read(0);
             //compute resp prefix
             switch (firstCodeView) {
-                case WSConstants.LOG:
+                case WSConstants.REQ_LOG:
+                    graph.setProperty("ws.last", System.currentTimeMillis());
                     if (it.hasNext()) {
                         Buffer b = it.next();
                         StringBuilder buf = new StringBuilder();
                         buf.append(Base64.decodeToStringWithBounds(b, 0, b.length()));
                         ((CoreGraphLog) graph.log()).writeMessage(buf);
-                        payload.free();
                     }
+                    final Buffer task_log_buf = graph.newBuffer();
+                    task_log_buf.write(WSConstants.RESP_LOG);
+                    task_log_buf.write(Constants.BUFFER_SEP);
+                    task_log_buf.writeAll(callbackCodeView.data());
+                    payload.free();
+                    WSSharedServer.this.send_resp(task_log_buf, channel);
                     break;
                 case WSConstants.REQ_TASK_STATS:
                     graph.setProperty("ws.last", System.currentTimeMillis());

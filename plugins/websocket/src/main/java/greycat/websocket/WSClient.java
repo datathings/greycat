@@ -285,7 +285,7 @@ public class WSClient implements Storage, TaskExecutor {
     public final void log(String msg) {
         Buffer buf = this._graph.newBuffer();
         Base64.encodeStringToBuffer(msg, buf);
-        send_rpc_req(WSConstants.LOG, buf, new Callback() {
+        send_rpc_req(WSConstants.REQ_LOG, buf, new Callback() {
             @Override
             public void on(Object result) {
                 buf.free();
@@ -487,6 +487,7 @@ public class WSClient implements Storage, TaskExecutor {
                 case WSConstants.RESP_LOCK:
                 case WSConstants.RESP_GET:
                 case WSConstants.RESP_TASK:
+                case WSConstants.RESP_LOG:
                     final Buffer callBackCodeView = it.next();
                     final int callbackCode = Base64.decodeToIntWithBounds(callBackCodeView, 0, callBackCodeView.length());
                     final Callback resolvedCallback = _callbacks.get(callbackCode);

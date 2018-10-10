@@ -27,6 +27,8 @@ import java.net.ServerSocket;
 public class RemoteLogTest {
 
     public static void main(String[] args) {
+
+
         Graph graph = GraphBuilder
                 .newBuilder()
                 .withStorage(new MockStorage())
@@ -49,10 +51,10 @@ public class RemoteLogTest {
                 graphServer.start();
 
                 final Graph graph2 = new GraphBuilder().withMemorySize(10000).withStorage(new WSClient("ws://localhost:" + port + "/ws")).build();
-                graph2.log().activateRemote();
                 graph2.connect(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
+                        graph2.log().activateRemote();
                         graph2.log().info("Say Hello from {}", "GreyCat remote");
 
 
@@ -73,6 +75,31 @@ public class RemoteLogTest {
 
             }
         });
+
+
+
+        /*
+        WSServer graphServer = new WSServer(GraphBuilder.newBuilder().withStorage(new MockStorage()), 8050);
+        graphServer.start();
+
+        final Graph graph2 = new GraphBuilder().withMemorySize(10000).withStorage(new WSClient("ws://localhost:" + 8050 + "/ws")).build();
+        graph2.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                graph2.log().activateRemote();
+                graph2.log().info("Say Hello from {}", "GreyCat remote");
+
+
+                graph2.disconnect(new Callback<Boolean>() {
+                    @Override
+                    public void on(Boolean result) {
+                        graphServer.stop();
+                    }
+                });
+
+            }
+        });
+*/
 
     }
 
