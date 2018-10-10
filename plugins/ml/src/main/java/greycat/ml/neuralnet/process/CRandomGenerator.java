@@ -34,6 +34,7 @@ public class CRandomGenerator implements RandomInterface {
     private long _seed;
     private long _state;
     private int _inc = 1;
+    private double _value = 0;
 
 
     public int nextInt() {
@@ -42,33 +43,63 @@ public class CRandomGenerator implements RandomInterface {
         int xorshifted = (int) (((oldstate >> 18) ^ oldstate) >> 27);
         int rot = (int) (oldstate >> 59);
         int res = (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
-        if(res>=0){
+        if (res >= 0) {
             return res;
-        }else {
+        } else {
             return -res;
         }
     }
 
     @Override
     public double nextDouble() {
-        return 0;
+        int ui32_ran = nextInt();
+        return ((double) ui32_ran) / Integer.MAX_VALUE;
     }
 
     @Override
     public double nextGaussian() {
-        return 0;
+        if (_value != 0) {
+            double temp = _value;
+            _value = 0;
+            return temp;
+        } else {
+            double v1;
+            double v2;
+            double s;
+            do {
+                v1 = 2 * nextDouble() - 1; // between -1 and 1
+                v2 = 2 * nextDouble() - 1; // between -1 and 1
+                s = v1 * v1 + v2 * v2;
+            } while (s >= 1 || s == 0);
+            double multiplier = Math.sqrt(-2 * Math.log(s) / s);
+            _value = v2 * multiplier;
+            return v1 * multiplier;
+        }
     }
 
     @Override
     public void setSeed(long seed) {
         this._seed = seed;
         this._state = seed;
+        this._value = 0;
     }
 
-    public void init(long seed, int inc) {
+    public void init(long seed, long state, int inc) {
         this._seed = seed;
-        this._state = seed;
+        this._state = state;
         this._inc = inc;
+        this._value = 0;
     }
 
+    public long getSeed() {
+        return _seed;
+    }
+
+    public long getState() {
+        return _state;
+    }
+
+    public long getInc() {
+        return _inc;
+    }
 }
