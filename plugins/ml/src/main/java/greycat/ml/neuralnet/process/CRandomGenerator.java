@@ -41,7 +41,12 @@ public class CRandomGenerator implements RandomInterface {
         _state = _state * 6364136223846793005L + (_inc | 1);
         int xorshifted = (int) (((oldstate >> 18) ^ oldstate) >> 27);
         int rot = (int) (oldstate >> 59);
-        return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+        int res = (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+        if(res>=0){
+            return res;
+        }else {
+            return -res;
+        }
     }
 
     @Override
