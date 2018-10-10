@@ -18,6 +18,32 @@ package greycat.ml.neuralnet.process;
 import greycat.struct.matrix.RandomInterface;
 
 public class CRandomGenerator implements RandomInterface {
+
+
+//    uint32_t gdnn_generator__next_int(gnode_t *node) {
+//        uint64_t oldstate = gnode__get_ulong(node, g_state);
+//        uint64_t inc = gnode__get_ulong(node, g_inc);
+//
+//        gnode__set_ulong(node, g_state, oldstate * 6364136223846793005ULL + (inc | 1));
+//
+//        uint32_t xorshifted = (uint32_t) (((oldstate >> 18u) ^ oldstate) >> 27u);
+//        uint32_t rot = (uint32_t) (oldstate >> 59u);
+//        return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+//    }
+
+    private long _seed;
+    private long _state;
+    private int _inc = 1;
+
+
+    public int nextInt() {
+        long oldstate = _state;
+        _state = _state * 6364136223846793005L + (_inc | 1);
+        int xorshifted = (int) (((oldstate >> 18) ^ oldstate) >> 27);
+        int rot = (int) (oldstate >> 59);
+        return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+    }
+
     @Override
     public double nextDouble() {
         return 0;
@@ -30,6 +56,14 @@ public class CRandomGenerator implements RandomInterface {
 
     @Override
     public void setSeed(long seed) {
-
+        this._seed = seed;
+        this._state = seed;
     }
+
+    public void init(long seed, int inc) {
+        this._seed = seed;
+        this._state = seed;
+        this._inc = inc;
+    }
+
 }
