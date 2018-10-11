@@ -36,7 +36,7 @@ public class CRandomGenerator implements RandomInterface {
 
     /**
      * {@native ts
-     * return (Math as any).trunc(Math.random() * (Number as any).MAX_SAFE_INTEGER);
+     * return (Math as any).trunc(Math.random() * 0x7fffffff);
      * }
      */
     public int nextInt() {
