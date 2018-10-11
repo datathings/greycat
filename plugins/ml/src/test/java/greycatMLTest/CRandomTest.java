@@ -4,6 +4,10 @@ import greycat.ml.CRandomGenerator;
 import org.junit.Test;
 
 public class CRandomTest {
+
+    /**
+     * @native ts
+     */
     @Test
     public void testrandom() {
 
@@ -14,19 +18,15 @@ public class CRandomTest {
         int result = 0;
         double result_d = 0;
         double result_g = 0;
-
         for (long t = 0; t < max; t++) {
             result = randomGenerator.nextInt();
         }
-
         for (long t = 0; t < max; t++) {
             result_d = randomGenerator.nextDouble();
         }
-
         for (long t = 0; t < max; t++) {
             result_g = randomGenerator.nextGaussian();
         }
-
 //        System.out.println(result + " " + result_d + " " + result_g);
 
         //for 1000

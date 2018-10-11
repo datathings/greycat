@@ -34,7 +34,11 @@ public class CRandomGenerator implements RandomInterface {
     private long _seed;
     private double _value = 0;
 
-
+    /**
+     * {@native ts
+     * return (Math as any).trunc(Math.random() * (Number as any).MAX_SAFE_INTEGER);
+     * }
+     */
     public int nextInt() {
         long oldstate = _seed;
         _seed = _seed * 6364136223846793005L + (1);
