@@ -1,6 +1,6 @@
 package greycatMLTest;
 
-import greycat.ml.neuralnet.process.CRandomGenerator;
+import greycat.ml.CRandomGenerator;
 import org.junit.Test;
 
 public class CRandomTest {

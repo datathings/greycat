@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.process;
+package greycat.ml;
 
 import greycat.struct.matrix.RandomInterface;
 
@@ -53,7 +53,7 @@ public class CRandomGenerator implements RandomInterface {
     @Override
     public double nextDouble() {
         int ui32_ran = nextInt();
-        return ((double) ui32_ran) / Integer.MAX_VALUE;
+        return ((double) ui32_ran) / 0x7fffffff;
     }
 
     @Override
