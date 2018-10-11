@@ -332,6 +332,11 @@ public class PCAWrapper {
     }
 
 
+    public DMatrix getPCASpace(){
+        return (DMatrix) _backend.getOrCreate(SPACE_ORIGIN, Type.DMATRIX);
+    }
+
+
     public DMatrix invertMatrix(DMatrix initial, boolean workInPlace) {
 
         DMatrix _spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
