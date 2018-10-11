@@ -72,7 +72,6 @@ public class NeuralNetWrapper {
         random.setSeed(root.getWithDefault(SEED, System.currentTimeMillis()));
         std = root.getWithDefault(STD, STD_DEF);
 
-
         if (nb > 0) {
             //load all layers
             layers = new Layer[nb];

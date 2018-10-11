@@ -320,6 +320,7 @@ public class GaussianWrapper {
                     covtemp.set(i, j, (cov.get(i, j) / Math.sqrt(cov.get(i, i) * cov.get(j, j))));
                 }
             }
+            covtemp.set(i, i, 1.0);
         }
         return covtemp;
     }

@@ -19,6 +19,7 @@ import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
+import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
 
 public class GaussianNode extends BaseNode {
@@ -69,6 +70,46 @@ public class GaussianNode extends BaseNode {
         }
         throw new RuntimeException("can't set anything other than precisions or values on this node!");
     }
+
+    public DMatrix getCovariance() {
+        return backend.getCovariance();
+    }
+
+    public DMatrix getCorrelation() {
+        return backend.getCorrelation();
+    }
+
+    public double[] getAvg() {
+        return backend.getAvg();
+    }
+
+    public double[] getSTD() {
+        return backend.getSTD();
+    }
+
+
+    public double[] getSum() {
+        return backend.getSum();
+    }
+
+    public double[] getSumSq() {
+        return backend.getSumSq();
+    }
+
+
+    public double[] getMin() {
+        return backend.getMin();
+    }
+
+    public double[] getMax() {
+        return backend.getMax();
+    }
+
+
+    public long getTotal() {
+        return backend.getTotal();
+    }
+
 
     @Override
     public Object get(String attributeName) {
