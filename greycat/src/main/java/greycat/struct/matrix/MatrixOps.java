@@ -323,7 +323,7 @@ public class MatrixOps {
 
 
     public static void print(DMatrix matA, String name) {
-        System.out.println("Matrix " + name + "[" + matA.rows() + " x " + matA.columns() + "]");
+        System.out.println("Matrix " + name + " [" + matA.rows() + " x " + matA.columns() + "]");
         for (int i = 0; i < matA.rows(); i++) {
             for (int j = 0; j < matA.columns(); j++) {
                 System.out.print(matA.get(i, j) + "\t");

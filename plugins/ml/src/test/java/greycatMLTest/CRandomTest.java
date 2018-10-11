@@ -8,7 +8,7 @@ public class CRandomTest {
     public void testrandom() {
 
         CRandomGenerator randomGenerator = new CRandomGenerator();
-        randomGenerator.init(123456789, 123456789, 1);
+        randomGenerator.setSeed(123456789);
 
         long max = 1000;
         int result = 0;

@@ -114,7 +114,14 @@ public class NeuralNetWrapper {
         for (int i = 0; i < layers.length; i++) {
             layers[i].reInit(random, std);
         }
+    }
 
+    public void setRandomGenerator(RandomInterface random, double std) {
+        this.random = random;
+        this.std = std;
+        for (int i = 0; i < layers.length; i++) {
+            layers[i].reInit(random, std);
+        }
     }
 
     public NeuralNetWrapper addLayer(int layerType, int inputs, int outputs, int activationUnit, double[] activationParams) {
@@ -217,7 +224,7 @@ public class NeuralNetWrapper {
         layers = temp;
     }
 
-    public Layer[] getLayers(){
+    public Layer[] getLayers() {
         return this.layers;
     }
 

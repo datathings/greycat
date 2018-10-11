@@ -32,14 +32,12 @@ public class CRandomGenerator implements RandomInterface {
 //    }
 
     private long _seed;
-    private long _state;
-    private int _inc = 1;
     private double _value = 0;
 
 
     public int nextInt() {
-        long oldstate = _state;
-        _state = _state * 6364136223846793005L + (_inc | 1);
+        long oldstate = _seed;
+        _seed = _seed * 6364136223846793005L + (1);
         int xorshifted = (int) (((oldstate >> 18) ^ oldstate) >> 27);
         int rot = (int) (oldstate >> 59);
         int res = (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
@@ -80,14 +78,6 @@ public class CRandomGenerator implements RandomInterface {
     @Override
     public void setSeed(long seed) {
         this._seed = seed;
-        this._state = seed;
-        this._value = 0;
-    }
-
-    public void init(long seed, long state, int inc) {
-        this._seed = seed;
-        this._state = state;
-        this._inc = inc;
         this._value = 0;
     }
 
@@ -95,11 +85,4 @@ public class CRandomGenerator implements RandomInterface {
         return _seed;
     }
 
-    public long getState() {
-        return _state;
-    }
-
-    public long getInc() {
-        return _inc;
-    }
 }
