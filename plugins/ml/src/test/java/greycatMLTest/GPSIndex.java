@@ -127,8 +127,15 @@ public class GPSIndex {
                 ts = System.currentTimeMillis();
                 TreeResult trangeKD = kdTree.queryArea(mins, maxs);
                 te = System.currentTimeMillis() - ts;
-                System.out.println("KDTree range: " + te + " ms");
-                System.out.println("found: " + trangeKD.size() + " result in this area");
+//                System.out.println("KDTree range: " + te + " ms");
+//                System.out.println("found: " + trangeKD.size() + " result in this area");
+
+                graph.disconnect(new Callback<Boolean>() {
+                    @Override
+                    public void on(Boolean result) {
+
+                    }
+                });
 
             }
         });
