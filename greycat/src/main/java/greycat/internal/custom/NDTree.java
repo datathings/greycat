@@ -360,7 +360,11 @@ public class NDTree extends BaseCustomType implements NDIndexer {
         EStruct root = _backend.root();
         double[][] space = getRootSpace(root);
         check(keys, space[MIN], space[MAX]);
-        double[] resolution = ((DoubleArray) root.getAt(RESOLUTION)).extract();
+        double[] resolution = null;
+        DoubleArray storedResolution = (DoubleArray) root.getAt(RESOLUTION);
+        if(storedResolution != null) {
+            resolution = storedResolution.extract();
+        }
 
 
         int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
