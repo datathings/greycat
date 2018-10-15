@@ -39,7 +39,7 @@ public class VolatileDMatrix implements DMatrix {
 
     @Override
     public DMatrix init(int rows, int columns) {
-        if (rows != _nbRows && columns != _nbMaxColumn) {
+        if (_data != null && rows != _nbRows && columns != _nbMaxColumn) {
             throw new RuntimeException("Bad API usage !");
         }
         _nbMaxColumn = columns;
@@ -110,7 +110,7 @@ public class VolatileDMatrix implements DMatrix {
             _data = next_backend;
         }
         //just insert
-        if(newColumn.length!=_nbRows){
+        if (newColumn.length != _nbRows) {
             throw new RuntimeException("Vector has different row size than Matrix");
         }
         System.arraycopy(newColumn, 0, _data, _nbMaxColumn * _nbRows, newColumn.length);
@@ -243,6 +243,7 @@ public class VolatileDMatrix implements DMatrix {
         }
         return res;
     }
+
     public static double compareMatrix(VolatileDMatrix matA, VolatileDMatrix matB) {
         double err = 0;
 

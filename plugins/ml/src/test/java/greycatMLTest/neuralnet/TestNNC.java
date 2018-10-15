@@ -24,6 +24,7 @@ import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
+import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Test;
 
@@ -72,8 +73,8 @@ public class TestNNC {
                     }
                 }
 
-//                MatrixOps.print(inputs,"inputs");
-//                MatrixOps.print(outputs,"outputs");
+                MatrixOps.print(inputs,"inputs");
+                MatrixOps.print(outputs,"outputs");
 
 
             }
