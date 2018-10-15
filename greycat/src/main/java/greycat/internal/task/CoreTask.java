@@ -746,6 +746,16 @@ public class CoreTask implements Task {
                     }
                 });
 
+        registry.getOrCreateDeclaration(CoreActionNames.LOOKUP_ALL)
+                .setParams(Type.STRING)
+                .setDescription("Looks for the node with given ID.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionLookupAll((String) params[0]);
+                    }
+                });
+
         registry.getOrCreateDeclaration(CoreActionNames.GET_ELEMENT)
                 .setParams(Type.STRING)
                 .setDescription("Get element at param index")
