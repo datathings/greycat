@@ -33,7 +33,9 @@ public class VolatileDMatrix implements DMatrix {
         if (backend != null) {
             this._data = backend;
         } else {
-            this._data = new double[_nbRows * _nbColumns];
+            if(_nbRows!=0 && _nbColumns!=0) {
+                this._data = new double[_nbRows * _nbColumns];
+            }
         }
     }
 
