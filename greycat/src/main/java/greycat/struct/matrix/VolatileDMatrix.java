@@ -33,7 +33,7 @@ public class VolatileDMatrix implements DMatrix {
         if (backend != null) {
             this._data = backend;
         } else {
-            if(_nbRows!=0 && _nbColumns!=0) {
+            if (_nbRows != 0 && _nbColumns != 0) {
                 this._data = new double[_nbRows * _nbColumns];
             }
         }
@@ -46,6 +46,7 @@ public class VolatileDMatrix implements DMatrix {
         }
         _nbMaxColumn = columns;
         _nbColumns = columns;
+        _nbRows = rows;
         this._data = new double[_nbRows * _nbMaxColumn];
         return this;
     }
