@@ -65,8 +65,8 @@ public class NeuralNetWrapper {
 
         //Load config with everything in default
 
-        tarinLoss = Losses.getUnit(root.getWithDefault(TRAIN_LOSS, Losses.DEFAULT));
-        testLoss = Losses.getUnit(root.getWithDefault(REPORTING_LOSS, Losses.DEFAULT));
+        tarinLoss = Losses.getUnit(root.getWithDefault(TRAIN_LOSS, Losses.DEFAULT),null);
+        testLoss = Losses.getUnit(root.getWithDefault(REPORTING_LOSS, Losses.DEFAULT),null);
         learner = Optimisers.getUnit(root.getWithDefault(LEARNER, Optimisers.DEFAULT), backend.root());
         random = new RandomGenerator();
         random.setSeed(root.getWithDefault(SEED, System.currentTimeMillis()));
@@ -84,14 +84,14 @@ public class NeuralNetWrapper {
     }
 
 
-    public void setTrainLoss(int trainLoss) {
-        this.tarinLoss = Losses.getUnit(trainLoss);
+    public void setTrainLoss(int trainLoss, double[] weights) {
+        this.tarinLoss = Losses.getUnit(trainLoss, weights);
         root.set(TRAIN_LOSS, Type.INT, trainLoss);
     }
 
 
-    public void setTestLoss(int testLoss) {
-        this.testLoss = Losses.getUnit(testLoss);
+    public void setTestLoss(int testLoss, double[] weights)  {
+        this.testLoss = Losses.getUnit(testLoss, weights);
         root.set(REPORTING_LOSS, Type.INT, testLoss);
     }
 

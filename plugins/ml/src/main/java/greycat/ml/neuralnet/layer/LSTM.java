@@ -22,7 +22,6 @@ import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
-import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.RandomInterface;
 
 class LSTM implements Layer {
@@ -93,7 +92,7 @@ class LSTM implements Layer {
 
     @Override
     public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
-        host.set(Layers.TYPE, Type.INT, Layers.LSTM_LAYER);
+        host.set(Layers.LAYER_TYPE, Type.INT, Layers.LSTM_LAYER);
 
         wix.init(outputs, inputs);
         wih.init(outputs, outputs);

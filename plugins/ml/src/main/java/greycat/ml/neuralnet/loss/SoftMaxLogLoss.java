@@ -22,12 +22,17 @@ import greycat.struct.matrix.VolatileDMatrix;
 
 public class SoftMaxLogLoss implements Loss {
     private static SoftMaxLogLoss static_unit = null;
+    private double[] weights;
 
     public static Loss instance() {
         if (static_unit == null) {
-            static_unit = new SoftMaxLogLoss();
+            static_unit = new SoftMaxLogLoss(null);
         }
         return static_unit;
+    }
+
+    public SoftMaxLogLoss(double[] weights) {
+        this.weights = weights;
     }
 
     @Override
@@ -35,12 +40,24 @@ public class SoftMaxLogLoss implements Loss {
         DMatrix prob = VolatileDMatrix.empty(actualOutput.rows(), actualOutput.columns());
         MatrixOps.softmax(actualOutput.getW(), prob);
 
-        for (int col = 0; col < actualOutput.columns(); col++) {
-            for (int row = 0; row < actualOutput.rows(); row++) {
-                if (targetOutput.get(row, col) > 0) {
-                    actualOutput.getDw().set(row, col, prob.get(row, col) - 1);
-                } else {
-                    actualOutput.getDw().set(row, col, prob.get(row, col));
+        if (weights != null) {
+            for (int col = 0; col < actualOutput.columns(); col++) {
+                for (int row = 0; row < actualOutput.rows(); row++) {
+                    if (targetOutput.get(row, col) > 0) {
+                        actualOutput.getDw().set(row, col, prob.get(row, col) - 1);
+                    } else {
+                        actualOutput.getDw().set(row, col, prob.get(row, col));
+                    }
+                }
+            }
+        } else {
+            for (int col = 0; col < actualOutput.columns(); col++) {
+                for (int row = 0; row < actualOutput.rows(); row++) {
+                    if (targetOutput.get(row, col) > 0) {
+                        actualOutput.getDw().set(row, col, (prob.get(row, col) - 1) * weights[row]);
+                    } else {
+                        actualOutput.getDw().set(row, col, prob.get(row, col) * weights[row]);
+                    }
                 }
             }
         }
@@ -61,16 +78,32 @@ public class SoftMaxLogLoss implements Loss {
         }
 
         double p;
-        for (int col = 0; col < actualOutput.columns(); col++) {
-            double sum = 0;
-            for (int row = 0; row < actualOutput.rows(); row++) {
-                p = Math.exp(actualOutput.get(row, col) - maxval);
-                sum += p;
+        if (weights != null) {
+            for (int col = 0; col < actualOutput.columns(); col++) {
+                double sum = 0;
+                for (int row = 0; row < actualOutput.rows(); row++) {
+                    p = Math.exp(actualOutput.get(row, col) - maxval);
+                    sum += p;
+                }
+                sum = Math.log(sum);
+                for (int row = 0; row < actualOutput.rows(); row++) {
+                    if (targetOutput.get(row, col) > 0) {
+                        res.set(row, col, -targetOutput.get(row, col) * (actualOutput.get(row, col) - maxval - sum));
+                    }
+                }
             }
-            sum = Math.log(sum);
-            for (int row = 0; row < actualOutput.rows(); row++) {
-                if (targetOutput.get(row, col) > 0) {
-                    res.set(row, col, -targetOutput.get(row, col) * (actualOutput.get(row, col) - maxval - sum));
+        } else {
+            for (int col = 0; col < actualOutput.columns(); col++) {
+                double sum = 0;
+                for (int row = 0; row < actualOutput.rows(); row++) {
+                    p = Math.exp(actualOutput.get(row, col) - maxval);
+                    sum += p;
+                }
+                sum = Math.log(sum);
+                for (int row = 0; row < actualOutput.rows(); row++) {
+                    if (targetOutput.get(row, col) > 0) {
+                        res.set(row, col, -targetOutput.get(row, col) * (actualOutput.get(row, col) - maxval - sum) * weights[row]);
+                    }
                 }
             }
         }

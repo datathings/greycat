@@ -54,7 +54,7 @@ public class TestNN {
 
                 net.addLayer(Layers.LINEAR_LAYER, input, output, Activations.LINEAR, null);
                 net.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
-                net.setTrainLoss(Losses.SUM_OF_SQUARES);
+                net.setTrainLoss(Losses.SUM_OF_SQUARES, null);
 
 
                 Random random = new Random();

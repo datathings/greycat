@@ -23,12 +23,17 @@ import greycat.struct.matrix.VolatileDMatrix;
 class SumOfSquares implements Loss {
 
     private static SumOfSquares static_unit = null;
+    private double[] weights;
 
     public static SumOfSquares instance() {
         if (static_unit == null) {
-            static_unit = new SumOfSquares();
+            static_unit = new SumOfSquares(null);
         }
         return static_unit;
+    }
+
+    public SumOfSquares(double[] weights){
+        this.weights=weights;
     }
 
     @Override
@@ -37,6 +42,13 @@ class SumOfSquares implements Loss {
         for (int i = 0; i < len; i++) {
             double errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);  //double errDelta = 2*(actualOutput.w[i] - targetOutput.w[i]);
             actualOutput.getDw().unsafeSet(i, actualOutput.getDw().unsafeGet(i) + errDelta); //actualOutput.dw[i] += errDelta;
+        }
+        if (weights != null) {
+            for (int row = 0; row < actualOutput.getDw().rows(); row++) {
+                for (int col = 0; col < actualOutput.getDw().columns(); col++) {
+                    actualOutput.getDw().set(row, col, actualOutput.getDw().get(row, col) * weights[row]);
+                }
+            }
         }
     }
 
@@ -49,6 +61,13 @@ class SumOfSquares implements Loss {
         for (int i = 0; i < len; i++) {
             errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);
             res.unsafeSet(i, 0.5 * errDelta * errDelta);
+        }
+        if (weights != null) {
+            for (int row = 0; row < res.rows(); row++) {
+                for (int col = 0; col < res.columns(); col++) {
+                    res.set(row, col, res.get(row, col) * weights[row]);
+                }
+            }
         }
         return res;
     }

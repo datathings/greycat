@@ -19,7 +19,7 @@ import greycat.Type;
 import greycat.struct.EStruct;
 
 public class Layers {
-    public final static String TYPE = "type";
+    public final static String LAYER_TYPE = "type";
 
     public final static int FEED_FORWARD_LAYER = 0;
     public final static int LINEAR_LAYER = 1;
@@ -31,7 +31,7 @@ public class Layers {
     public final static int DROPOUT_LAYER = 7;
 
     public static Layer loadLayer(EStruct node) {
-        switch ((int) node.get(TYPE)) {
+        switch ((int) node.get(LAYER_TYPE)) {
             case FEED_FORWARD_LAYER:
                 return new FeedForward(node);
             case LINEAR_LAYER:
@@ -54,7 +54,7 @@ public class Layers {
 
 
     public static Layer createLayer(EStruct node, int type) {
-        node.set(Layers.TYPE, Type.INT, type);
+        node.set(Layers.LAYER_TYPE, Type.INT, type);
         return loadLayer(node);
     }
 }

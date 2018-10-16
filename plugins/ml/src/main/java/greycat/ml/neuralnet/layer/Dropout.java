@@ -42,7 +42,7 @@ public class Dropout implements Layer {
         } else {
             host.set(DROPOUT_PERCENT, Type.DOUBLE, activationParams[0]);
         }
-        host.set(Layers.TYPE, Type.INT, Layers.DROPOUT_LAYER);
+        host.set(Layers.LAYER_TYPE, Type.INT, Layers.DROPOUT_LAYER);
         return this;
     }
 

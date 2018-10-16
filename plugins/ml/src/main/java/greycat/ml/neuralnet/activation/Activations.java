@@ -21,7 +21,8 @@ public class Activations {
     public static final int SINE = 2;
     public static final int TANH = 3;
     public static final int LECUN_TANH = 4;
-    public static final int RECTIFIED_LINEAR = 5;
+    public static final int LEAKY_RELU = 5;
+    public static final int RELU = 6;
 
     public static final int DEFAULT = LINEAR;
 
@@ -37,8 +38,10 @@ public class Activations {
                 return Tanh.instance();
             case LECUN_TANH:
                 return LeCunTanh.instance();
-            case RECTIFIED_LINEAR:
-                return new RectifiedLinear(unitArgs[0]);
+            case LEAKY_RELU:
+                return new LeakyReLU(unitArgs[0]);
+            case RELU:
+                return ReLU.instance();
         }
         return getUnit(DEFAULT, null);
     }

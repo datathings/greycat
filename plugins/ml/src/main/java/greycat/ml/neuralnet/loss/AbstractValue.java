@@ -22,17 +22,24 @@ import greycat.struct.matrix.VolatileDMatrix;
 
 public class AbstractValue implements Loss {
     private static AbstractValue static_unit = null;
+    private double[] weights;
 
     public static AbstractValue instance() {
         if (static_unit == null) {
-            static_unit = new AbstractValue();
+            static_unit = new AbstractValue(null);
         }
         return static_unit;
+    }
+
+
+    public AbstractValue(double[] weights) {
+        this.weights = weights;
     }
 
     @Override
     public void backward(ExMatrix actualOutput, ExMatrix targetOutput) {
         final int len = targetOutput.length();
+
         for (int i = 0; i < len; i++) {
             double errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);  //double errDelta = actualOutput.w[i] - targetOutput.w[i];
             //the derivation of Abstract value is either 1 or -1 |X| = x or -x.
@@ -43,6 +50,15 @@ public class AbstractValue implements Loss {
             }
             actualOutput.getDw().unsafeSet(i, actualOutput.getDw().unsafeGet(i) + errDelta); //actualOutput.dw[i] += errDelta;
         }
+
+        if (weights != null) {
+            for (int row = 0; row < actualOutput.getDw().rows(); row++) {
+                for (int col = 0; col < actualOutput.getDw().columns(); col++) {
+                    actualOutput.getDw().set(row, col, actualOutput.getDw().get(row, col) * weights[row]);
+                }
+            }
+        }
+
     }
 
     @Override
@@ -54,6 +70,13 @@ public class AbstractValue implements Loss {
         for (int i = 0; i < len; i++) {
             errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);
             res.unsafeSet(i, Math.abs(errDelta));
+        }
+        if (weights != null) {
+            for (int row = 0; row < res.rows(); row++) {
+                for (int col = 0; col < res.columns(); col++) {
+                    res.set(row, col, res.get(row, col) * weights[row]);
+                }
+            }
         }
         return res;
     }

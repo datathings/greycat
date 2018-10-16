@@ -26,24 +26,43 @@ public class Losses {
     public static final int MULTI_DIM_BINARY = 4;
     public static final int SOFTMAX_LOG_LOSS = 5;
 
+
     public static final int DEFAULT = SUM_OF_SQUARES;
 
-    public static Loss getUnit(int lossUnit) {
-        switch (lossUnit) {
-            case SUM_OF_SQUARES:
-                return SumOfSquares.instance();
-            case ABSTRACT_VALUE:
-                return AbstractValue.instance();
-            case LOG_LOSS:
-                return LogLoss.instance();
-            case ARG_MAX:
-                return ArgMax.instance();
-            case MULTI_DIM_BINARY:
-                return MultiDimensionalBinary.instance();
-            case SOFTMAX_LOG_LOSS:
-                return SoftMaxLogLoss.instance();
+    public static Loss getUnit(int lossUnit, double[] weights) {
+        if (weights == null) {
+            switch (lossUnit) {
+                case SUM_OF_SQUARES:
+                    return SumOfSquares.instance();
+                case ABSTRACT_VALUE:
+                    return AbstractValue.instance();
+                case LOG_LOSS:
+
+                    return LogLoss.instance();
+                case ARG_MAX:
+                    return ArgMax.instance();
+                case MULTI_DIM_BINARY:
+                    return MultiDimensionalBinary.instance();
+                case SOFTMAX_LOG_LOSS:
+                    return SoftMaxLogLoss.instance();
+            }
+        } else {
+            switch (lossUnit) {
+                case SUM_OF_SQUARES:
+                    return new SumOfSquares(weights);
+                case ABSTRACT_VALUE:
+                    return new AbstractValue(weights);
+                case LOG_LOSS:
+                    return new LogLoss(weights);
+                case ARG_MAX:
+                    return ArgMax.instance();
+                case MULTI_DIM_BINARY:
+                    return MultiDimensionalBinary.instance();
+                case SOFTMAX_LOG_LOSS:
+                    return new SoftMaxLogLoss(weights);
+            }
         }
-        return getUnit(DEFAULT);
+        return getUnit(DEFAULT, null);
     }
 
 

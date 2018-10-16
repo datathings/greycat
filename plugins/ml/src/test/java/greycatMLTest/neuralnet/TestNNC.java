@@ -53,7 +53,7 @@ public class TestNNC {
 
                 net.addLayer(Layers.FEED_FORWARD_LAYER, input, output, Activations.LINEAR, null);
                 net.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
-                net.setTrainLoss(Losses.SUM_OF_SQUARES);
+                net.setTrainLoss(Losses.SUM_OF_SQUARES, null);
 
                 CRandomGenerator random = new CRandomGenerator();
                 random.setSeed(123456789);
@@ -73,8 +73,8 @@ public class TestNNC {
                     }
                 }
 
-                MatrixOps.print(inputs,"inputs");
-                MatrixOps.print(outputs,"outputs");
+//                MatrixOps.print(inputs,"inputs");
+//                MatrixOps.print(outputs,"outputs");
 
 
             }

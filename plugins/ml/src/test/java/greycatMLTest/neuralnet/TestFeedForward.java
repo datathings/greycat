@@ -108,7 +108,7 @@ public class TestFeedForward {
                 bias2.set(0, 0, 0.6);
                 bias2.set(1, 0, 0.6);
 
-                Loss sumsq = Losses.getUnit(Losses.SUM_OF_SQUARES);
+                Loss sumsq = Losses.getUnit(Losses.SUM_OF_SQUARES, null);
 
                 Layer layer1 = Layers.loadLayer(l1node);
                 Layer layer2 = Layers.loadLayer(l2node);

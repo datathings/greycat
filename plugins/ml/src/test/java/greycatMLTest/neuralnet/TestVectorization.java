@@ -68,7 +68,7 @@ public class TestVectorization {
                 net1.setRandom(1234, 0.1);
                 net1.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net1.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate / trainset, regularisation}, 1);
-                net1.setTrainLoss(Losses.SUM_OF_SQUARES);
+                net1.setTrainLoss(Losses.SUM_OF_SQUARES, null);
 
 
                 Node node2 = g.newNode(0, 0);
@@ -77,7 +77,7 @@ public class TestVectorization {
                 net2.setRandom(1234, 0.1);
                 net2.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net2.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 0);
-                net2.setTrainLoss(Losses.SUM_OF_SQUARES);
+                net2.setTrainLoss(Losses.SUM_OF_SQUARES, null);
 
 
                 long start = System.currentTimeMillis();
