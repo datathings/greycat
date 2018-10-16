@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.init;
+package greycat.ml.neuralnet.process;
 
-public class WeightInits {
+import greycat.struct.DMatrix;
+import greycat.struct.matrix.RandomInterface;
+
+public class WeightInit {
 //   Follow  https://deeplearning4j.org/api/latest/org/deeplearning4j/nn/weights/WeightInit.html for doc
 
-    public final static int DISTRIBUTION = 0;
+    public final static int GAUSSIAN = 0;
     public final static int ZERO = 1;
     public final static int ONE = 2;
     public final static int SIGMOID_UNIFORM = 3;
@@ -38,5 +41,118 @@ public class WeightInits {
     public final static int UNIFORM_IN = 15;
     public final static int UNIFORM_OUT = 16;
     public final static int UNIFORM_AVG = 17;
+    public final static int DEFAULT = GAUSSIAN;
 
+
+    public static void init(DMatrix weights, RandomInterface random, int initType, double std) {
+        int len = weights.length();
+        if (len == 0) {
+            throw new RuntimeException("Set the weight dimension first");
+        }
+        double range = 1;
+        boolean uniform = false;
+
+        //in is weights.columns()
+        //out is weights.rows()
+
+        switch (initType) {
+            case GAUSSIAN:
+                range = std;
+                uniform = false;
+                break;
+            case ZERO:
+                weights.fill(0);
+                return;
+            case ONE:
+                weights.fill(1);
+                return;
+            case SIGMOID_UNIFORM:
+                uniform = true;
+                range = 4 * Math.sqrt(6.0 / (weights.columns() + weights.rows()));
+                break;
+            case NORMAL:
+                uniform = false;
+                range = Math.sqrt(1.0 / weights.columns());
+                break;
+            case UNIFORM:
+                uniform = true;
+                range = Math.sqrt(1.0 / weights.columns());
+                break;
+
+// LECUN_UNIFORM Uniform U[-a,a] with a=3/sqrt(fanIn).
+            case LECUN_UNIFORM:
+                uniform = true;
+                range = 3 * Math.sqrt(1.0 / weights.columns());
+                break;
+// XAVIER: As per Glorot and Bengio 2010: Gaussian distribution with mean 0, variance 2.0/(fanIn + fanOut)
+            case XAVIER:
+                uniform = false;
+                range = Math.sqrt(2.0 / (weights.columns() + weights.rows()));
+                break;
+
+// XAVIER_UNIFORM: As per Glorot and Bengio 2010: Uniform distribution U(-s,s) with s = sqrt(6/(fanIn + fanOut))
+            case XAVIER_UNIFORM:
+                uniform = true;
+                range = Math.sqrt(6.0 / (weights.columns() + weights.rows()));
+                break;
+// RELU: He et al. (2015), "Delving Deep into Rectifiers". Normal distribution with variance 2.0/nIn
+            case RELU:
+                uniform = false;
+                range = Math.sqrt(2.0 / weights.columns());
+                break;
+// RELU_UNIFORM: He et al. (2015), "Delving Deep into Rectifiers". Uniform distribution U(-s,s) with s = sqrt(6/fanIn)
+            case RELU_UNIFORM:
+                uniform = true;
+                range = Math.sqrt(6.0 / weights.columns());
+                break;
+            case IDENTITY:
+                weights.fill(0);
+                int ld = Math.min(weights.columns(), weights.rows());
+                for (int i = 0; i < ld; i++) {
+                    weights.set(i, i, 1.0);
+                }
+                return;
+//  VAR_SCALING_NORMAL_FAN_IN Gaussian distribution with mean 0, variance 1.0/(fanIn)
+            case NORMAL_IN:
+                uniform = false;
+                range = Math.sqrt(1.0 / weights.columns());
+                break;
+            case NORMAL_OUT:
+//  VAR_SCALING_NORMAL_FAN_OUT Gaussian distribution with mean 0, variance 1.0/(fanOut)
+                uniform = false;
+                range = Math.sqrt(1.0 / weights.rows());
+                break;
+            case NORMAL_AVG:
+//  VAR_SCALING_NORMAL_FAN_AVG Gaussian distribution with mean 0, variance 1.0/((fanIn + fanOut)/2)
+                uniform = false;
+                range = Math.sqrt(2.0 / (weights.columns() + weights.rows()));
+                break;
+//  VAR_SCALING_UNIFORM_FAN_IN Uniform U[-a,a] with a=3.0/(fanIn)
+            case UNIFORM_IN:
+                uniform = true;
+                range = 3.0 / weights.columns();
+                break;
+//  VAR_SCALING_UNIFORM_FAN_OUT Uniform U[-a,a] with a=3.0/(fanOut)
+            case UNIFORM_OUT:
+                uniform = true;
+                range = 3.0 / weights.rows();
+                break;
+//  VAR_SCALING_UNIFORM_FAN_AVG Uniform U[-a,a] with a=3.0/((fanIn + fanOut)/2)
+            case UNIFORM_AVG:
+                uniform = true;
+                range = 6.0 / (weights.columns() + weights.rows());
+                break;
+        }
+
+
+        if (uniform) {
+            for (int i = 0; i < len; i++) {
+                weights.unsafeSet(i, random.nextDouble() * range);
+            }
+        } else {
+            for (int i = 0; i < len; i++) {
+                weights.unsafeSet(i, random.nextGaussian() * range);
+            }
+        }
+    }
 }
