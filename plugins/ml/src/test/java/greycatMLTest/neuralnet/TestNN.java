@@ -21,8 +21,11 @@ import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.optimiser.Optimisers;
+import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
+import greycat.struct.matrix.JavaRandom;
+import greycat.struct.matrix.RandomInterface;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -50,15 +53,16 @@ public class TestNN {
                 EStructArray egraph = (EStructArray) node.getOrCreate("nn", Type.ESTRUCT_ARRAY);
 
                 NeuralNetWrapper net = new NeuralNetWrapper(egraph);
-                net.setRandom(1234, 0.1);
+                RandomInterface random = new JavaRandom();
+                random.setSeed(1234);
+                net.setRandom(random);
 
                 net.addLayer(Layers.LINEAR_LAYER, input, output, Activations.LINEAR, null);
                 net.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
                 net.setTrainLoss(Losses.SUM_OF_SQUARES, null);
+                net.initAllLayers(WeightInit.GAUSSIAN,random,0.08);
 
 
-                Random random = new Random();
-                random.setSeed(456);
 
                 double[] inputSet = new double[input];
                 double[] outputSet = new double[output];

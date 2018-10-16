@@ -22,6 +22,7 @@ import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.optimiser.Optimisers;
+import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
 import greycat.struct.matrix.VolatileDMatrix;
@@ -48,7 +49,6 @@ public class TestNNC {
                 EStructArray egraph = (EStructArray) node.getOrCreate("nn", Type.ESTRUCT_ARRAY);
 
                 NeuralNetWrapper net = new NeuralNetWrapper(egraph);
-                net.setRandom(1234, 0.1);
 
                 net.addLayer(Layers.FEED_FORWARD_LAYER, input, output, Activations.LINEAR, null);
                 net.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
@@ -56,8 +56,8 @@ public class TestNNC {
 
                 CRandom random = new CRandom();
                 random.setSeed(123456789);
-
-                net.setRandomGenerator(random, 0.08);
+                net.setRandom(random);
+                net.initAllLayers(WeightInit.GAUSSIAN, random, 0.08);
 
 
                 DMatrix inputs = VolatileDMatrix.empty(input, setsize);

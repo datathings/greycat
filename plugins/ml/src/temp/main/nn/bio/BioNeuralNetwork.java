@@ -62,7 +62,7 @@ public class BioNeuralNetwork extends BaseNode {
             if (i == 0) {
                 for (int j = 0; j < nodesPerLayer; j++) {
                     final BioNeuralNode neuralNode = (BioNeuralNode) graph().newTypedNode(world(), time(), BioNeuralNode.NAME);
-                    //init buffer and weights
+                    //create buffer and weights
                     DMatrix spikeSum = (DMatrix) neuralNode.getOrCreate(BUFFER_SPIKE_SUM, Type.DMATRIX);
                     spikeSum.init(1, inputs);
                     spikeSum.fill(0d);
@@ -86,7 +86,7 @@ public class BioNeuralNetwork extends BaseNode {
                 final BioNeuralNode[] tempLayer = new BioNeuralNode[nodesPerLayer];
                 for (int j = 0; j < nodesPerLayer; j++) {
                     final BioNeuralNode neuralNode = (BioNeuralNode) graph().newTypedNode(world(), time(), BioNeuralNode.NAME);
-                    //init buffer and weights
+                    //create buffer and weights
                     DMatrix spikeSum = (DMatrix) neuralNode.getOrCreate(BUFFER_SPIKE_SUM, Type.DMATRIX);
                     spikeSum.init(1, nodesPerLayer);
                     spikeSum.fill(0d);
@@ -109,7 +109,7 @@ public class BioNeuralNetwork extends BaseNode {
         //create output layer
         for (int i = 0; i < outputs; i++) {
             BioOutputNeuralNode output = (BioOutputNeuralNode) graph().newTypedNode(world(), time(), BioOutputNeuralNode.NAME);
-            //init buffer and weights
+            //create buffer and weights
             DMatrix spikeSum = (DMatrix) output.getOrCreate(BUFFER_SPIKE_SUM, Type.DMATRIX);
             spikeSum.init(1, nodesPerLayer);
             spikeSum.fill(0d);

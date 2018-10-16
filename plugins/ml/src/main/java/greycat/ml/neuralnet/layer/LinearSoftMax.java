@@ -18,6 +18,7 @@ package greycat.ml.neuralnet.layer;
 import greycat.Type;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
+import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.DMatrix;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
@@ -42,23 +43,21 @@ public class LinearSoftMax implements Layer {
     }
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
+    public Layer create(int inputs, int outputs, int activationUnit, double[] activationParams) {
         //First always set the type
         host.set(Layers.LAYER_TYPE, Type.INT, Layers.SOFTMAX_LAYER);
         weights.init(outputs, inputs);
         bias.init(outputs, 1);
-        return reInit(random, std);
-
+        return this;
     }
 
     @Override
-    public Layer reInit(RandomInterface random, double std) {
-        if (random != null && std != 0) {
-            MatrixOps.fillWithRandomStd(weights, random, std);
-            MatrixOps.fillWithRandomStd(bias, random, std);
-        }
+    public Layer init(int weightInitType, RandomInterface random, double std) {
+        WeightInit.init(weights, weightInitType, random, std);
+        WeightInit.init(bias, weightInitType, random, std);
         return this;
     }
+
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {

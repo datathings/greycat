@@ -30,13 +30,11 @@ public class ProcessGraph {
     private List<ProcessStep> backprop = new ArrayList<ProcessStep>();
     private RandomInterface random = null;
 
-    public ProcessGraph(boolean applyBackprop) {
+    public ProcessGraph(RandomInterface random, boolean applyBackprop) {
+        this.random = random;
         this.applyBackprop = applyBackprop;
     }
 
-    public void setRandom(RandomInterface random) {
-        this.random = random;
-    }
 
     public final void backpropagate() {
         for (int i = backprop.size() - 1; i >= 0; i--) {

@@ -20,8 +20,8 @@ import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
+import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.EStruct;
-import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomInterface;
 
 class LSTM implements Layer {
@@ -91,7 +91,7 @@ class LSTM implements Layer {
 
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
+    public Layer create(int inputs, int outputs, int activationUnit, double[] activationsParams) {
         host.set(Layers.LAYER_TYPE, Type.INT, Layers.LSTM_LAYER);
 
         wix.init(outputs, inputs);
@@ -113,31 +113,28 @@ class LSTM implements Layer {
         hiddenContext.init(outputs, 1);
         cellContext.init(outputs, 1);
 
-        return reInit(random, std);
-
+        return this;
     }
 
+
     @Override
-    public Layer reInit(RandomInterface random, double std) {
-        //todo check why bias are not initialized randomly
-        if (random != null && std != 0) {
-            MatrixOps.fillWithRandomStd(wix, random, std);
-            MatrixOps.fillWithRandomStd(wih, random, std);
-            // MatrixOps.fillWithRandomStd(bi, random, std);
+    public Layer init(int weightInitType, RandomInterface random, double std) {
+        WeightInit.init(wix, weightInitType, random, std);
+        WeightInit.init(wih, weightInitType, random, std);
+//        WeightInit.init(bi, weightInitType, random, std);
 
-            MatrixOps.fillWithRandomStd(wfx, random, std);
-            MatrixOps.fillWithRandomStd(wfh, random, std);
-            //set forget bias to 1.0, as described here: http://jmlr.org/proceedings/papers/v37/jozefowicz15.pdf
-            bf.fill(1.0);
+        WeightInit.init(wfx, weightInitType, random, std);
+        WeightInit.init(wfh, weightInitType, random, std);
+        //set forget bias to 1.0, as described here: http://jmlr.org/proceedings/papers/v37/jozefowicz15.pdf
+        WeightInit.init(bf, WeightInit.ONE, random, std);
 
-            MatrixOps.fillWithRandomStd(wox, random, std);
-            MatrixOps.fillWithRandomStd(woh, random, std);
-            //MatrixOps.fillWithRandomStd(bo, random, std);
+        WeightInit.init(wox, weightInitType, random, std);
+        WeightInit.init(woh, weightInitType, random, std);
+//        WeightInit.init(bo, weightInitType, random, std);
 
-            MatrixOps.fillWithRandomStd(wcx, random, std);
-            MatrixOps.fillWithRandomStd(wch, random, std);
-            //MatrixOps.fillWithRandomStd(bc, random, std);
-        }
+        WeightInit.init(wcx, weightInitType, random, std);
+        WeightInit.init(wch, weightInitType, random, std);
+//        WeightInit.init(bc, weightInitType, random, std);
 
         return this;
     }

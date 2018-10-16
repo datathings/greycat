@@ -20,6 +20,7 @@ import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
+import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.DoubleArray;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
@@ -54,7 +55,7 @@ class RNN implements Layer {
 
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
+    public Layer create(int inputs, int outputs, int activationUnit, double[] activationParams) {
         //First always set the type
         host.set(Layers.LAYER_TYPE, Type.INT, Layers.RNN_LAYER);
         weights.init(outputs, inputs + outputs);
@@ -65,16 +66,15 @@ class RNN implements Layer {
         if (activationParams != null) {
             ((DoubleArray) host.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY)).initWith(activationParams);
         }
-        return reInit(random, std);
+        return this;
 
     }
 
+
     @Override
-    public Layer reInit(RandomInterface random, double std) {
-        if (random != null && std != 0) {
-            MatrixOps.fillWithRandomStd(weights, random, std);
-            //MatrixOps.fillWithRandomStd(bias, random, std);
-        }
+    public Layer init(int weightInitType, RandomInterface random, double std) {
+        WeightInit.init(weights, weightInitType, random, std);
+//        WeightInit.init(bias, weightInitType, random, std);
         return this;
     }
 

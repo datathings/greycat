@@ -27,7 +27,6 @@ import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
-import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.RandomInterface;
 import greycat.struct.matrix.VolatileDMatrix;
 
@@ -40,6 +39,7 @@ public class NeuralNetWrapper {
     private static final String STD = "std";
     private static final double STD_DEF = 0.08;
 
+    private RandomInterface random=null;
     private EStructArray backend;
     private EStruct root;
     private Layer[] layers;
@@ -47,8 +47,6 @@ public class NeuralNetWrapper {
     private Loss testLoss;
     private Optimiser learner;
 
-    private RandomInterface random;
-    private double std;
 
     public NeuralNetWrapper(EStructArray p_backend) {
         backend = p_backend;
@@ -65,12 +63,9 @@ public class NeuralNetWrapper {
 
         //Load config with everything in default
 
-        tarinLoss = Losses.getUnit(root.getWithDefault(TRAIN_LOSS, Losses.DEFAULT),null);
-        testLoss = Losses.getUnit(root.getWithDefault(REPORTING_LOSS, Losses.DEFAULT),null);
+        tarinLoss = Losses.getUnit(root.getWithDefault(TRAIN_LOSS, Losses.DEFAULT), null);
+        testLoss = Losses.getUnit(root.getWithDefault(REPORTING_LOSS, Losses.DEFAULT), null);
         learner = Optimisers.getUnit(root.getWithDefault(LEARNER, Optimisers.DEFAULT), backend.root());
-        random = new RandomGenerator();
-        random.setSeed(root.getWithDefault(SEED, System.currentTimeMillis()));
-        std = root.getWithDefault(STD, STD_DEF);
 
         if (nb > 0) {
             //load all layers
@@ -83,6 +78,9 @@ public class NeuralNetWrapper {
         }
     }
 
+    public void setRandom(RandomInterface random) {
+        this.random = random;
+    }
 
     public void setTrainLoss(int trainLoss, double[] weights) {
         this.tarinLoss = Losses.getUnit(trainLoss, weights);
@@ -90,7 +88,7 @@ public class NeuralNetWrapper {
     }
 
 
-    public void setTestLoss(int testLoss, double[] weights)  {
+    public void setTestLoss(int testLoss, double[] weights) {
         this.testLoss = Losses.getUnit(testLoss, weights);
         root.set(REPORTING_LOSS, Type.INT, testLoss);
     }
@@ -104,23 +102,17 @@ public class NeuralNetWrapper {
         this.learner.setFrequency(frequency);
     }
 
-
-    public void setRandom(long seed, double std) {
-        this.random.setSeed(seed);
-        this.std = std;
-        root.set(SEED, Type.LONG, seed);
-        root.set(STD, Type.DOUBLE, std);
-
+    public void initAllLayers(int weightInitType, RandomInterface random, double std) {
         for (int i = 0; i < layers.length; i++) {
-            layers[i].reInit(random, std);
+            layers[i].init(weightInitType, random, std);
         }
     }
 
-    public void setRandomGenerator(RandomInterface random, double std) {
-        this.random = random;
-        this.std = std;
-        for (int i = 0; i < layers.length; i++) {
-            layers[i].reInit(random, std);
+    public void initSelectedLayer(int layerNumber, int weightInitType, RandomInterface random, double std) {
+        if (layerNumber < layers.length) {
+            layers[layerNumber].init(weightInitType, random, std);
+        } else {
+            throw new RuntimeException("Layer not found");
         }
     }
 
@@ -131,14 +123,14 @@ public class NeuralNetWrapper {
             }
         }
         Layer ff = Layers.createLayer(backend.newEStruct(), layerType);
-        ff.init(inputs, outputs, activationUnit, activationParams, random, std);
+        ff.create(inputs, outputs, activationUnit, activationParams);
         internal_add(ff);
         return this;
     }
 
 
     public DMatrix[] learn(double[] inputs, double[] outputs, boolean reportLoss) {
-        ProcessGraph cg = new ProcessGraph(true);
+        ProcessGraph cg = new ProcessGraph(random,true);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
@@ -150,7 +142,7 @@ public class NeuralNetWrapper {
 
 
     public DMatrix[] learnVec(DMatrix inputs, DMatrix outputs, boolean reportLoss) {
-        ProcessGraph cg = new ProcessGraph(true);
+        ProcessGraph cg = new ProcessGraph(random,true);
         ExMatrix input = ExMatrix.createFromW(inputs);
         ExMatrix targetOutput = ExMatrix.createFromW(outputs);
         ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
@@ -162,7 +154,7 @@ public class NeuralNetWrapper {
     }
 
     public DMatrix[] testVec(DMatrix inputs, DMatrix outputs) {
-        ProcessGraph cg = new ProcessGraph(false);
+        ProcessGraph cg = new ProcessGraph(random,false);
         ExMatrix input = ExMatrix.createFromW(inputs);
         ExMatrix targetOutput = ExMatrix.createFromW(outputs);
         ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
@@ -170,7 +162,7 @@ public class NeuralNetWrapper {
     }
 
     public DMatrix predictVec(DMatrix inputs) {
-        ProcessGraph cg = new ProcessGraph(false);
+        ProcessGraph cg = new ProcessGraph(random,false);
         ExMatrix input = ExMatrix.createFromW(inputs);
         ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
         return actualOutput.getW();
@@ -189,21 +181,21 @@ public class NeuralNetWrapper {
 
 
     public double[] predict(double[] inputs) {
-        ProcessGraph cg = new ProcessGraph(false);
+        ProcessGraph cg = new ProcessGraph(random,false);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
         return actualOutput.data();
     }
 
     public double[] forward(double[] inputs, int offset, int numOfLayers) {
-        ProcessGraph cg = new ProcessGraph(false);
+        ProcessGraph cg = new ProcessGraph(random,false);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input, offset, numOfLayers);
         return actualOutput.data();
     }
 
     public DMatrix forwardVec(DMatrix inputs, int offset, int numOfLayers) {
-        ProcessGraph cg = new ProcessGraph(false);
+        ProcessGraph cg = new ProcessGraph(random,false);
         ExMatrix input = ExMatrix.createFromW(inputs);
         ExMatrix actualOutput = internalForward(cg, input, offset, numOfLayers);
         return actualOutput.getW();

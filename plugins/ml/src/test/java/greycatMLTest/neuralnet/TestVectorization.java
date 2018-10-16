@@ -22,10 +22,12 @@ import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.optimiser.Optimisers;
+import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.JavaRandom;
+import greycat.struct.matrix.RandomInterface;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Assert;
 import org.junit.Test;
@@ -65,20 +67,22 @@ public class TestVectorization {
                 Node node1 = g.newNode(0, 0);
                 EStructArray egraph1 = (EStructArray) node1.getOrCreate("nn1", Type.ESTRUCT_ARRAY);
                 NeuralNetWrapper net1 = new NeuralNetWrapper(egraph1);
-                net1.setRandom(1234, 0.1);
+                RandomInterface random = new JavaRandom();
+                random.setSeed(1234);
+                net1.setRandom(random);
                 net1.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net1.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate / trainset, regularisation}, 1);
                 net1.setTrainLoss(Losses.SUM_OF_SQUARES, null);
-
+                net1.initAllLayers(WeightInit.GAUSSIAN,random,0.08);
 
                 Node node2 = g.newNode(0, 0);
                 EStructArray egraph2 = (EStructArray) node2.getOrCreate("nn2", Type.ESTRUCT_ARRAY);
                 NeuralNetWrapper net2 = new NeuralNetWrapper(egraph2);
-                net2.setRandom(1234, 0.1);
+                net2.setRandom(random);
                 net2.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net2.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 0);
                 net2.setTrainLoss(Losses.SUM_OF_SQUARES, null);
-
+                net2.initAllLayers(WeightInit.GAUSSIAN,random,0.08);
 
                 long start = System.currentTimeMillis();
                 for (int j = 0; j < rounds; j++) {

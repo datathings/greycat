@@ -44,7 +44,7 @@ public class WeightInit {
     public final static int DEFAULT = GAUSSIAN;
 
 
-    public static void init(DMatrix weights, RandomInterface random, int initType, double std) {
+    public static void init(DMatrix weights, int initType, RandomInterface random, double std) {
         int len = weights.length();
         if (len == 0) {
             throw new RuntimeException("Set the weight dimension first");

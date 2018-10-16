@@ -20,6 +20,7 @@ import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
+import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomInterface;
@@ -77,7 +78,7 @@ class GRU implements Layer {
 
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
+    public Layer create(int inputs, int outputs, int activationUnit, double[] activationParams) {
         host.set(Layers.LAYER_TYPE, Type.INT, Layers.GRU_LAYER);
 
         ihmix.init(outputs, inputs);
@@ -94,28 +95,25 @@ class GRU implements Layer {
 
         context.init(outputs, 1);
 
-        return reInit(random, std);
-    }
-
-    @Override
-    public Layer reInit(RandomInterface random, double std) {
-        //todo check why bias are not initialized randomly
-        if (random != null && std != 0) {
-            MatrixOps.fillWithRandomStd(ihmix, random, std);
-            MatrixOps.fillWithRandomStd(hhmix, random, std);
-            //MatrixOps.fillWithRandomStd(bmix,random,std);
-
-            MatrixOps.fillWithRandomStd(ihnew, random, std);
-            MatrixOps.fillWithRandomStd(hhnew, random, std);
-            // MatrixOps.fillWithRandomStd(bnew,random,std);
-
-            MatrixOps.fillWithRandomStd(ihreset, random, std);
-            MatrixOps.fillWithRandomStd(hhreset, random, std);
-            // MatrixOps.fillWithRandomStd(breset,random,std);
-        }
         return this;
     }
 
+    @Override
+    public Layer init(int weightInitType, RandomInterface random, double std) {
+        WeightInit.init(ihmix, weightInitType, random, std);
+        WeightInit.init(hhmix, weightInitType, random, std);
+//        WeightInit.init(bmix, weightInitType, random, std);
+
+        WeightInit.init(ihnew, weightInitType, random, std);
+        WeightInit.init(hhnew, weightInitType, random, std);
+//        WeightInit.init(bnew, weightInitType, random, std);
+
+        WeightInit.init(ihreset, weightInitType, random, std);
+        WeightInit.init(hhreset, weightInitType, random, std);
+//        WeightInit.init(breset, weightInitType, random, std);
+
+        return this;
+    }
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {

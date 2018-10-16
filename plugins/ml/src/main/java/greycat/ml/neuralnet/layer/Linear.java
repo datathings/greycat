@@ -18,8 +18,8 @@ package greycat.ml.neuralnet.layer;
 import greycat.Type;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
+import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.EStruct;
-import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomInterface;
 
 // Returns Weights*Input
@@ -42,19 +42,16 @@ class Linear implements Layer {
     }
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
+    public Layer create(int inputs, int outputs, int activationUnit, double[] activationParams) {
         //First always set the type
         host.set(Layers.LAYER_TYPE, Type.INT, Layers.LINEAR_LAYER);
         weights.init(outputs, inputs);
-        return reInit(random, std);
-
+        return this;
     }
 
     @Override
-    public Layer reInit(RandomInterface random, double std) {
-        if (random != null && std != 0) {
-            MatrixOps.fillWithRandomStd(weights, random, std);
-        }
+    public Layer init(int weightInitType, RandomInterface random, double std) {
+        WeightInit.init(weights, weightInitType, random, std);
         return this;
     }
 

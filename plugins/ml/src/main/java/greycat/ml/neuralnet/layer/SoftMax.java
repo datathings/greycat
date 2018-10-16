@@ -30,7 +30,7 @@ public class SoftMax implements Layer {
     }
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std) {
+    public Layer create(int inputs, int outputs, int activationUnit, double[] activationParams) {
         //First always set the type
         if (inputs != outputs) {
             throw new RuntimeException("SoftMax is stateless, inputs and outputs should be the same size, otherwise use LinearSoftMax");
@@ -41,7 +41,7 @@ public class SoftMax implements Layer {
     }
 
     @Override
-    public Layer reInit(RandomInterface random, double std) {
+    public Layer init(int weightInitType, RandomInterface random, double std) {
         return this;
     }
 

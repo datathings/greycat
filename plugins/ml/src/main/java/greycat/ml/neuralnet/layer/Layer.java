@@ -17,7 +17,6 @@ package greycat.ml.neuralnet.layer;
 
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
-import greycat.struct.matrix.RandomGenerator;
 import greycat.struct.matrix.RandomInterface;
 
 public interface Layer {
@@ -26,9 +25,9 @@ public interface Layer {
 
     ExMatrix[] getLayerParameters();
 
-    Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomInterface random, double std);
+    Layer create(int inputs, int outputs, int activationUnit, double[] activationParams);
 
-    Layer reInit(RandomInterface random, double std);
+    Layer init(int weightInitType, RandomInterface random, double std);
 
     void resetState();
 
