@@ -17,7 +17,7 @@ package greycat.ml;
 
 import greycat.struct.matrix.RandomInterface;
 
-public class CRandomGenerator implements RandomInterface {
+public class CRandom implements RandomInterface {
 
 
 //    uint32_t gdnn_generator__next_int(gnode_t *node) {

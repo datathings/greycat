@@ -48,7 +48,7 @@ public class MatrixOps {
         }
     }
 
-    public static DMatrix fillWithRandom(DMatrix matrix, RandomGenerator random, double min, double max) {
+    public static DMatrix fillWithRandom(DMatrix matrix, RandomInterface random, double min, double max) {
         int len = matrix.length();
         double d = max - min;
         for (int i = 0; i < len; i++) {

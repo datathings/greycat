@@ -21,7 +21,7 @@ import greycat.struct.DMatrix;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
 import greycat.struct.matrix.MatrixOps;
-import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.JavaRandom;
 import org.junit.Test;
 
 public class TestGaussianNode {
@@ -61,7 +61,7 @@ public class TestGaussianNode {
 //                System.out.println("");
 //                System.out.println("");
 
-                RandomGenerator rnd = new RandomGenerator();
+                JavaRandom rnd = new JavaRandom();
                 rnd.setSeed(1234);
 
 

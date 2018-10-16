@@ -20,7 +20,7 @@ import greycat.struct.DMatrix;
 import greycat.struct.DoubleArray;
 import greycat.struct.EStruct;
 import greycat.struct.matrix.MatrixOps;
-import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.RandomInterface;
 import greycat.struct.matrix.SVDDecompose;
 import greycat.struct.matrix.VolatileDMatrix;
 
@@ -142,11 +142,11 @@ public class GaussianWrapper {
         learnWithOccurence(values, 1);
     }
 
-    public double[] drawVector(RandomGenerator rnd) {
+    public double[] drawVector(RandomInterface rnd) {
         return drawMatrix(1, rnd).column(0);
     }
 
-    public DMatrix drawMatrix(int sample, RandomGenerator rnd) {
+    public DMatrix drawMatrix(int sample, RandomInterface rnd) {
         DMatrix cov = getCovariance();
 
         SVDDecompose svd = MatrixOps.defaultEngine().decomposeSVD(cov, true);

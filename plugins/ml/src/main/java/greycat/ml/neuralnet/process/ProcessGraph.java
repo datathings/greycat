@@ -18,10 +18,7 @@ package greycat.ml.neuralnet.process;
 import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.struct.DMatrix;
-import greycat.struct.matrix.MatrixOps;
-import greycat.struct.matrix.RandomGenerator;
-import greycat.struct.matrix.TransposeType;
-import greycat.struct.matrix.VolatileDMatrix;
+import greycat.struct.matrix.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,13 +28,13 @@ public class ProcessGraph {
 
     private boolean applyBackprop;
     private List<ProcessStep> backprop = new ArrayList<ProcessStep>();
-    private RandomGenerator random = null;
+    private RandomInterface random = null;
 
     public ProcessGraph(boolean applyBackprop) {
         this.applyBackprop = applyBackprop;
     }
 
-    public void setRandom(RandomGenerator random) {
+    public void setRandom(RandomInterface random) {
         this.random = random;
     }
 
@@ -361,7 +358,7 @@ public class ProcessGraph {
         MatrixOps.copy(input.getW(), out.getW());
 
         if (random == null) {
-            random = new RandomGenerator();
+            random = new JavaRandom();
         }
         int len = input.length();
         for (int i = 0; i < len; i++) {

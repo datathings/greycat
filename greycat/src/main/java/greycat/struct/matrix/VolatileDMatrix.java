@@ -231,7 +231,7 @@ public class VolatileDMatrix implements DMatrix {
     }*/
 
 
-    public static DMatrix random(int rows, int columns, RandomGenerator rand, double min, double max) {
+    public static DMatrix random(int rows, int columns, RandomInterface rand, double min, double max) {
         VolatileDMatrix res = new VolatileDMatrix(null, rows, columns);
         for (int i = 0; i < rows * columns; i++) {
             res.unsafeSet(i, rand.nextDouble() * (max - min) + min);
@@ -239,7 +239,7 @@ public class VolatileDMatrix implements DMatrix {
         return res;
     }
 
-    public static DMatrix randomGaussian(int rows, int columns, RandomGenerator rand) {
+    public static DMatrix randomGaussian(int rows, int columns, RandomInterface rand) {
         VolatileDMatrix res = new VolatileDMatrix(null, rows, columns);
         for (int i = 0; i < rows * columns; i++) {
             res.unsafeSet(i, rand.nextGaussian());

@@ -22,7 +22,7 @@ import org.junit.Test;
 
 public class OpsTest {
 
-    RandomGenerator rand = new RandomGenerator();
+    JavaRandom rand = new JavaRandom();
     int exec = 1000;
     boolean enablebench = false;
     int dim = 10;

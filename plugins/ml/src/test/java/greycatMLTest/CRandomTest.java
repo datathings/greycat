@@ -15,7 +15,7 @@
  */
 package greycatMLTest;
 
-import greycat.ml.CRandomGenerator;
+import greycat.ml.CRandom;
 import org.junit.Test;
 
 public class CRandomTest {
@@ -26,7 +26,7 @@ public class CRandomTest {
     @Test
     public void testrandom() {
 
-        CRandomGenerator randomGenerator = new CRandomGenerator();
+        CRandom randomGenerator = new CRandom();
         randomGenerator.setSeed(123456789);
 
         long max = 1000;

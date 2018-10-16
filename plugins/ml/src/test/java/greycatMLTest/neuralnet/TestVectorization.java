@@ -25,7 +25,7 @@ import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
 import greycat.struct.matrix.MatrixOps;
-import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.JavaRandom;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,11 +50,11 @@ public class TestVectorization {
                 double learningrate = 0.1;
                 double regularisation = 0;
                 boolean display = false;
-                RandomGenerator randomGenerator = new RandomGenerator();
-                randomGenerator.setSeed(1234);
+                JavaRandom javaRandom = new JavaRandom();
+                javaRandom.setSeed(1234);
 
-                DMatrix inputs = VolatileDMatrix.random(inputdim, trainset, randomGenerator, -1, 1);
-                DMatrix linearsys = VolatileDMatrix.random(outputdim, inputdim, randomGenerator, -2, 2);
+                DMatrix inputs = VolatileDMatrix.random(inputdim, trainset, javaRandom, -1, 1);
+                DMatrix linearsys = VolatileDMatrix.random(outputdim, inputdim, javaRandom, -2, 2);
                 DMatrix outputs = MatrixOps.multiply(linearsys, inputs);
 
                 DMatrix inputsBackup = MatrixOps.cloneMatrix(inputs);

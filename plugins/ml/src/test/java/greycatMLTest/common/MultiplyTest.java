@@ -48,11 +48,11 @@ public class MultiplyTest {
         int r = 30;
         int o = 30;
         int p = 30;
-        RandomGenerator randomGenerator = new RandomGenerator();
-        randomGenerator.setSeed(0);
+        JavaRandom javaRandom = new JavaRandom();
+        javaRandom.setSeed(0);
 
-        DMatrix matA = VolatileDMatrix.random(r, o, randomGenerator, 0, 100);
-        DMatrix matB = VolatileDMatrix.random(o, p, randomGenerator, 0, 100);
+        DMatrix matA = VolatileDMatrix.random(r, o, javaRandom, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(o, p, javaRandom, 0, 100);
 
         DMatrix result = engine.multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
         DMatrix matD = manualMultpily(matA, matB);

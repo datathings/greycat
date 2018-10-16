@@ -21,7 +21,7 @@ import greycat.struct.DMatrix;
 import greycat.struct.DoubleArray;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
-import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.RandomInterface;
 
 public class Gaussian {
     public static final String NULL = "nullValues";
@@ -168,7 +168,7 @@ public class Gaussian {
         host.set(TOTAL, Type.LONG, total + 1);
     }
 
-    public static double drawFromHistogram(EStructArray hostnode, RandomGenerator rnd) {
+    public static double drawFromHistogram(EStructArray hostnode, RandomInterface rnd) {
         EStruct host = getRoot(hostnode);
 
         DoubleArray hist_center = host.getDoubleArray(HISTOGRAM_CENTERS);

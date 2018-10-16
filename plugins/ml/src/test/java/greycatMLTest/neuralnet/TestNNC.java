@@ -16,7 +16,7 @@
 package greycatMLTest.neuralnet;
 
 import greycat.*;
-import greycat.ml.CRandomGenerator;
+import greycat.ml.CRandom;
 import greycat.ml.neuralnet.NeuralNetWrapper;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.layer.Layers;
@@ -24,7 +24,6 @@ import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
-import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Test;
 
@@ -55,7 +54,7 @@ public class TestNNC {
                 net.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
                 net.setTrainLoss(Losses.SUM_OF_SQUARES, null);
 
-                CRandomGenerator random = new CRandomGenerator();
+                CRandom random = new CRandom();
                 random.setSeed(123456789);
 
                 net.setRandomGenerator(random, 0.08);
