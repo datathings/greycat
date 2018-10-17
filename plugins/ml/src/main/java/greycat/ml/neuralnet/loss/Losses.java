@@ -125,16 +125,24 @@ public class Losses {
     public static double sumOfLosses(DMatrix[] losses) {
         double res = 0;
         for (DMatrix loss : losses) {
-            int len = loss.length();
-            for (int i = 0; i < len; i++) {
-                res += loss.unsafeGet(i);
+            if (loss != null) {
+                int len = loss.length();
+                for (int i = 0; i < len; i++) {
+                    res += loss.unsafeGet(i);
+                }
             }
         }
         return res;
     }
 
     public static double avgOfLosses(DMatrix[] losses) {
-        return sumOfLosses(losses) / (losses.length * losses[0].length());
+        int total = 0;
+        for (DMatrix loss : losses) {
+            if (loss != null) {
+                total += loss.length();
+            }
+        }
+        return sumOfLosses(losses) / total;
     }
 
     public static double avgOfLosses(DMatrix losses) {
