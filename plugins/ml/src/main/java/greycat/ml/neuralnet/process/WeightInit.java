@@ -30,7 +30,11 @@ public class WeightInit {
     public final static int UNIFORM = 6;
     public final static int XAVIER = 7;
     public final static int XAVIER_UNIFORM = 8;
+
+    //he et al the same impl as RELU
+    public final static int HE_ET_AL = 9;
     public final static int RELU = 9;
+
     public final static int RELU_UNIFORM = 10;
     public final static int IDENTITY = 11;
 
