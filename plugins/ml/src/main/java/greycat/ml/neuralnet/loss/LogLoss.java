@@ -21,18 +21,18 @@ import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.VolatileDMatrix;
 
 public class LogLoss implements Loss {
-    private double[] weights;
     private static LogLoss static_unit = null;
+    private double[] weights;
+
+    public LogLoss(double[] weights) {
+        this.weights = weights;
+    }
 
     public static Loss instance() {
         if (static_unit == null) {
             static_unit = new LogLoss(null);
         }
         return static_unit;
-    }
-
-    public LogLoss(double[] weights) {
-        this.weights = weights;
     }
 
     @Override

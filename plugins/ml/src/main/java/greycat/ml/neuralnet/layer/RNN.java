@@ -23,7 +23,6 @@ import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.DoubleArray;
 import greycat.struct.EStruct;
-import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomInterface;
 
 class RNN implements Layer {

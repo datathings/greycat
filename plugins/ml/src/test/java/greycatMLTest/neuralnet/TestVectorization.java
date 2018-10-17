@@ -25,8 +25,8 @@ import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
-import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.JavaRandom;
+import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomInterface;
 import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Assert;
@@ -73,7 +73,7 @@ public class TestVectorization {
                 net1.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net1.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate / trainset, regularisation}, 1);
                 net1.setTrainLoss(Losses.SUM_OF_SQUARES, null);
-                net1.initAllLayers(WeightInit.GAUSSIAN,random,0.08);
+                net1.initAllLayers(WeightInit.GAUSSIAN, random, 0.08);
 
                 Node node2 = g.newNode(0, 0);
                 EStructArray egraph2 = (EStructArray) node2.getOrCreate("nn2", Type.ESTRUCT_ARRAY);
@@ -82,7 +82,7 @@ public class TestVectorization {
                 net2.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net2.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 0);
                 net2.setTrainLoss(Losses.SUM_OF_SQUARES, null);
-                net2.initAllLayers(WeightInit.GAUSSIAN,random,0.08);
+                net2.initAllLayers(WeightInit.GAUSSIAN, random, 0.08);
 
                 long start = System.currentTimeMillis();
                 for (int j = 0; j < rounds; j++) {

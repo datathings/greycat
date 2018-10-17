@@ -332,7 +332,7 @@ public class PCAWrapper {
     }
 
 
-    public DMatrix getPCASpace(){
+    public DMatrix getPCASpace() {
         return (DMatrix) _backend.getOrCreate(SPACE_ORIGIN, Type.DMATRIX);
     }
 

@@ -25,15 +25,15 @@ class SumOfSquares implements Loss {
     private static SumOfSquares static_unit = null;
     private double[] weights;
 
+    public SumOfSquares(double[] weights) {
+        this.weights = weights;
+    }
+
     public static SumOfSquares instance() {
         if (static_unit == null) {
             static_unit = new SumOfSquares(null);
         }
         return static_unit;
-    }
-
-    public SumOfSquares(double[] weights){
-        this.weights=weights;
     }
 
     @Override

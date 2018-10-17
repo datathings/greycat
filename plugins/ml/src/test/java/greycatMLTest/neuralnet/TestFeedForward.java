@@ -114,7 +114,7 @@ public class TestFeedForward {
                 Layer layer2 = Layers.loadLayer(l2node);
 
 
-                ProcessGraph calcgraph = new ProcessGraph(null,true);
+                ProcessGraph calcgraph = new ProcessGraph(null, true);
 
                 ExMatrix p1 = layer1.forward(ExMatrix.createFromW(input), calcgraph);
                 ExMatrix actualOutput = layer2.forward(p1, calcgraph);

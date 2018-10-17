@@ -15,7 +15,6 @@
  */
 package greycat.ml.neuralnet;
 
-import greycat.*;
 import greycat.base.BaseNode;
 import greycat.internal.task.CoreActions;
 import greycat.plugin.NodeState;

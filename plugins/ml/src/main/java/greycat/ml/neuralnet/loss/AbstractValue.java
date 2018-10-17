@@ -24,16 +24,15 @@ public class AbstractValue implements Loss {
     private static AbstractValue static_unit = null;
     private double[] weights;
 
+    public AbstractValue(double[] weights) {
+        this.weights = weights;
+    }
+
     public static AbstractValue instance() {
         if (static_unit == null) {
             static_unit = new AbstractValue(null);
         }
         return static_unit;
-    }
-
-
-    public AbstractValue(double[] weights) {
-        this.weights = weights;
     }
 
     @Override

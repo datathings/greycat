@@ -24,15 +24,15 @@ public class SoftMaxLogLoss implements Loss {
     private static SoftMaxLogLoss static_unit = null;
     private double[] weights;
 
+    public SoftMaxLogLoss(double[] weights) {
+        this.weights = weights;
+    }
+
     public static Loss instance() {
         if (static_unit == null) {
             static_unit = new SoftMaxLogLoss(null);
         }
         return static_unit;
-    }
-
-    public SoftMaxLogLoss(double[] weights) {
-        this.weights = weights;
     }
 
     @Override

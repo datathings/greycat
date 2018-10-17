@@ -29,8 +29,6 @@ import greycat.struct.matrix.RandomInterface;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Random;
-
 public class TestNN {
 
     @Test
@@ -60,8 +58,7 @@ public class TestNN {
                 net.addLayer(Layers.LINEAR_LAYER, input, output, Activations.LINEAR, null);
                 net.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
                 net.setTrainLoss(Losses.SUM_OF_SQUARES, null);
-                net.initAllLayers(WeightInit.GAUSSIAN,random,0.08);
-
+                net.initAllLayers(WeightInit.GAUSSIAN, random, 0.08);
 
 
                 double[] inputSet = new double[input];

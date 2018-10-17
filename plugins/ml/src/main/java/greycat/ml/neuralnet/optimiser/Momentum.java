@@ -69,8 +69,8 @@ class Momentum extends AbstractOptimiser {
                 w = weights[j].getW();
                 dw = weights[j].getDw();
                 sc = weights[j].getStepCache();
-                if(sc.length()==0){
-                    sc.init(w.rows(),w.columns());
+                if (sc.length() == 0) {
+                    sc.init(w.rows(), w.columns());
                 }
                 MatrixOps.addInPlace(sc, decayRate, dw, stepsize);
                 //w= (1- learningRate * regularization / samples ) * w - learningRate * dw / samples ;

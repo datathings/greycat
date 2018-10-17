@@ -79,14 +79,14 @@ public class CRandom implements RandomInterface {
         }
     }
 
+    public long getSeed() {
+        return _seed;
+    }
+
     @Override
     public void setSeed(long seed) {
         this._seed = seed;
         this._value = 0;
-    }
-
-    public long getSeed() {
-        return _seed;
     }
 
 }

@@ -20,8 +20,8 @@ import greycat.ml.profiling.GaussianWrapper;
 import greycat.struct.DMatrix;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
-import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.JavaRandom;
+import greycat.struct.matrix.MatrixOps;
 import org.junit.Test;
 
 public class TestGaussianNode {
@@ -77,7 +77,7 @@ public class TestGaussianNode {
 //                MatrixOps.print(gaussianTest.getCovariance(), "Covariance");
 //                MatrixOps.printArray(gaussianTest.getAvg(), "avg");
 
-                assert (MatrixOps.compare(gaussianTest.getCovariance(), gaussian.getCovariance())<7);
+                assert (MatrixOps.compare(gaussianTest.getCovariance(), gaussian.getCovariance()) < 7);
 
             }
         });

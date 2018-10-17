@@ -98,7 +98,7 @@ public class TestCalcGraph {
 
         //The calculation steps are here
 
-        ProcessGraph g = new ProcessGraph(null,true);
+        ProcessGraph g = new ProcessGraph(null, true);
 
 
         ExMatrix o1temp = g.mul(weights1, input);
