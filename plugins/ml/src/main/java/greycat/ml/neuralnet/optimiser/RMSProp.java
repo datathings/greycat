@@ -48,7 +48,7 @@ class RMSProp extends AbstractOptimiser {
     protected void update(Layer[] layers) {
         DMatrix w;
         DMatrix dw;
-        DMatrix stepCache;
+        DMatrix sc;
         int len;
         double dwi;
         double reg = 1 - learningRate * regularization / steps;
@@ -58,14 +58,17 @@ class RMSProp extends AbstractOptimiser {
             for (int j = 0; j < weights.length; j++) {
                 w = weights[j].getW();
                 dw = weights[j].getDw();
-                stepCache = weights[j].getStepCache();
+                sc = weights[j].getStepCache();
+                if(sc.length()==0){
+                    sc.init(w.rows(),w.columns());
+                }
                 len = w.length();
 
                 for (int i = 0; i < len; i++) {
 
                     // rmsprop adaptive learning rate
                     dwi = dw.unsafeGet(i) / steps;
-                    stepCache.unsafeSet(i, stepCache.unsafeGet(i) * decayRate + (1 - decayRate) * dwi * dwi);
+                    sc.unsafeSet(i, sc.unsafeGet(i) * decayRate + (1 - decayRate) * dwi * dwi);
 
                     // gradient clip
                     if (dwi > gradientClip) {
@@ -76,7 +79,7 @@ class RMSProp extends AbstractOptimiser {
                     }
 
                     // update (and regularize)
-                    w.unsafeSet(i, w.unsafeGet(i) * reg - learningRate * dwi / Math.sqrt(stepCache.unsafeGet(i) + smoothEpsilon));
+                    w.unsafeSet(i, w.unsafeGet(i) * reg - learningRate * dwi / Math.sqrt(sc.unsafeGet(i) + smoothEpsilon));
                 }
                 dw.fill(0);
             }
