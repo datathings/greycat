@@ -135,6 +135,7 @@ public class Losses {
         return res;
     }
 
+
     public static double avgOfLossesArray(DMatrix[] losses) {
         int total = 0;
         for (DMatrix loss : losses) {
@@ -142,7 +143,11 @@ public class Losses {
                 total += loss.length();
             }
         }
-        return sumOfLossesArray(losses) / total;
+        if (total != 0) {
+            return sumOfLossesArray(losses) / total;
+        } else {
+            return 0.0;
+        }
     }
 
     public static double avgOfLosses(DMatrix losses) {

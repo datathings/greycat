@@ -27,6 +27,7 @@ import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
+import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomInterface;
 import greycat.struct.matrix.VolatileDMatrix;
 
@@ -218,4 +219,18 @@ public class NeuralNetWrapper {
         return this.layers;
     }
 
+    public void printNN() {
+        int i = 0;
+        for (Layer l : layers) {
+            System.out.println("Layer " + i);
+            DMatrix[] params = l.getLayerParameters();
+            int j = 0;
+            for (DMatrix p : params) {
+                MatrixOps.print(p, "matrix " + i + " " + j);
+                j++;
+            }
+            System.out.println("");
+            i++;
+        }
+    }
 }
