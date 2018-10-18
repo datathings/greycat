@@ -368,8 +368,8 @@ public class CoreActions {
      * @param value of the action
      * @return the action to chain
      */
-    public static Action log(String value) {
-        return new ActionLog(value);
+    public static Action log(String value, String level) {
+        return new ActionLog(value, level);
     }
 
     /**

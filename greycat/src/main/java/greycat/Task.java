@@ -371,11 +371,11 @@ public interface Task {
 
     Task select(TaskFunctionSelect filterFunction);
 
+    Task log(String name, String level);
+
     Task selectScript(String script);
 
     Task selectObject(TaskFunctionSelectObject filterFunction);
-
-    Task log(String name);
 
     Task print(String name);
 

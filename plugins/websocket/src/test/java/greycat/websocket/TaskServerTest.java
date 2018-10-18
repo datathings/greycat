@@ -75,8 +75,8 @@ public class TaskServerTest {
                                             System.out.println(result);
 
                                             Task tremote = newTask()
-                                                    .log("remotely logged: {{result}}")
-                                                    .log("log: {{var_name}}")
+                                                    .log("remotely logged: {{result}}", null)
+                                                    .log("log: {{var_name}}", null)
                                                     .print("remotely printed: {{result}}")
                                                     .readIndex("nodes")
                                                     .createNode()

@@ -23,14 +23,27 @@ import greycat.struct.Buffer;
 class ActionLog implements Action {
 
     private final String _value;
+    private final String _level;
 
-    ActionLog(final String p_value) {
+    ActionLog(final String p_value, String p_level) {
         this._value = p_value;
+        this._level = p_level;
     }
 
     @Override
     public void eval(final TaskContext ctx) {
-        System.out.println(ctx.template(_value));
+        String message = ctx.template(_value);
+        if (_level == null) {
+            ctx.graph().log().info(message);
+        } else if (_level.equals("info")) {
+            ctx.graph().log().info(message);
+        } else if (_level.equals("debug")) {
+            ctx.graph().log().debug(message);
+        } else if (_level.equals("warn") || _level.equals("warning")) {
+            ctx.graph().log().warn(message);
+        } else if (_level.equals("error")) {
+            ctx.graph().log().error(message);
+        }
         ctx.continueTask();
     }
 

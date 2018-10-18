@@ -962,12 +962,12 @@ public class CoreTask implements Task {
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.LOG)
-                .setParams(Type.STRING)
+                .setParams(Type.STRING, Type.STRING)
                 .setDescription("Prints the action in a human readable format (without line breaks).")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new ActionLog((String) params[0]);
+                        return new ActionLog((String) params[0], (String) params[1]);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.PRINTLN)
@@ -1572,8 +1572,8 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public Task log(String name) {
-        return then(CoreActions.log(name));
+    public Task log(String name, String level) {
+        return then(CoreActions.log(name, level));
     }
 
     @Override
