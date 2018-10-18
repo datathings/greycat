@@ -25,7 +25,7 @@ import java.util.List;
 
 public class ProcessGraph {
 
-    private static boolean DEBUG = true;
+    private static boolean DEBUG = false;
     private boolean applyBackprop;
     private List<ProcessStep> backprop = new ArrayList<ProcessStep>();
     private RandomInterface random = null;
@@ -385,14 +385,18 @@ public class ProcessGraph {
 
     public ExMatrix assign(final ExMatrix in) {
         ExMatrix out = ExMatrix.createFromW(in.getW());
-        System.out.println("ASSIGN");
+        if(DEBUG) {
+            System.out.println("ASSIGN");
+        }
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
                 public void execute() {
                     MatrixOps.addtoMatrix(in.getDw(), out.getDw());
-                    System.out.println("ASSIGN --");
-                    MatrixOps.print(out.getDw(), "out dw");
-                    MatrixOps.print(in.getDw(), "in dw");
+                    if(DEBUG) {
+                        System.out.println("ASSIGN --");
+                        MatrixOps.print(out.getDw(), "out dw");
+                        MatrixOps.print(in.getDw(), "in dw");
+                    }
 //            out.getDw().fill(0);
                 }
             };

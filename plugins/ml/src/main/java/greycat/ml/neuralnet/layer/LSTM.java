@@ -168,34 +168,30 @@ class LSTM implements Layer {
         //input gate
         ExMatrix mul0 = g.mul(wix, input);
         ExMatrix mul1 = g.mul(wih, hiddenContext);
-        ExMatrix output = g.add(mul0, mul1);
+        ExMatrix inputGate = g.activate(fInputGate, g.add(g.add(mul0, mul1), bi));
 
+        //forget gate
+        ExMatrix mul2 = g.mul(wfx, input);
+        ExMatrix mul3 = g.mul(wfh, hiddenContext);
+        ExMatrix forgetGate = g.activate(fForgetGate, g.add(g.add(mul2, mul3), bf));
 
+        //output gate
+        ExMatrix mul4 = g.mul(wox, input);
+        ExMatrix mul5 = g.mul(woh, hiddenContext);
+        ExMatrix outputGate = g.activate(fOutputGate, g.add(g.add(mul4, mul5), bo));
 
-//        ExMatrix inputGate = g.activate(fInputGate, g.add(g.add(mul0, mul1), bi));
-//
-//        //forget gate
-//        ExMatrix mul2 = g.mul(wfx, input);
-//        ExMatrix mul3 = g.mul(wfh, hiddenContext);
-//        ExMatrix forgetGate = g.activate(fForgetGate, g.add(g.add(mul2, mul3), bf));
-//
-//        //output gate
-//        ExMatrix mul4 = g.mul(wox, input);
-//        ExMatrix mul5 = g.mul(woh, hiddenContext);
-//        ExMatrix outputGate = g.activate(fOutputGate, g.add(g.add(mul4, mul5), bo));
-//
-//        //write operation on cells
-//        ExMatrix mul6 = g.mul(wcx, input);
-//        ExMatrix mul7 = g.mul(wch, hiddenContext);
-//        ExMatrix cellInput = g.activate(fCellInput, g.add(g.add(mul6, mul7), bc));
-//
-//        //compute new cell activation
-//        ExMatrix retainCell = g.elmul(forgetGate, cellContext);
-//        ExMatrix writeCell = g.elmul(inputGate, cellInput);
-//        ExMatrix cellAct = g.add(retainCell, writeCell);
-//
-//        //compute hidden state as gated, saturated cell activations
-//        ExMatrix output = g.elmul(outputGate, g.activate(fCellOutput, cellAct));
+        //write operation on cells
+        ExMatrix mul6 = g.mul(wcx, input);
+        ExMatrix mul7 = g.mul(wch, hiddenContext);
+        ExMatrix cellInput = g.activate(fCellInput, g.add(g.add(mul6, mul7), bc));
+
+        //compute new cell activation
+        ExMatrix retainCell = g.elmul(forgetGate, cellContext);
+        ExMatrix writeCell = g.elmul(inputGate, cellInput);
+        ExMatrix cellAct = g.add(retainCell, writeCell);
+
+        //compute hidden state as gated, saturated cell activations
+        ExMatrix output = g.elmul(outputGate, g.activate(fCellOutput, cellAct));
 
         //rollover activations for next iteration
 
@@ -203,7 +199,7 @@ class LSTM implements Layer {
 //        cellContext = cellAct;
 //
         hiddenContext =  g.assign(output);
-//        cellContext =  g.assign(cellAct);
+        cellContext =  g.assign(cellAct);
 
         return output;
     }
