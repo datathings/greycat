@@ -36,11 +36,10 @@ public class TestNNC {
             @Override
             public void on(Boolean result) {
 
-                int input = 80;
+                int input = 5;
                 int output = 2;
-
-                int setsize = 70;
-                int nbRounds = 1000;
+                int setsize = 3;
+                int nbRounds = 2;
 
                 double learningrate = 0.003;
                 double regularisation = 0.0001;
@@ -50,7 +49,10 @@ public class TestNNC {
 
                 NeuralNetWrapper nn = new NeuralNetWrapper(egraph);
 
-                nn.addLayer(Layers.FEED_FORWARD_LAYER, input, output, Activations.LINEAR, null);
+//                nn.addLayer(Layers.FEED_FORWARD_LAYER, input, output, Activations.LINEAR, null);
+//                nn.addLayer(Layers.LINEAR_LAYER, output, output, Activations.LINEAR, null);
+//                nn.addLayer(Layers.DROPOUT_LAYER, output, output, Activations.LINEAR, new double[]{0.01});
+                nn.addLayer(Layers.LSTM_LAYER, input, output, 0, null);
                 nn.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
                 nn.setTrainLoss(Losses.SUM_OF_SQUARES, null);
 
@@ -62,13 +64,16 @@ public class TestNNC {
 
                 DMatrix inputs = VolatileDMatrix.empty(input, setsize);
                 DMatrix outputs = VolatileDMatrix.empty(output, setsize);
+
+                double in;
                 for (int i = 0; i < setsize; i++) {
                     //generate input randomly:
-
                     for (int j = 0; j < input; j++) {
-                        inputs.set(j, i, random.nextDouble());
-                        outputs.add(0, i, inputs.get(j, i) * j);
-                        outputs.add(1, i, -2 * inputs.get(j, i) * j + 5);
+                        in = random.nextDouble();
+                        inputs.set(j, i, in);
+                        for (int k = 0; k < output; k++) {
+                            outputs.add(k, i, -k * in * j + k);
+                        }
                     }
                 }
 
@@ -91,7 +96,7 @@ public class TestNNC {
                 System.out.println("FINAL");
                 nn.printNN();
 
-                System.out.println((after - before) / (nbRounds * 1.0));
+                System.out.println("task test: " + (after - before) / (nbRounds * 1.0) + " ms/cycle");
 
 
             }
