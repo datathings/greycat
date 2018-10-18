@@ -18,7 +18,9 @@ package greycat.ml.neuralnet.layer;
 import greycat.Type;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
+import greycat.struct.DMatrix;
 import greycat.struct.EStruct;
+import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomInterface;
 
 public class Dropout implements Layer {
@@ -76,5 +78,10 @@ public class Dropout implements Layer {
     @Override
     public int outputDimensions() {
         return (int) host.get(INPUTS);
+    }
+
+    @Override
+    public void print() {
+        System.out.println("Layer Dropout, rate:"+(double) host.get(DROPOUT_PERCENT));
     }
 }

@@ -37,12 +37,12 @@ public class TestNNC {
             public void on(Boolean result) {
 
                 int input = 5;
-                int output = 2;
-                int setsize = 3;
+                int output = 3;
+                int setsize = 6;
                 int nbRounds = 1;
 
-                double learningrate = 0.003;
-                double regularisation = 0.0001;
+                double learningrate = 0.9;
+                double regularisation = 0.0;
 
                 Node node = g.newNode(0, 0);
                 EStructArray egraph = (EStructArray) node.getOrCreate("nn", Type.ESTRUCT_ARRAY);

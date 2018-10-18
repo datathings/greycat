@@ -168,4 +168,9 @@ class GRU implements Layer {
     public int outputDimensions() {
         return ihmix.rows();
     }
+
+    @Override
+    public void print() {
+
+    }
 }

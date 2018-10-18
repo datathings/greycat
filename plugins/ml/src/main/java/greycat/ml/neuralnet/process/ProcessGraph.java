@@ -25,7 +25,7 @@ import java.util.List;
 
 public class ProcessGraph {
 
-
+    private static boolean DEBUG = true;
     private boolean applyBackprop;
     private List<ProcessStep> backprop = new ArrayList<ProcessStep>();
     private RandomInterface random = null;
@@ -51,6 +51,12 @@ public class ProcessGraph {
     //Multiply two matrices
     public final ExMatrix mul(final ExMatrix matA, final ExMatrix matB) {
         final ExMatrix out = ExMatrix.createFromW(MatrixOps.multiply(matA, matB));
+        if(DEBUG){
+            System.out.println("MUL");
+            MatrixOps.print(matA.getW(),"matA");
+            MatrixOps.print(matB.getW(),"matB");
+            MatrixOps.print(out.getW(),"out");
+        }
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
                 public void execute() {
@@ -59,6 +65,12 @@ public class ProcessGraph {
 
                     MatrixOps.addtoMatrix(matA.getDw(), dwatemp);
                     MatrixOps.addtoMatrix(matB.getDw(), dwbtemp);
+                    if(DEBUG){
+                        System.out.println("-- MUL");
+                        MatrixOps.print(out.getDw(),"out dw");
+                        MatrixOps.print(matA.getDw(),"matA dw");
+                        MatrixOps.print(matB.getDw(),"matB dw");
+                    }
                 }
             };
             backprop.add(bp);
@@ -68,6 +80,9 @@ public class ProcessGraph {
 
 
     public final ExMatrix expand(final ExMatrix matA, final int numOfCol) {
+        if(DEBUG){
+            System.out.println("EXPAND");
+        }
         if (numOfCol == 1) {
             return matA;
         } else {
@@ -85,18 +100,34 @@ public class ProcessGraph {
     //Add two matrices
     public final ExMatrix add(final ExMatrix matA, final ExMatrix matB) {
         final ExMatrix out = ExMatrix.createFromW(MatrixOps.add(matA, matB));
+        if(DEBUG){
+            System.out.println("ADD");
+            MatrixOps.print(matA.getW(),"matA");
+            MatrixOps.print(matB.getW(),"matB");
+            MatrixOps.print(out.getW(),"out");
+        }
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
                 //the derivative is distributive over the add operator
                 public void execute() {
                     MatrixOps.addtoMatrix(matA.getDw(), out.getDw());
                     MatrixOps.addtoMatrix(matB.getDw(), out.getDw());
+                    if(DEBUG){
+                        System.out.println("-- ADD");
+                        MatrixOps.print(out.getDw(),"out dw");
+                        MatrixOps.print(matA.getDw(),"matA dw");
+                        MatrixOps.print(matB.getDw(),"matB dw");
+
+                    }
                 }
             };
             backprop.add(bp);
         }
         return out;
     }
+
+
+
 
     //Apply activation function
     public final ExMatrix activate(final Activation activation, final ExMatrix input) {
@@ -105,6 +136,11 @@ public class ProcessGraph {
         //todo [opt] all activation functions can be vectorized as well
         for (int i = 0; i < len; i++) {
             output.unsafeSet(i, activation.forward(input.unsafeGet(i)));
+        }
+        if(DEBUG){
+            System.out.println("ACTIVATE");
+            MatrixOps.print(input.getW(),"matA");
+            MatrixOps.print(output.getW(),"out");
         }
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
@@ -118,6 +154,11 @@ public class ProcessGraph {
                     for (int i = 0; i < len; i++) {
                         inputDw.unsafeSet(i, inputDw.unsafeGet(i) + (activation.backward(inputW.unsafeGet(i), outputW.unsafeGet(i)) * outputDW.unsafeGet(i)));
                     }
+                    if(DEBUG){
+                        System.out.println("-- ACTIVATE");
+                        MatrixOps.print(output.getDw(),"out dw");
+                        MatrixOps.print(input.getDw(),"matA dw");
+                    }
                 }
             };
             backprop.add(bp);
@@ -126,11 +167,17 @@ public class ProcessGraph {
     }
 
     public final DMatrix applyLoss(final Loss lossUnit, final ExMatrix actualOutput, final ExMatrix targetOutput, final boolean calcForwardLoss) {
-
+        if(DEBUG){
+            System.out.println("LOSS");
+        }
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
                 public void execute() {
                     lossUnit.backward(actualOutput, targetOutput);
+                    if(DEBUG){
+                        System.out.println("-- LOSS");
+                        MatrixOps.print(actualOutput.getDw(),"out dw");
+                    }
                 }
             };
             backprop.add(bp);
@@ -191,12 +238,24 @@ public class ProcessGraph {
 
     public ExMatrix elmul(final ExMatrix matA, final ExMatrix matB) {
         final ExMatrix out = ExMatrix.createFromW(MatrixOps.HadamardMult(matA, matB));
-
+        if(DEBUG){
+            System.out.println("ELMUL");
+            MatrixOps.print(matA.getW(),"matA");
+            MatrixOps.print(matB.getW(),"matB");
+            MatrixOps.print(out.getW(),"out");
+        }
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
                 public void execute() {
                     MatrixOps.addtoMatrix(matA.getDw(), MatrixOps.HadamardMult(matB.getW(), out.getDw()));
                     MatrixOps.addtoMatrix(matB.getDw(), MatrixOps.HadamardMult(matA.getW(), out.getDw()));
+                    if(DEBUG){
+                        System.out.println("-- ELMUL");
+                        MatrixOps.print(out.getDw(),"out dw");
+                        MatrixOps.print(matA.getDw(),"matA dw");
+                        MatrixOps.print(matB.getDw(),"matB dw");
+
+                    }
                 }
             };
             backprop.add(bp);
@@ -211,11 +270,20 @@ public class ProcessGraph {
         for (int i = 0; i < len; i++) {
             out.unsafeSet(i, 1 - matA.unsafeGet(i));
         }
-
+        if(DEBUG){
+            System.out.println("one minus");
+            MatrixOps.print(matA.getW(),"matA");
+            MatrixOps.print(out.getW(),"out");
+        }
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
                 public void execute() {
                     MatrixOps.scaleThenAddtoMatrix(matA.getDw(), out.getDw(), -1);
+                    if(DEBUG){
+                        System.out.println("-- one minus");
+                        MatrixOps.print(out.getDw(),"out");
+                        MatrixOps.print(matA.getDw(),"matA");
+                    }
                 }
             };
             backprop.add(bp);
@@ -309,6 +377,24 @@ public class ProcessGraph {
                     }
                 }
 
+            };
+            backprop.add(bp);
+        }
+        return out;
+    }
+
+    public ExMatrix assign(final ExMatrix in) {
+        ExMatrix out = ExMatrix.createFromW(in.getW());
+        System.out.println("ASSIGN");
+        if (this.applyBackprop) {
+            ProcessStep bp = new ProcessStep() {
+                public void execute() {
+                    MatrixOps.addtoMatrix(in.getDw(), out.getDw());
+                    System.out.println("ASSIGN --");
+                    MatrixOps.print(out.getDw(), "out dw");
+                    MatrixOps.print(in.getDw(), "in dw");
+//            out.getDw().fill(0);
+                }
             };
             backprop.add(bp);
         }

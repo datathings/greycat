@@ -20,6 +20,7 @@ import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.EStruct;
+import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomInterface;
 
 // Returns Weights*Input
@@ -82,5 +83,11 @@ class Linear implements Layer {
     @Override
     public int outputDimensions() {
         return weights.rows();
+    }
+
+    @Override
+    public void print() {
+        System.out.println("Layer Linear");
+        MatrixOps.print(weights,"weights");
     }
 }

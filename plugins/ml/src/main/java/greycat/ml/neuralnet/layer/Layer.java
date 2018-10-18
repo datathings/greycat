@@ -36,4 +36,5 @@ public interface Layer {
     int outputDimensions();
 
 
+    void print();
 }

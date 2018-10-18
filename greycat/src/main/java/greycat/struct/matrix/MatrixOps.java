@@ -265,10 +265,10 @@ public class MatrixOps {
 
     //todo can be vectorized
     //MatA=MatA+matB
-    public static void addtoMatrix(DMatrix original, DMatrix values) {
-        testDim(original, values);
-        for (int i = 0; i < original.length(); i++) {
-            original.unsafeSet(i, original.unsafeGet(i) + values.unsafeGet(i));
+    public static void addtoMatrix(DMatrix dst, DMatrix src) {
+        testDim(dst, src);
+        for (int i = 0; i < dst.length(); i++) {
+            dst.unsafeAdd(i, src.unsafeGet(i));
         }
     }
 

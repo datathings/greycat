@@ -117,4 +117,9 @@ class RNN implements Layer {
     public int outputDimensions() {
         return weights.rows();
     }
+
+    @Override
+    public void print() {
+        System.out.println("Layer RNN");
+    }
 }

@@ -70,4 +70,9 @@ public class SoftMax implements Layer {
     public int outputDimensions() {
         return (int) host.get(INPUTS);
     }
+
+    @Override
+    public void print() {
+        System.out.println("Layer SoftMax");
+    }
 }

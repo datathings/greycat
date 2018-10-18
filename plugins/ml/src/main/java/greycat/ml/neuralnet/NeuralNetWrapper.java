@@ -220,17 +220,8 @@ public class NeuralNetWrapper {
     }
 
     public void printNN() {
-        int i = 0;
         for (Layer l : layers) {
-            System.out.println("Layer " + i);
-            DMatrix[] params = l.getLayerParameters();
-            int j = 0;
-            for (DMatrix p : params) {
-                MatrixOps.print(p, "matrix " + i + " " + j);
-                j++;
-            }
-            System.out.println("");
-            i++;
+            l.print();
         }
     }
 }
