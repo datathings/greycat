@@ -36,11 +36,11 @@ public class TestNNC {
             @Override
             public void on(Boolean result) {
 
-                int input = 5;
+                int input = 80;
                 int output = 2;
 
-                int setsize = 7;
-                int nbRounds = 5;
+                int setsize = 70;
+                int nbRounds = 1000;
 
                 double learningrate = 0.003;
                 double regularisation = 0.0001;
@@ -75,14 +75,23 @@ public class TestNNC {
                 MatrixOps.print(inputs, "inputs");
                 MatrixOps.print(outputs, "outputs");
 
-                System.out.println("BEFORE training");
-                nn.printNN();
-                for (int i = 0; i < nbRounds; i++) {
-                    System.out.println("AFTER round "+i);
-                    nn.learnVec(inputs, outputs, false);
-                    nn.printNN();
+                //System.out.println("BEFORE training");
+                //nn.printNN();
 
+                long before = System.currentTimeMillis();
+
+                for (int i = 0; i < nbRounds; i++) {
+                    // System.out.println("AFTER round "+i);
+                    nn.learnVec(inputs, outputs, false);
+                    // nn.printNN();
                 }
+
+                long after = System.currentTimeMillis();
+
+                System.out.println("FINAL");
+                nn.printNN();
+
+                System.out.println((after - before) / (nbRounds * 1.0));
 
 
             }
