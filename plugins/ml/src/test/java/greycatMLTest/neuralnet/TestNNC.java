@@ -39,7 +39,7 @@ public class TestNNC {
                 int input = 5;
                 int output = 2;
                 int setsize = 3;
-                int nbRounds = 2;
+                int nbRounds = 1;
 
                 double learningrate = 0.003;
                 double regularisation = 0.0001;
