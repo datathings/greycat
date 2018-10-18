@@ -195,12 +195,14 @@ class LSTM implements Layer {
 
         //rollover activations for next iteration
 
-//        hiddenContext = output;
-//        cellContext = cellAct;
-//
-        hiddenContext =  g.assign(output);
-        cellContext =  g.assign(cellAct);
+        hiddenContext = output;
+        cellContext = cellAct;
+//EQUIVALENT OF
+//        hiddenContext =  g.assign(output);
+//        cellContext =  g.assign(cellAct);
 
+        MatrixOps.copy(hiddenContext.getW(), (new ExMatrix(this.host, HIDDEN_CONTEXT)).getW());
+        MatrixOps.copy(cellContext.getW(), (new ExMatrix(this.host, CELL_CONTEXT)).getW());
         return output;
     }
 
