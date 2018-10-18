@@ -843,7 +843,6 @@ public class CoreTask implements Task {
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        final String[] varrags = (String[]) params[3];
                         return new ActionTraverseTimeline((String) params[0], (String) params[1], (String) params[2]);
                     }
                 });
@@ -853,7 +852,6 @@ public class CoreTask implements Task {
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        final String[] varrags = (String[]) params[3];
                         return new ActionTraverseTimelineSparse((String) params[0], (String) params[1], (String) params[2]);
                     }
                 });
