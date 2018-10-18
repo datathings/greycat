@@ -25,13 +25,12 @@ import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
+import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.VolatileDMatrix;
-import org.junit.Test;
 
 public class TestNNC {
 
-    @Test
-    public void testLinearNN() {
+    public static void main(String[] args) {
         Graph g = GraphBuilder.newBuilder().build();
         g.connect(new Callback<Boolean>() {
             @Override
@@ -41,23 +40,24 @@ public class TestNNC {
                 int output = 2;
 
                 int setsize = 7;
+                int nbRounds = 5;
 
-                double learningrate = 0.3;
+                double learningrate = 0.003;
                 double regularisation = 0.0001;
 
                 Node node = g.newNode(0, 0);
                 EStructArray egraph = (EStructArray) node.getOrCreate("nn", Type.ESTRUCT_ARRAY);
 
-                NeuralNetWrapper net = new NeuralNetWrapper(egraph);
+                NeuralNetWrapper nn = new NeuralNetWrapper(egraph);
 
-                net.addLayer(Layers.FEED_FORWARD_LAYER, input, output, Activations.LINEAR, null);
-                net.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
-                net.setTrainLoss(Losses.SUM_OF_SQUARES, null);
+                nn.addLayer(Layers.FEED_FORWARD_LAYER, input, output, Activations.LINEAR, null);
+                nn.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
+                nn.setTrainLoss(Losses.SUM_OF_SQUARES, null);
 
                 CRandom random = new CRandom();
                 random.setSeed(123456789);
-                net.setRandom(random);
-                net.initAllLayers(WeightInit.GAUSSIAN, random, 0.08);
+                nn.setRandom(random);
+                nn.initAllLayers(WeightInit.GAUSSIAN, random, 0.08);
 
 
                 DMatrix inputs = VolatileDMatrix.empty(input, setsize);
@@ -72,8 +72,17 @@ public class TestNNC {
                     }
                 }
 
-//                MatrixOps.print(inputs,"inputs");
-//                MatrixOps.print(outputs,"outputs");
+                MatrixOps.print(inputs, "inputs");
+                MatrixOps.print(outputs, "outputs");
+
+                System.out.println("BEFORE training");
+                nn.printNN();
+                for (int i = 0; i < nbRounds; i++) {
+                    System.out.println("AFTER round "+i);
+                    nn.learnVec(inputs, outputs, false);
+                    nn.printNN();
+
+                }
 
 
             }

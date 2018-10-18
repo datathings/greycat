@@ -42,6 +42,7 @@ class GradientDescent extends AbstractOptimiser {
             for (int j = 0; j < weights.length; j++) {
                 w = weights[j].getW();
                 dw = weights[j].getDw();
+                MatrixOps.print(dw,"dw");
                 //w= (1- learningRate * regularization / samples ) * w - learningRate * dw / samples ;
                 //Ref: https://www.coursera.org/learn/machine-learning/lecture/QrMXd/regularized-linear-regression
                 MatrixOps.addInPlace(w, reg, dw, -stepsize);
