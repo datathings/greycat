@@ -36,10 +36,10 @@ public class TestNNC {
             @Override
             public void on(Boolean result) {
 
-                int input = 80;
-                int output = 50;
-                int setsize = 30;
-                int nbRounds = 40;
+                int input = 8;
+                int output = 5;
+                int setsize = 3;
+                int nbRounds = 4;
 
                 double learningrate = 0.9;
                 double regularisation = 0.0;
