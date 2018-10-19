@@ -37,8 +37,10 @@ public class TestNNC {
             public void on(Boolean result) {
 
                 int input = 8;
+                int hidden1 = 7;
+                int hidden2 = 6;
                 int output = 5;
-                int setsize = 3;
+                int setsize = 4;
                 int nbRounds = 10;
 
                 double learningrate = 0.3;
@@ -49,10 +51,10 @@ public class TestNNC {
 
                 NeuralNetWrapper nn = new NeuralNetWrapper(egraph);
 
-                nn.addLayer(Layers.FEED_FORWARD_LAYER, input, output, Activations.SIGMOID, null);
-                nn.addLayer(Layers.LINEAR_LAYER, output, output, Activations.LINEAR, null);
-                nn.addLayer(Layers.DROPOUT_LAYER, output, output, Activations.LINEAR, new double[]{0.01});
-                nn.addLayer(Layers.LSTM_LAYER, output, output, 0, null);
+                nn.addLayer(Layers.FEED_FORWARD_LAYER, input, hidden1, Activations.SIGMOID, null);
+                nn.addLayer(Layers.LINEAR_LAYER, hidden1, hidden2, Activations.LINEAR, null);
+                nn.addLayer(Layers.DROPOUT_LAYER, hidden2, hidden2, Activations.LINEAR, new double[]{0.01});
+                nn.addLayer(Layers.LSTM_LAYER, hidden2, output, 0, null);
                 nn.addLayer(Layers.SOFTMAX_LAYER, output, output, 0, null);
 
                 nn.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
