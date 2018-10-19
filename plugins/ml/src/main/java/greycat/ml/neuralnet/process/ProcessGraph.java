@@ -388,19 +388,19 @@ public class ProcessGraph {
         return out;
     }
 
-    public ExMatrix assign(final ExMatrix in) {
-        ExMatrix out = ExMatrix.createFromW(in.getW());
+    public ExMatrix assign(final ExMatrix input) {
+        ExMatrix out = ExMatrix.createFromW(input.getW());
         if (DEBUG) {
             System.out.println("ASSIGN");
         }
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
                 public void execute() {
-                    MatrixOps.addtoMatrix(in.getDw(), out.getDw());
+                    MatrixOps.addtoMatrix(input.getDw(), out.getDw());
                     if (DEBUG) {
                         System.out.println("ASSIGN --");
                         MatrixOps.print(out.getDw(), "out dw");
-                        MatrixOps.print(in.getDw(), "in dw");
+                        MatrixOps.print(input.getDw(), "input dw");
                     }
 //            out.getDw().fill(0);
                 }

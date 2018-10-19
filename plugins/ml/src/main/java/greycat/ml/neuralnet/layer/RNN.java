@@ -23,6 +23,7 @@ import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.DoubleArray;
 import greycat.struct.EStruct;
+import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomInterface;
 
 class RNN implements Layer {
@@ -36,6 +37,7 @@ class RNN implements Layer {
     private ExMatrix bias;
 
     private ExMatrix context;
+    private ExMatrix internalContext;
 
     private Activation activation;
     private EStruct host;
@@ -77,9 +79,31 @@ class RNN implements Layer {
         return this;
     }
 
-
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
+
+        ExMatrix output;
+        if (input.columns() != 1) {
+            ExMatrix[] inSplit = new ExMatrix[input.columns()];
+            ExMatrix[] outSplit = new ExMatrix[input.columns()];
+
+            for (int i = 0; i < input.columns(); i++) {
+                inSplit[i] = g.extractColumn(input, i);
+            }
+
+            for (int i = 0; i < input.columns(); i++) {
+                outSplit[i] = internalForward(inSplit[i], g);
+            }
+            output = g.concatColumns(outSplit);
+
+        } else {
+            output = internalForward(input, g);
+        }
+        MatrixOps.copy(context.getW(), internalContext.getW());
+        return output;
+    }
+
+    public ExMatrix internalForward(ExMatrix input, ProcessGraph g) {
         if (input.columns() != 1) {
             throw new RuntimeException("RNN can't process more than 1 input vector at a time!");
         }
@@ -88,7 +112,8 @@ class RNN implements Layer {
         sum = g.add(sum, bias);
         ExMatrix output = g.activate(activation, sum);
         //rollover activations for next iteration
-        context = output;
+        context = g.assign(output);
+
         return output;
     }
 
@@ -106,6 +131,10 @@ class RNN implements Layer {
         context.getW().fill(0);
         context.getDw().fill(0);
         context.getStepCache().fill(0);
+
+        internalContext.getW().fill(0);
+        internalContext.getDw().fill(0);
+        internalContext.getStepCache().fill(0);
     }
 
     @Override
@@ -121,5 +150,8 @@ class RNN implements Layer {
     @Override
     public void print() {
         System.out.println("Layer RNN");
+        MatrixOps.print(weights, "weights");
+        MatrixOps.print(bias, "bias");
+        MatrixOps.print(context, "context");
     }
 }

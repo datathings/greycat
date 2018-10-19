@@ -22,6 +22,7 @@ import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.WeightInit;
 import greycat.struct.EStruct;
+import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomInterface;
 
 class GRU implements Layer {
@@ -45,6 +46,8 @@ class GRU implements Layer {
     private ExMatrix ihreset, hhreset, breset;
 
     private ExMatrix context;
+    private ExMatrix internalContext;
+
 
     private Activation fMix = Activations.getUnit(Activations.SIGMOID, null);
     private Activation fReset = Activations.getUnit(Activations.SIGMOID, null);
@@ -71,7 +74,8 @@ class GRU implements Layer {
         hhreset = new ExMatrix(hostnode, HHRESET);
         breset = new ExMatrix(hostnode, BRESET);
 
-        context = new ExMatrix(hostnode, CONTEXT);
+        context = new ExMatrix(null, null);
+        internalContext = new ExMatrix(hostnode, CONTEXT);
         this.host = hostnode;
     }
 
@@ -93,7 +97,7 @@ class GRU implements Layer {
         breset.init(outputs, 1);
 
         context.init(outputs, 1);
-
+        internalContext.init(outputs, 1);
         return this;
     }
 
@@ -116,10 +120,29 @@ class GRU implements Layer {
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
-        if (input.columns() != 1) {
-            throw new RuntimeException("GRU can't process more than 1 input vector at a time!");
-        }
 
+        ExMatrix output;
+        if (input.columns() != 1) {
+            ExMatrix[] inSplit = new ExMatrix[input.columns()];
+            ExMatrix[] outSplit = new ExMatrix[input.columns()];
+
+            for (int i = 0; i < input.columns(); i++) {
+                inSplit[i] = g.extractColumn(input, i);
+            }
+
+            for (int i = 0; i < input.columns(); i++) {
+                outSplit[i] = internalForward(inSplit[i], g);
+            }
+            output = g.concatColumns(outSplit);
+
+        } else {
+            output = internalForward(input, g);
+        }
+        MatrixOps.copy(context.getW(), internalContext.getW());
+        return output;
+    }
+
+    private ExMatrix internalForward(ExMatrix input, ProcessGraph g) {
         ExMatrix sum0 = g.mul(ihmix, input);
         ExMatrix sum1 = g.mul(hhmix, context);
         ExMatrix actMix = g.activate(fMix, g.add(g.add(sum0, sum1), bmix));
@@ -138,7 +161,7 @@ class GRU implements Layer {
         ExMatrix output = g.add(memvals, newvals);
 
         //rollover activations for next iteration
-        context = output;
+        context = g.assign(output);
 
         return output;
     }
@@ -157,6 +180,10 @@ class GRU implements Layer {
         context.getW().fill(0);
         context.getDw().fill(0);
         context.getStepCache().fill(0);
+
+        internalContext.getW().fill(0);
+        internalContext.getDw().fill(0);
+        internalContext.getStepCache().fill(0);
     }
 
     @Override
@@ -171,6 +198,19 @@ class GRU implements Layer {
 
     @Override
     public void print() {
+        System.out.println("Layer GRU");
+        MatrixOps.print(ihmix, "ihmix");
+        MatrixOps.print(hhmix, "hhmix");
+        MatrixOps.print(bmix, "bmix");
 
+        MatrixOps.print(ihnew, "ihnew");
+        MatrixOps.print(hhnew, "hhnew");
+        MatrixOps.print(bnew, "bnew");
+
+        MatrixOps.print(ihreset, "ihreset");
+        MatrixOps.print(hhreset, "hhreset");
+        MatrixOps.print(breset, "breset");
+
+        MatrixOps.print(context, "context");
     }
 }

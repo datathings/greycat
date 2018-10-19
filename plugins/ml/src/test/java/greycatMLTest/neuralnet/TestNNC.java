@@ -65,14 +65,14 @@ public class TestNNC {
                 DMatrix inputs = VolatileDMatrix.empty(input, setsize);
                 DMatrix outputs = VolatileDMatrix.empty(output, setsize);
 
-                double in;
+                double value;
                 for (int i = 0; i < setsize; i++) {
                     //generate input randomly:
                     for (int j = 0; j < input; j++) {
-                        in = random.nextDouble();
-                        inputs.set(j, i, in);
+                        value = random.nextDouble();
+                        inputs.set(j, i, value);
                         for (int k = 0; k < output; k++) {
-                            outputs.add(k, i, -k * in * j + k);
+                            outputs.add(k, i, -k * value * j + k);
                         }
                     }
                 }
@@ -100,10 +100,10 @@ public class TestNNC {
                 for (int i = 0; i < setsize/2; i++) {
                     //generate input randomly:
                     for (int j = 0; j < input; j++) {
-                        in = random.nextDouble();
-                        inputs.set(j, i, in);
+                        value = random.nextDouble();
+                        inputs.set(j, i, value);
                         for (int k = 0; k < output; k++) {
-                            outputs.add(k, i, -k * in * j + k);
+                            outputs.add(k, i, -k * value * j + k);
                         }
                     }
                 }
