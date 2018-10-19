@@ -52,6 +52,9 @@ class LSTM implements Layer {
     private ExMatrix wox, woh, bo;
     private ExMatrix wcx, wch, bc;
 
+    private ExMatrix internalHiddenContext;
+    private ExMatrix internalCellContext;
+
     private ExMatrix hiddenContext;
     private ExMatrix cellContext;
 
@@ -85,8 +88,11 @@ class LSTM implements Layer {
         wch = new ExMatrix(hostnode, WCH);
         bc = new ExMatrix(hostnode, BC);
 
-        hiddenContext = new ExMatrix(hostnode, HIDDEN_CONTEXT);
-        cellContext = new ExMatrix(hostnode, CELL_CONTEXT);
+        internalHiddenContext = new ExMatrix(hostnode, HIDDEN_CONTEXT);
+        internalCellContext = new ExMatrix(hostnode, CELL_CONTEXT);
+
+        hiddenContext = ExMatrix.deepCopy(internalHiddenContext);
+        cellContext = ExMatrix.deepCopy(internalCellContext);
         this.host = hostnode;
     }
 
@@ -111,9 +117,12 @@ class LSTM implements Layer {
         wch.init(outputs, outputs);
         bc.init(outputs, 1);
 
+        internalHiddenContext.init(outputs, 1);
+        internalCellContext.init(outputs, 1);
+
+
         hiddenContext.init(outputs, 1);
         cellContext.init(outputs, 1);
-
         return this;
     }
 
@@ -142,9 +151,8 @@ class LSTM implements Layer {
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
-//        hiddenContext.getDw().fill(0);
-//        cellContext.getDw().fill(0);
 
+        ExMatrix output;
         if (input.columns() != 1) {
             ExMatrix[] inSplit = new ExMatrix[input.columns()];
             ExMatrix[] outSplit = new ExMatrix[input.columns()];
@@ -156,15 +164,19 @@ class LSTM implements Layer {
             for (int i = 0; i < input.columns(); i++) {
                 outSplit[i] = internalForward(inSplit[i], g);
             }
-            return g.concatColumns(outSplit);
+            output = g.concatColumns(outSplit);
 
         } else {
-            return internalForward(input, g);
+            output = internalForward(input, g);
         }
+        MatrixOps.copy(hiddenContext.getW(), internalHiddenContext.getW());
+        MatrixOps.copy(cellContext.getW(), internalCellContext.getW());
+        return output;
     }
 
 
     private ExMatrix internalForward(ExMatrix input, ProcessGraph g) {
+
         //input gate
         ExMatrix mul0 = g.mul(wix, input);
         ExMatrix mul1 = g.mul(wih, hiddenContext);
@@ -195,14 +207,13 @@ class LSTM implements Layer {
 
         //rollover activations for next iteration
 
-        hiddenContext = output;
-        cellContext = cellAct;
+//        hiddenContext = output;
+//        cellContext = cellAct;
 //EQUIVALENT OF
-//        hiddenContext =  g.assign(output);
-//        cellContext =  g.assign(cellAct);
+        hiddenContext = g.assign(output);
+        cellContext = g.assign(cellAct);
 
-        MatrixOps.copy(hiddenContext.getW(), (new ExMatrix(this.host, HIDDEN_CONTEXT)).getW());
-        MatrixOps.copy(cellContext.getW(), (new ExMatrix(this.host, CELL_CONTEXT)).getW());
+
         return output;
     }
 
@@ -229,6 +240,15 @@ class LSTM implements Layer {
         cellContext.getW().fill(0);
         cellContext.getDw().fill(0);
         cellContext.getStepCache().fill(0);
+
+
+        internalHiddenContext.getW().fill(0);
+        internalHiddenContext.getDw().fill(0);
+        internalHiddenContext.getStepCache().fill(0);
+
+        internalCellContext.getW().fill(0);
+        internalCellContext.getDw().fill(0);
+        internalCellContext.getStepCache().fill(0);
     }
 
     @Override
@@ -260,7 +280,7 @@ class LSTM implements Layer {
         MatrixOps.print(wch, "wch");
         MatrixOps.print(bc, "bc");
 
-        MatrixOps.print(hiddenContext, "hiddenContext");
-        MatrixOps.print(cellContext, "cellContext");
+        MatrixOps.print(internalHiddenContext, "hiddenContext");
+        MatrixOps.print(internalCellContext, "cellContext");
     }
 }

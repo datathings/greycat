@@ -18,6 +18,7 @@ package greycat.ml.neuralnet.process;
 import greycat.Type;
 import greycat.struct.DMatrix;
 import greycat.struct.EStruct;
+import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.VolatileDMatrix;
 
 public class ExMatrix implements DMatrix {
@@ -38,6 +39,17 @@ public class ExMatrix implements DMatrix {
             this.backend = node;
             this.att = attribute;
         }
+    }
+
+    public static ExMatrix deepCopy(ExMatrix src){
+        ExMatrix dm = new ExMatrix(null, null);
+        if(src.rows()!=0){
+            dm.w= VolatileDMatrix.empty(src.rows(), src.columns());
+            dm.dw= VolatileDMatrix.empty(src.rows(), src.columns());
+            MatrixOps.copy(src.w,dm.w);
+            MatrixOps.copy(src.dw, dm.dw);
+        }
+        return dm;
     }
 
     public static ExMatrix empty(int rows, int column) {

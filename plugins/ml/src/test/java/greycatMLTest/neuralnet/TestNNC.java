@@ -36,10 +36,10 @@ public class TestNNC {
             @Override
             public void on(Boolean result) {
 
-                int input = 50;
-                int output = 30;
-                int setsize = 1000;
-                int nbRounds = 10;
+                int input = 80;
+                int output = 50;
+                int setsize = 30;
+                int nbRounds = 40;
 
                 double learningrate = 0.9;
                 double regularisation = 0.0;
@@ -83,6 +83,7 @@ public class TestNNC {
                 //System.out.println("BEFORE training");
                 //nn.printNN();
 
+
                 long before = System.currentTimeMillis();
 
                 for (int i = 0; i < nbRounds; i++) {
@@ -93,6 +94,20 @@ public class TestNNC {
 
                 long after = System.currentTimeMillis();
 
+                inputs = VolatileDMatrix.empty(input, setsize/2);
+                outputs = VolatileDMatrix.empty(output, setsize/2);
+
+                for (int i = 0; i < setsize/2; i++) {
+                    //generate input randomly:
+                    for (int j = 0; j < input; j++) {
+                        in = random.nextDouble();
+                        inputs.set(j, i, in);
+                        for (int k = 0; k < output; k++) {
+                            outputs.add(k, i, -k * in * j + k);
+                        }
+                    }
+                }
+                nn.learnVec(inputs, outputs, false);
                 System.out.println("FINAL");
                 nn.printNN();
 

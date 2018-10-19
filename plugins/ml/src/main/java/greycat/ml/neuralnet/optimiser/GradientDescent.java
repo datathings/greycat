@@ -45,7 +45,12 @@ class GradientDescent extends AbstractOptimiser {
                 //MatrixOps.print(dw,"dw");
                 //w= (1- learningRate * regularization / samples ) * w - learningRate * dw / samples ;
                 //Ref: https://www.coursera.org/learn/machine-learning/lecture/QrMXd/regularized-linear-regression
+//                System.out.println("BEFORE");
+//                MatrixOps.print(w,"w");
+//                MatrixOps.print(dw,"dw");
                 MatrixOps.addInPlace(w, reg, dw, -stepsize);
+//                System.out.println("AFTER");
+//                MatrixOps.print(w,"w");
                 dw.fill(0);
             }
         }
