@@ -39,20 +39,20 @@ public class TestNNC {
                 int input = 8;
                 int output = 5;
                 int setsize = 3;
-                int nbRounds = 4;
+                int nbRounds = 10;
 
-                double learningrate = 0.9;
-                double regularisation = 0.0;
+                double learningrate = 0.3;
+                double regularisation = 0.1;
 
                 Node node = g.newNode(0, 0);
                 EStructArray egraph = (EStructArray) node.getOrCreate("nn", Type.ESTRUCT_ARRAY);
 
                 NeuralNetWrapper nn = new NeuralNetWrapper(egraph);
 
-//                nn.addLayer(Layers.FEED_FORWARD_LAYER, input, output, Activations.LINEAR, null);
-//                nn.addLayer(Layers.LINEAR_LAYER, output, output, Activations.LINEAR, null);
-//                nn.addLayer(Layers.DROPOUT_LAYER, output, output, Activations.LINEAR, new double[]{0.01});
-                nn.addLayer(Layers.LSTM_LAYER, input, output, 0, null);
+                nn.addLayer(Layers.FEED_FORWARD_LAYER, input, output, Activations.SIGMOID, null);
+                nn.addLayer(Layers.LINEAR_LAYER, output, output, Activations.LINEAR, null);
+                nn.addLayer(Layers.DROPOUT_LAYER, output, output, Activations.LINEAR, new double[]{0.01});
+                nn.addLayer(Layers.LSTM_LAYER, output, output, 0, null);
                 nn.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
                 nn.setTrainLoss(Losses.SUM_OF_SQUARES, null);
 
