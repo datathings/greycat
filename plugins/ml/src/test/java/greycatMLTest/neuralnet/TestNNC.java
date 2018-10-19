@@ -53,6 +53,8 @@ public class TestNNC {
                 nn.addLayer(Layers.LINEAR_LAYER, output, output, Activations.LINEAR, null);
                 nn.addLayer(Layers.DROPOUT_LAYER, output, output, Activations.LINEAR, new double[]{0.01});
                 nn.addLayer(Layers.LSTM_LAYER, output, output, 0, null);
+                nn.addLayer(Layers.SOFTMAX_LAYER, output, output, 0, null);
+
                 nn.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
                 nn.setTrainLoss(Losses.SUM_OF_SQUARES, null);
 
