@@ -45,14 +45,25 @@ public class RocksDBStorage implements Storage {
 
     private final String _storagePath;
 
+    private final RocksDBCompression _compression;
+
+    public RocksDBStorage(String storagePath, RocksDBCompression compression) {
+        if (System.getProperty("os.arch").equals("arm")) {
+            LibraryLoader.loadArmLibrary("librocksdbjni-linux32");
+        }
+        RocksDB.loadLibrary();
+        this._storagePath = storagePath;
+        this._compression = compression;
+    }
+
     public RocksDBStorage(String storagePath) {
         if (System.getProperty("os.arch").equals("arm")) {
             LibraryLoader.loadArmLibrary("librocksdbjni-linux32");
         }
         RocksDB.loadLibrary();
         this._storagePath = storagePath;
+        this._compression = RocksDBCompression.NONE;
     }
-
 
     public void backup(String path) throws Exception {
         BackupEngine backupEngine = BackupEngine.open(Env.getDefault(), new BackupableDBOptions(path));
@@ -272,8 +283,31 @@ public class RocksDBStorage implements Storage {
         _graph = graph;
         //by default activate snappy compression of bytes
         _options = new Options()
-                .setCreateIfMissing(true)
-                .setCompressionType(CompressionType.SNAPPY_COMPRESSION);
+                .setCreateIfMissing(true);
+
+        switch (_compression) {
+            case NONE:
+                _options.setCompressionType(CompressionType.NO_COMPRESSION);
+                break;
+            case SNAPPY:
+                _options.setCompressionType(CompressionType.SNAPPY_COMPRESSION);
+                break;
+            case LZ4:
+                _options.setCompressionType(CompressionType.LZ4_COMPRESSION);
+                break;
+            case ZLIB:
+                _options.setCompressionType(CompressionType.ZLIB_COMPRESSION);
+                break;
+            case ZSTD:
+                _options.setCompressionType(CompressionType.ZSTD_COMPRESSION);
+                break;
+            case XPRESS:
+                _options.setCompressionType(CompressionType.XPRESS_COMPRESSION);
+                break;
+            case LZ4HC:
+                _options.setCompressionType(CompressionType.LZ4HC_COMPRESSION);
+                break;
+        }
         File location = new File(_storagePath);
         if (!location.exists()) {
             location.mkdirs();
