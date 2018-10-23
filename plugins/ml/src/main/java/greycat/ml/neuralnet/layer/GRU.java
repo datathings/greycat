@@ -74,8 +74,9 @@ class GRU implements Layer {
         hhreset = new ExMatrix(hostnode, HHRESET);
         breset = new ExMatrix(hostnode, BRESET);
 
-        context = new ExMatrix(null, null);
+
         internalContext = new ExMatrix(hostnode, CONTEXT);
+        context = ExMatrix.deepCopy(internalContext);
         this.host = hostnode;
     }
 
@@ -143,18 +144,18 @@ class GRU implements Layer {
     }
 
     private ExMatrix internalForward(ExMatrix input, ProcessGraph g) {
-        ExMatrix sum0 = g.mul(ihmix, input);
-        ExMatrix sum1 = g.mul(hhmix, context);
-        ExMatrix actMix = g.activate(fMix, g.add(g.add(sum0, sum1), bmix));
+        ExMatrix mul0 = g.mul(ihmix, input);
+        ExMatrix mul1 = g.mul(hhmix, context);
+        ExMatrix actMix = g.activate(fMix, g.add(g.add(mul0, mul1), bmix));
 
-        ExMatrix sum2 = g.mul(ihreset, input);
-        ExMatrix sum3 = g.mul(hhreset, context);
-        ExMatrix actReset = g.activate(fReset, g.add(g.add(sum2, sum3), breset));
+        ExMatrix mul2 = g.mul(ihreset, input);
+        ExMatrix mul3 = g.mul(hhreset, context);
+        ExMatrix actReset = g.activate(fReset, g.add(g.add(mul2, mul3), breset));
 
-        ExMatrix sum4 = g.mul(ihnew, input);
+        ExMatrix mul4 = g.mul(ihnew, input);
         ExMatrix gatedContext = g.elmul(actReset, context);
-        ExMatrix sum5 = g.mul(hhnew, gatedContext);
-        ExMatrix actNewPlusGatedContext = g.activate(fNew, g.add(g.add(sum4, sum5), bnew));
+        ExMatrix mul5 = g.mul(hhnew, gatedContext);
+        ExMatrix actNewPlusGatedContext = g.activate(fNew, g.add(g.add(mul4, mul5), bnew));
 
         ExMatrix memvals = g.elmul(actMix, context);
         ExMatrix newvals = g.elmul(g.oneMinus(actMix), actNewPlusGatedContext);

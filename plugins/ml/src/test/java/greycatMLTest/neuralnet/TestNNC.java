@@ -36,9 +36,11 @@ public class TestNNC {
             @Override
             public void on(Boolean result) {
 
-                int input = 8;
-                int hidden1 = 7;
-                int hidden2 = 6;
+                int input = 10;
+                int hidden1 = 9;
+                int hidden2 = 8;
+                int hidden3 = 7;
+                int hidden4 = 6;
                 int output = 5;
                 int setsize = 4;
                 int nbRounds = 10;
@@ -54,7 +56,9 @@ public class TestNNC {
                 nn.addLayer(Layers.FEED_FORWARD_LAYER, input, hidden1, Activations.SIGMOID, null);
                 nn.addLayer(Layers.LINEAR_LAYER, hidden1, hidden2, Activations.LINEAR, null);
                 nn.addLayer(Layers.DROPOUT_LAYER, hidden2, hidden2, Activations.LINEAR, new double[]{0.01});
-                nn.addLayer(Layers.LSTM_LAYER, hidden2, output, 0, null);
+                nn.addLayer(Layers.LSTM_LAYER, hidden2, hidden3, 0, null);
+                nn.addLayer(Layers.GRU_LAYER, hidden3, hidden4, 0, null);
+                nn.addLayer(Layers.RNN_LAYER, hidden4, output, Activations.SIGMOID, null);
                 nn.addLayer(Layers.SOFTMAX_LAYER, output, output, 0, null);
 
                 nn.setOptimizer(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);

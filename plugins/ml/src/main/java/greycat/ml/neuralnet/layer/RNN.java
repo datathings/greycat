@@ -49,8 +49,9 @@ class RNN implements Layer {
         }
         weights = new ExMatrix(hostnode, WEIGHTS);
         bias = new ExMatrix(hostnode, BIAS);
-        context = new ExMatrix(hostnode, CONTEXT);
-        activation = Activations.getUnit(hostnode.getWithDefault(ACTIVATION, Activations.DEFAULT), (double[]) hostnode.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY));
+        internalContext = new ExMatrix(hostnode, CONTEXT);
+        context = ExMatrix.deepCopy(internalContext);
+        activation = Activations.getUnit(hostnode.getWithDefault(ACTIVATION, Activations.SIGMOID),  ((DoubleArray)hostnode.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY)).extract());
         this.host = hostnode;
     }
 
