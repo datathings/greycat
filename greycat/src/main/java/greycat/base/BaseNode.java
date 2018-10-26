@@ -191,6 +191,10 @@ public class BaseNode implements Node {
     }
 
     private Object proxyIfNecessary(NodeState state, int index, Object elem) {
+        if (!_graph.useProxies()) {
+            return elem;
+        }
+
         long resolvedTime = state.time();
         long resolvedWorld = state.world();
         if (resolvedTime == _time && resolvedWorld == _world) { //implement time sensitivity
@@ -205,12 +209,6 @@ public class BaseNode implements Node {
                     return new DMatrixProxy(index, this, (DMatrix) elem);
                 case Type.RELATION:
                     return new RelationProxy(index, this, (Relation) elem);
-               /* case Type.RELATION_INDEXED:
-                    return new RelationIndexedProxy(index, this, (RelationIndexed) elem);*/
-               /* case Type.KDTREE:
-                    return new TreeProxy(index, this, (Tree) elem);
-                case Type.NDTREE:
-                    return new ProfileProxy(index, this, (Profile) elem);*/
                 case Type.LONG_TO_LONG_MAP:
                     return new LongLongMapProxy(index, this, (LongLongMap) elem);
                 case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -1116,7 +1114,7 @@ public class BaseNode implements Node {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof BaseNode){
+        if (obj instanceof BaseNode) {
             BaseNode other = (BaseNode) obj;
             return other._id == this._id && other._time == this._time && other._world == this._world;
         }

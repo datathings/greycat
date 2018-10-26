@@ -327,6 +327,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public boolean useProxies() {
+        return false;
+    }
+
+    @Override
     public NodeState resolveState(Node node) {
         return null;
     }

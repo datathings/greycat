@@ -57,10 +57,12 @@ public class CoreGraph implements Graph {
     private TaskHook[] _taskHooks;
     private List<Callback<Callback<Boolean>>> _connectHooks;
 
+    private final boolean _useProxies;
+
     //general properties
     private final HashMap<String, Object> _properties = new HashMap<String, Object>();
 
-    public CoreGraph(final Storage p_storage, final long memorySize, final long batchSize, final Scheduler p_scheduler, final Plugin[] p_plugins, final boolean deepPriority) {
+    public CoreGraph(final Storage p_storage, final long memorySize, final long batchSize, final Scheduler p_scheduler, final Plugin[] p_plugins, final boolean deepPriority, final boolean useProxies) {
         _log = new CoreGraphLog(this);
         //initiate the two registry
         _actionRegistry = new CoreActionRegistry();
@@ -84,6 +86,7 @@ public class CoreGraph implements Graph {
         //Third round, initialize all mandatory elements
         _taskHooks = temp_hooks;
         _storage = p_storage;
+        _useProxies = useProxies;
         _space = _memoryFactory.newSpace(memorySize, batchSize, selfPointer, deepPriority);
         _resolver = new MWResolver(_storage, _space, selfPointer);
         _scheduler = p_scheduler;
@@ -135,6 +138,11 @@ public class CoreGraph implements Graph {
             }
         });
         //variables init
+    }
+
+    @Override
+    public boolean useProxies() {
+        return _useProxies;
     }
 
     @Override

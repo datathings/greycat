@@ -18,7 +18,6 @@ package greycat.struct.proxy;
 import greycat.Container;
 import greycat.Index;
 import greycat.Type;
-import greycat.base.BaseNode;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.*;
 import greycat.utility.HashHelper;
@@ -27,7 +26,7 @@ public final class EStructProxy implements EStruct {
 
     EStructArrayProxy _parent;
     EStruct _node;
-    final int _index;
+    int _index;
 
     public EStructProxy(EStructArrayProxy _parent, EStruct _node, int _index) {
         this._parent = _parent;
@@ -163,9 +162,10 @@ public final class EStructProxy implements EStruct {
     }
 
     private Object proxifyIfNeeded(Object elem, int index) {
-        if (elem == null || _parent == null || !(elem instanceof BaseNode)) { //implement time sensitivity
+        if (elem == null || _parent == null || !_node.egraph().graph().useProxies()) { //implement time sensitivity
             return elem;
         } else {
+
             int type = typeAt(index);
             switch (type) {
                 case Type.LMATRIX:
@@ -176,13 +176,6 @@ public final class EStructProxy implements EStruct {
                     return new ERelationProxy(index, this, (ERelation) elem);
                 case Type.RELATION:
                     return new RelationProxy(index, this, (Relation) elem);
-                /*case Type.RELATION_INDEXED:
-                    return new RelationIndexedProxy(index, this, (RelationIndexed) elem);*/
-                /*case Type.KDTREE:
-                    return new TreeProxy(index, this, (Tree) elem);
-                case Type.NDTREE:
-                    return new ProfileProxy(index, this, (Profile) elem);
-                    */
                 case Type.LONG_TO_LONG_MAP:
                     return new LongLongMapProxy(index, this, (LongLongMap) elem);
                 case Type.LONG_TO_LONG_ARRAY_MAP:

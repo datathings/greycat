@@ -37,6 +37,7 @@ public class GraphBuilder {
     private long _batchSize = -1;
     private boolean _readOnly = false;
     private boolean _deepPriority = true;
+    private boolean _useProxies = true;
 
     private Callback<Graph> postBuildHook;
 
@@ -130,6 +131,17 @@ public class GraphBuilder {
     }
 
     /**
+     * Defines if proxies must be used or not
+     *
+     * @param value true for use of proxies; false otherwise.
+     * @return the {@link GraphBuilder}, for a fluent API
+     */
+    public GraphBuilder withProxyUsage(boolean value) {
+        this._useProxies = value;
+        return this;
+    }
+
+    /**
      * Declare a plugin to the graph builder.
      *
      * @param plugin that has to be added
@@ -178,9 +190,9 @@ public class GraphBuilder {
         }
         Graph graph;
         if (storageFactory != null) {
-            graph = new CoreGraph(storageFactory.build(), _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
+            graph = new CoreGraph(storageFactory.build(), _memorySize, _batchSize, _scheduler, _plugins, _deepPriority, _useProxies);
         } else {
-            graph = new CoreGraph(storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority);
+            graph = new CoreGraph(storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority, _useProxies);
         }
 
         if (this.postBuildHook != null) {
