@@ -18,6 +18,7 @@ package greycat.struct.proxy;
 import greycat.Container;
 import greycat.Index;
 import greycat.Type;
+import greycat.base.BaseNode;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.*;
 import greycat.utility.HashHelper;
@@ -162,7 +163,7 @@ public final class EStructProxy implements EStruct {
     }
 
     private Object proxifyIfNeeded(Object elem, int index) {
-        if (elem == null || _parent == null) { //implement time sensitivity
+        if (elem == null || _parent == null || !(elem instanceof BaseNode)) { //implement time sensitivity
             return elem;
         } else {
             int type = typeAt(index);
