@@ -36,7 +36,7 @@ public class GaussianSlotsNode extends BaseNode {
             .asPositiveLong(PERIOD_SIZE);
 
 
-    private GaussianSlotsEGraph gsgraph = null;
+    private GaussianSlotsArray gsgraph = null;
 
 
     public GaussianSlotsNode(long p_world, long p_time, long p_id, Graph p_graph) {
@@ -65,7 +65,7 @@ public class GaussianSlotsNode extends BaseNode {
         enforcer.check(name, type, value);
 
         EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
-        gsgraph = new GaussianSlotsEGraph(eg);
+        gsgraph = new GaussianSlotsArray(eg);
 
         switch (name) {
             case PERIOD_SIZE:
@@ -82,7 +82,7 @@ public class GaussianSlotsNode extends BaseNode {
 
     public void learnWithTime(long time, double[] values) {
         EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
-        gsgraph = new GaussianSlotsEGraph(eg);
+        gsgraph = new GaussianSlotsArray(eg);
         gsgraph.learn(getSlotNumberInTime(time), values);
     }
 
@@ -94,13 +94,13 @@ public class GaussianSlotsNode extends BaseNode {
     public void reset() {
         super.remove(GSEGRAPH);
         EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
-        gsgraph = new GaussianSlotsEGraph(eg);
+        gsgraph = new GaussianSlotsArray(eg);
         gsgraph.setNumberOfSlots((int) get(NUMBER_OF_SLOTS));
     }
 
     public void learnAtSlot(int slot, double[] values) {
         EStructArray eg = (EStructArray) super.getOrCreate(GSEGRAPH, Type.ESTRUCT_ARRAY);
-        gsgraph = new GaussianSlotsEGraph(eg);
+        gsgraph = new GaussianSlotsArray(eg);
         gsgraph.learn(slot, values);
     }
 
@@ -192,7 +192,7 @@ public class GaussianSlotsNode extends BaseNode {
         } else {
             EStructArray eg = (EStructArray) super.get(GSEGRAPH);
             if (eg != null) {
-                gsgraph = new GaussianSlotsEGraph(eg);
+                gsgraph = new GaussianSlotsArray(eg);
                 return true;
             } else {
                 return false;

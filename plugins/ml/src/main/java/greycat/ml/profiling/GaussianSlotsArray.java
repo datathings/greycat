@@ -21,7 +21,7 @@ import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
 import greycat.struct.IntArray;
 
-public class GaussianSlotsEGraph {
+public class GaussianSlotsArray {
 
     public static final String NUMBER_OF_SLOTS = "numberOfSlots"; //Number of slots to create in the profile, default is 1
 
@@ -63,7 +63,7 @@ public class GaussianSlotsEGraph {
     }
 
 
-    public GaussianSlotsEGraph(EStructArray backend) {
+    public GaussianSlotsArray(EStructArray backend) {
         if (backend == null) {
             throw new RuntimeException("backend can't be null for Gaussian Slot nodes!");
         }
