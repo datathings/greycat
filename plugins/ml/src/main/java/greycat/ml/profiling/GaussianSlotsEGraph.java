@@ -35,7 +35,7 @@ public class GaussianSlotsEGraph {
     private GaussianWrapper generic_slot = null;
 
 
-    public static int getMaxSlots(int[] dimensions) {
+    public static int getNumberOfSlots(int[] dimensions) {
         int total = 1;
         for (int i = 0; i < dimensions.length; i++) {
             if (dimensions[i] <= 0) {
@@ -46,7 +46,7 @@ public class GaussianSlotsEGraph {
         return total;
     }
 
-    public static int convertSlot(int[] keys, int[] dimensions) {
+    public static int calculateSlotFromKeys(int[] keys, int[] dimensions) {
         if (keys.length != dimensions.length) {
             throw new RuntimeException("keys and dimensions have to be the same length");
         }
@@ -79,7 +79,7 @@ public class GaussianSlotsEGraph {
     }
 
     public void setDimensions(int[] dimensions) {
-        setNumberOfSlots(getMaxSlots(dimensions));
+        setNumberOfSlots(getNumberOfSlots(dimensions));
         IntArray dim = (IntArray) root.getOrCreate(DIMENSIONS, Type.INT_ARRAY);
         dim.clear();
         dim.addAll(dimensions);
@@ -107,7 +107,7 @@ public class GaussianSlotsEGraph {
         if (slots == null) {
             throw new RuntimeException("Please set the number of slots first!");
         }
-        int slot = convertSlot(keys, root.getIntArray(DIMENSIONS).extract());
+        int slot = calculateSlotFromKeys(keys, root.getIntArray(DIMENSIONS).extract());
         slots[slot].learn(values);
         generic_slot.learn(values);
     }
@@ -128,7 +128,7 @@ public class GaussianSlotsEGraph {
         if (slots == null) {
             throw new RuntimeException("Please set the number of slots first!");
         }
-        int slot = convertSlot(keys, root.getIntArray(DIMENSIONS).extract());
+        int slot = calculateSlotFromKeys(keys, root.getIntArray(DIMENSIONS).extract());
         return slots[slot];
     }
 
