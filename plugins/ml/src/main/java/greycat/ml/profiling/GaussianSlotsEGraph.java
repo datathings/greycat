@@ -19,11 +19,13 @@ import greycat.Type;
 import greycat.struct.ERelation;
 import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
+import greycat.struct.IntArray;
 
 public class GaussianSlotsEGraph {
 
     public static final String NUMBER_OF_SLOTS = "numberOfSlots"; //Number of slots to create in the profile, default is 1
 
+    private static final String DIMENSIONS = "dimensions";
     private static final String SLOTS = "slots";
     private static final String GENERIC_SLOT = "generic_slot";
     private EStructArray backend = null;
@@ -31,6 +33,34 @@ public class GaussianSlotsEGraph {
     private EStruct root = null;
     private GaussianWrapper[] slots = null;
     private GaussianWrapper generic_slot = null;
+
+
+    public static int getMaxSlots(int[] dimensions) {
+        int total = 1;
+        for (int i = 0; i < dimensions.length; i++) {
+            if (dimensions[i] <= 0) {
+                throw new RuntimeException("Dimensions should be positives");
+            }
+            total = total * dimensions[i];
+        }
+        return total;
+    }
+
+    public static int convertSlot(int[] keys, int[] dimensions) {
+        if (keys.length != dimensions.length) {
+            throw new RuntimeException("keys and dimensions have to be the same length");
+        }
+        int accumulator = 0;
+        int multiplier = 1;
+        for (int i = 0; i < dimensions.length; i++) {
+            if (keys[i] >= dimensions[i]) {
+                throw new RuntimeException("Keys can't exceed dimensions!");
+            }
+            accumulator += keys[i] * multiplier;
+            multiplier = multiplier * dimensions[i];
+        }
+        return accumulator;
+    }
 
 
     public GaussianSlotsEGraph(EStructArray backend) {
@@ -47,6 +77,14 @@ public class GaussianSlotsEGraph {
         }
 
     }
+
+    public void setDimensions(int[] dimensions) {
+        setNumberOfSlots(getMaxSlots(dimensions));
+        IntArray dim = (IntArray) root.getOrCreate(DIMENSIONS, Type.INT_ARRAY);
+        dim.clear();
+        dim.addAll(dimensions);
+    }
+
 
     public void setNumberOfSlots(int number) {
         if (number < 1) {
@@ -65,6 +103,15 @@ public class GaussianSlotsEGraph {
         }
     }
 
+    public void learnWithKeys(int[] keys, double[] values) {
+        if (slots == null) {
+            throw new RuntimeException("Please set the number of slots first!");
+        }
+        int slot = convertSlot(keys, root.getIntArray(DIMENSIONS).extract());
+        slots[slot].learn(values);
+        generic_slot.learn(values);
+    }
+
     public void learn(int slot, double[] values) {
         if (slots == null) {
             throw new RuntimeException("Please set the number of slots first!");
@@ -75,6 +122,14 @@ public class GaussianSlotsEGraph {
         }
         slots[slot].learn(values);
         generic_slot.learn(values);
+    }
+
+    public GaussianWrapper getGaussianWithKeys(int[] keys) {
+        if (slots == null) {
+            throw new RuntimeException("Please set the number of slots first!");
+        }
+        int slot = convertSlot(keys, root.getIntArray(DIMENSIONS).extract());
+        return slots[slot];
     }
 
     public GaussianWrapper getGaussian(int slot) {
