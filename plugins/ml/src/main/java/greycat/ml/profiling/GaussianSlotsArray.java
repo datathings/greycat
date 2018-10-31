@@ -152,7 +152,7 @@ public class GaussianSlotsArray {
     }
 
 
-    public boolean load() {
+    private boolean load() {
         if (root != null) {
             return true;
         }
