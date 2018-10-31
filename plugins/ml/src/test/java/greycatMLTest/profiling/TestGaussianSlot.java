@@ -21,7 +21,7 @@ import greycat.struct.EStructArray;
 import org.junit.Test;
 
 public class TestGaussianSlot {
-//    @Test
+    @Test
     public void TestGaussianSlot() {
         Graph g = GraphBuilder.newBuilder().build();
         g.connect(new Callback<Boolean>() {
@@ -31,12 +31,13 @@ public class TestGaussianSlot {
                 EStructArray es = (EStructArray) n.getOrCreate("ss", Type.ESTRUCT_ARRAY);
                 GaussianSlotsArray garray = new GaussianSlotsArray(es);
                 int[] dim = new int[]{7, 24, 5};
-                garray.setDimensions(dim);
-
 
                 for (int temperature = 0; temperature < 5; temperature++) {
                     for (int hour = 0; hour < 24; hour++) {
                         for (int day = 0; day < 7; day++) {
+
+                            garray.setDimensions(dim);
+
                             int s = GaussianSlotsArray.calculateSlotFromKeys(new int[]{day, hour, temperature}, dim);
                             System.out.println(temperature + " " + hour + " " + day + " " + s);
                         }

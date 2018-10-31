@@ -91,9 +91,8 @@ public class GaussianSlotsArray {
             throw new RuntimeException("Can't set number of slots <1");
         }
         root.set(NUMBER_OF_SLOTS, Type.INT, number);
-
+        root.remove(SLOTS);
         ERelation relation = (ERelation) root.getOrCreate(SLOTS, Type.ERELATION);
-        relation.clear();
         EStruct temp;
         slots = new GaussianWrapper[number];
         for (int i = 0; i < number; i++) {
