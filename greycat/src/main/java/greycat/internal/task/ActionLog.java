@@ -20,7 +20,7 @@ import greycat.Action;
 import greycat.TaskContext;
 import greycat.struct.Buffer;
 
-class ActionLog implements Action {
+public class ActionLog implements Action {
 
     public static String LEVEL_INFO = "info";
 
