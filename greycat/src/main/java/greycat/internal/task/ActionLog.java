@@ -22,6 +22,16 @@ import greycat.struct.Buffer;
 
 class ActionLog implements Action {
 
+    public static String LEVEL_INFO = "info";
+
+    public static String LEVEL_DEBUG = "debug";
+
+    public static String LEVEL_WARN = "warn";
+
+    private static String LEVEL_WARNING = "warning";
+
+    public static String LEVEL_ERROR = "error";
+
     private final String _value;
     private final String _level;
 
@@ -35,13 +45,13 @@ class ActionLog implements Action {
         String message = ctx.template(_value);
         if (_level == null) {
             ctx.graph().log().info(message);
-        } else if (_level.equals("info")) {
+        } else if (_level.equals(LEVEL_INFO)) {
             ctx.graph().log().info(message);
-        } else if (_level.equals("debug")) {
+        } else if (_level.equals(LEVEL_DEBUG)) {
             ctx.graph().log().debug(message);
-        } else if (_level.equals("warn") || _level.equals("warning")) {
+        } else if (_level.equals(LEVEL_WARN) || _level.equals(LEVEL_WARNING)) {
             ctx.graph().log().warn(message);
-        } else if (_level.equals("error")) {
+        } else if (_level.equals(LEVEL_ERROR)) {
             ctx.graph().log().error(message);
         }
         ctx.continueTask();
