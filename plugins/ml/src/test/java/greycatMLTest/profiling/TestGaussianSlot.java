@@ -21,7 +21,7 @@ import greycat.struct.EStructArray;
 import org.junit.Test;
 
 public class TestGaussianSlot {
-    @Test
+//    @Test
     public void TestGaussianSlot() {
         Graph g = GraphBuilder.newBuilder().build();
         g.connect(new Callback<Boolean>() {
