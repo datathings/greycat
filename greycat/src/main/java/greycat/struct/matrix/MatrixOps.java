@@ -374,6 +374,26 @@ public class MatrixOps {
         return res;
     }
 
+    public static double[][] getArray(DMatrix input, boolean colomnBased) {
+        double[][] res;
+        if (colomnBased) {
+            res = new double[input.columns()][input.rows()];
+        } else {
+            res = new double[input.rows()][input.columns()];
+        }
+        for (int r = 0; r < input.rows(); r++) {
+            for (int c = 0; c < input.columns(); c++) {
+                if (colomnBased) {
+                    res[c][r] = input.get(r, c);
+                } else {
+                    res[r][c] = input.get(r, c);
+                }
+
+            }
+        }
+        return res;
+    }
+
     public static void softmax(DMatrix input, DMatrix output) {
         double maxval = Double.NEGATIVE_INFINITY;
         int len = input.length();
