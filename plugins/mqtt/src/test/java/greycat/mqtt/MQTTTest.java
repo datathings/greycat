@@ -35,7 +35,7 @@ public class MQTTTest {
     private static Graph graph1;
     private static Graph graph2;
     private static String topic = "demo" + System.currentTimeMillis();
-    private static String HOST_IP = "iot.eclipse.org";
+    private static String HOST_IP = "test.mosquitto.org";
     private static int HOST_PORT = 1883;
     private static long NETWORK_DELAY = 1000;
 
