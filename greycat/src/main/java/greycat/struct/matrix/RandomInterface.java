@@ -21,4 +21,9 @@ public interface RandomInterface {
     double nextGaussian();
 
     void setSeed(long seed);
+
+    /**
+     * Creates a new random between origin (inclusive) and bound (exclusive).
+     */
+    int nextInt(int origin, int bound);
 }

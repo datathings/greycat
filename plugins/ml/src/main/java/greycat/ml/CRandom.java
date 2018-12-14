@@ -89,4 +89,10 @@ public class CRandom implements RandomInterface {
         this._value = 0;
     }
 
+    @Override
+    public int nextInt(int min, int max) {
+        // TODO Assaad
+        return 0;
+    }
+
 }

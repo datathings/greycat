@@ -17,7 +17,7 @@ package greycat.struct.matrix;
 
 import java.util.Random;
 
-public class JavaRandom implements RandomInterface{
+public class JavaRandom implements RandomInterface {
 
     private Random random = new Random();
 
@@ -31,6 +31,15 @@ public class JavaRandom implements RandomInterface{
 
     public final void setSeed(long seed) {
         random.setSeed(seed);
+    }
+
+    @Override
+    public int nextInt(int origin, int bound) {
+        if (origin >= bound)
+            throw new IllegalArgumentException("origin must be smaller than bound");
+
+        return random.nextInt(bound - origin) + origin;
+
     }
 
 }
