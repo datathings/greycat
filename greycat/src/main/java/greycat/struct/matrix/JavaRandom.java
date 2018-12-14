@@ -34,7 +34,7 @@ public class JavaRandom implements RandomInterface {
     }
 
     @Override
-    public int nextInt(int origin, int bound) {
+    public int nextIntBetween(int origin, int bound) {
         if (origin >= bound)
             throw new IllegalArgumentException("origin must be smaller than bound");
 

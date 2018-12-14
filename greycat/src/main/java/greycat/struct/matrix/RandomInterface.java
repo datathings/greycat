@@ -25,5 +25,5 @@ public interface RandomInterface {
     /**
      * Creates a new random between origin (inclusive) and bound (exclusive).
      */
-    int nextInt(int origin, int bound);
+    int nextIntBetween(int origin, int bound);
 }

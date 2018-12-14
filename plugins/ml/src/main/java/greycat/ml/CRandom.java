@@ -90,7 +90,7 @@ public class CRandom implements RandomInterface {
     }
 
     @Override
-    public int nextInt(int min, int max) {
+    public int nextIntBetween(int min, int max) {
         // TODO Assaad
         return 0;
     }
