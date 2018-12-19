@@ -144,6 +144,14 @@ public class GaussianSlotsNode extends BaseNode {
         return backend.getMax();
     }
 
+    public double[] getSum(int slot) {
+        if (!load()) {
+            return null;
+        }
+        GaussianWrapper backend = gsgraph.getGaussian(slot);
+        return backend.getSum();
+    }
+
     public long getTotal(int slot) {
         if (!load()) {
             return -1L;
