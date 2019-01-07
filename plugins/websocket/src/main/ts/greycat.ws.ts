@@ -441,6 +441,14 @@ export class WSClient implements greycat.plugin.Storage {
         this.ws.send(flatData);
     }
 
+    backup(path: string): void {
+
+    }
+
+    restore(path: string): void {
+
+    }
+
 }
 
 /*
