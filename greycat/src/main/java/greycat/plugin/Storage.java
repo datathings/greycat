@@ -99,4 +99,18 @@ public interface Storage {
      */
     void listen(Callback<Buffer> synCallback);
 
+    /**
+     * Creates a backup of the storage at the given path
+     * @param path where the backup should be created
+     * @throws Exception
+     */
+    void backup(String path) throws Exception;
+
+    /**
+     * Restores the backup from the given path
+     * @param path to the backup
+     * @throws Exception
+     */
+    void restore(String path) throws Exception;
+
 }

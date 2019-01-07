@@ -96,4 +96,14 @@ public class BlackHoleStorage implements Storage {
         //TODO
     }
 
+    @Override
+    public void backup(String path) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void restore(String path) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
 }

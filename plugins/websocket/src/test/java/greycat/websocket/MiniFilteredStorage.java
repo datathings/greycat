@@ -191,4 +191,14 @@ public class MiniFilteredStorage implements Storage {
         return true;
     }
 
+    @Override
+    public void backup(String path) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void restore(String path) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
 }

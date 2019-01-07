@@ -24,6 +24,7 @@ import greycat.struct.BufferIterator;
 import greycat.utility.Base64;
 import greycat.Callback;
 import greycat.utility.HashHelper;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -169,6 +170,16 @@ public class MockStorage implements Storage {
     @Override
     public void listen(Callback<Buffer> synCallback) {
         updates.add(synCallback);
+    }
+
+    @Override
+    public void backup(String path) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void restore(String path) throws Exception {
+        throw new UnsupportedOperationException();
     }
 
 }

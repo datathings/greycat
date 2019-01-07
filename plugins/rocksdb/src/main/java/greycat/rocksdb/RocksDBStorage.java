@@ -65,11 +65,13 @@ public class RocksDBStorage implements Storage {
         this._compression = RocksDBCompression.NONE;
     }
 
+    @Override
     public void backup(String path) throws Exception {
         BackupEngine backupEngine = BackupEngine.open(Env.getDefault(), new BackupableDBOptions(path));
         backupEngine.createNewBackup(_db, true);
     }
 
+    @Override
     public void restore(String path) throws Exception {
         BackupEngine backupEngine = BackupEngine.open(Env.getDefault(), new BackupableDBOptions(path));
         backupEngine.restoreDbFromLatestBackup(this._storagePath, this._storagePath, new RestoreOptions(true));

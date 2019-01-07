@@ -279,4 +279,14 @@ public class LevelDBStorage implements Storage {
         }
         callback.on(true);
     }
+
+    @Override
+    public void backup(String path) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void restore(String path) throws Exception {
+        throw new UnsupportedOperationException();
+    }
 }

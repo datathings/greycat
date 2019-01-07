@@ -79,5 +79,15 @@ public class ReadOnlyStorage implements Storage {
     public void unlock(Buffer previousLock, Callback<Boolean> callback) {
         wrapped.unlock(previousLock, callback);
     }
+
+    @Override
+    public void backup(String path) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void restore(String path) throws Exception {
+        throw new UnsupportedOperationException();
+    }
     
 }
