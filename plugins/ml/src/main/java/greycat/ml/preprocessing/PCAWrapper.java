@@ -188,27 +188,30 @@ public class PCAWrapper {
 
 
     public void setDimension(int dim) {
-        DMatrix _spaceOrigin = _backend.getDMatrix(SPACE_ORIGIN);
-        if (_spaceOrigin == null) {
-            throw new RuntimeException("You should fit data first!");
+        if(_backend.get(SELECTED_DIM)!=null && (int)_backend.get(SELECTED_DIM)!=dim) {
+            DMatrix _spaceOrigin = _backend.getDMatrix(SPACE_ORIGIN);
+            if (_spaceOrigin == null) {
+                throw new RuntimeException("You should fit data first!");
+            }
+            if (dim <= 0 || dim > _spaceOrigin.rows()) {
+                throw new RuntimeException("Dim should be >0 and less than original dimension");
+            }
+
+
+            DMatrix res = MatrixOps.cropMatrix(_spaceOrigin, _spaceOrigin.rows(), dim);
+            _backend.remove(SPACE_CROPPED);
+            DMatrix _spaceCropped = (DMatrix) _backend.getOrCreate(SPACE_CROPPED, Type.DMATRIX);
+            MatrixOps.copy(res, _spaceCropped);
+
+            _backend.set(SELECTED_DIM, Type.INT, dim);
         }
-        if (dim <= 0 || dim > _spaceOrigin.rows()) {
-            throw new RuntimeException("Dim should be >0 and less than original dimension");
-        }
-
-
-        DMatrix res = MatrixOps.cropMatrix(_spaceOrigin, _spaceOrigin.rows(), dim);
-        _backend.remove(SPACE_CROPPED);
-        DMatrix _spaceCropped = (DMatrix) _backend.getOrCreate(SPACE_CROPPED, Type.DMATRIX);
-        MatrixOps.copy(res, _spaceCropped);
-
-        _backend.set(SELECTED_DIM, Type.INT, dim);
     }
+
+
 
 
     public double[] convertVector(double[] data, boolean workInPlace) {
         DMatrix _spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
-
         if (_spaceCropped == null) {
             throw new RuntimeException("Please set dimension first before calling PCA");
         }
@@ -289,6 +292,7 @@ public class PCAWrapper {
 
     //Column vectors based
     public DMatrix convertMatrix(DMatrix initial, boolean workInPlace) {
+
         DMatrix _spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
 
         if (_spaceCropped == null) {
