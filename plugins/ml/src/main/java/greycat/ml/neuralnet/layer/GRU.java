@@ -199,7 +199,7 @@ class GRU implements Layer {
 
     @Override
     public void print() {
-        System.out.println("Layer GRU");
+        System.out.println("Layer GRU "+inputDimensions()+" -> "+outputDimensions());
         MatrixOps.print(ihmix, "ihmix");
         MatrixOps.print(hhmix, "hhmix");
         MatrixOps.print(bmix, "bmix");

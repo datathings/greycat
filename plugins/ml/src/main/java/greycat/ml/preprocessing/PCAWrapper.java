@@ -188,7 +188,7 @@ public class PCAWrapper {
 
 
     public void setDimension(int dim) {
-        if(_backend.get(SELECTED_DIM)!=null && (int)_backend.get(SELECTED_DIM)!=dim) {
+        if(_backend.get(SELECTED_DIM)==null || (int)_backend.get(SELECTED_DIM)!=dim) {
             DMatrix _spaceOrigin = _backend.getDMatrix(SPACE_ORIGIN);
             if (_spaceOrigin == null) {
                 throw new RuntimeException("You should fit data first!");

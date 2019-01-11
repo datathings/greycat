@@ -263,7 +263,7 @@ class LSTM implements Layer {
 
     @Override
     public void print() {
-        System.out.println("Layer LSTM");
+        System.out.println("Layer LSTM " + inputDimensions() + " -> " + outputDimensions());
         MatrixOps.print(wix, "wix");
         MatrixOps.print(wih, "wih");
         MatrixOps.print(bi, "bi");

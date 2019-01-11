@@ -98,7 +98,7 @@ public class LinearSoftMax implements Layer {
 
     @Override
     public void print() {
-        System.out.println("Layer Linear Softmax");
+        System.out.println("Layer Linear Softmax "+inputDimensions()+" -> "+outputDimensions());
         MatrixOps.print(weights,"weights");
         MatrixOps.print(bias,"bias");
     }

@@ -51,7 +51,7 @@ class RNN implements Layer {
         bias = new ExMatrix(hostnode, BIAS);
         internalContext = new ExMatrix(hostnode, CONTEXT);
         context = ExMatrix.deepCopy(internalContext);
-        activation = Activations.getUnit(hostnode.getWithDefault(ACTIVATION, Activations.SIGMOID),  ((DoubleArray)hostnode.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY)).extract());
+        activation = Activations.getUnit(hostnode.getWithDefault(ACTIVATION, Activations.SIGMOID), ((DoubleArray) hostnode.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY)).extract());
         this.host = hostnode;
     }
 
@@ -150,7 +150,7 @@ class RNN implements Layer {
 
     @Override
     public void print() {
-        System.out.println("Layer RNN");
+        System.out.println("Layer RNN " + inputDimensions() + " -> " + outputDimensions());
         MatrixOps.print(weights, "weights");
         MatrixOps.print(bias, "bias");
         MatrixOps.print(context, "context");

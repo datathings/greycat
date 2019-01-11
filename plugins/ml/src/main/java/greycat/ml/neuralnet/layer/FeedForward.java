@@ -123,7 +123,7 @@ class FeedForward implements Layer {
 
     @Override
     public void print() {
-        System.out.println("Layer FeedForward");
+        System.out.println("Layer FeedForward "+inputDimensions()+" -> "+outputDimensions());
         MatrixOps.print(weights,"weights");
         MatrixOps.print(bias,"bias");
     }
