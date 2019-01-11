@@ -219,9 +219,9 @@ public class NeuralNetWrapper {
         return this.layers;
     }
 
-    public void printNN() {
+    public void printNN(boolean details) {
         for (Layer l : layers) {
-            l.print();
+            l.print(details);
         }
     }
 }

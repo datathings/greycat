@@ -149,10 +149,12 @@ class RNN implements Layer {
     }
 
     @Override
-    public void print() {
+    public void print(boolean details) {
         System.out.println("Layer RNN " + inputDimensions() + " -> " + outputDimensions());
-        MatrixOps.print(weights, "weights");
-        MatrixOps.print(bias, "bias");
-        MatrixOps.print(context, "context");
+        if(details) {
+            MatrixOps.print(weights, "weights");
+            MatrixOps.print(bias, "bias");
+            MatrixOps.print(context, "context");
+        }
     }
 }

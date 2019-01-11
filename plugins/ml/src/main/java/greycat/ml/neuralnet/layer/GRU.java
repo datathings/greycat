@@ -198,20 +198,22 @@ class GRU implements Layer {
     }
 
     @Override
-    public void print() {
+    public void print(boolean details) {
         System.out.println("Layer GRU "+inputDimensions()+" -> "+outputDimensions());
-        MatrixOps.print(ihmix, "ihmix");
-        MatrixOps.print(hhmix, "hhmix");
-        MatrixOps.print(bmix, "bmix");
+        if(details) {
+            MatrixOps.print(ihmix, "ihmix");
+            MatrixOps.print(hhmix, "hhmix");
+            MatrixOps.print(bmix, "bmix");
 
-        MatrixOps.print(ihnew, "ihnew");
-        MatrixOps.print(hhnew, "hhnew");
-        MatrixOps.print(bnew, "bnew");
+            MatrixOps.print(ihnew, "ihnew");
+            MatrixOps.print(hhnew, "hhnew");
+            MatrixOps.print(bnew, "bnew");
 
-        MatrixOps.print(ihreset, "ihreset");
-        MatrixOps.print(hhreset, "hhreset");
-        MatrixOps.print(breset, "breset");
+            MatrixOps.print(ihreset, "ihreset");
+            MatrixOps.print(hhreset, "hhreset");
+            MatrixOps.print(breset, "breset");
 
-        MatrixOps.print(context, "context");
+            MatrixOps.print(context, "context");
+        }
     }
 }

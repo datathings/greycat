@@ -86,8 +86,10 @@ class Linear implements Layer {
     }
 
     @Override
-    public void print() {
+    public void print(boolean details) {
         System.out.println("Layer Linear "+inputDimensions()+" -> "+outputDimensions());
-        MatrixOps.print(weights,"weights");
+        if(details) {
+            MatrixOps.print(weights, "weights");
+        }
     }
 }

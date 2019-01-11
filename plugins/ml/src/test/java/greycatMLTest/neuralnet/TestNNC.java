@@ -117,7 +117,7 @@ public class TestNNC {
                 }
                 nn.learnVec(inputs, outputs, false);
                 System.out.println("FINAL");
-                nn.printNN();
+                nn.printNN(true);
 
                 System.out.println("task test: " + (after - before) / (nbRounds * 1.0) + " ms/cycle");
 

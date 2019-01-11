@@ -72,7 +72,7 @@ public class SoftMax implements Layer {
     }
 
     @Override
-    public void print() {
+    public void print(boolean details) {
         System.out.println("Layer SoftMax " + inputDimensions() + " -> " + outputDimensions());
     }
 }

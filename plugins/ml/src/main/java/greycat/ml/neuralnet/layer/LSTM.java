@@ -262,25 +262,27 @@ class LSTM implements Layer {
     }
 
     @Override
-    public void print() {
+    public void print(boolean details) {
         System.out.println("Layer LSTM " + inputDimensions() + " -> " + outputDimensions());
-        MatrixOps.print(wix, "wix");
-        MatrixOps.print(wih, "wih");
-        MatrixOps.print(bi, "bi");
+        if(details) {
+            MatrixOps.print(wix, "wix");
+            MatrixOps.print(wih, "wih");
+            MatrixOps.print(bi, "bi");
 
-        MatrixOps.print(wfx, "wfx");
-        MatrixOps.print(wfh, "wfh");
-        MatrixOps.print(bf, "bf");
+            MatrixOps.print(wfx, "wfx");
+            MatrixOps.print(wfh, "wfh");
+            MatrixOps.print(bf, "bf");
 
-        MatrixOps.print(wox, "wox");
-        MatrixOps.print(woh, "woh");
-        MatrixOps.print(bo, "bo");
+            MatrixOps.print(wox, "wox");
+            MatrixOps.print(woh, "woh");
+            MatrixOps.print(bo, "bo");
 
-        MatrixOps.print(wcx, "wcx");
-        MatrixOps.print(wch, "wch");
-        MatrixOps.print(bc, "bc");
+            MatrixOps.print(wcx, "wcx");
+            MatrixOps.print(wch, "wch");
+            MatrixOps.print(bc, "bc");
 
-        MatrixOps.print(internalHiddenContext, "hiddenContext");
-        MatrixOps.print(internalCellContext, "cellContext");
+            MatrixOps.print(internalHiddenContext, "hiddenContext");
+            MatrixOps.print(internalCellContext, "cellContext");
+        }
     }
 }
