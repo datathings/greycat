@@ -44,6 +44,7 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
 
     private Set<WebSocketChannel> peers;
     protected Map<String, HttpHandler> handlers;
+    protected HttpHandler defaultHandler;
 
     public static void attach(Graph graph, int port) {
         graph.addConnectHook(new Callback<Callback<Boolean>>() {
@@ -65,6 +66,11 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
         handlers.put(PREFIX, Handlers.websocket(this));
     }
 
+    public WSSharedServer setDefaultHandler(HttpHandler httpHandler) {
+        this.defaultHandler = httpHandler;
+        return this;
+    }
+
     public WSSharedServer addHandler(String prefix, HttpHandler httpHandler) {
         handlers.put(prefix, httpHandler);
         return this;
@@ -73,7 +79,12 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
     public static final String PREFIX = "/ws";
 
     public void start() {
-        PathHandler pathHandler = Handlers.path();
+        PathHandler pathHandler;
+        if(this.defaultHandler != null) {
+            pathHandler = Handlers.path(defaultHandler);
+        } else {
+            pathHandler = Handlers.path();
+        }
         for (String name : handlers.keySet()) {
             pathHandler.addPrefixPath(name, handlers.get(name));
         }
