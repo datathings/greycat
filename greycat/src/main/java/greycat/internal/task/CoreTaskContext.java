@@ -364,6 +364,8 @@ class CoreTaskContext implements TaskContext {
             } else {
                 previous.add(value);
             }
+        } else {
+            System.out.println("WARNING: addToGlobalVariable, added value is null, in future releases null will be added to the global variable");
         }
         return this;
     }
@@ -400,6 +402,8 @@ class CoreTaskContext implements TaskContext {
             } else {
                 previous.add(value);
             }
+        } else {
+            System.out.println("WARNING: addToVariable, added value is null, in future releases null will be added to the variable");
         }
         return this;
     }
