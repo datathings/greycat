@@ -346,26 +346,22 @@ class CoreTaskContext implements TaskContext {
             previous = new BaseTaskResult(null, false);
             this._globalVariables.put(name, previous);
         }
-        if (value != null) {
-            if (value instanceof BaseTaskResult) {
-                TaskResult casted = (TaskResult) value;
-                for (int i = 0; i < casted.size(); i++) {
-                    final Object loop = casted.get(i);
-                    if (loop instanceof BaseNode) {
-                        final Node castedNode = (Node) loop;
-                        previous.add(castedNode.graph().cloneNode(castedNode));
-                    } else {
-                        previous.add(loop);
-                    }
+        if (value instanceof BaseTaskResult) {
+            TaskResult casted = (TaskResult) value;
+            for (int i = 0; i < casted.size(); i++) {
+                final Object loop = casted.get(i);
+                if (loop instanceof BaseNode) {
+                    final Node castedNode = (Node) loop;
+                    previous.add(castedNode.graph().cloneNode(castedNode));
+                } else {
+                    previous.add(loop);
                 }
-            } else if (value instanceof BaseNode) {
-                final Node castedNode = (Node) value;
-                previous.add(castedNode.graph().cloneNode(castedNode));
-            } else {
-                previous.add(value);
             }
+        } else if (value instanceof BaseNode) {
+            final Node castedNode = (Node) value;
+            previous.add(castedNode.graph().cloneNode(castedNode));
         } else {
-            System.out.println("WARNING: addToGlobalVariable, added value is null, in future releases null will be added to the global variable");
+            previous.add(value);
         }
         return this;
     }
@@ -384,26 +380,22 @@ class CoreTaskContext implements TaskContext {
             previous = new BaseTaskResult(null, false);
             target.put(name, previous);
         }
-        if (value != null) {
-            if (value instanceof BaseTaskResult) {
-                TaskResult casted = (TaskResult) value;
-                for (int i = 0; i < casted.size(); i++) {
-                    final Object loop = casted.get(i);
-                    if (loop instanceof BaseNode) {
-                        final Node castedNode = (Node) loop;
-                        previous.add(castedNode.graph().cloneNode(castedNode));
-                    } else {
-                        previous.add(loop);
-                    }
+        if (value instanceof BaseTaskResult) {
+            TaskResult casted = (TaskResult) value;
+            for (int i = 0; i < casted.size(); i++) {
+                final Object loop = casted.get(i);
+                if (loop instanceof BaseNode) {
+                    final Node castedNode = (Node) loop;
+                    previous.add(castedNode.graph().cloneNode(castedNode));
+                } else {
+                    previous.add(loop);
                 }
-            } else if (value instanceof BaseNode) {
-                final Node castedNode = (Node) value;
-                previous.add(castedNode.graph().cloneNode(castedNode));
-            } else {
-                previous.add(value);
             }
+        } else if (value instanceof BaseNode) {
+            final Node castedNode = (Node) value;
+            previous.add(castedNode.graph().cloneNode(castedNode));
         } else {
-            System.out.println("WARNING: addToVariable, added value is null, in future releases null will be added to the variable");
+            previous.add(value);
         }
         return this;
     }

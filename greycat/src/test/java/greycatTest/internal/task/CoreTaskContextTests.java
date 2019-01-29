@@ -39,12 +39,18 @@ public class CoreTaskContextTests {
                         .then(defineAsGlobalVar("i"))
                         .then(inject(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9}))
                         .then(defineAsGlobalVar("array"))
+                        .thenDo(ctx -> {
+                            ctx.addToGlobalVariable("array", null);
+                            ctx.continueTask();
+                        })
                         .then(readVar("array"))
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
                                 Assert.assertEquals("5", ctx.template("{{array[4]}}"));
                                 Assert.assertEquals("9", ctx.template("{{result[8]}}"));
+                                Assert.assertEquals("null", ctx.template("{{array[9]}}"));
+                                Assert.assertNull(ctx.variable("array").asArray()[9]);
                                 Assert.assertEquals("[1,2,3,4,5,6,7,8,9]", ctx.template("{{result}}"));
                                 Assert.assertEquals("[1,2,3,4,5,6,7,8,9]", ctx.template("{{array}}"));
 
@@ -66,7 +72,25 @@ public class CoreTaskContextTests {
                                 Assert.assertTrue(exceptionCaught);
 */
                                 Assert.assertEquals("9.1", ctx.template("{{=((1 + 2) + (array[6] - 4) * 2) + 0.1 }}"));
+
+                                ctx.continueTask();
                             }
+                        })
+                        .declareVar("array2")
+                        .inject("1").addToVar("array2")
+                        .inject("2").addToVar("array2")
+                        .thenDo(ctx -> {
+                            ctx.addToVariable("array2", null);
+                            ctx.continueTask();
+                        })
+                        .inject("4").addToVar("array2")
+                        .thenDo(ctx -> {
+                            Assert.assertEquals("1", ctx.template("{{array2[0]}}"));
+                            Assert.assertEquals("2", ctx.template("{{array2[1]}}"));
+                            Assert.assertNull(ctx.variable("array2").asArray()[2]);
+                            Assert.assertEquals("4", ctx.template("{{array2[3]}}"));
+
+                            ctx.continueTask();
                         })
                         .execute(graph, null);
             }
