@@ -5,6 +5,9 @@ What's new?
 Please find below the detailed features included from the beginning development of of GreyCat.
 All release has been tagged into our GitHub repository.
 
+- Version 13 ()
+    - add in context boolVar and boolResult
+    - addVar allow null values
 - Version 11 (planned ~1/08/2017)
     - convergence of EStruct and CustomType and Node
     - hybrid storage

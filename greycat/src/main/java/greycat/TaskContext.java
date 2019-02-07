@@ -43,6 +43,8 @@ public interface TaskContext {
 
     long longVar(String name);
 
+    boolean boolVar(String name);
+
     boolean isGlobal(String name);
 
     TaskResult wrap(Object input);
@@ -79,6 +81,8 @@ public interface TaskContext {
     double doubleResult();
 
     long longResult();
+
+    boolean boolResult();
 
     void continueTask();
 

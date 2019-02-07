@@ -208,6 +208,16 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
+    public boolean boolVar(String name) {
+        TaskResult res = variable(name);
+        if (res != null && res.size() > 0) {
+            return (boolean) res.get(0);
+        }
+        _graph.log().warn("variable is incorrect, returning false");
+        return false;
+    }
+
+    @Override
     public boolean isGlobal(String name) {
         return _globalVariables.containsKey(name);
     }
@@ -445,6 +455,15 @@ class CoreTaskContext implements TaskContext {
             return (long) _result.get(0);
         }
         return -1;
+    }
+
+    @Override
+    public boolean boolResult() {
+        if (_result != null && _result.size() > 0) {
+            return (boolean) _result.get(0);
+        }
+        _graph.log().warn("result is incorrect, returning false");
+        return false;
     }
 
     @Override
