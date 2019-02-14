@@ -66,7 +66,7 @@ public class TestENodeTime {
                                     EStructArray eg = (EStructArray) result.getOrCreate("profile", Type.ESTRUCT_ARRAY);
                                     GaussianWrapper gw = new GaussianWrapper(eg.root());
 
-                                    System.out.println(gw.getTotal() + " "+gw.getSum()[0]);
+//                                    System.out.println(gw.getTotal() + " "+gw.getSum()[0]);
                                     result.free();
                                     dc2.count();
                                 }
