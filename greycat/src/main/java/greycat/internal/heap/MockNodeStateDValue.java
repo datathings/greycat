@@ -135,6 +135,11 @@ public class MockNodeStateDValue implements StateChunk {
     }
 
     @Override
+    public final IMatrix getIMatrix(String name) {
+        return null;
+    }
+
+    @Override
     public final EStructArray getEGraph(String name) {
         return null;
     }

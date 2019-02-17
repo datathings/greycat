@@ -61,6 +61,11 @@ public class BaseCustomType implements Container {
     }
 
     @Override
+    public final IMatrix getIMatrix(String name) {
+        return (IMatrix) get(name);
+    }
+
+    @Override
     public final EStructArray getEGraph(String name) {
         return (EStructArray) get(name);
     }

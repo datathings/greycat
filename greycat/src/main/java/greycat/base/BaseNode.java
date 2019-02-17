@@ -203,6 +203,8 @@ public class BaseNode implements Node {
             int type = state.typeAt(index);
             //temporary proxy
             switch (type) {
+                case Type.IMATRIX:
+                    return new IMatrixProxy(index, this, (IMatrix) elem);
                 case Type.LMATRIX:
                     return new LMatrixProxy(index, this, (LMatrix) elem);
                 case Type.DMATRIX:
@@ -914,6 +916,11 @@ public class BaseNode implements Node {
     @Override
     public final LMatrix getLMatrix(String name) {
         return (LMatrix) get(name);
+    }
+
+    @Override
+    public final IMatrix getIMatrix(String name) {
+        return (IMatrix) get(name);
     }
 
     @Override

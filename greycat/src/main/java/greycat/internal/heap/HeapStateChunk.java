@@ -190,6 +190,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.RELATION:
                     case Type.DMATRIX:
                     case Type.LMATRIX:
+                    case Type.IMATRIX:
                     case Type.ESTRUCT_ARRAY:
                     case Type.ESTRUCT:
                     case Type.ERELATION:
@@ -362,6 +363,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 toSet = new HeapLMatrix(this, null);
                 toGet = toSet;
                 break;
+            case Type.IMATRIX:
+                toSet = new HeapIMatrix(this, null);
+                toGet = toSet;
+                break;
             case Type.STRING_TO_INT_MAP:
                 toSet = new HeapStringIntMap(this);
                 toGet = toSet;
@@ -491,6 +496,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.LMATRIX:
                         ((HeapLMatrix) loopValue).save(buffer);
                         break;
+                    case Type.IMATRIX:
+                        ((HeapIMatrix) loopValue).save(buffer);
+                        break;
                     case Type.STRING_TO_INT_MAP:
                         ((HeapStringIntMap) loopValue).save(buffer);
                         break;
@@ -609,6 +617,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 _v[i] = new HeapLMatrix(this, (HeapLMatrix) casted._v[i]);
                             }
                             break;
+                        case Type.IMATRIX:
+                            if (casted._v[i] != null) {
+                                _v[i] = new HeapIMatrix(this, (HeapIMatrix) casted._v[i]);
+                            }
+                            break;
                         case Type.ESTRUCT_ARRAY:
                             if (casted._v[i] != null) {
                                 _v[i] = new HeapEStructArray(this, (HeapEStructArray) casted._v[i], _space.graph());
@@ -723,6 +736,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         break;
                     case Type.LMATRIX:
                         param_elem = (LMatrix) p_unsafe_elem;
+                        break;
+                    case Type.IMATRIX:
+                        param_elem = (IMatrix) p_unsafe_elem;
                         break;
                     case Type.RELATION:
                         param_elem = (Relation) p_unsafe_elem;
@@ -1098,6 +1114,20 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                         }
                                     }
                                     break;
+                                case Type.IMATRIX:
+                                    HeapIMatrix imatrix = new HeapIMatrix(this, null);
+                                    cursor++;
+                                    cursor = imatrix.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, imatrix, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
+                                    break;
                                 case Type.LONG_TO_LONG_MAP:
                                     HeapLongLongMap l2lmap = new HeapLongLongMap(this);
                                     cursor++;
@@ -1283,6 +1313,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     @Override
     public final LMatrix getLMatrix(String name) {
         return (LMatrix) get(name);
+    }
+
+    @Override
+    public final IMatrix getIMatrix(String name) {
+        return (IMatrix) get(name);
     }
 
     @Override

@@ -36,6 +36,8 @@ public interface Container {
 
     LMatrix getLMatrix(String name);
 
+    IMatrix getIMatrix(String name);
+
     EStructArray getEGraph(String name);
 
     LongArray getLongArray(String name);

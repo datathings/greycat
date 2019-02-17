@@ -42,6 +42,7 @@ public class Type {
 
     public static final int DMATRIX = 14;
     public static final int LMATRIX = 15;
+    public static final int IMATRIX = 24;
 
     public static final int ESTRUCT = 17;
     public static final int ESTRUCT_ARRAY = 16;
@@ -102,6 +103,8 @@ public class Type {
                 return "DMATRIX";
             case Type.LMATRIX:
                 return "LMATRIX";
+            case Type.IMATRIX:
+                return "IMATRIX";
             case Type.ESTRUCT_ARRAY:
                 return "ESTRUCT_ARRAY";
             case Type.ESTRUCT:
@@ -160,6 +163,8 @@ public class Type {
                 return Type.DMATRIX;
             case "LMATRIX":
                 return Type.LMATRIX;
+            case "IMATRIX":
+                return Type.IMATRIX;
             case "ESTRUCT_ARRAY":
                 return Type.ESTRUCT_ARRAY;
             case "ESTRUCT":

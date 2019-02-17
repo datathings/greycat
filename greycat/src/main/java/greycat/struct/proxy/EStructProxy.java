@@ -71,6 +71,11 @@ public final class EStructProxy implements EStruct {
     }
 
     @Override
+    public final IMatrix getIMatrix(String name) {
+        return (IMatrix) get(name);
+    }
+
+    @Override
     public final EStructArray getEGraph(String name) {
         return (EStructArray) get(name);
     }
@@ -168,6 +173,8 @@ public final class EStructProxy implements EStruct {
 
             int type = typeAt(index);
             switch (type) {
+                case Type.IMATRIX:
+                    return new IMatrixProxy(index, this, (IMatrix) elem);
                 case Type.LMATRIX:
                     return new LMatrixProxy(index, this, (LMatrix) elem);
                 case Type.DMATRIX:

@@ -46,7 +46,7 @@ public class Helper {
     private static Set<String> primitives = new HashSet<String>(Arrays.asList("Bool", "Boolean", "String", "Long", "Int", "Integer", "Double"));
     private static Set<String> primitiveArrays = new HashSet<String>(Arrays.asList("BoolArray", "BooleanArray", "StringArray", "LongArray", "IntArray", "IntegerArray", "DoubleArray"));
     private static Set<String> maps = new HashSet<String>(Arrays.asList("LongToLongMap", "LongToLongArrayMap", "StringToIntMap", "IntToIntMap", "IntToStringMap"));
-    private static Set<String> matrices = new HashSet<String>(Arrays.asList("DMatrix", "LMatrix"));
+    private static Set<String> matrices = new HashSet<String>(Arrays.asList("DMatrix", "LMatrix", "IMatrix"));
     private static Set<String> trees = new HashSet<String>(Arrays.asList("KDTree", "NDTree"));
 
     public static String typeName(String type) {
@@ -99,6 +99,9 @@ public class Helper {
                 break;
             case "LMatrix":
                 typeName = "greycat.Type.LMATRIX";
+                break;
+            case "IMatrix":
+                typeName = "greycat.Type.IMATRIX";
                 break;
             case "EStructArray":
                 typeName = "greycat.Type.ESTRUCT_ARRAY";
@@ -188,6 +191,8 @@ public class Helper {
                 return ClassName.get(DMatrix.class);
             case "LMatrix":
                 return ClassName.get(LMatrix.class);
+            case "IMatrix":
+                return ClassName.get(IMatrix.class);
             case "EStructArray":
                 return ClassName.get(EStructArray.class);
             case "EStruct":
