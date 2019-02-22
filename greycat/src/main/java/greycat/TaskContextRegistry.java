@@ -23,4 +23,8 @@ public interface TaskContextRegistry {
 
     void forceStop(Integer taskContextID);
 
+    int registerWith(TaskContext task,int id);
+
+    String statsOf(int id);
+
 }

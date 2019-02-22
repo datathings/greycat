@@ -50,6 +50,53 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
     }
 
     @Override
+    public synchronized final int registerWith(final TaskContext taskContext, int id) {
+        CoreTaskContext casted = (CoreTaskContext) taskContext;
+        if (!contexts.containsKey(id)) {
+            casted.in_registry_id = id;
+            counter++;
+
+            TaskContextRecord rec = new TaskContextRecord();
+            rec.ctx = casted;
+            rec.start_timestamp = System.currentTimeMillis();
+            rec.lastReport = null;
+
+            contexts.put(casted.in_registry_id, rec);
+            return id;
+        } else {
+            return registerWith(taskContext, id + 1);
+        }
+    }
+
+    @Override
+    public String statsOf(int id) {
+        StringBuilder builder = new StringBuilder();
+        if (contexts.containsKey(id)) {
+            TaskContextRecord registry = contexts.get(id);
+            builder.append("{");
+
+            builder.append("\"id\":");
+            builder.append(String.valueOf(id));
+
+            builder.append(",\"start_timestamp\":");
+            builder.append(String.valueOf(registry.start_timestamp));
+
+            builder.append(",\"progress_timestamp\":");
+            builder.append(String.valueOf(registry.progress_timestamp));
+
+            builder.append(",\"last_report\":");
+            if (registry.lastReport != null) {
+                registry.lastReport.toJson(builder);
+            } else {
+                builder.append("null");
+            }
+
+            builder.append('}');
+        }
+        return builder.toString();
+    }
+
+    @Override
     public synchronized final String stats() {
         StringBuilder builder = new StringBuilder();
         builder.append('[');
@@ -69,7 +116,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
 
             builder.append("\"id\":");
             builder.append(String.valueOf(key));
-            
+
             builder.append(",\"start_timestamp\":");
             builder.append(String.valueOf(rec.start_timestamp));
 
@@ -77,7 +124,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
             builder.append(String.valueOf(rec.progress_timestamp));
 
             builder.append(",\"last_report\":");
-            if(rec.lastReport != null) {
+            if (rec.lastReport != null) {
                 rec.lastReport.toJson(builder);
             } else {
                 builder.append("null");
