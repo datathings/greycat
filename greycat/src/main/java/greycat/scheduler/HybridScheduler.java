@@ -78,6 +78,12 @@ public class HybridScheduler implements Scheduler {
         return _workers.length;
     }
 
+    public Scheduler setNumberOfWorkers(int number) {
+        nbWorkers = Math.min(Runtime.getRuntime().availableProcessors(), number);
+        return this;
+    }
+
+
     private final class Worker extends Thread {
 
         private final JobQueue localQueue = new JobQueue();

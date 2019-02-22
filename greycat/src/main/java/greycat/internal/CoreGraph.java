@@ -540,7 +540,6 @@ public class CoreGraph implements Graph {
             //JS workaround for closure encapsulation and this variable
             final CoreGraph selfPointer = this;
             //first we stop scheduler, no tasks will be executed anymore
-            selfPointer._scheduler.stop();
             if (this._plugins != null) {
                 for (int i = 0; i < _plugins.length; i++) {
                     this._plugins[i].stop();
@@ -565,6 +564,7 @@ public class CoreGraph implements Graph {
                                     @Override
                                     public void on(Boolean result) {
                                         selfPointer._lock.set(true);
+                                        selfPointer._scheduler.stop();
                                         if (HashHelper.isDefined(callback)) {
                                             callback.on(result);
                                         }
@@ -574,6 +574,7 @@ public class CoreGraph implements Graph {
                         });
                     } else {
                         selfPointer._lock.set(true);
+                        selfPointer._scheduler.stop();
                         if (HashHelper.isDefined(callback)) {
                             callback.on(result);
                         }

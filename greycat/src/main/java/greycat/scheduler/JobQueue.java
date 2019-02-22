@@ -17,12 +17,12 @@ package greycat.scheduler;
 
 import greycat.plugin.Job;
 
-class JobQueue {
+public class JobQueue {
 
     private JobQueueElem first = null;
     private JobQueueElem last = null;
 
-    void add(final Job item) {
+    public void add(final Job item) {
         final JobQueueElem elem = new JobQueueElem(item, null);
         if (first == null) {
             first = elem;
@@ -33,7 +33,7 @@ class JobQueue {
         }
     }
 
-    Job poll() {
+    public Job poll() {
         final JobQueueElem value = first;
         first = first._next;
         return value._ptr;
