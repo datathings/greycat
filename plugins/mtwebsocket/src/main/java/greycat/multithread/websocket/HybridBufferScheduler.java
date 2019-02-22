@@ -1,0 +1,132 @@
+package greycat.multithread.websocket;
+
+import greycat.Callback;
+import greycat.plugin.Job;
+import greycat.plugin.Scheduler;
+import greycat.plugin.SchedulerAffinity;
+import greycat.scheduler.JobQueue;
+
+
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class HybridBufferScheduler implements Scheduler {
+
+
+    private Worker _worker = null;
+    //private ReaderWorker _workerRead = null;
+    private final BlockingDeque<Job> globalQueue = new LinkedBlockingDeque<Job>();
+
+    protected final BlockingQueue<GraphMessage> incomingMessages = new LinkedBlockingQueue<>();
+    private final Map<Integer, Callback> callbackMap = new ConcurrentHashMap<>();
+
+    public void dispatch(byte affinity, Job job) {
+        switch (affinity) {
+            case SchedulerAffinity.SAME_THREAD:
+                final Thread currentThread = Thread.currentThread();
+                if (Thread.currentThread() instanceof Worker) {
+                    final Worker currentWorker = (Worker) currentThread;
+                    currentWorker.dispatch(job);
+                } else {
+                    globalQueue.add(job);
+                }
+                break;
+            default:
+                globalQueue.add(job);
+                break;
+        }
+    }
+
+    @Override
+    public void start() {
+        _worker = new Worker();
+        _worker.start();
+    }
+
+    @Override
+    public void stop() {
+        if (_worker != null) {
+            _worker.running = false;
+        }
+        _worker = null;
+    }
+
+
+    @Override
+    public int workers() {
+        return 1;
+    }
+
+    private final class Worker extends Thread {
+
+        private final JobQueue localQueue = new JobQueue();
+        private final AtomicInteger wip = new AtomicInteger();
+        private boolean running = true;
+
+        Worker() {
+            setDaemon(false);
+        }
+
+        @Override
+        public void run() {
+            GraphMessage incomingMessage;
+            while (running) {
+                Job globalPolled = globalQueue.poll();
+                if (globalPolled != null) {
+                    try {
+                        globalPolled.run();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                while ((incomingMessage = incomingMessages.poll()) != null) {
+                    handleMessage(incomingMessage);
+                }
+            }
+        }
+
+        public void dispatch(Job job) {
+            GraphMessage incomingMessage;
+            localQueue.add(job);
+            if (wip.getAndIncrement() == 0) {
+                do {
+                    final Job polled = localQueue.poll();
+                    if (polled != null) {
+                        polled.run();
+                    }
+                    while ((incomingMessage = incomingMessages.poll()) != null) {
+                        handleMessage(incomingMessage);
+                    }
+                } while (wip.decrementAndGet() > 0);
+            }
+        }
+    }
+
+    protected void handleMessage(GraphMessage message) {
+        final Callback resolvedCallback = callbackMap.get(message.getReturnID());
+        callbackMap.remove(message.getReturnID());
+        switch (message.getOperationId()) {
+            case Constants.RESP_GET:
+            case Constants.RESP_LOCK:
+                resolvedCallback.on(message.getContent());
+                break;
+            case Constants.RESP_PUT:
+            case Constants.RESP_REMOVE:
+            case Constants.RESP_LOG:
+            case Constants.RESP_UNLOCK:
+                resolvedCallback.on(true);
+                break;
+        }
+    }
+
+    public BlockingQueue<GraphMessage> getIncomingMessages() {
+        return incomingMessages;
+    }
+
+    public Map<Integer, Callback> getCallbackMap() {
+        return callbackMap;
+    }
+
+
+}
