@@ -102,6 +102,11 @@ class HeapEStruct implements EStruct, HeapContainer {
                                 _v[i] = new HeapLMatrix(this, (HeapLMatrix) origin._v[i]);
                             }
                             break;
+                        case Type.IMATRIX:
+                            if (origin._v[i] != null) {
+                                _v[i] = new HeapIMatrix(this, (HeapIMatrix) origin._v[i]);
+                            }
+                            break;
                         case Type.LONG_ARRAY:
                             if (origin._v[i] != null) {
                                 _v[i] = ((HeapLongArray) origin._v[i]).cloneFor(this);
@@ -292,6 +297,9 @@ class HeapEStruct implements EStruct, HeapContainer {
                         break;
                     case Type.LMATRIX:
                         param_elem = (LMatrix) p_unsafe_elem;
+                        break;
+                    case Type.IMATRIX:
+                        param_elem = (IMatrix) p_unsafe_elem;
                         break;
                     case Type.RELATION:
                         param_elem = (Relation) p_unsafe_elem;
@@ -641,6 +649,9 @@ class HeapEStruct implements EStruct, HeapContainer {
                 break;
             case Type.LMATRIX:
                 toSet = new HeapLMatrix(this, null);
+                break;
+            case Type.IMATRIX:
+                toSet = new HeapIMatrix(this, null);
                 break;
             case Type.STRING_TO_INT_MAP:
                 toSet = new HeapStringIntMap(this);
@@ -1027,6 +1038,9 @@ class HeapEStruct implements EStruct, HeapContainer {
                         case Type.LMATRIX:
                             ((HeapLMatrix) loopValue).save(buffer);
                             break;
+                        case Type.IMATRIX:
+                            ((HeapIMatrix) loopValue).save(buffer);
+                            break;
                         case Type.STRING_TO_INT_MAP:
                             ((HeapStringIntMap) loopValue).save(buffer);
                             break;
@@ -1189,6 +1203,20 @@ class HeapEStruct implements EStruct, HeapContainer {
                                 cursor++;
                                 cursor = lmatrix.load(buffer, cursor, payloadSize);
                                 internal_set(read_key, read_type, lmatrix, true, initial);
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
+                                break;
+                            case Type.IMATRIX:
+                                HeapIMatrix imatrix = new HeapIMatrix(this, null);
+                                cursor++;
+                                cursor = imatrix.load(buffer, cursor, payloadSize);
+                                internal_set(read_key, read_type, imatrix, true, initial);
                                 if (cursor < payloadSize) {
                                     current = buffer.read(cursor);
                                     if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
@@ -1364,6 +1392,11 @@ class HeapEStruct implements EStruct, HeapContainer {
     @Override
     public final LMatrix getLMatrix(String name) {
         return (LMatrix) get(name);
+    }
+
+    @Override
+    public final IMatrix getIMatrix(String name) {
+        return (IMatrix) get(name);
     }
 
     @Override
