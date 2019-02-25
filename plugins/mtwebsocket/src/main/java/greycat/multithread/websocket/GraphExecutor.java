@@ -30,6 +30,10 @@ import java.util.concurrent.BlockingQueue;
 
 import static greycat.multithread.websocket.Constants.*;
 
+/**
+ * The graph Executor is the thread handling the main graph and dealing with all basic request (get, put, remove, lock, unlock, log), no task should be execute on this graph.
+ * this thread is using a message queue as input and a queue provided in the incoming mesage as output.
+ */
 public class GraphExecutor extends Thread implements Callback<Buffer> {
 
     private final GraphBuilder graphBuilder;
@@ -38,6 +42,13 @@ public class GraphExecutor extends Thread implements Callback<Buffer> {
     private final BlockingQueue<GraphMessage> defaultoutput;
     protected boolean running = true;
 
+    /**
+     *
+     * @param graphBuilder default graph builder
+     * @param graphInput message queue used as input
+     * @param deferCounterSync counter reporting that the graph has been connected
+     * @param defaultoutput message queue of the websocket server to use for broadcasting
+     */
     public GraphExecutor(GraphBuilder graphBuilder, BlockingQueue<GraphExecutorMessage> graphInput, DeferCounterSync deferCounterSync, BlockingQueue<GraphMessage> defaultoutput) {
         this.graphBuilder = graphBuilder;
         this.graphInput = graphInput;

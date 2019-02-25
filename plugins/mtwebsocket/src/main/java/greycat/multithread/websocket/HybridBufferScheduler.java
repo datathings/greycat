@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Custom Scheduler based on the hybrid scheduler that handle read from message queue, should always be used in combination with the Buffer Storage
+ */
 public class HybridBufferScheduler implements Scheduler {
 
 

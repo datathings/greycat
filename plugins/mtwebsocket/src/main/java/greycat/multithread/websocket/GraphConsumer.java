@@ -26,6 +26,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static greycat.multithread.websocket.Constants.*;
 
+/**
+ * The graph consumer is created for the sole purpose of executing a task, ususally a remote execution task.
+ * The graph is connected to the main graph through message queues. The task is thus executed in a different thread and will not impact the availibilty of the main graph.
+ */
 public class GraphConsumer implements Runnable {
 
     private final BlockingQueue<GraphExecutorMessage> graphInput;
@@ -42,6 +46,16 @@ public class GraphConsumer implements Runnable {
     private Buffer printcb = null;
     private Buffer progrescb = null;
 
+    /**
+     * @param graphInput                message queue of the main graph
+     * @param output                    websocket output message queue (print and progress hook)
+     * @param returnId                  channel hash of the websocket from which the task emanated
+     * @param graphBuilder              graph builder
+     * @param taskId                    that was picked by the websocket server
+     * @param registryConcurrentHashMap task registry map to be able to force stop from the websocket server
+     * @param task                      to execute
+     * @param origincallback            callback id on the client side
+     */
     public GraphConsumer(BlockingQueue<GraphExecutorMessage> graphInput, BlockingQueue<GraphMessage> output, int returnId,
                          GraphBuilder graphBuilder,
                          int taskId, ConcurrentHashMap<Integer, TaskContextRegistry> registryConcurrentHashMap, //todo refactor this
@@ -58,21 +72,25 @@ public class GraphConsumer implements Runnable {
 
     @Override
     public void run() {
+        //Switch to the right scheduler and storage, should have been cloned before
         graphBuilder.withScheduler(new HybridBufferScheduler())
                 .withStorage(new BufferStorage(graphInput));
         graph = graphBuilder.build();
 
         graph.connect(on -> {
 
+            //loading the task
             Task recreatedTask = Tasks.newTask();
             recreatedTask.loadFromBuffer(task, graph);
 
+            //preparing context
             TaskContext ctx = recreatedTask.prepare(graph, null, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult result) {
                     if (result.notifications() != null && result.notifications().length() > 0) {
                         graph.remoteNotify(result.notifications());
                     }
+                    //remove taskcontext as the task is done
                     registryConcurrentHashMap.remove(taskId);
                     if (printcb != null) {
                         printcb.free();
@@ -82,20 +100,21 @@ public class GraphConsumer implements Runnable {
                     }
                     Buffer res = new HeapBuffer();
                     result.saveToBuffer(res);
-                    graph.save(saved -> {
-                        graph.disconnect(on -> {
-                            try {
-                                output.put(new GraphMessage(RESP_TASK, returnId, res, callback));
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        });
+                    //disconnect the graph
+                    graph.disconnect(on -> {
+                        try {
+                            //forward result
+                            output.put(new GraphMessage(RESP_TASK, returnId, res, callback));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     });
-
 
                 }
             });
+
             ctx.silentSave();
+            //Configure printhook
             if (printcb != null) {
                 ctx.setPrintHook(result -> {
                     Buffer buffer = new HeapBuffer();
@@ -109,6 +128,7 @@ public class GraphConsumer implements Runnable {
                     }
                 });
             }
+            //configure progress hook
             if (progrescb != null) {
                 ctx.setProgressHook(result -> {
                     Buffer buffer = new HeapBuffer();
@@ -122,6 +142,7 @@ public class GraphConsumer implements Runnable {
                     }
                 });
             }
+            //load context if necessary
             if (context != null) {
                 ctx.loadFromBuffer(context, loaded -> {
                     graph.taskContextRegistry().registerWith(ctx, taskId);

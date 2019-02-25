@@ -27,12 +27,20 @@ import java.util.concurrent.BlockingQueue;
 
 import static greycat.multithread.websocket.Constants.*;
 
+/**
+ * Thread handling all write from the Websocket server based on a message Queue
+ */
 public class ResolverWorker extends Thread {
     private final BlockingQueue<GraphMessage> toResolve;
     private final Map<Integer, WebSocketChannel> channels;
     protected boolean running = true;
     protected Graph sideGraph = null;
 
+    /**
+     *
+     * @param toResolve message Queue holding all message to send
+     * @param channels map of existing channels
+     */
     public ResolverWorker(BlockingQueue<GraphMessage> toResolve, Map<Integer, WebSocketChannel> channels) {
         this.toResolve = toResolve;
         this.channels = channels;

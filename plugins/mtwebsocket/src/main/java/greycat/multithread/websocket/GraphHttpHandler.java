@@ -23,11 +23,19 @@ import io.undertow.server.HttpServerExchange;
 
 import static io.undertow.util.Methods.OPTIONS;
 
+/**
+ *
+ */
 public abstract class GraphHttpHandler implements HttpHandler {
 
     private final GraphBuilder builder;
     private final WSServer server;
 
+    /**
+     *
+     * @param builder
+     * @param server
+     */
     public GraphHttpHandler(GraphBuilder builder, WSServer server) {
         this.builder = builder;
         this.server = server;

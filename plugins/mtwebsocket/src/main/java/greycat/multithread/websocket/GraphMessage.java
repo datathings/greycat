@@ -17,7 +17,9 @@ package greycat.multithread.websocket;
 
 import greycat.struct.Buffer;
 
-
+/**
+ * Standard type of message used by the different queues
+ */
 public class GraphMessage {
 
     private final Buffer content;
@@ -25,6 +27,13 @@ public class GraphMessage {
     private final int returnID;
     private final byte operationId;
 
+    /**
+     *
+     * @param operationId id of the operation to execute
+     * @param returnID channel hash or callback id
+     * @param content of the message
+     * @param originalCallBack callback id from the client if existing
+     */
     public GraphMessage(byte operationId, int returnID, Buffer content, Buffer originalCallBack) {
         this.content = content;
         this.returnID = returnID;
