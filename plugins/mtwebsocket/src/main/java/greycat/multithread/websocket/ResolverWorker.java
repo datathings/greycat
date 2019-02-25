@@ -37,9 +37,8 @@ public class ResolverWorker extends Thread {
     protected Graph sideGraph = null;
 
     /**
-     *
      * @param toResolve message Queue holding all message to send
-     * @param channels map of existing channels
+     * @param channels  map of existing channels
      */
     public ResolverWorker(BlockingQueue<GraphMessage> toResolve, Map<Integer, WebSocketChannel> channels) {
         this.toResolve = toResolve;
@@ -69,25 +68,32 @@ public class ResolverWorker extends Thread {
                     notificationBuffer.free();
                     channels.values().forEach(channel -> WebSockets.sendBinary(finalBuf, channel, null));
                 } else {
-                    WebSocketChannel channel = channels.get(message.getReturnID());
-                    final Buffer newBuf = new HeapBuffer();
-                    if (message.getOperationId() == HEART_BEAT_PONG) {
-                        newBuf.write(HEART_BEAT_PONG);
-                        newBuf.writeString("ok");
+                    if (channels.containsKey(message.getReturnID())) {
+                        WebSocketChannel channel = channels.get(message.getReturnID());
+                        final Buffer newBuf = new HeapBuffer();
+                        if (message.getOperationId() == HEART_BEAT_PONG) {
+                            newBuf.write(HEART_BEAT_PONG);
+                            newBuf.writeString("ok");
+                        } else {
+                            newBuf.write(message.getOperationId());
+                            newBuf.write(greycat.Constants.BUFFER_SEP);
+                            newBuf.writeAll(message.getOriginalCallBack().data());
+                            message.getOriginalCallBack().free();
+                            newBuf.write(greycat.Constants.BUFFER_SEP);
+                            if (message.getContent() != null) {
+                                newBuf.writeAll(message.getContent().data());
+                                message.getContent().free();
+                            }
+                        }
+                        ByteBuffer finalBuf = ByteBuffer.wrap(newBuf.data());
+                        newBuf.free();
+                        WebSockets.sendBinary(finalBuf, channel, null);
                     } else {
-                        newBuf.write(message.getOperationId());
-                        newBuf.write(greycat.Constants.BUFFER_SEP);
-                        newBuf.writeAll(message.getOriginalCallBack().data());
-                        message.getOriginalCallBack().free();
-                        newBuf.write(greycat.Constants.BUFFER_SEP);
                         if (message.getContent() != null) {
-                            newBuf.writeAll(message.getContent().data());
                             message.getContent().free();
                         }
+                        message.getOriginalCallBack().free();
                     }
-                    ByteBuffer finalBuf = ByteBuffer.wrap(newBuf.data());
-                    newBuf.free();
-                    WebSockets.sendBinary(finalBuf, channel, null);
                 }
             }
         }
