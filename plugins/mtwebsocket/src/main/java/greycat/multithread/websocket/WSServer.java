@@ -38,7 +38,7 @@ import java.util.concurrent.*;
 import static greycat.multithread.websocket.Constants.*;
 
 @SuppressWarnings("Duplicates")
-public class WSServer implements WebSocketConnectionCallback{
+public class WSServer implements WebSocketConnectionCallback {
     private final int port;
     private Undertow server;
 
@@ -49,6 +49,7 @@ public class WSServer implements WebSocketConnectionCallback{
     private final ConcurrentHashMap<Integer, TaskContextRegistry> registryConcurrentHashMap;
     private int counter = 0;
     private final BlockingQueue<GraphExecutorMessage> graphInput;
+    private int channelCounter = 0;
 
 
     private final GraphBuilder builder;
@@ -123,7 +124,11 @@ public class WSServer implements WebSocketConnectionCallback{
     public void onConnect(WebSocketHttpExchange webSocketHttpExchange, WebSocketChannel webSocketChannel) {
         webSocketChannel.getReceiveSetter().set(new InternalListener());
         webSocketChannel.resumeReceives();
-        peers.put(webSocketChannel.hashCode(), webSocketChannel);
+        webSocketChannel.setAttribute("id", channelCounter);
+        peers.put(channelCounter++, webSocketChannel);
+        if (counter == Integer.MAX_VALUE) {
+            counter = 0;
+        }
     }
 
     protected void onChannelClosed(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) {
@@ -147,7 +152,7 @@ public class WSServer implements WebSocketConnectionCallback{
 
         @Override
         protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
-            peers.remove(webSocketChannel.hashCode());
+            peers.remove(webSocketChannel.getAttribute("id"));
             onChannelClosed(webSocketChannel, channel);
             super.onClose(webSocketChannel, channel);
         }
@@ -166,7 +171,7 @@ public class WSServer implements WebSocketConnectionCallback{
         if (input.length == 0) {
             return;
         }
-        final int channelHash = channel.hashCode();
+        final int channelHash = (int) channel.getAttribute("id");
         final Buffer payload = new HeapBuffer();
         payload.writeAll(input);
         final BufferIterator it = payload.iterator();
@@ -227,12 +232,12 @@ public class WSServer implements WebSocketConnectionCallback{
                     }
                     break;
                 case HEART_BEAT_PING:
-                    payload.free();
-                    try {
-                        resultsToResolve.put(new GraphMessage(HEART_BEAT_PONG, channelHash, null, null));
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    final Buffer concat = new HeapBuffer();
+                    concat.write(HEART_BEAT_PONG);
+                    concat.writeString("ok");
+                    ByteBuffer finalBuf = ByteBuffer.wrap(concat.data());
+                    concat.free();
+                    WebSockets.sendBinary(finalBuf, channel, null);
                     break;
                 case HEART_BEAT_PONG:
                     //Ignore

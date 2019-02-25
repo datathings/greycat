@@ -22,6 +22,7 @@ import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.WebSockets;
 
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
@@ -63,27 +64,25 @@ public class ResolverWorker extends Thread {
                     notificationBuffer.write(NOTIFY_UPDATE);
                     notificationBuffer.write(greycat.Constants.BUFFER_SEP);
                     notificationBuffer.writeAll(message.getContent().data());
-                    ByteBuffer finalBuf = ByteBuffer.wrap(notificationBuffer.data());
+                    WebSocketChannel[] channelsToNotify = channels.values().toArray(new WebSocketChannel[channels.size()]);
+                    for (int i = 0; i < channelsToNotify.length; i++) {
+                        ByteBuffer finalBuf = ByteBuffer.wrap(notificationBuffer.data());
+                        WebSockets.sendBinary(finalBuf, channelsToNotify[i], null);
+                    }
                     message.getContent().free();
                     notificationBuffer.free();
-                    channels.values().forEach(channel -> WebSockets.sendBinary(finalBuf, channel, null));
                 } else {
                     if (channels.containsKey(message.getReturnID())) {
                         WebSocketChannel channel = channels.get(message.getReturnID());
                         final Buffer newBuf = new HeapBuffer();
-                        if (message.getOperationId() == HEART_BEAT_PONG) {
-                            newBuf.write(HEART_BEAT_PONG);
-                            newBuf.writeString("ok");
-                        } else {
-                            newBuf.write(message.getOperationId());
-                            newBuf.write(greycat.Constants.BUFFER_SEP);
-                            newBuf.writeAll(message.getOriginalCallBack().data());
-                            message.getOriginalCallBack().free();
-                            newBuf.write(greycat.Constants.BUFFER_SEP);
-                            if (message.getContent() != null) {
-                                newBuf.writeAll(message.getContent().data());
-                                message.getContent().free();
-                            }
+                        newBuf.write(message.getOperationId());
+                        newBuf.write(greycat.Constants.BUFFER_SEP);
+                        newBuf.writeAll(message.getOriginalCallBack().data());
+                        message.getOriginalCallBack().free();
+                        newBuf.write(greycat.Constants.BUFFER_SEP);
+                        if (message.getContent() != null) {
+                            newBuf.writeAll(message.getContent().data());
+                            message.getContent().free();
                         }
                         ByteBuffer finalBuf = ByteBuffer.wrap(newBuf.data());
                         newBuf.free();
