@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static greycat.multithread.websocket.Constants.*;
 
@@ -47,9 +48,11 @@ public class WSServer implements WebSocketConnectionCallback {
 
     private final BlockingQueue<GraphMessage> resultsToResolve;
     private final ConcurrentHashMap<Integer, TaskContextRegistry> registryConcurrentHashMap;
-    private int counter = 0;
+    private AtomicInteger counter = new AtomicInteger(0);
+    private AtomicInteger channelCounter = new AtomicInteger(0);
+
+
     private final BlockingQueue<GraphExecutorMessage> graphInput;
-    private int channelCounter = 0;
 
 
     private final GraphBuilder builder;
@@ -124,10 +127,10 @@ public class WSServer implements WebSocketConnectionCallback {
     public void onConnect(WebSocketHttpExchange webSocketHttpExchange, WebSocketChannel webSocketChannel) {
         webSocketChannel.getReceiveSetter().set(new InternalListener());
         webSocketChannel.resumeReceives();
-        webSocketChannel.setAttribute("id", channelCounter);
-        peers.put(channelCounter++, webSocketChannel);
-        if (counter == Integer.MAX_VALUE) {
-            counter = 0;
+        webSocketChannel.setAttribute("id", channelCounter.get());
+        peers.put(channelCounter.getAndIncrement(), webSocketChannel);
+        if (channelCounter.get() == Integer.MAX_VALUE) {
+            channelCounter.set(0);
         }
     }
 
@@ -275,7 +278,10 @@ public class WSServer implements WebSocketConnectionCallback {
                     if (it.hasNext()) {
                         Buffer task = new HeapBuffer();
                         task.writeAll(it.next().data());
-                        GraphConsumer consumer = new GraphConsumer(graphInput, resultsToResolve, channelHash, this.builder.clone(), counter++, registryConcurrentHashMap, task, callbackCode);
+                        GraphConsumer consumer = new GraphConsumer(graphInput, resultsToResolve, channelHash, this.builder.clone(), counter.getAndIncrement(), registryConcurrentHashMap, task, callbackCode);
+                        if (counter.get() == Integer.MAX_VALUE) {
+                            counter.set(0);
+                        }
                         if (it.hasNext()) {
                             Buffer printHookCB = new HeapBuffer();
                             printHookCB.writeAll(it.next().data());
