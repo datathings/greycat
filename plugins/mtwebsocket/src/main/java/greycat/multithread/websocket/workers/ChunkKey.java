@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.multithread.websocket;
+package greycat.multithread.websocket.workers;
 
 import greycat.Constants;
 import greycat.struct.Buffer;

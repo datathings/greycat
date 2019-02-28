@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.multithread.websocket;
+package greycat.multithread.websocket.buffergraph;
 
 import greycat.Callback;
+import greycat.multithread.websocket.Constants;
+import greycat.multithread.websocket.message.GraphMessage;
 import greycat.plugin.Job;
 import greycat.plugin.Scheduler;
 import greycat.plugin.SchedulerAffinity;
@@ -29,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Custom Scheduler based on the hybrid scheduler that handle read from message queue, should always be used in combination with the Buffer Storage
  */
-public class HybridBufferScheduler implements Scheduler {
+public class BufferScheduler implements Scheduler {
 
 
     private Worker _worker = null;

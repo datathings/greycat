@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.multithread.websocket;
+package greycat.multithread.websocket.buffergraph;
 
 import greycat.Callback;
 import greycat.Graph;
+import greycat.multithread.websocket.message.GraphExecutorMessage;
 import greycat.plugin.Storage;
 import greycat.struct.Buffer;
 
@@ -26,7 +27,10 @@ import java.util.concurrent.BlockingQueue;
 
 import static greycat.multithread.websocket.Constants.*;
 
-class BufferStorage implements Storage {
+/**
+ * Storage using queue to communicate with the main graph
+ */
+public class BufferStorage implements Storage {
 
     private final BlockingQueue<GraphExecutorMessage> graphInput;
     private final List<Callback<Buffer>> _listeners = new ArrayList<Callback<Buffer>>();
@@ -102,11 +106,12 @@ class BufferStorage implements Storage {
         throw new UnsupportedOperationException();
     }
 
-    public void bufferize(final byte operationId, final Buffer payload, final Callback callback) {
-        ((HybridBufferScheduler) this.graph.scheduler()).getCallbackMap().put(counter, callback);
+
+    private void bufferize(final byte operationId, final Buffer payload, final Callback callback) {
+        ((BufferScheduler) this.graph.scheduler()).getCallbackMap().put(counter, callback);
 
         try {
-            graphInput.put(new GraphExecutorMessage(((HybridBufferScheduler) this.graph.scheduler()).getIncomingMessages(), operationId, counter, payload, null));
+            graphInput.put(new GraphExecutorMessage(((BufferScheduler) this.graph.scheduler()).getIncomingMessages(), operationId, counter, payload, null));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

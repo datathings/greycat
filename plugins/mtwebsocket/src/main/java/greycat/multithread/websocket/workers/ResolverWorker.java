@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.multithread.websocket;
+package greycat.multithread.websocket.workers;
 
 import greycat.Graph;
 import greycat.internal.heap.HeapBuffer;
+import greycat.multithread.websocket.message.GraphMessage;
 import greycat.struct.Buffer;
 import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.WebSockets;
 
 import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
@@ -34,16 +34,18 @@ import static greycat.multithread.websocket.Constants.*;
 public class ResolverWorker extends Thread {
     private final BlockingQueue<GraphMessage> toResolve;
     private final Map<Integer, WebSocketChannel> channels;
-    protected boolean running = true;
-    protected Graph sideGraph = null;
+    private final BlockingQueue<Buffer>[] graphWorkersQueues;
+    private boolean running = true;
+
 
     /**
      * @param toResolve message Queue holding all message to send
      * @param channels  map of existing channels
      */
-    public ResolverWorker(BlockingQueue<GraphMessage> toResolve, Map<Integer, WebSocketChannel> channels) {
+    public ResolverWorker(BlockingQueue<GraphMessage> toResolve, Map<Integer, WebSocketChannel> channels, BlockingQueue<Buffer>[] graphWorkersQueues ) {
         this.toResolve = toResolve;
         this.channels = channels;
+        this.graphWorkersQueues = graphWorkersQueues;
     }
 
     @Override
@@ -57,13 +59,21 @@ public class ResolverWorker extends Thread {
             }
             if (message != null) {
                 if (message.getOperationId() == NOTIFY_UPDATE) {
-                    if (sideGraph != null) {
-                        sideGraph.remoteNotify(message.getContent());
-                    }
                     Buffer notificationBuffer = new HeapBuffer();
                     notificationBuffer.write(NOTIFY_UPDATE);
                     notificationBuffer.write(greycat.Constants.BUFFER_SEP);
                     notificationBuffer.writeAll(message.getContent().data());
+
+                    for(int i =0;i<graphWorkersQueues.length;i++){
+                        Buffer tosend = new HeapBuffer();
+                        tosend.writeAll(notificationBuffer.data());
+                        try {
+                            graphWorkersQueues[i].put(tosend);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
                     WebSocketChannel[] channelsToNotify = channels.values().toArray(new WebSocketChannel[channels.size()]);
                     for (int i = 0; i < channelsToNotify.length; i++) {
                         ByteBuffer finalBuf = ByteBuffer.wrap(notificationBuffer.data());
@@ -99,4 +109,7 @@ public class ResolverWorker extends Thread {
 
     }
 
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
 }

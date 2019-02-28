@@ -13,47 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.multithread.websocket;
+package greycat.multithread.websocket.message;
 
+import greycat.multithread.websocket.message.GraphMessage;
 import greycat.struct.Buffer;
 
-/**
- * Standard type of message used by the different queues
- */
-public class GraphMessage {
+import java.util.concurrent.BlockingQueue;
 
-    private final Buffer content;
-    private final Buffer originalCallBack;
-    private final int returnID;
-    private final byte operationId;
+/**
+ * Type of message used by the Graph Executor as input
+ */
+public class GraphExecutorMessage extends GraphMessage {
+    private final BlockingQueue<GraphMessage> outputQueue;
 
     /**
      *
+     * @param outputQueue message queue on which the result message should be sent
      * @param operationId id of the operation to execute
      * @param returnID channel hash or callback id
      * @param content of the message
      * @param originalCallBack callback id from the client if existing
      */
-    public GraphMessage(byte operationId, int returnID, Buffer content, Buffer originalCallBack) {
-        this.content = content;
-        this.returnID = returnID;
-        this.operationId = operationId;
-        this.originalCallBack = originalCallBack;
+    public GraphExecutorMessage(BlockingQueue<GraphMessage> outputQueue, byte operationId, int returnID, Buffer content, Buffer originalCallBack) {
+        super(operationId, returnID, content, originalCallBack);
+        this.outputQueue = outputQueue;
     }
 
-    public Buffer getContent() {
-        return content;
+    public BlockingQueue<GraphMessage> getOutputQueue() {
+        return outputQueue;
     }
 
-    public int getReturnID() {
-        return returnID;
-    }
 
-    public byte getOperationId() {
-        return operationId;
-    }
-
-    public Buffer getOriginalCallBack() {
-        return originalCallBack;
-    }
 }

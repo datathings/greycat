@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.multithread.websocket;
+package greycat.multithread.websocket.workers;
 
 import greycat.*;
 import greycat.chunk.Chunk;
 import greycat.internal.CoreGraphLog;
+import greycat.multithread.websocket.message.GraphExecutorMessage;
+import greycat.multithread.websocket.message.GraphMessage;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
@@ -40,7 +42,7 @@ public class GraphExecutor extends Thread implements Callback<Buffer> {
     private final BlockingQueue<GraphExecutorMessage> graphInput;
     private final DeferCounterSync defercounter;
     private final BlockingQueue<GraphMessage> defaultoutput;
-    protected boolean running = true;
+    private boolean running = true;
 
     /**
      *
@@ -279,5 +281,9 @@ public class GraphExecutor extends Thread implements Callback<Buffer> {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
     }
 }

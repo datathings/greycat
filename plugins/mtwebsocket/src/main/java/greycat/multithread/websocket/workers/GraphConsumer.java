@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.multithread.websocket;
+package greycat.multithread.websocket.workers;
 
 import greycat.*;
 import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.CoreProgressReport;
+import greycat.multithread.websocket.buffergraph.BufferStorage;
+import greycat.multithread.websocket.buffergraph.BufferScheduler;
+import greycat.multithread.websocket.message.GraphExecutorMessage;
+import greycat.multithread.websocket.message.GraphMessage;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 
@@ -73,12 +77,11 @@ public class GraphConsumer implements Runnable {
     @Override
     public void run() {
         //Switch to the right scheduler and storage, should have been cloned before
-        graphBuilder.withScheduler(new HybridBufferScheduler())
+        graphBuilder.withScheduler(new BufferScheduler())
                 .withStorage(new BufferStorage(graphInput));
         graph = graphBuilder.build();
 
         graph.connect(on -> {
-
             //loading the task
             Task recreatedTask = Tasks.newTask();
             recreatedTask.loadFromBuffer(task, graph);
