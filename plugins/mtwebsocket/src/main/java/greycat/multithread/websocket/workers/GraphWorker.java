@@ -62,6 +62,7 @@ public class GraphWorker extends Thread {
     }
 
     private void executeTask(Graph graph, TaskMessage message) {
+        long timeStart =  System.currentTimeMillis();
         //loading the task
         Task recreatedTask = Tasks.newTask();
         recreatedTask.loadFromBuffer(message.getTask(), graph);
@@ -87,6 +88,8 @@ public class GraphWorker extends Thread {
                 graph.save(on -> {
                     try {
                         //forward result
+                        long timeStop =  System.currentTimeMillis();
+                        graph.log().info("task executed in "+(timeStop-timeStart)+"ms");
                         output.put(new GraphMessage(RESP_TASK, message.getReturnId(), res, message.getCallback()));
                     } catch (InterruptedException e) {
                         e.printStackTrace();
