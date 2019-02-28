@@ -121,24 +121,26 @@ public class BufferScheduler implements Scheduler {
                 } while (wip.decrementAndGet() > 0);
             }
         }
-    }
 
-    protected void handleMessage(GraphMessage message) {
-        final Callback resolvedCallback = callbackMap.get(message.getReturnID());
-        callbackMap.remove(message.getReturnID());
-        switch (message.getOperationId()) {
-            case Constants.RESP_GET:
-            case Constants.RESP_LOCK:
-                resolvedCallback.on(message.getContent());
-                break;
-            case Constants.RESP_PUT:
-            case Constants.RESP_REMOVE:
-            case Constants.RESP_LOG:
-            case Constants.RESP_UNLOCK:
-                resolvedCallback.on(true);
-                break;
+        void handleMessage(GraphMessage message) {
+            final Callback resolvedCallback = callbackMap.get(message.getReturnID());
+            callbackMap.remove(message.getReturnID());
+            switch (message.getOperationId()) {
+                case Constants.RESP_GET:
+                case Constants.RESP_LOCK:
+                    resolvedCallback.on(message.getContent());
+                    break;
+                case Constants.RESP_PUT:
+                case Constants.RESP_REMOVE:
+                case Constants.RESP_LOG:
+                case Constants.RESP_UNLOCK:
+                    resolvedCallback.on(true);
+                    break;
+            }
         }
     }
+
+
 
     public BlockingQueue<GraphMessage> getIncomingMessages() {
         return incomingMessages;

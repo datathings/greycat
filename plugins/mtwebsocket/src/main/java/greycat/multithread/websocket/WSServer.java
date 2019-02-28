@@ -323,6 +323,11 @@ public class WSServer implements WebSocketConnectionCallback {
                                 taskm.setHookPrint(printHookCB);
                             }
                         }
+                        try {
+                            taskQueue.put(taskm);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         payload.free();
                     }
                     break;
