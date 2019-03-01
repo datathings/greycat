@@ -34,15 +34,16 @@ import static greycat.multithread.websocket.Constants.*;
 public class ResolverWorker extends Thread {
     private final BlockingQueue<GraphMessage> toResolve;
     private final Map<Integer, WebSocketChannel> channels;
-    private final BlockingQueue<Buffer>[] graphWorkersQueues;
+    private final BlockingQueue<Buffer> graphWorkersQueues;
     private boolean running = true;
 
 
     /**
-     * @param toResolve message Queue holding all message to send
-     * @param channels  map of existing channels
+     * @param toResolve          message Queue holding all message to send
+     * @param channels           map of existing channels
+     * @param graphWorkersQueues
      */
-    public ResolverWorker(BlockingQueue<GraphMessage> toResolve, Map<Integer, WebSocketChannel> channels, BlockingQueue<Buffer>[] graphWorkersQueues ) {
+    public ResolverWorker(BlockingQueue<GraphMessage> toResolve, Map<Integer, WebSocketChannel> channels, BlockingQueue<Buffer> graphWorkersQueues) {
         this.toResolve = toResolve;
         this.channels = channels;
         this.graphWorkersQueues = graphWorkersQueues;
@@ -64,14 +65,12 @@ public class ResolverWorker extends Thread {
                     notificationBuffer.write(greycat.Constants.BUFFER_SEP);
                     notificationBuffer.writeAll(message.getContent().data());
 
-                    for(int i =0;i<graphWorkersQueues.length;i++){
-                        Buffer tosend = new HeapBuffer();
-                        tosend.writeAll(notificationBuffer.data());
-                        try {
-                            graphWorkersQueues[i].put(tosend);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                    Buffer tosend = new HeapBuffer();
+                    tosend.writeAll(notificationBuffer.data());
+                    try {
+                        graphWorkersQueues.put(tosend);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
 
                     WebSocketChannel[] channelsToNotify = channels.values().toArray(new WebSocketChannel[channels.size()]);

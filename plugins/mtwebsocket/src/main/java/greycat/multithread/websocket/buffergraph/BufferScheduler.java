@@ -116,7 +116,7 @@ public class BufferScheduler implements Scheduler {
                         polled.run();
                     }
                     while ((incomingMessage = incomingMessages.poll()) != null) {
-                        handleMessage(incomingMessage);
+                            handleMessage(incomingMessage);
                     }
                 } while (wip.decrementAndGet() > 0);
             }
@@ -139,7 +139,6 @@ public class BufferScheduler implements Scheduler {
             }
         }
     }
-
 
 
     public BlockingQueue<GraphMessage> getIncomingMessages() {

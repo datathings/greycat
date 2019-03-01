@@ -24,9 +24,7 @@ import greycat.multithread.websocket.buffergraph.BufferScheduler;
 import greycat.multithread.websocket.message.GraphExecutorMessage;
 import greycat.multithread.websocket.message.GraphMessage;
 import greycat.multithread.websocket.message.TaskMessage;
-import greycat.multithread.websocket.workers.GraphConsumer;
 import greycat.multithread.websocket.workers.GraphExecutor;
-import greycat.multithread.websocket.workers.GraphWorker;
 import greycat.multithread.websocket.workers.ResolverWorker;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
@@ -65,14 +63,13 @@ public class WSServer implements WebSocketConnectionCallback {
     private final BlockingQueue<TaskMessage> taskQueue;
 
 
-
     private final GraphBuilder builder;
     private final int thread;
     private HttpHandler defaultHandler;
 
     private GraphExecutor graphExec;
     private ResolverWorker resolver;
-    private GraphWorker[] graphWorkers;
+    private GraphRouterWorker graphWorkers;
 
     public static void attach(int port, GraphBuilder builder, int thread) {
         WSServer srv = new WSServer(port, builder, thread);
@@ -120,28 +117,22 @@ public class WSServer implements WebSocketConnectionCallback {
         this.server = Undertow.builder().addHttpListener(port, "0.0.0.0", pathHandler).build();
         DeferCounterSync deferCounterSync = new CoreDeferCounterSync(1);
 
-        this.graphWorkers = new GraphWorker[Math.max(1, thread)];
-        BlockingQueue<Buffer>[] workerupdateQueue = new BlockingQueue[graphWorkers.length];
-        for (int i = 0; i < graphWorkers.length; i++) {
-            graphWorkers[i] = new GraphWorker(graphInput, resultsToResolve, taskQueue, toBufferGraphBuilder(builder), registryConcurrentHashMap);
-            workerupdateQueue[i] = graphWorkers[i].getUpdateQueue();
-        }
-        this.resolver = new ResolverWorker(resultsToResolve, peers,workerupdateQueue);
+        this.graphWorkers = new GraphRouterWorker(graphInput, resultsToResolve, taskQueue, builder, registryConcurrentHashMap, Math.max(1, thread));
+
+        this.resolver = new ResolverWorker(resultsToResolve, peers, graphWorkers.getUpdateQueue());
         this.graphExec = new GraphExecutor(builder, graphInput, deferCounterSync, resultsToResolve);
         server.start();
         resolver.start();
         graphExec.start();
-        for (int i = 0; i < graphWorkers.length; i++) {
-            graphWorkers[i].start();
-        }
+
+        graphWorkers.start();
+
         deferCounterSync.waitResult();
     }
 
     public void stop() {
         server.stop();
-        for (int i = 0; i < graphWorkers.length; i++) {
-            graphWorkers[i].setRunning(false);
-        }
+        graphWorkers.running = false;
         resolver.setRunning(false);
         graphExec.setRunning(false);
         server = null;
@@ -302,7 +293,7 @@ public class WSServer implements WebSocketConnectionCallback {
                     if (it.hasNext()) {
                         Buffer task = new HeapBuffer();
                         task.writeAll(it.next().data());
-                        TaskMessage taskm = new TaskMessage(task,callbackCode,channelHash, counter.getAndIncrement());
+                        TaskMessage taskm = new TaskMessage(task, callbackCode, channelHash, counter.getAndIncrement());
                         if (counter.get() == Integer.MAX_VALUE) {
                             counter.set(0);
                         }
