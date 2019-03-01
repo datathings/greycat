@@ -20,7 +20,6 @@ import greycat.GraphBuilder;
 import greycat.Node;
 import greycat.Type;
 import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -35,15 +34,17 @@ public class MQTTTest {
     private static Graph graph1;
     private static Graph graph2;
     private static String topic = "demo" + System.currentTimeMillis();
-    private static String HOST_IP = "test.mosquitto.org";
+    private static String HOST_IP = ""; //Not pertinent for testing
     private static int HOST_PORT = 1883;
     private static long NETWORK_DELAY = 1000;
+    private static MQTTPlugin plugin = new MQTTPlugin(HOST_IP, HOST_PORT, new String[]{topic}, "theIndex").noConnection();
+    private static MQTTPlugin plugin2 = new MQTTPlugin(HOST_IP, HOST_PORT, new String[]{"customTopic"}, "theIndex", new CustomHandler("sensors")).noConnection();
 
     @BeforeClass
     public static void initGraph() throws IOException {
         graph1 = GraphBuilder
                 .newBuilder()
-                .withPlugin(new MQTTPlugin(HOST_IP, HOST_PORT, new String[]{topic}, "theIndex"))
+                .withPlugin(plugin)
                 .build();
 
         graph1.connect(isConnected -> {
@@ -64,7 +65,7 @@ public class MQTTTest {
 
         graph2 = GraphBuilder
                 .newBuilder()
-                .withPlugin(new MQTTPlugin(HOST_IP, HOST_PORT, new String[]{"customTopic"}, "theIndex", new CustomHandler("sensors")))
+                .withPlugin(plugin2)
                 .build();
 
         graph2.connect(isConnected -> {
@@ -86,66 +87,57 @@ public class MQTTTest {
 
     @Test
     public void testNewAttributeFromMQTT() {
+
+
         MqttClient client = null;
         final int[] counter = {0}; // Verify that the test reaches its expected end
         try {
-            client = new MqttClient("tcp://" + HOST_IP + ":" + HOST_PORT, MqttClient.generateClientId());
-            client.connect();
-            if (client.isConnected()) {
-                String content = "{\"id\":\"12\",\n" +
-                        "\"time\":123,\n" +
-                        "\"values\":{\"attr1\":{\"value\":\"42\",\"type\":\"DOUBLE\"},\n" +
-                        "\"attr2\":{\"value\":\"hello\",\"type\":\"STRING\"}}}";
-                MqttMessage message = new MqttMessage(content.getBytes());
-                client.publish(topic, message);
-                client.disconnect();
-                Thread.sleep(NETWORK_DELAY);// Waiting for the network
-                newTask().travelInTime("123").readIndex("theIndex", "12")
-                        .pipe(
-                                newTask().attribute("attr1")
-                                        .thenDo(ctx -> {
-                                            Assert.assertEquals(42.0, ctx.doubleResult(), 0.1);
-                                            ctx.continueTask();
-                                        })
-                                        .thenDo(ctx -> {
-                                            counter[0]++;
-                                            ctx.continueTask();
-                                        }),
-                                newTask().attribute("attr2")
-                                        .thenDo(ctx -> {
-                                            Assert.assertEquals("hello", ctx.resultAsStrings().get(0));
-                                            ctx.continueTask();
-                                        })
-                                        .thenDo(ctx -> {
-                                            counter[0]++;
-                                            ctx.continueTask();
-                                        })
-                        ).thenDo(ctx -> Assert.assertEquals(2, counter[0]))
-                        .execute(graph1, null);
-            }
+            String content = "{\"id\":\"12\",\n" +
+                    "\"time\":123,\n" +
+                    "\"values\":{\"attr1\":{\"value\":\"42\",\"type\":\"DOUBLE\"},\n" +
+                    "\"attr2\":{\"value\":\"hello\",\"type\":\"STRING\"}}}";
+            MqttMessage message = new MqttMessage(content.getBytes());
+            plugin.getHandler().messageArrived(topic, message);
 
-        } catch (MqttException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+            newTask().travelInTime("123").readIndex("theIndex", "12")
+                    .pipe(
+                            newTask().attribute("attr1")
+                                    .thenDo(ctx -> {
+                                        Assert.assertEquals(42.0, ctx.doubleResult(), 0.1);
+                                        ctx.continueTask();
+                                    })
+                                    .thenDo(ctx -> {
+                                        counter[0]++;
+                                        ctx.continueTask();
+                                    }),
+                            newTask().attribute("attr2")
+                                    .thenDo(ctx -> {
+                                        Assert.assertEquals("hello", ctx.resultAsStrings().get(0));
+                                        ctx.continueTask();
+                                    })
+                                    .thenDo(ctx -> {
+                                        counter[0]++;
+                                        ctx.continueTask();
+                                    })
+                    ).thenDo(ctx -> Assert.assertEquals(2, counter[0]))
+                    .execute(graph1, null);
+
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Test
     public void testUpdateAttributeFromMQTT() {
-        MqttClient client = null;
         final int[] counter = {0}; // Verify that the test reaches its expected end
         try {
-            client = new MqttClient("tcp://" + HOST_IP + ":" + HOST_PORT, MqttClient.generateClientId());
-            client.connect();
-            if (client.isConnected()) {
                 String content = "{\"id\":\"78\",\n" +
                         "\"time\":123,\n" +
                         "\"values\":{\"value\":{\"value\":\"12\",\"type\":\"DOUBLE\"}}}";
-                MqttMessage message = new MqttMessage(content.getBytes());
-                client.publish(topic, message);
-                client.disconnect();
-                Thread.sleep(NETWORK_DELAY); // Waiting for the network
+            MqttMessage message = new MqttMessage(content.getBytes());
+            plugin.getHandler().messageArrived(topic, message);
+
                 newTask().travelInTime("123").readIndex("theIndex", "78")
                         .attribute("value")
                         .thenDo(ctx -> {
@@ -158,30 +150,20 @@ public class MQTTTest {
                         })
                         .thenDo(ctx -> Assert.assertEquals(1, counter[0]))
                         .execute(graph1, null);
-            }
-
-        } catch (MqttException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Test
     public void testBadNodeFromMQTT() {
-        MqttClient client = null;
         final int[] counter = {0}; // Verify that the test reaches its expected end
         try {
-            client = new MqttClient("tcp://" + HOST_IP + ":" + HOST_PORT, MqttClient.generateClientId());
-            client.connect();
-            if (client.isConnected()) {
                 String content = "{\"id\":\"98\",\n" +
                         "\"time\":123,\n" +
                         "\"values\":{\"value\":{\"value\":\"12\",\"type\":\"DOUBLE\"}}}";
                 MqttMessage message = new MqttMessage(content.getBytes());
-                client.publish(topic, message);
-                client.disconnect();
-                Thread.sleep(NETWORK_DELAY); // Waiting for the network
+              plugin.getHandler().messageArrived(topic, message);
                 newTask()
                         .travelInTime("123")
                         .readIndex("theIndex", "98")
@@ -197,26 +179,19 @@ public class MQTTTest {
                             Assert.assertEquals(1, counter[0]);
                         })
                         .execute(graph1, null);
-            }
-        } catch (MqttException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Test
     public void customMQTTHandler() {
-        MqttClient client = null;
         final int[] counter = {0}; // Verify that the test reaches its expected end
         try {
-            client = new MqttClient("tcp://" + HOST_IP + ":" + HOST_PORT, MqttClient.generateClientId());
-            client.connect();
-            if (client.isConnected()) {
                 String content = "5;24.5;123";
                 MqttMessage message = new MqttMessage(content.getBytes());
-                client.publish("customTopic", message);
-                client.disconnect();
+                plugin2.getHandler().messageArrived("customTopic", message);
                 Thread.sleep(NETWORK_DELAY); // Waiting for the network
                 newTask()
                         .travelInTime("123")
@@ -234,10 +209,7 @@ public class MQTTTest {
                             Assert.assertEquals(1, counter[0]);
                         })
                         .execute(graph2, null);
-            }
-        } catch (MqttException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

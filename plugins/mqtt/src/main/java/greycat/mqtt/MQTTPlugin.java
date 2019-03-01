@@ -29,6 +29,7 @@ public class MQTTPlugin implements Plugin {
     private final int brokerPort;
     private final String[] subscriptions;
     private final MessageHandler handler;
+    private boolean connection = true;
 
     private IMqttClient client;
 
@@ -48,6 +49,7 @@ public class MQTTPlugin implements Plugin {
     }
 
 
+
     /**
      * Build the MQTT plugin with a custom message handler
      *
@@ -64,24 +66,34 @@ public class MQTTPlugin implements Plugin {
         this.handler = customHandler;
     }
 
+    public MQTTPlugin noConnection(){
+        this.connection = false;
+        return this;
+    }
+
     @Override
     public void start(Graph graph) {
         try {
             handler.setGraph(graph);
             client = new MqttClient("tcp://" + this.brokerURL + ":" + this.brokerPort, MqttClient.generateClientId());
             client.setCallback(handler);
-            client.connect();
-            if (client.isConnected()) {
-                Arrays.stream(subscriptions).forEach(s -> {
-                    try {
-                        client.subscribe(s);
-                    } catch (MqttException e) {
-                        e.printStackTrace();
-                    }
-                });
+            if (connection){
+                client.connect();
+                if (client.isConnected()) {
+                    Arrays.stream(subscriptions).forEach(s -> {
+                        try {
+                            client.subscribe(s);
+                        } catch (MqttException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } else {
+                    System.err.println("MQTT not connected");
+                }
             } else {
-                System.err.println("Not connected client");
+                System.out.println("MQTT plugin is started but is configured to be disconnected (probably for testing purposes)");
             }
+
         } catch (MqttException e) {
             e.printStackTrace();
         }
@@ -91,9 +103,16 @@ public class MQTTPlugin implements Plugin {
     @Override
     public void stop() {
         try {
-            client.disconnect();
+            if (connection) {
+                client.disconnect();
+            }
         } catch (MqttException e) {
             e.printStackTrace();
         }
     }
+
+    public MessageHandler getHandler() {
+        return handler;
+    }
+
 }
