@@ -1,4 +1,4 @@
-package greycat.multithread.websocket;
+package greycat.multithread.websocket.workers;
 
 import greycat.*;
 import greycat.internal.heap.HeapBuffer;
@@ -16,7 +16,7 @@ import java.util.concurrent.*;
 
 import static greycat.multithread.websocket.Constants.*;
 
-public class GraphRouterWorker extends Thread {
+public class TaskExecutorWorker extends Thread {
     private final BlockingQueue<GraphExecutorMessage> graphInput;
     private final BlockingQueue<GraphMessage> output;
     private final BlockingQueue<TaskMessage> taskQueue;
@@ -31,10 +31,10 @@ public class GraphRouterWorker extends Thread {
     private final int nbWorkers;
     private final GraphBuilder graphBuilder;
     private final ExecutorService executors;
-    protected boolean running = false;
+    private boolean running = false;
 
 
-    public GraphRouterWorker(BlockingQueue<GraphExecutorMessage> graphInput, BlockingQueue<GraphMessage> output, BlockingQueue<TaskMessage> taskQueue, GraphBuilder graphBuilder, ConcurrentHashMap<Integer, TaskContextRegistry> registryConcurrentHashMap, int nbThread) {
+    public TaskExecutorWorker(BlockingQueue<GraphExecutorMessage> graphInput, BlockingQueue<GraphMessage> output, BlockingQueue<TaskMessage> taskQueue, GraphBuilder graphBuilder, ConcurrentHashMap<Integer, TaskContextRegistry> registryConcurrentHashMap, int nbThread) {
         this.graphInput = graphInput;
         this.output = output;
         this.taskQueue = taskQueue;
@@ -221,5 +221,9 @@ public class GraphRouterWorker extends Thread {
                 callback.on(Tasks.emptyResult().setException(e));
             }
         });
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
     }
 }

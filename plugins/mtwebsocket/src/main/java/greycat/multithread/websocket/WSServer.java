@@ -24,8 +24,9 @@ import greycat.multithread.websocket.buffergraph.BufferScheduler;
 import greycat.multithread.websocket.message.GraphExecutorMessage;
 import greycat.multithread.websocket.message.GraphMessage;
 import greycat.multithread.websocket.message.TaskMessage;
-import greycat.multithread.websocket.workers.GraphExecutor;
-import greycat.multithread.websocket.workers.ResolverWorker;
+import greycat.multithread.websocket.workers.MainGraphWorker;
+import greycat.multithread.websocket.workers.TaskExecutorWorker;
+import greycat.multithread.websocket.workers.WebSocketWriterWorker;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.utility.Base64;
@@ -67,9 +68,9 @@ public class WSServer implements WebSocketConnectionCallback {
     private final int thread;
     private HttpHandler defaultHandler;
 
-    private GraphExecutor graphExec;
-    private ResolverWorker resolver;
-    private GraphRouterWorker graphWorkers;
+    private MainGraphWorker graphExec;
+    private WebSocketWriterWorker resolver;
+    private TaskExecutorWorker graphWorkers;
 
     public static void attach(int port, GraphBuilder builder, int thread) {
         WSServer srv = new WSServer(port, builder, thread);
@@ -117,10 +118,10 @@ public class WSServer implements WebSocketConnectionCallback {
         this.server = Undertow.builder().addHttpListener(port, "0.0.0.0", pathHandler).build();
         DeferCounterSync deferCounterSync = new CoreDeferCounterSync(1);
 
-        this.graphWorkers = new GraphRouterWorker(graphInput, resultsToResolve, taskQueue, builder, registryConcurrentHashMap, Math.max(1, thread));
+        this.graphWorkers = new TaskExecutorWorker(graphInput, resultsToResolve, taskQueue, builder, registryConcurrentHashMap, Math.max(1, thread));
 
-        this.resolver = new ResolverWorker(resultsToResolve, peers, graphWorkers.getUpdateQueue());
-        this.graphExec = new GraphExecutor(builder, graphInput, deferCounterSync, resultsToResolve);
+        this.resolver = new WebSocketWriterWorker(resultsToResolve, peers, graphWorkers.getUpdateQueue());
+        this.graphExec = new MainGraphWorker(builder, graphInput, deferCounterSync, resultsToResolve);
         server.start();
         resolver.start();
         graphExec.start();
@@ -132,7 +133,7 @@ public class WSServer implements WebSocketConnectionCallback {
 
     public void stop() {
         server.stop();
-        graphWorkers.running = false;
+        graphWorkers.setRunning(false);
         resolver.setRunning(false);
         graphExec.setRunning(false);
         server = null;

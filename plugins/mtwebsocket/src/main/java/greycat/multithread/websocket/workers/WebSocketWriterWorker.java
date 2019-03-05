@@ -31,7 +31,7 @@ import static greycat.multithread.websocket.Constants.*;
 /**
  * Thread handling all write from the Websocket server based on a message Queue
  */
-public class ResolverWorker extends Thread {
+public class WebSocketWriterWorker extends Thread {
     private final BlockingQueue<GraphMessage> toResolve;
     private final Map<Integer, WebSocketChannel> channels;
     private final BlockingQueue<Buffer> graphWorkersQueues;
@@ -43,7 +43,7 @@ public class ResolverWorker extends Thread {
      * @param channels           map of existing channels
      * @param graphWorkersQueues
      */
-    public ResolverWorker(BlockingQueue<GraphMessage> toResolve, Map<Integer, WebSocketChannel> channels, BlockingQueue<Buffer> graphWorkersQueues) {
+    public WebSocketWriterWorker(BlockingQueue<GraphMessage> toResolve, Map<Integer, WebSocketChannel> channels, BlockingQueue<Buffer> graphWorkersQueues) {
         this.toResolve = toResolve;
         this.channels = channels;
         this.graphWorkersQueues = graphWorkersQueues;
