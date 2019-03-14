@@ -17,34 +17,27 @@ package greycat.websocket;
 
 import greycat.*;
 import greycat.base.BaseTaskResult;
-import greycat.chunk.ChunkType;
-import greycat.chunk.WorldOrderChunk;
 import greycat.internal.task.CoreProgressReport;
 import greycat.plugin.TaskExecutor;
 import greycat.struct.BufferIterator;
 import greycat.utility.*;
+import greycat.workers.StorageMessageType;
 import io.undertow.connector.ByteBufferPool;
 import io.undertow.server.DefaultByteBufferPool;
-import io.undertow.server.protocol.http.HttpOpenListener;
 import io.undertow.websockets.client.WebSocketClient;
 import io.undertow.websockets.core.*;
-import greycat.chunk.Chunk;
 import greycat.plugin.Storage;
 import greycat.struct.Buffer;
 import org.xnio.*;
 import org.xnio.ssl.JsseXnioSsl;
 
 import javax.net.ssl.*;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,17 +64,17 @@ public class WSClient implements Storage, TaskExecutor {
 
     @Override
     public final void get(Buffer keys, Callback<Buffer> callback) {
-        send_rpc_req(WSConstants.REQ_GET, keys, callback);
+        send_rpc_req(StorageMessageType.REQ_GET, keys, callback);
     }
 
     @Override
     public final void put(Buffer stream, Callback<Boolean> callback) {
-        send_rpc_req(WSConstants.REQ_PUT, stream, callback);
+        send_rpc_req(StorageMessageType.REQ_PUT, stream, callback);
     }
 
     @Override
     public final void putSilent(Buffer stream, Callback<Buffer> callback) {
-        send_rpc_req(WSConstants.REQ_PUT, stream, new Callback<Boolean>() {
+        send_rpc_req(StorageMessageType.REQ_PUT, stream, new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
                 callback.on(null);
@@ -91,29 +84,29 @@ public class WSClient implements Storage, TaskExecutor {
 
     @Override
     public final void remove(Buffer keys, Callback<Boolean> callback) {
-        send_rpc_req(WSConstants.REQ_REMOVE, keys, callback);
+        send_rpc_req(StorageMessageType.REQ_REMOVE, keys, callback);
     }
 
     @Override
     public final void lock(Callback<Buffer> callback) {
-        send_rpc_req(WSConstants.REQ_LOCK, null, callback);
+        send_rpc_req(StorageMessageType.REQ_LOCK, null, callback);
     }
 
     @Override
     public final void unlock(Buffer previousLock, Callback<Boolean> callback) {
-        send_rpc_req(WSConstants.REQ_UNLOCK, previousLock, callback);
+        send_rpc_req(StorageMessageType.REQ_UNLOCK, previousLock, callback);
     }
 
     @Override
     public final void taskStats(Callback<String> callback) {
-        send_rpc_req(WSConstants.REQ_TASK_STATS, null, callback);
+        send_rpc_req(StorageMessageType.REQ_TASK_STATS, null, callback);
     }
 
     @Override
     public final void taskStop(Integer id, Callback<Boolean> callback) {
         Buffer buf = this._graph.newBuffer();
         Base64.encodeIntToBuffer(id, buf);
-        send_rpc_req(WSConstants.REQ_TASK_STATS, buf, callback);
+        send_rpc_req(StorageMessageType.REQ_TASK_STATS, buf, callback);
         buf.free();
     }
 
@@ -256,7 +249,7 @@ public class WSClient implements Storage, TaskExecutor {
             hashPrint = -1;
             hashProgress = -1;
         }
-        send_rpc_req(WSConstants.REQ_TASK, buffer, new Callback<Buffer>() {
+        send_rpc_req(StorageMessageType.REQ_TASK, buffer, new Callback<Buffer>() {
             @Override
             public void on(final Buffer bufferResult) {
                 if (hashPrint != -1) {
@@ -285,7 +278,7 @@ public class WSClient implements Storage, TaskExecutor {
     public final void log(String msg) {
         Buffer buf = this._graph.newBuffer();
         Base64.encodeStringToBuffer(msg, buf);
-        send_rpc_req(WSConstants.REQ_LOG, buf, new Callback() {
+        send_rpc_req(StorageMessageType.REQ_LOG, buf, new Callback() {
             @Override
             public void on(Object result) {
                 buf.free();
@@ -312,7 +305,7 @@ public class WSClient implements Storage, TaskExecutor {
 
     private void send_rpc_req(final byte operationId, final Buffer payload, final Callback callback) {
         if (_channel == null) {
-            throw new RuntimeException(WSConstants.DISCONNECTED_ERROR);
+            throw new RuntimeException(StorageMessageType.DISCONNECTED_ERROR);
         }
         Buffer buffer = _graph.newBuffer();
         buffer.write(operationId);
@@ -452,7 +445,7 @@ public class WSClient implements Storage, TaskExecutor {
         if (codeView != null && codeView.length() != 0) {
             final byte firstCode = codeView.read(0);
             switch (firstCode) {
-                case WSConstants.NOTIFY_UPDATE:
+                case StorageMessageType.NOTIFY_UPDATE:
                     //todo duplicate
                     while (it.hasNext()) {
                         _graph.remoteNotify(it.next());
@@ -467,7 +460,7 @@ public class WSClient implements Storage, TaskExecutor {
                         notifyBuffer.free();
                     }
                     break;
-                case WSConstants.NOTIFY_PRINT:
+                case StorageMessageType.NOTIFY_PRINT:
                     final Buffer callbackPrintCodeView = it.next();
                     final Buffer printContentView = it.next();
                     final int callbackPrintCode = Base64.decodeToIntWithBounds(callbackPrintCodeView, 0, callbackPrintCodeView.length());
@@ -475,7 +468,7 @@ public class WSClient implements Storage, TaskExecutor {
                     final Callback printCallback = _callbacks.get(callbackPrintCode);
                     printCallback.on(printContent);
                     break;
-                case WSConstants.NOTIFY_PROGRESS:
+                case StorageMessageType.NOTIFY_PROGRESS:
                     final Buffer progressCallbackCodeView = it.next();
                     final Buffer progressCallbackView = it.next();
                     final int progressCallbackCode = Base64.decodeToIntWithBounds(progressCallbackCodeView, 0, progressCallbackCodeView.length());
@@ -484,10 +477,10 @@ public class WSClient implements Storage, TaskExecutor {
                     Callback<TaskProgressReport> progressHook = _callbacks.get(progressCallbackCode);
                     progressHook.on(report);
                     break;
-                case WSConstants.RESP_LOCK:
-                case WSConstants.RESP_GET:
-                case WSConstants.RESP_TASK:
-                case WSConstants.RESP_LOG:
+                case StorageMessageType.RESP_LOCK:
+                case StorageMessageType.RESP_GET:
+                case StorageMessageType.RESP_TASK:
+                case StorageMessageType.RESP_LOG:
                     final Buffer callBackCodeView = it.next();
                     final int callbackCode = Base64.decodeToIntWithBounds(callBackCodeView, 0, callBackCodeView.length());
                     final Callback resolvedCallback = _callbacks.get(callbackCode);
@@ -504,7 +497,7 @@ public class WSClient implements Storage, TaskExecutor {
                     _callbacks.remove(callbackCode);
                     resolvedCallback.on(newBuf);
                     break;
-                case WSConstants.RESP_TASK_STATS: {
+                case StorageMessageType.RESP_TASK_STATS: {
                     final Buffer callbackStatsCodeView = it.next();
                     final Buffer statsContentView = it.next();
                     final int callbackStatsCode = Base64.decodeToIntWithBounds(callbackStatsCodeView, 0, callbackStatsCodeView.length());
@@ -513,7 +506,7 @@ public class WSClient implements Storage, TaskExecutor {
                     statCallback.on(statsContent);
                     break;
                 }
-                case WSConstants.RESP_TASK_STOP: {
+                case StorageMessageType.RESP_TASK_STOP: {
                     Buffer genericCodeView = it.next();
                     final int genericCode = Base64.decodeToIntWithBounds(genericCodeView, 0, genericCodeView.length());
                     Callback genericCallback = _callbacks.get(genericCode);

@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.utility;
+package greycat.chunk;
 
-import greycat.Constants;
-import greycat.struct.Buffer;
-
-public class KeyHelper {
-
-    public static void keyToBuffer(Buffer buffer, byte chunkType, long world, long time, long id) {
-        Base64.encodeIntToBuffer((int) chunkType, buffer);
-        buffer.write(Constants.KEY_SEP);
-        Base64.encodeLongToBuffer(world, buffer);
-        buffer.write(Constants.KEY_SEP);
-        Base64.encodeLongToBuffer(time, buffer);
-        buffer.write(Constants.KEY_SEP);
-        Base64.encodeLongToBuffer(id, buffer);
-    }
+public class ChunkKey {
+    public byte type;
+    public long world;
+    public long time;
+    public long id;
 
 }

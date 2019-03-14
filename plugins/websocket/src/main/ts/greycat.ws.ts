@@ -24,7 +24,7 @@ export class WSClient implements greycat.plugin.Storage {
     private ws: WebSocket = null;
     private graph: greycat.Graph = null;
     private generator: number = 0;
-
+/*
     private static REQ_GET = 0;
     private static REQ_PUT = 1;
     private static REQ_LOCK = 2;
@@ -53,7 +53,7 @@ export class WSClient implements greycat.plugin.Storage {
 
     private static REQ_LOG = 21;
     private static RESP_LOG = 22;
-
+*/
     private heartBeatFunctionId;
 
     constructor(p_url: string) {
@@ -69,7 +69,7 @@ export class WSClient implements greycat.plugin.Storage {
 
     private heartbeat() {
         const concat = this.graph.newBuffer();
-        concat.write(WSClient.HEART_BEAT_PING);
+        concat.write(greycat.workers.StorageMessageType.HEART_BEAT_PING);
         let flatData = concat.data();
         concat.free();
         this.ws.send(flatData);
@@ -131,46 +131,46 @@ export class WSClient implements greycat.plugin.Storage {
     }
 
     get(keys: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void {
-        this.send_rpc_req(WSClient.REQ_GET, keys, callback);
+        this.send_rpc_req(greycat.workers.StorageMessageType.REQ_GET, keys, callback);
     }
 
     put(stream: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void {
-        this.send_rpc_req(WSClient.REQ_PUT, stream, callback);
+        this.send_rpc_req(greycat.workers.StorageMessageType.REQ_PUT, stream, callback);
     }
 
     putSilent(stream: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void {
-        this.send_rpc_req(WSClient.REQ_PUT, stream, function (b: boolean) {
+        this.send_rpc_req(greycat.workers.StorageMessageType.REQ_PUT, stream, function (b: boolean) {
             callback(null);
         });
     }
 
     remove(keys: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void {
-        this.send_rpc_req(WSClient.REQ_REMOVE, keys, callback);
+        this.send_rpc_req(greycat.workers.StorageMessageType.REQ_REMOVE, keys, callback);
     }
 
     lock(callback: greycat.Callback<greycat.struct.Buffer>): void {
-        this.send_rpc_req(WSClient.REQ_LOCK, null, callback);
+        this.send_rpc_req(greycat.workers.StorageMessageType.REQ_LOCK, null, callback);
     }
 
     unlock(previousLock: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void {
-        this.send_rpc_req(WSClient.REQ_UNLOCK, previousLock, callback);
+        this.send_rpc_req(greycat.workers.StorageMessageType.REQ_UNLOCK, previousLock, callback);
     }
 
     taskStats(callback: greycat.Callback<string>): void {
-        this.send_rpc_req(WSClient.REQ_TASK_STATS, null, callback);
+        this.send_rpc_req(greycat.workers.StorageMessageType.REQ_TASK_STATS, null, callback);
     }
 
     taskStop(id: number, callback: greycat.Callback<boolean>): void {
         let reqBuffer = this.graph.newBuffer();
         greycat.utility.Base64.encodeIntToBuffer(id, reqBuffer);
-        this.send_rpc_req(WSClient.REQ_TASK_STOP, reqBuffer, callback);
+        this.send_rpc_req(greycat.workers.StorageMessageType.REQ_TASK_STOP, reqBuffer, callback);
         reqBuffer.free();
     }
 
     log(msg: string): void {
         let reqBuffer = this.graph.newBuffer();
         greycat.utility.Base64.encodeStringToBuffer(msg, reqBuffer);
-        this.send_rpc_req(WSClient.REQ_LOG, reqBuffer, function (res) {
+        this.send_rpc_req(greycat.workers.StorageMessageType.REQ_LOG, reqBuffer, function (res) {
             reqBuffer.free();
         });
     }
@@ -209,7 +209,7 @@ export class WSClient implements greycat.plugin.Storage {
         let finalCallbacks = this.callbacks;
         let finalPrintHash = printHash;
         let finalProgressHash = progressHash;
-        this.send_rpc_req(WSClient.REQ_TASK, reqBuffer, function (resultBuffer) {
+        this.send_rpc_req(greycat.workers.StorageMessageType.REQ_TASK, reqBuffer, function (resultBuffer) {
             if (finalPrintHash != -1) {
                 delete finalCallbacks[finalPrintHash];
             }
@@ -310,7 +310,7 @@ export class WSClient implements greycat.plugin.Storage {
         if (codeView != null && codeView.length() != 0) {
             let firstCode = codeView.read(0);
             switch (firstCode) {
-                case WSClient.RESP_TASK_STATS:
+                case greycat.workers.StorageMessageType.RESP_TASK_STATS:
                     let callbackStatsCodeView = it.next();
                     let statsContentView = it.next();
                     let callbackStatsCode = greycat.utility.Base64.decodeToIntWithBounds(callbackStatsCodeView, 0, callbackStatsCodeView.length());
@@ -323,7 +323,7 @@ export class WSClient implements greycat.plugin.Storage {
                         console.error('Received a REQ_TASK_STATS callback with unknown hash: ' + callbackStatsCode, this.callbacks);
                     }
                     break;
-                case WSClient.RESP_TASK_STOP:
+                case greycat.workers.StorageMessageType.RESP_TASK_STOP:
                     let stopCodeView = it.next();
                     let stopCode = greycat.utility.Base64.decodeToIntWithBounds(stopCodeView, 0, stopCodeView.length());
                     let stopCallback = this.callbacks[stopCode];
@@ -334,19 +334,19 @@ export class WSClient implements greycat.plugin.Storage {
                         console.error('Received a RESP_TASK_STOP callback with unknown hash: ' + stopCode, this.callbacks);
                     }
                     break;
-                case WSClient.HEART_BEAT_PING: {
+                case greycat.workers.StorageMessageType.HEART_BEAT_PING: {
                     const concat = this.graph.newBuffer();
-                    concat.write(WSClient.HEART_BEAT_PONG);
+                    concat.write(greycat.workers.StorageMessageType.HEART_BEAT_PONG);
                     concat.writeString('ok');
                     let flatData = concat.data();
                     concat.free();
                     this.ws.send(flatData);
                 }
                     break;
-                case WSClient.HEART_BEAT_PONG: {//Ignore
+                case greycat.workers.StorageMessageType.HEART_BEAT_PONG: {//Ignore
                 }
                     break;
-                case WSClient.NOTIFY_UPDATE:
+                case greycat.workers.StorageMessageType.NOTIFY_UPDATE:
                     while (it.hasNext()) {
                         this.graph.remoteNotify(it.next());
                     }
@@ -360,7 +360,7 @@ export class WSClient implements greycat.plugin.Storage {
                         notifyBuffer.free();
                     }
                     break;
-                case WSClient.NOTIFY_PRINT:
+                case greycat.workers.StorageMessageType.NOTIFY_PRINT:
                     let callbackPrintCodeView = it.next();
                     let printContentView = it.next();
                     let callbackPrintCode = greycat.utility.Base64.decodeToIntWithBounds(callbackPrintCodeView, 0, callbackPrintCodeView.length());
@@ -372,7 +372,7 @@ export class WSClient implements greycat.plugin.Storage {
                         console.error('Received a NOTIFY_PRINT callback with unknown hash: ' + callbackPrintCode, this.callbacks);
                     }
                     break;
-                case WSClient.NOTIFY_PROGRESS:
+                case greycat.workers.StorageMessageType.NOTIFY_PROGRESS:
                     let progressCallbackCodeView = it.next();
                     let progressCallbackView = it.next();
                     let progressCallbackCode = greycat.utility.Base64.decodeToIntWithBounds(progressCallbackCodeView, 0, progressCallbackCodeView.length());
@@ -383,10 +383,10 @@ export class WSClient implements greycat.plugin.Storage {
                         progressHook(report);
                     }
                     break;
-                case WSClient.RESP_LOCK:
-                case WSClient.RESP_GET:
-                case WSClient.RESP_TASK:
-                case WSClient.RESP_LOG:
+                case greycat.workers.StorageMessageType.RESP_LOCK:
+                case greycat.workers.StorageMessageType.RESP_GET:
+                case greycat.workers.StorageMessageType.RESP_TASK:
+                case greycat.workers.StorageMessageType.RESP_LOG:
                     let callBackCodeView = it.next();
                     let callbackCode = greycat.utility.Base64.decodeToIntWithBounds(callBackCodeView, 0, callBackCodeView.length());
                     let resolvedCallback = this.callbacks[callbackCode];

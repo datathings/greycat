@@ -16,13 +16,15 @@
 package greycat.websocket;
 
 import greycat.*;
+import greycat.chunk.ChunkKey;
+import greycat.chunk.KeyHelper;
 import greycat.internal.CoreGraphLog;
 import greycat.internal.task.CoreProgressReport;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
-import greycat.utility.*;
 import greycat.utility.Base64;
+import greycat.workers.StorageMessageType;
 import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
@@ -115,7 +117,7 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
         //broadcast to anyone...
         WebSocketChannel[] others = peers.toArray(new WebSocketChannel[peers.size()]);
         Buffer notificationBuffer = graph.newBuffer();
-        notificationBuffer.write(WSConstants.NOTIFY_UPDATE);
+        notificationBuffer.write(StorageMessageType.NOTIFY_UPDATE);
         notificationBuffer.write(Constants.BUFFER_SEP);
         notificationBuffer.writeAll(result.data());
         byte[] notificationMsg = notificationBuffer.data();
@@ -162,7 +164,7 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
             byte firstCodeView = codeView.read(0);
             //compute resp prefix
             switch (firstCodeView) {
-                case WSConstants.REQ_LOG:
+                case StorageMessageType.REQ_LOG:
                     graph.setProperty("ws.last", System.currentTimeMillis());
                     if (it.hasNext()) {
                         Buffer b = it.next();
@@ -171,16 +173,16 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                         ((CoreGraphLog) graph.log()).writeMessage(buf);
                     }
                     final Buffer task_log_buf = graph.newBuffer();
-                    task_log_buf.write(WSConstants.RESP_LOG);
+                    task_log_buf.write(StorageMessageType.RESP_LOG);
                     task_log_buf.write(Constants.BUFFER_SEP);
                     task_log_buf.writeAll(callbackCodeView.data());
                     payload.free();
                     WSSharedServer.this.send_resp(task_log_buf, channel);
                     break;
-                case WSConstants.REQ_TASK_STATS:
+                case StorageMessageType.REQ_TASK_STATS:
                     graph.setProperty("ws.last", System.currentTimeMillis());
                     final Buffer task_stats_buf = graph.newBuffer();
-                    task_stats_buf.write(WSConstants.RESP_TASK_STATS);
+                    task_stats_buf.write(StorageMessageType.RESP_TASK_STATS);
                     task_stats_buf.write(Constants.BUFFER_SEP);
                     task_stats_buf.writeAll(callbackCodeView.data());
                     task_stats_buf.write(Constants.BUFFER_SEP);
@@ -188,7 +190,7 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                     payload.free();
                     WSSharedServer.this.send_resp(task_stats_buf, channel);
                     break;
-                case WSConstants.REQ_TASK_STOP:
+                case StorageMessageType.REQ_TASK_STOP:
                     graph.setProperty("ws.last", System.currentTimeMillis());
                     if (it.hasNext()) {
                         Buffer view = it.next();
@@ -196,31 +198,31 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                         graph.taskContextRegistry().forceStop(taskCode);
                     }
                     final Buffer task_stop_buf = graph.newBuffer();
-                    task_stop_buf.write(WSConstants.RESP_TASK_STOP);
+                    task_stop_buf.write(StorageMessageType.RESP_TASK_STOP);
                     task_stop_buf.write(Constants.BUFFER_SEP);
                     task_stop_buf.writeAll(callbackCodeView.data());
                     payload.free();
                     WSSharedServer.this.send_resp(task_stop_buf, channel);
                     break;
-                case WSConstants.HEART_BEAT_PING:
+                case StorageMessageType.HEART_BEAT_PING:
                     final Buffer concat = graph.newBuffer();
-                    concat.write(WSConstants.HEART_BEAT_PONG);
+                    concat.write(StorageMessageType.HEART_BEAT_PONG);
                     concat.writeString("ok");
                     WSSharedServer.this.send_resp(concat, channel);
                     break;
-                case WSConstants.HEART_BEAT_PONG:
+                case StorageMessageType.HEART_BEAT_PONG:
                     //Ignore
                     break;
-                case WSConstants.REQ_REMOVE:
+                case StorageMessageType.REQ_REMOVE:
                     final List<ChunkKey> rkeys = new ArrayList<ChunkKey>();
                     while (it.hasNext()) {
-                        rkeys.add(ChunkKey.build(it.next()));
+                        rkeys.add(KeyHelper.bufferToKey(it.next()));
                     }
                     process_remove(rkeys.toArray(new ChunkKey[rkeys.size()]), new Callback() {
                         @Override
                         public void on(Object o) {
                             final Buffer concatRM = graph.newBuffer();
-                            concatRM.write(WSConstants.RESP_REMOVE);
+                            concatRM.write(StorageMessageType.RESP_REMOVE);
                             concatRM.write(Constants.BUFFER_SEP);
                             concatRM.writeAll(callbackCodeView.data());
                             payload.free();
@@ -228,17 +230,17 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                         }
                     });
                     break;
-                case WSConstants.REQ_GET:
+                case StorageMessageType.REQ_GET:
                     //build keys list
                     final List<ChunkKey> keys = new ArrayList<ChunkKey>();
                     while (it.hasNext()) {
-                        keys.add(ChunkKey.build(it.next()));
+                        keys.add(KeyHelper.bufferToKey(it.next()));
                     }
                     process_get(keys.toArray(new ChunkKey[keys.size()]), new Callback<Buffer>() {
                         @Override
                         public void on(Buffer streamResult) {
                             final Buffer concatGet = graph.newBuffer();
-                            concatGet.write(WSConstants.RESP_GET);
+                            concatGet.write(StorageMessageType.RESP_GET);
                             concatGet.write(Constants.BUFFER_SEP);
                             concatGet.writeAll(callbackCodeView.data());
                             concatGet.write(Constants.BUFFER_SEP);
@@ -249,13 +251,13 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                         }
                     });
                     break;
-                case WSConstants.REQ_TASK:
+                case StorageMessageType.REQ_TASK:
                     if (it.hasNext()) {
                         final Callback<TaskResult> end = new Callback<TaskResult>() {
                             @Override
                             public void on(TaskResult result) {
                                 final Buffer concatTask = graph.newBuffer();
-                                concatTask.write(WSConstants.RESP_TASK);
+                                concatTask.write(StorageMessageType.RESP_TASK);
                                 concatTask.write(Constants.BUFFER_SEP);
                                 concatTask.writeAll(callbackCodeView.data());
                                 concatTask.write(Constants.BUFFER_SEP);
@@ -288,7 +290,7 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                                         @Override
                                         public void on(String result) {
                                             final Buffer concat = graph.newBuffer();
-                                            concat.write(WSConstants.NOTIFY_PRINT);
+                                            concat.write(StorageMessageType.NOTIFY_PRINT);
                                             concat.write(Constants.BUFFER_SEP);
                                             Base64.encodeIntToBuffer(printHookCode, concat);
                                             concat.write(Constants.BUFFER_SEP);
@@ -303,7 +305,7 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                                     progressHookCode = greycat.utility.Base64.decodeToIntWithBounds(progressHookCodeView, 0, progressHookCodeView.length());
                                     ctx.setProgressHook(report -> {
                                         final Buffer concatProgress = graph.newBuffer();
-                                        concatProgress.write(WSConstants.NOTIFY_PROGRESS);
+                                        concatProgress.write(StorageMessageType.NOTIFY_PROGRESS);
                                         concatProgress.write(Constants.BUFFER_SEP);
                                         Base64.encodeIntToBuffer(progressHookCode, concatProgress);
                                         concatProgress.write(Constants.BUFFER_SEP);
@@ -324,12 +326,12 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                         }
                     }
                     break;
-                case WSConstants.REQ_LOCK:
+                case StorageMessageType.REQ_LOCK:
                     process_lock(new Callback<Buffer>() {
                         @Override
                         public void on(Buffer result) {
                             Buffer concat = graph.newBuffer();
-                            concat.write(WSConstants.RESP_LOCK);
+                            concat.write(StorageMessageType.RESP_LOCK);
                             concat.write(Constants.BUFFER_SEP);
                             concat.writeAll(callbackCodeView.data());
                             concat.write(Constants.BUFFER_SEP);
@@ -340,12 +342,12 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                         }
                     });
                     break;
-                case WSConstants.REQ_UNLOCK:
+                case StorageMessageType.REQ_UNLOCK:
                     process_unlock(it.next(), new Callback<Boolean>() {
                         @Override
                         public void on(Boolean result) {
                             Buffer concat = graph.newBuffer();
-                            concat.write(WSConstants.RESP_UNLOCK);
+                            concat.write(StorageMessageType.RESP_UNLOCK);
                             concat.write(Constants.BUFFER_SEP);
                             concat.writeAll(callbackCodeView.data());
                             payload.free();
@@ -353,14 +355,14 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                         }
                     });
                     break;
-                case WSConstants.REQ_PUT:
+                case StorageMessageType.REQ_PUT:
                     final List<ChunkKey> flatKeys = new ArrayList<ChunkKey>();
                     final List<Buffer> flatValues = new ArrayList<Buffer>();
                     while (it.hasNext()) {
                         final Buffer keyView = it.next();
                         final Buffer valueView = it.next();
                         if (valueView != null) {
-                            flatKeys.add(ChunkKey.build(keyView));
+                            flatKeys.add(KeyHelper.bufferToKey(keyView));
                             flatValues.add(valueView);
                         }
                     }
@@ -372,7 +374,7 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                                 @Override
                                 public void on(Boolean result) {
                                     Buffer concat = graph.newBuffer();
-                                    concat.write(WSConstants.RESP_PUT);
+                                    concat.write(StorageMessageType.RESP_PUT);
                                     concat.write(Constants.BUFFER_SEP);
                                     concat.writeAll(callbackCodeView.data());
                                     payload.free();

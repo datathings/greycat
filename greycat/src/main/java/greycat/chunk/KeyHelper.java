@@ -13,23 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.websocket;
+package greycat.chunk;
 
 import greycat.Constants;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 
-class ChunkKey {
+public class KeyHelper {
 
-    byte type;
+    /**
+     * @param buffer
+     * @param chunkType
+     * @param world
+     * @param time
+     * @param id
+     */
+    public static void keyToBuffer(Buffer buffer, byte chunkType, long world, long time, long id) {
+        Base64.encodeIntToBuffer((int) chunkType, buffer);
+        buffer.write(Constants.KEY_SEP);
+        Base64.encodeLongToBuffer(world, buffer);
+        buffer.write(Constants.KEY_SEP);
+        Base64.encodeLongToBuffer(time, buffer);
+        buffer.write(Constants.KEY_SEP);
+        Base64.encodeLongToBuffer(id, buffer);
+    }
 
-    long world;
+    public static void chunckKeyToBuffer(ChunkKey key, Buffer buffer) {
+        Base64.encodeIntToBuffer((int) key.type, buffer);
+        buffer.write(Constants.KEY_SEP);
+        Base64.encodeLongToBuffer(key.world, buffer);
+        buffer.write(Constants.KEY_SEP);
+        Base64.encodeLongToBuffer(key.time, buffer);
+        buffer.write(Constants.KEY_SEP);
+        Base64.encodeLongToBuffer(key.id, buffer);
+    }
 
-    long time;
-
-    long id;
-
-    static ChunkKey build(Buffer buffer) {
+    public static ChunkKey bufferToKey(Buffer buffer) {
         ChunkKey tuple = new ChunkKey();
         long cursor = 0;
         long length = buffer.length();
