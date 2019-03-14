@@ -123,4 +123,5 @@ public interface TaskContext {
 
     void track(Node ptr);
 
+    Callback<TaskResult> getResultCallback();
 }

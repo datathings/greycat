@@ -128,6 +128,11 @@ class CoreTaskContext implements TaskContext {
         return this;
     }
 
+    @Override
+    public Callback<TaskResult> getResultCallback() {
+        return _callback;
+    }
+
 
     @Override
     public final Tuple<String, TaskResult>[] variables() {
