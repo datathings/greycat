@@ -76,4 +76,24 @@ public interface Buffer {
     
     byte[] slice(long initPos, long endPos);
 
+    /**
+     * Reads 4 bytes starting at the given position (p, p+1, p+2, p+3) and converts to an Integer value
+     * @param startPos the starting position in the buffer
+     * @return the integer value read
+     */
+    int readInt(int startPos);
+
+    /**
+     * Writes an int to the buffer using 4 bytes.
+     * @param value the integer value to write.
+     */
+    void writeInt(int value);
+
+    /**
+     * Writes an int starting at startPos over 4 bytes. Ensure the buffer has already wrote here before use.
+     * @param value the value to write
+     * @param startPos the starting position to write the 4 bytes
+     */
+    void writeIntAt(int value, int startPos);
+
 }

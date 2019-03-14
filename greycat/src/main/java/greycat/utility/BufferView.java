@@ -20,6 +20,8 @@ import greycat.struct.BufferIterator;
 
 public class BufferView implements Buffer {
 
+    private static final String FORBIDEN_WRITE_OPERATION_TEXT = "Write operation forbidden in buffer views.";
+
     private Buffer _origin;
 
     private long _initPos;
@@ -34,27 +36,27 @@ public class BufferView implements Buffer {
 
     @Override
     public long writeIndex() {
-        throw new RuntimeException("Write operation forbidden during iteration");
+        throw new RuntimeException(FORBIDEN_WRITE_OPERATION_TEXT);
     }
 
     @Override
     public final void write(byte b) {
-        throw new RuntimeException("Write operation forbidden during iteration");
+        throw new RuntimeException(FORBIDEN_WRITE_OPERATION_TEXT);
     }
 
     @Override
     public final void writeAll(byte[] bytes) {
-        throw new RuntimeException("Write operation forbidden during iteration");
+        throw new RuntimeException(FORBIDEN_WRITE_OPERATION_TEXT);
     }
 
     @Override
     public void writeString(String input) {
-        throw new RuntimeException("Write operation forbidden during iteration");
+        throw new RuntimeException(FORBIDEN_WRITE_OPERATION_TEXT);
     }
 
     @Override
     public void writeChar(char input) {
-        throw new RuntimeException("Write operation forbidden during iteration");
+        throw new RuntimeException(FORBIDEN_WRITE_OPERATION_TEXT);
     }
 
     @Override
@@ -88,5 +90,20 @@ public class BufferView implements Buffer {
     @Override
     public byte[] slice(long p_initPos, long p_endPos) {
         return _origin.slice(this._initPos + p_initPos, this._initPos + p_endPos);
+    }
+
+    @Override
+    public int readInt(int startPos) {
+        return _origin.readInt(startPos);
+    }
+
+    @Override
+    public void writeInt(int value) {
+        throw new RuntimeException(FORBIDEN_WRITE_OPERATION_TEXT);
+    }
+
+    @Override
+    public void writeIntAt(int value, int startPos) {
+        throw new RuntimeException(FORBIDEN_WRITE_OPERATION_TEXT);
     }
 }

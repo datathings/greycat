@@ -143,4 +143,71 @@ public class HeapBuffer implements Buffer {
     public final String toString() {
         return new String(data());
     }
+
+    /**
+     * {@native ts
+     * if(startPos + 3 >= this.writeCursor) {
+     * throw new Error("Cannot readInt at " + startPos + ". Last position is out of buffer: " + (startPos + 3) + " >= " + this.writeCursor);
+     * }
+     * let res = 0;
+     * if((this.buffer[startPos] & 0x80) !== 0) {
+     * res = 0x80 << 56;
+     * }
+     * res |= (this.buffer[startPos] & 0x7F) << 24;
+     * res |= (this.buffer[startPos+1] & 0xFF) << 16;
+     * res |= (this.buffer[startPos+2] & 0xFF) << 8;
+     * res |= (this.buffer[startPos+3] & 0xFF);
+     * return res;
+     * }
+     */
+    @Override
+    public int readInt(int startPos) {
+        if (startPos + 3 >= writeCursor) {
+            throw new IndexOutOfBoundsException("Cannot readInt at " + startPos + ". Last position is out of buffer: " + (startPos + 3) + " >= " + writeCursor);
+        }
+        int res ;
+        res = (buffer[startPos] & 0xFF) << 24;
+        res |= (buffer[startPos + 1] & 0xFF) << 16;
+        res |= (buffer[startPos + 2] & 0xFF) << 8;
+        res |= (buffer[startPos + 3] & 0xFF);
+        return res;
+    }
+
+    /**
+     * {@native ts
+     * this.write((value < 0 ? 0x80 : 0) | ((value >> 24) & 0x7F));
+     * this.write((value >> 16) & 0xFF);
+     * this.write((value >> 8) & 0xFF);
+     * this.write(value & 0xFF);
+     * }
+     */
+    @Override
+    public void writeInt(int value) {
+        write((byte) (0xFF & (value >> 24)));
+        write((byte) (0xFF & (value >> 16)));
+        write((byte) (0xFF & (value >> 8)));
+        write((byte) (0xFF & value));
+    }
+
+    /**
+     * {@native ts
+     * if(startPos + 3 >= this.writeCursor) {
+     * throw new Error("Cannot write at " + startPos + ". Last position is out of buffer: " + (startPos + 3) + " >= " + this.writeCursor);
+     * }
+     * this.buffer[startPos] = (value < 0 ? 0x80 : 0) | ((value >> 24) & 0x7F);
+     * this.buffer[startPos+1] = (value >> 16) & 0xFF;
+     * this.buffer[startPos+2] = (value >> 8) & 0xFF;
+     * this.buffer[startPos+3] = value & 0xFF;
+     * }
+     */
+    @Override
+    public void writeIntAt(int value, int startPos) {
+        if (startPos + 3 >= writeCursor) {
+            throw new IndexOutOfBoundsException("Cannot write at " + startPos + ". Last position is out of buffer: " + (startPos + 3) + " >= " + writeCursor);
+        }
+        buffer[startPos] = (byte) (0xFF & (value >> 24));
+        buffer[startPos+1] = (byte) (0xFF & (value >> 16));
+        buffer[startPos+2] = (byte) (0xFF & (value >> 8));
+        buffer[startPos+3] = (byte) (0xFF & value);
+    }
 }

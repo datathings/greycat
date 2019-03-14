@@ -15,12 +15,14 @@
  */
 package greycatTest.internal.memory;
 
+import greycat.internal.heap.HeapBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 import greycat.internal.CoreConstants;
 import greycat.plugin.MemoryFactory;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
+import org.junit.runner.notification.RunListener;
 
 import static greycat.Constants.BUFFER_SEP;
 
@@ -239,4 +241,76 @@ public abstract class AbstractBufferTest {
         buffer.free();
     }
 
+    @Test
+    public void readWriteIntTest() {
+        Buffer buffer = factory.newBuffer();
+        buffer.writeInt(42);
+        int res = buffer.readInt(0);
+        Assert.assertEquals(42, res);
+
+        buffer = factory.newBuffer();
+        buffer.writeInt(-70000);
+        res = buffer.readInt(0);
+        Assert.assertEquals(-70000, res);
+    }
+
+    @Test
+    public void readWriteMinIntTest() {
+        Buffer buffer = factory.newBuffer();
+        buffer.writeInt(-2147483648);
+        int res = buffer.readInt(0);
+        Assert.assertEquals(-2147483648, res);
+    }
+
+    @Test
+    public void readWriteMaxIntTest() {
+        Buffer buffer = factory.newBuffer();
+        buffer.writeInt(2147483647);
+        int res = buffer.readInt(0);
+        Assert.assertEquals(2147483647, res);
+    }
+
+    @Test
+    public void readWriteIntAtTest() {
+        Buffer buffer = factory.newBuffer();
+        buffer.writeInt(21);
+        buffer.writeInt(24);
+        buffer.writeInt(27);
+
+        int res = buffer.readInt(0);
+        Assert.assertEquals(21, res);
+        res = buffer.readInt(4);
+        Assert.assertEquals(24, res);
+        res = buffer.readInt(8);
+        Assert.assertEquals(27, res);
+
+        buffer.writeIntAt(-42,4);
+
+        res = buffer.readInt(0);
+        Assert.assertEquals(21, res);
+        res = buffer.readInt(4);
+        Assert.assertEquals(-42, res);
+        res = buffer.readInt(8);
+        Assert.assertEquals(27, res);
+    }
+
+
+    /**
+     * @ignore ts
+     */
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void readIntOutOfBoundTest() {
+        Buffer buffer = factory.newBuffer();
+        buffer.readInt(0);
+    }
+
+    /**
+     * @ignore ts
+     */
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void readIntOutOfBound2Test() {
+        Buffer buffer = factory.newBuffer();
+        buffer.write((byte)0);
+        buffer.readInt(0);
+    }
 }
