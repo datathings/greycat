@@ -39,8 +39,8 @@ public class WorkerMailbox {
     }
 
     /**
-     *
-     * @param taskBuffer
+     * Submits a work task in form of a byte array to the queue.
+     * @param taskBuffer the work task to queue.
      * @return true if the task has been queued; false otherwise.
      */
     public boolean submit(byte[] taskBuffer) {
@@ -48,9 +48,9 @@ public class WorkerMailbox {
     }
 
     /**
-     *
-     * @param c
-     * @return
+     * Enqueues all the working tasks given as parameter.
+     * @param c the collection of work tasks to queue
+     * @return true if all have been added; false otherwise.
      */
     public boolean addAll(Collection<? extends byte[]> c) {
         return tasksQueue.addAll(c);
@@ -58,7 +58,7 @@ public class WorkerMailbox {
 
     /**
      * Non-Blocking retrieve of message
-     * @return
+     * @return a working task submitted to the queue; null is the queue is empty.
      */
     public byte[] poll() {
         return tasksQueue.poll();
@@ -67,21 +67,22 @@ public class WorkerMailbox {
     /**
      * Blocking retrieve of message
      *
-     * @return
-     * @throws InterruptedException
+     * @return a working task submitted to the queue.
+     * @throws InterruptedException In case of interruption while waiting
      */
     public byte[] take() throws InterruptedException {
         return tasksQueue.take();
     }
 
     /**
-     * Blocking retrieve of message, with timeout
+     * Blocking retrieve of message, with timeout.
      *
-     * @return
-     * @throws InterruptedException
+     * @param timeout the quantity of time to wait
+     * @param unit the unit of the quantity of time to wait
+     * @return a working task submitted to the queue; null if returned on timeout
+     * @throws InterruptedException In case of interruption while waiting
      */
     public byte[] poll(long timeout, TimeUnit unit) throws InterruptedException {
-
         return tasksQueue.poll(timeout, unit);
     }
 
