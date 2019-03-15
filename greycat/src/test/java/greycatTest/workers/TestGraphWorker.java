@@ -73,7 +73,7 @@ public class TestGraphWorker extends GraphWorker {
         taskBuffer.write(StorageMessageType.REQ_TASK);
         taskBuffer.write(Constants.BUFFER_SEP);
         //Resp. Channel
-        Base64.encodeIntToBuffer(this.mailboxId, taskBuffer);
+        taskBuffer.writeInt(this.mailboxId);
         taskBuffer.write(Constants.BUFFER_SEP);
         //Callback.id
         Base64.encodeIntToBuffer(taskCallbackId, taskBuffer);
@@ -158,7 +158,7 @@ public class TestGraphWorker extends GraphWorker {
         taskBuffer.write(StorageMessageType.REQ_TASK);
         taskBuffer.write(Constants.BUFFER_SEP);
         //Resp. Channel
-        Base64.encodeIntToBuffer(mailboxId, taskBuffer);
+        taskBuffer.writeInt(mailboxId);
         taskBuffer.write(Constants.BUFFER_SEP);
         //Callback.id
         Base64.encodeIntToBuffer(taskCallbackId, taskBuffer);
