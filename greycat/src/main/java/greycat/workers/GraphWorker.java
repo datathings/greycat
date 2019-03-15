@@ -83,7 +83,7 @@ public class GraphWorker implements Runnable {
 
         //System.out.println(getName() + ": Creating new Graph");
         workingGraphInstance = workingGraphBuilder.build();
-        workingGraphInstance.logDirectory(this.name, "2MB");
+        //workingGraphInstance.logDirectory(this.name, "2MB");
         workingGraphInstance.log().debug(getName() + ": New Graph created. Connecting");
 
         workingGraphInstance.connect(new Callback<Boolean>() {
