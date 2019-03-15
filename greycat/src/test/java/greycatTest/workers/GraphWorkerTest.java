@@ -50,8 +50,7 @@ public class GraphWorkerTest {
         workersPool.createGraphWorker();
         workersPool.createGraphWorker();
 
-        localWorker = new TestGraphWorker(GraphBuilder.newBuilder().withStorage(new SlaveWorkerStorage()).withPlugin(new PluginForWorkersTest()), "TestWorker");
-        localWorker.setWorker(true);
+        localWorker = new TestGraphWorker(GraphBuilder.newBuilder().withStorage(new SlaveWorkerStorage()).withPlugin(new PluginForWorkersTest()), "TestWorker", true);
         localThread = new Thread(localWorker, "TestWorker");
         localThread.start();
     }

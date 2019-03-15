@@ -111,7 +111,7 @@ public class SlaveWorkerStorage implements Storage {
         taskBuffer.write(operationId);
         taskBuffer.write(Constants.BUFFER_SEP);
         //Resp. Channel
-        Base64.encodeIntToBuffer(workerMailboxId, taskBuffer);
+        taskBuffer.writeInt(workerMailboxId);
         taskBuffer.write(Constants.BUFFER_SEP);
         //Callback.id
         Base64.encodeIntToBuffer(callbackId, taskBuffer);
@@ -120,9 +120,6 @@ public class SlaveWorkerStorage implements Storage {
             taskBuffer.writeAll(payload.data());
         }
         MailboxRegistry.getInstance().getMailbox(GraphWorkerPool.getInstance().getRootWorkerMailboxId()).submit(taskBuffer.data());
-        if (payload != null) {
-            payload.free();
-        }
         taskBuffer.free();
     }
 }

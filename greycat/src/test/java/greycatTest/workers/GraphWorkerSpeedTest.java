@@ -156,8 +156,7 @@ public class GraphWorkerSpeedTest {
             GraphWorkerPool workersPool = GraphWorkerPool.getInstance();
             workersPool.initialize(GraphBuilder.newBuilder().withStorage(queueStorage));
 
-            TestGraphWorker localWorker = new TestGraphWorker(GraphBuilder.newBuilder().withStorage(new SlaveWorkerStorage()).withPlugin(new PluginForWorkersTest()), "TestWorker");
-            localWorker.setWorker(true);
+            TestGraphWorker localWorker = new TestGraphWorker(GraphBuilder.newBuilder().withStorage(new SlaveWorkerStorage()).withPlugin(new PluginForWorkersTest()), "TestWorker", true);
             Thread localThread = new Thread(localWorker, "TestWorker");
             localThread.start();
 
@@ -219,8 +218,7 @@ public class GraphWorkerSpeedTest {
             GraphWorkerPool workersPool = GraphWorkerPool.getInstance();
             workersPool.initialize(GraphBuilder.newBuilder().withStorage(queueStorage));
 
-            TestGraphWorker localWorker = new TestGraphWorker(GraphBuilder.newBuilder().withStorage(new SlaveWorkerStorage()).withPlugin(new PluginForWorkersTest()), "TestWorker");
-            localWorker.setWorker(true);
+            TestGraphWorker localWorker = new TestGraphWorker(GraphBuilder.newBuilder().withStorage(new SlaveWorkerStorage()).withPlugin(new PluginForWorkersTest()), "TestWorker", true);
             Thread localThread = new Thread(localWorker, "TestWorker");
             localThread.start();
 

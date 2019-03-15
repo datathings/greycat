@@ -35,12 +35,12 @@ import java.util.List;
 public class TestGraphWorker extends GraphWorker {
 
 
-    public TestGraphWorker(GraphBuilder workingGraphBuilder) {
-        super(workingGraphBuilder);
+    public TestGraphWorker(GraphBuilder workingGraphBuilder, boolean canProcessGeneralTaskQueue) {
+        super(workingGraphBuilder, canProcessGeneralTaskQueue);
     }
 
-    public TestGraphWorker(GraphBuilder workingGraphBuilder, String name) {
-        super(workingGraphBuilder, name);
+    public TestGraphWorker(GraphBuilder workingGraphBuilder, String name, boolean canProcessGeneralTaskQueue) {
+        super(workingGraphBuilder, name, canProcessGeneralTaskQueue);
     }
 
     public Graph getWorkingGraph() {

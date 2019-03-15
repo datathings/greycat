@@ -44,7 +44,7 @@ public class MailboxRegistry {
     private Map<Integer, WorkerMailbox> mailboxMap = new HashMap<>();
     private AtomicInteger nextMailboxId = new AtomicInteger(0);
 
-    private WorkerMailbox defaultMailbox = new WorkerMailbox();
+    private WorkerMailbox defaultMailbox = new WorkerMailbox(false);
     private int defaultMailboxId;
 
     private MailboxRegistry() {
@@ -78,11 +78,15 @@ public class MailboxRegistry {
         mailboxMap.forEach(new BiConsumer<Integer, WorkerMailbox>() {
             @Override
             public void accept(Integer id, WorkerMailbox mailbox) {
-                if (mailbox.isworker()) {
+                if (mailbox.canProcessGeneralTaskQueue()) {
                     mailbox.submit(VOID_TASK_NOTIFY);
                 }
             }
         });
+    }
+
+    public void removeMailbox(int mailboxId) {
+        mailboxMap.remove(mailboxId);
     }
 
 }

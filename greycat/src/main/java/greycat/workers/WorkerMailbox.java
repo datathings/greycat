@@ -25,17 +25,16 @@ import java.util.concurrent.TimeUnit;
  */
 public class WorkerMailbox {
 
-    private boolean isWorker;
+    private boolean canProcessGeneralTaskQueue;
 
     private BlockingQueue<byte[]> tasksQueue = new LinkedBlockingQueue<byte[]>();
 
-    public boolean isworker() {
-        return isWorker;
+    public WorkerMailbox(boolean canProcessGeneralTaskQueue) {
+        this.canProcessGeneralTaskQueue = canProcessGeneralTaskQueue;
     }
 
-    public WorkerMailbox setWorker(boolean worker) {
-        isWorker = worker;
-        return this;
+    public boolean canProcessGeneralTaskQueue() {
+        return canProcessGeneralTaskQueue;
     }
 
     /**

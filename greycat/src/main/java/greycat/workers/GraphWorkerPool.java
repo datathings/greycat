@@ -72,7 +72,7 @@ public class GraphWorkerPool {
         workersThreadGroup = new ThreadGroup("GreyCat workersById group");
 
         //ROOT GRAPH
-        rootGraphWorker = new GraphWorker(rootBuilder, "RootWorker");
+        rootGraphWorker = new GraphWorker(rootBuilder, "RootWorker", false);
 
         rootGraphWorkerThread = new Thread(rootGraphWorker, "RootWorker_" + rootGraphWorker.getMailboxId());
         rootGraphWorkerThread.setUncaughtExceptionHandler(exceptionHandler);
@@ -132,8 +132,7 @@ public class GraphWorkerPool {
 
         GraphBuilder slaveWorkerBuilder = builder.clone().withStorage(new SlaveWorkerStorage());
 
-        GraphWorker worker = new GraphWorker(slaveWorkerBuilder);
-        worker.setWorker(true);
+        GraphWorker worker = new GraphWorker(slaveWorkerBuilder, true);
         worker.setName(ref == null ? "Worker" + worker.getMailboxId() : ref);
         workersById.put(worker.getMailboxId(), worker);
         workersByRef.put(worker.getName(), worker);

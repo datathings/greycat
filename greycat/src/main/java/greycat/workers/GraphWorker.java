@@ -45,9 +45,9 @@ public class GraphWorker implements Runnable {
     private String name;
     private boolean haltRequested = false;
 
-    public GraphWorker(GraphBuilder workingGraphBuilder) {
+    public GraphWorker(GraphBuilder workingGraphBuilder, boolean canProcessGeneralTaskQueue) {
         this.workingGraphBuilder = workingGraphBuilder;
-        mailbox = new WorkerMailbox();
+        mailbox = new WorkerMailbox(canProcessGeneralTaskQueue);
         callbacksRegistry = new WorkerCallbacksRegistry();
         mailboxId = MailboxRegistry.getInstance().addMailbox(mailbox);
         if (workingGraphBuilder.storage instanceof SlaveWorkerStorage) {
@@ -55,13 +55,8 @@ public class GraphWorker implements Runnable {
         }
     }
 
-    public GraphWorker setWorker(boolean worker) {
-        this.mailbox.setWorker(worker);
-        return this;
-    }
-
-    public GraphWorker(GraphBuilder workingGraphBuilder, String name) {
-        this(workingGraphBuilder);
+    public GraphWorker(GraphBuilder workingGraphBuilder, String name, boolean canProcessGeneralTaskQueue) {
+        this(workingGraphBuilder, canProcessGeneralTaskQueue);
         this.name = name;
     }
 
@@ -88,10 +83,13 @@ public class GraphWorker implements Runnable {
 
         //System.out.println(getName() + ": Creating new Graph");
         workingGraphInstance = workingGraphBuilder.build();
-        //System.out.println(getName() + ": New Graph created. Connecting");
+        workingGraphInstance.logDirectory(this.name, "2MB");
+        workingGraphInstance.log().debug(getName() + ": New Graph created. Connecting");
+
         workingGraphInstance.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean connected) {
+                workingGraphInstance.log().debug(getName() + ": New Graph connected.");
                 if (pendingConnectionTasks != null) {
                     mailbox.addAll(pendingConnectionTasks);
                     pendingConnectionTasks.clear();
@@ -103,7 +101,7 @@ public class GraphWorker implements Runnable {
         while (!haltRequested) {
             try {
                 byte[] tmpTaskBuffer = mailbox.take();
-                if (tmpTaskBuffer == MailboxRegistry.VOID_TASK_NOTIFY && !haltRequested && mailbox.isworker()) {
+                if (tmpTaskBuffer == MailboxRegistry.VOID_TASK_NOTIFY && !haltRequested && mailbox.canProcessGeneralTaskQueue()) {
                     //Checks if a task is available in the taskPool mailbox
                     tmpTaskBuffer = MailboxRegistry.getInstance().getDefaultMailbox().poll();
                 }
@@ -146,17 +144,16 @@ public class GraphWorker implements Runnable {
         final Buffer callbackBufferView = it.next();
 
         // --------   DEBUG PRINT ----------
-/*
-        System.out.println("========= " + getName() + " Received =========");
-        System.out.println("Type: " + MessageTypes.toString(bufferTypeBufferView.read(0)));
-        System.out.println("Channel: " + Base64.decodeToIntWithBounds(respChannelBufferView, 0, respChannelBufferView.length()));
-        System.out.println("Callback: " + Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
-        System.out.println("Raw: " + taskBuffer.toString());
-*/
+        workingGraphInstance.log().debug(getName() + "\t========= " + getName() + " Received =========");
+        workingGraphInstance.log().debug(getName() + "\tType: " + StorageMessageType.byteToString(bufferTypeBufferView.read(0)));
+        workingGraphInstance.log().debug(getName() + "\tChannel: " + respChannelBufferView.readInt(0));
+        workingGraphInstance.log().debug(getName() + "\tCallback: " + Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
+        workingGraphInstance.log().debug(getName() + "\tRaw: " + taskBuffer.toString());
+
         // --------   DEBUG PRINT END ----------
 
 
-        int destMailboxId = Base64.decodeToIntWithBounds(respChannelBufferView, 0, respChannelBufferView.length());
+        int destMailboxId = respChannelBufferView.readInt(0);
         WorkerMailbox destMailbox = MailboxRegistry.getInstance().getMailbox(destMailboxId);
         byte operation = bufferTypeBufferView.read(0);
 
