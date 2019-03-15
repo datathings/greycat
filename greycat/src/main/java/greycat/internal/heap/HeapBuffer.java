@@ -161,15 +161,15 @@ public class HeapBuffer implements Buffer {
      * }
      */
     @Override
-    public int readInt(int startPos) {
-        if (startPos + 3 >= writeCursor) {
-            throw new IndexOutOfBoundsException("Cannot readInt at " + startPos + ". Last position is out of buffer: " + (startPos + 3) + " >= " + writeCursor);
+    public int readInt(long startPos) {
+        if (startPos + 3 > writeCursor) {
+            throw new IndexOutOfBoundsException("Cannot readInt at " + startPos + ". Last position is out of buffer: " + (startPos + 3) + " > " + writeCursor);
         }
         int res ;
-        res = (buffer[startPos] & 0xFF) << 24;
-        res |= (buffer[startPos + 1] & 0xFF) << 16;
-        res |= (buffer[startPos + 2] & 0xFF) << 8;
-        res |= (buffer[startPos + 3] & 0xFF);
+        res = (buffer[(int)startPos] & 0xFF) << 24;
+        res |= (buffer[(int)startPos + 1] & 0xFF) << 16;
+        res |= (buffer[(int)startPos + 2] & 0xFF) << 8;
+        res |= (buffer[(int)startPos + 3] & 0xFF);
         return res;
     }
 
@@ -201,13 +201,13 @@ public class HeapBuffer implements Buffer {
      * }
      */
     @Override
-    public void writeIntAt(int value, int startPos) {
-        if (startPos + 3 >= writeCursor) {
-            throw new IndexOutOfBoundsException("Cannot write at " + startPos + ". Last position is out of buffer: " + (startPos + 3) + " >= " + writeCursor);
+    public void writeIntAt(int value, long startPos) {
+        if (startPos + 3 > writeCursor) {
+            throw new IndexOutOfBoundsException("Cannot write at " + startPos + ". Last position is out of buffer: " + (startPos + 3) + " > " + writeCursor);
         }
-        buffer[startPos] = (byte) (0xFF & (value >> 24));
-        buffer[startPos+1] = (byte) (0xFF & (value >> 16));
-        buffer[startPos+2] = (byte) (0xFF & (value >> 8));
-        buffer[startPos+3] = (byte) (0xFF & value);
+        buffer[(int)startPos] = (byte) (0xFF & (value >> 24));
+        buffer[(int)startPos+1] = (byte) (0xFF & (value >> 16));
+        buffer[(int)startPos+2] = (byte) (0xFF & (value >> 8));
+        buffer[(int)startPos+3] = (byte) (0xFF & value);
     }
 }

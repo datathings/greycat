@@ -93,8 +93,8 @@ public class BufferView implements Buffer {
     }
 
     @Override
-    public int readInt(int startPos) {
-        return _origin.readInt(startPos);
+    public int readInt(long startPos) {
+        return _origin.readInt(this._initPos+startPos);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class BufferView implements Buffer {
     }
 
     @Override
-    public void writeIntAt(int value, int startPos) {
+    public void writeIntAt(int value, long startPos) {
         throw new RuntimeException(FORBIDEN_WRITE_OPERATION_TEXT);
     }
 }

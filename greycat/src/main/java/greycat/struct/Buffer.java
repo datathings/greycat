@@ -81,7 +81,7 @@ public interface Buffer {
      * @param startPos the starting position in the buffer
      * @return the integer value read
      */
-    int readInt(int startPos);
+    int readInt(long startPos);
 
     /**
      * Writes an int to the buffer using 4 bytes.
@@ -94,6 +94,6 @@ public interface Buffer {
      * @param value the value to write
      * @param startPos the starting position to write the 4 bytes
      */
-    void writeIntAt(int value, int startPos);
+    void writeIntAt(int value, long startPos);
 
 }
