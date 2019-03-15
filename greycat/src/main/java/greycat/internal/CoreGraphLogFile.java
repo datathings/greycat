@@ -65,6 +65,7 @@ public class CoreGraphLogFile extends CoreGraphLog {
 
     @Override
     public void writeMessage(final StringBuilder builder) {
+        super.writeMessage(builder);
         byte[] raw = builder.toString().getBytes();
         synchronized (mutex) {
             try {

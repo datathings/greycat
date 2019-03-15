@@ -15,6 +15,7 @@
  */
 package greycat.internal;
 
+import greycat.Constants;
 import greycat.Graph;
 import greycat.Log;
 import greycat.plugin.TaskExecutor;
@@ -37,10 +38,12 @@ public class CoreGraphLog implements Log {
 
     @Override
     public final Log debug(String message, Object... params) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(debug_msg);
-        builder.append(processMessage(message, params));
-        writeMessage(builder);
+        if(Constants.enableDebug) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(debug_msg);
+            builder.append(processMessage(message, params));
+            writeMessage(builder);
+        }
         return this;
     }
 
@@ -80,10 +83,12 @@ public class CoreGraphLog implements Log {
     public void writeMessage(StringBuilder builder) {
         String msg = builder.toString();
         System.out.println(msg);
-        Object str = graph.storage();
-        if (str != null && remote) {
-            TaskExecutor exec = (TaskExecutor) str;
-            exec.log(msg);
+        if (graph != null) {
+            Object str = graph.storage();
+            if (str != null && remote) {
+                TaskExecutor exec = (TaskExecutor) str;
+                exec.log(msg);
+            }
         }
     }
 
