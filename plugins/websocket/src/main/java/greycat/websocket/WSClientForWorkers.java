@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class WSClientForWorkers implements Storage, TaskExecutor {
 
@@ -57,13 +58,25 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
 
     private Graph _graph;
 
+    private static final int MIN_INTEGER = -2147483648;
+    private static final int MAX_INTEGER = 2147483647;
     private Map<Integer, Callback> _callbacks;
+    private AtomicInteger callbackCounters = new AtomicInteger(MIN_INTEGER);
 
     private final List<Callback<Buffer>> _listeners = new ArrayList<Callback<Buffer>>();
 
     public WSClientForWorkers(String p_url) {
         this._url = p_url;
         this._callbacks = new ConcurrentHashMap<Integer, Callback>();
+    }
+
+    private int registerCallback(Callback c) {
+        int callbackId = callbackCounters.getAndIncrement();
+        if(callbackCounters.get() == MAX_INTEGER) {
+            callbackCounters.set(MIN_INTEGER);
+        }
+        _callbacks.put(callbackId, c);
+        return callbackId;
     }
 
     @Override
@@ -232,8 +245,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
             buffer.write(Constants.BUFFER_SEP);
             final Callback<String> printHook = prepared.printHook();
             if (printHook != null) {
-                hashPrint = printHook.hashCode();
-                _callbacks.put(hashPrint, printHook);
+                hashPrint = registerCallback(printHook);
                 Base64.encodeIntToBuffer(hashPrint, buffer);
             } else {
                 hashPrint = -1;
@@ -242,8 +254,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
             buffer.write(Constants.BUFFER_SEP);
             final Callback<TaskProgressReport> progressHook = prepared.progressHook();
             if (progressHook != null) {
-                hashProgress = progressHook.hashCode();
-                _callbacks.put(hashProgress, progressHook);
+                hashProgress = registerCallback(progressHook);
                 Base64.encodeIntToBuffer(hashProgress, buffer);
             } else {
                 hashProgress = -1;
@@ -318,8 +329,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
         //Reserving 4 bytes for the channels
         buffer.writeInt(0);
         buffer.write(Constants.BUFFER_SEP);
-        int hash = callback.hashCode();
-        _callbacks.put(hash, callback);
+        int hash = registerCallback(callback);
         Base64.encodeIntToBuffer(hash, buffer);
         if (payload != null) {
             buffer.write(Constants.BUFFER_SEP);
@@ -389,7 +399,11 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
                     final CoreProgressReport report = new CoreProgressReport();
                     report.loadFromBuffer(progressCallbackView);
                     Callback<TaskProgressReport> progressHook = _callbacks.get(progressCallbackCode);
-                    progressHook.on(report);
+                    if(progressHook != null) {
+                        progressHook.on(report);
+                    } else {
+                        System.err.println();
+                    }
                 }
                 break;
                 case StorageMessageType.RESP_LOCK:

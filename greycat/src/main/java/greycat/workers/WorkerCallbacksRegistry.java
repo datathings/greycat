@@ -27,14 +27,15 @@ public class WorkerCallbacksRegistry {
 
     public WorkerCallbacksRegistry() {
     }
-
+    private static final int MIN_INTEGER = -2147483648;
+    private static final int MAX_INTEGER = 2147483647;
     private HashMap<Integer, Callback> callbacks = new HashMap<>();
-    private AtomicInteger callbackIds = new AtomicInteger(0);
+    private AtomicInteger callbackIds = new AtomicInteger(MIN_INTEGER);
 
     public int register(Callback cb) {
         int id = callbackIds.getAndIncrement();
-        if (id == Integer.MAX_VALUE) {
-            callbackIds.set(0);
+        if (id == MAX_INTEGER) {
+            callbackIds.set(MIN_INTEGER);
         }
         callbacks.put(id, cb);
         return id;
