@@ -29,6 +29,7 @@ public class PluginForWorkersTest implements Plugin {
     public static final String THROW_EXCEPTION_2 = "throwException2";
     public static final String PROGRESS_REPORTS = "progressReports";
     public static final String PRINT_HOOK = "printHook";
+
     @Override
     public void start(Graph graph) {
 
@@ -53,7 +54,7 @@ public class PluginForWorkersTest implements Plugin {
         graph.actionRegistry().getOrCreateDeclaration(THROW_EXCEPTION).setParams().setFactory(params -> new Action() {
             @Override
             public void eval(TaskContext ctx) {
-                Task throwException = Tasks.newTask().thenDo(context ->{
+                Task throwException = Tasks.newTask().thenDo(context -> {
                     context.endTask(context.newResult(), new RuntimeException("Exception given to endTask"));
                 });
                 throwException.executeFrom(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, ctx::continueWith);
@@ -93,12 +94,19 @@ public class PluginForWorkersTest implements Plugin {
         graph.actionRegistry().getOrCreateDeclaration(PROGRESS_REPORTS).setParams().setFactory(params -> new Action() {
             @Override
             public void eval(TaskContext ctx) {
-                Task progressReports = Tasks.newTask().inject(0).setAsVar("i").doWhile(Tasks.newTask().thenDo(context->{
+                Task progressReports = Tasks.newTask().inject(0).setAsVar("i").doWhile(Tasks.newTask().thenDo(context -> {
                     int i = (int) context.variable("i").get(0);
-                    context.reportProgress( i / 10., "comment " + i);
-                    context.setVariable("i", i+1);
+                    TaskResult taskIdRes = context.variable("taskId");
+                    if (taskIdRes != null && taskIdRes.size() > 0) {
+                        int taskId = Integer.parseInt((String) taskIdRes.get(0));
+                        context.reportProgress(i / 10., "Task_" + taskId + "\tcomment " + i);
+                    } else {
+                        context.reportProgress(i / 10., "comment " + i);
+                    }
+
+                    context.setVariable("i", i + 1);
                     context.continueTask();
-                }), context -> ((int)context.variable("i").get(0)) < 10);
+                }), context -> ((int) context.variable("i").get(0)) < 10);
                 progressReports.executeFrom(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, ctx::continueWith);
             }
 
@@ -116,13 +124,13 @@ public class PluginForWorkersTest implements Plugin {
         graph.actionRegistry().getOrCreateDeclaration(PRINT_HOOK).setParams().setFactory(params -> new Action() {
             @Override
             public void eval(TaskContext ctx) {
-                Task progressReports = Tasks.newTask().inject(0).setAsVar("i").doWhile(Tasks.newTask().println("{{i}}").thenDo(context->{
+                Task progressReports = Tasks.newTask().inject(0).setAsVar("i").doWhile(Tasks.newTask().println("{{i}}").thenDo(context -> {
                     int i = (int) context.variable("i").get(0);
-                    context.setVariable("i", i+1);
+                    context.setVariable("i", i + 1);
                     context.continueTask();
-                }), context -> ((int)context.variable("i").get(0)) < 10);
-                progressReports.executeFromUsing(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, newContext ->{
-                  newContext.setPrintHook(ctx.printHook());
+                }), context -> ((int) context.variable("i").get(0)) < 10);
+                progressReports.executeFromUsing(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, newContext -> {
+                    newContext.setPrintHook(ctx.printHook());
                 }, ctx::continueWith);
             }
 

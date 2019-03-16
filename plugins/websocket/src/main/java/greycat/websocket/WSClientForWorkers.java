@@ -317,6 +317,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
             process_rpc_resp(message.getData().getBytes());
             super.onFullTextMessage(channel, message);
         }
+
     }
 
     private void send_rpc_req(final byte operationId, final Buffer payload, final Callback callback) {

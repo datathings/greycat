@@ -126,7 +126,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         WorkerMailbox localMailbox;
         int localMailboxId;
 
-        public PeerInternalListener(WebSocketChannel channel) {
+        public PeerInternalListener(final WebSocketChannel channel) {
             localMailbox = new WorkerMailbox(false);
             localMailboxId = MailboxRegistry.getInstance().addMailbox(localMailbox);
 
@@ -137,17 +137,17 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                     logger.debug("WSServer\tMailbox reaper ready for peer (" + localMailboxId + ")");
                     while (true) {
                         byte[] newMessage = localMailbox.take();
-                        logger.debug("WSServer\tForwarding response type "+StorageMessageType.byteToString(newMessage[0])+" to peer "+ localMailboxId);
+                        logger.debug("WSServer\tForwarding response type " + StorageMessageType.byteToString(newMessage[0]) + " to peer " + localMailboxId);
                         WebSockets.sendBinary(ByteBuffer.wrap(newMessage), channel, new WebSocketCallback<Void>() {
                             @Override
                             public void complete(WebSocketChannel webSocketChannel, Void aVoid) {
-
+                                logger.debug("WSServer\tSent message to peer " + localMailboxId);
                             }
 
                             @Override
                             public void onError(WebSocketChannel webSocketChannel, Void aVoid, Throwable throwable) {
                                 System.err.println("Error occured while sending to channel " + localMailboxId);
-                                if(throwable != null) {
+                                if (throwable != null) {
                                     throwable.printStackTrace();
                                 }
                             }
@@ -156,7 +156,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                 } catch (InterruptedException e) {
                     //e.printStackTrace();
                 }
-                logger.debug("WSServer\tMailbox reaper exited for peer ("+localMailboxId+")");
+                logger.debug("WSServer\tMailbox reaper exited for peer (" + localMailboxId + ")");
             }, "WSServerReaper_" + channel.getDestinationAddress().getPort());
             mailboxReaper.start();
         }
@@ -177,7 +177,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
         @Override
         protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
-            logger.info("WSServer\tPeer ("+localMailboxId+") connection closed: " + webSocketChannel.getCloseCode() + "\t" + webSocketChannel.getCloseReason());
+            logger.info("WSServer\tPeer (" + localMailboxId + ") connection closed: " + webSocketChannel.getCloseCode() + "\t" + webSocketChannel.getCloseReason());
             peers.remove(webSocketChannel);
             MailboxRegistry.getInstance().removeMailbox(localMailboxId);
             mailboxReaper.interrupt();
@@ -194,7 +194,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
             //Override mailboxId for response
             jobBuffer.writeIntAt(this.localMailboxId, 2);
 
-            if(Constants.enableDebug) {
+            if (Constants.enableDebug) {
                 final BufferIterator it = jobBuffer.iterator();
                 final Buffer bufferTypeBufferView = it.next();
                 final Buffer respChannelBufferView = it.next();
