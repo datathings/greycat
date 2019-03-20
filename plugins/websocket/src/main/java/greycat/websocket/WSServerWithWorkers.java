@@ -16,6 +16,7 @@
 package greycat.websocket;
 
 import greycat.*;
+import greycat.internal.CoreGraphLog;
 import greycat.utility.Base64;
 import greycat.internal.CoreGraphLogFile;
 import greycat.internal.heap.HeapBuffer;
@@ -42,7 +43,7 @@ import java.util.Set;
 
 public class WSServerWithWorkers implements WebSocketConnectionCallback, Callback<Buffer> {
 
-    private final Log logger = new CoreGraphLogFile(null, "WSServer", "2MB");
+    private final Log logger = new CoreGraphLog(null);
 
     private final int port;
     private Undertow server;
