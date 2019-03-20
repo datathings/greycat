@@ -44,4 +44,14 @@ class LeCunTanh implements Activation {
         return 1.143933333333333 * (1 - (fct * fct / 2.94431281));
     }
 
+    @Override
+    public double getParam() {
+        return 0;
+    }
+
+    @Override
+    public int getId() {
+        return Activations.LECUN_TANH;
+    }
+
 }

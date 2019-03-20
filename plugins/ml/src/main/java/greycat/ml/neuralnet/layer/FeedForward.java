@@ -59,6 +59,7 @@ class FeedForward implements Layer {
         this.host = hostnode;
     }
 
+    @Override
     public Activation getActivation() {
         return activation;
     }

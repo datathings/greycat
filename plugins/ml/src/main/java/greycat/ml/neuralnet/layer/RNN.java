@@ -149,6 +149,11 @@ class RNN implements Layer {
     }
 
     @Override
+    public Activation getActivation() {
+        return null;
+    }
+
+    @Override
     public void print(boolean details) {
         System.out.println("Layer RNN " + inputDimensions() + " -> " + outputDimensions());
         if(details) {

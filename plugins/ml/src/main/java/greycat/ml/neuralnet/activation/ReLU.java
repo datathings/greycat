@@ -43,4 +43,14 @@ public class ReLU implements Activation {
             return 0;
         }
     }
+
+    @Override
+    public int getId() {
+        return Activations.RELU;
+    }
+
+    @Override
+    public double getParam() {
+        return 0;
+    }
 }

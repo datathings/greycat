@@ -15,6 +15,7 @@
  */
 package greycat.ml.neuralnet.layer;
 
+import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.matrix.RandomInterface;
@@ -35,6 +36,7 @@ public interface Layer {
 
     int outputDimensions();
 
+    Activation getActivation();
 
     void print(boolean details);
 }

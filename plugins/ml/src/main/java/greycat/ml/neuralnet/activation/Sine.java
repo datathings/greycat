@@ -36,4 +36,14 @@ class Sine implements Activation {
     public double backward(double x, double fct) {
         return Math.cos(x);
     }
+
+    @Override
+    public int getId() {
+        return Activations.SINE;
+    }
+
+    @Override
+    public double getParam() {
+        return 0;
+    }
 }

@@ -35,4 +35,14 @@ class Linear implements Activation {
     public double backward(double x, double fct) {
         return 1;
     }
+
+    @Override
+    public int getId() {
+        return Activations.LINEAR;
+    }
+
+    @Override
+    public double getParam() {
+        return 0;
+    }
 }

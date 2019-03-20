@@ -198,6 +198,11 @@ class GRU implements Layer {
     }
 
     @Override
+    public Activation getActivation() {
+        return null;
+    }
+
+    @Override
     public void print(boolean details) {
         System.out.println("Layer GRU "+inputDimensions()+" -> "+outputDimensions());
         if(details) {

@@ -40,4 +40,14 @@ class LeakyReLU implements Activation {
             return slope;
         }
     }
+
+    @Override
+    public double getParam() {
+        return slope;
+    }
+
+    @Override
+    public int getId() {
+        return Activations.LEAKY_RELU;
+    }
 }

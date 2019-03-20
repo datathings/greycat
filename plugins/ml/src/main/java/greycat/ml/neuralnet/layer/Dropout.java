@@ -16,6 +16,7 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
+import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
@@ -78,6 +79,16 @@ public class Dropout implements Layer {
     @Override
     public int outputDimensions() {
         return (int) host.get(INPUTS);
+    }
+
+    @Override
+    public Activation getActivation() {
+        return null;
+    }
+
+    @Override
+    public double getActivationParam() {
+        return 0;
     }
 
     @Override

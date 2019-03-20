@@ -16,6 +16,7 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
+import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.WeightInit;
@@ -94,6 +95,11 @@ public class LinearSoftMax implements Layer {
     @Override
     public int outputDimensions() {
         return weights.rows();
+    }
+
+    @Override
+    public Activation getActivation() {
+        return null;
     }
 
     @Override

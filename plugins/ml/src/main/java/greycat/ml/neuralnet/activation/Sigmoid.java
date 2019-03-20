@@ -35,4 +35,14 @@ class Sigmoid implements Activation {
     public double backward(double x, double fct) {
         return fct * (1 - fct);
     }
+
+    @Override
+    public int getId() {
+        return Activations.SIGMOID;
+    }
+
+    @Override
+    public double getParam() {
+        return 0;
+    }
 }

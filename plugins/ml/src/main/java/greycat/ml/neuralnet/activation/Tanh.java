@@ -53,5 +53,14 @@ class Tanh implements Activation {
         return 1 - fct * fct;
     }
 
+    @Override
+    public int getId() {
+        return Activations.TANH;
+    }
+
+    @Override
+    public double getParam() {
+        return 0;
+    }
 
 }
