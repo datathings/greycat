@@ -59,6 +59,10 @@ class FeedForward implements Layer {
         this.host = hostnode;
     }
 
+    public Activation getActivation() {
+        return activation;
+    }
+
     @Override
     public Layer create(int inputs, int outputs, int activationUnit, double[] activationParams) {
         //First always set the type
@@ -123,8 +127,8 @@ class FeedForward implements Layer {
 
     @Override
     public void print(boolean details) {
-        System.out.println("Layer FeedForward "+inputDimensions()+" -> "+outputDimensions());
-        if(details) {
+        System.out.println("Layer FeedForward " + inputDimensions() + " -> " + outputDimensions());
+        if (details) {
             MatrixOps.print(weights, "weights");
             MatrixOps.print(bias, "bias");
         }
