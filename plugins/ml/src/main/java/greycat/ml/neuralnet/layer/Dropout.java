@@ -87,11 +87,6 @@ public class Dropout implements Layer {
     }
 
     @Override
-    public double getActivationParam() {
-        return 0;
-    }
-
-    @Override
     public void print(boolean details) {
         System.out.println("Layer Dropout, rate:"+(double) host.get(DROPOUT_PERCENT) +" "+inputDimensions()+" -> "+outputDimensions());
     }
