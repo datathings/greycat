@@ -72,7 +72,7 @@ public class WSWithWorkersMultiCLientTest {
     private void runClient(int nbTasks, CountDownLatch clientsLatch, AtomicInteger reportsCounter) {
         try {
 
-            CountDownLatch latch = new CountDownLatch(nbTasks);
+            CountDownLatch latch = new CountDownLatch(nbTasks*11);
             GraphBuilder builder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()).withStorage(new WSClientForWorkers("ws://localhost:1234/ws"));
             Graph graph = builder.build();
             graph.connect(graphConnected -> {
@@ -90,8 +90,9 @@ public class WSWithWorkersMultiCLientTest {
                     latch.countDown();
                 });
                 taskContext.setProgressHook(result -> {
-                    System.out.println("Progress: " + result.progress() + " Comment:" + result.comment());
+                    //System.out.println("Progress: " + result.progress() + " Comment:" + result.comment());
                     reportsCounter.incrementAndGet();
+                    latch.countDown();
                 });
                 for (int i = 0; i < nbTasks; i++) {
                     taskContext.setVariable("taskId", ""+i);

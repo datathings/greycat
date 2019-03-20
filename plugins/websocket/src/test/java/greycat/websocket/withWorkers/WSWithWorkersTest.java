@@ -23,6 +23,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.*;
@@ -46,6 +47,7 @@ public class WSWithWorkersTest {
 
     @Test
     public void connectionTest() throws InterruptedException {
+        Constants.enableDebug=false;
         CountDownLatch latch = new CountDownLatch(1);
         GraphBuilder builder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()).withStorage(new WSClientForWorkers("ws://localhost:1234/ws"));
         Graph graph = builder.build();
@@ -55,17 +57,18 @@ public class WSWithWorkersTest {
                     .declareIndex("nodes", "name")
                     .createNode()
                     .setAttribute("name", Type.STRING, "Node 0")
-                    .updateIndex("nodes");
+                    .updateIndex("nodes")
+                    .save();
             createNode.executeRemotely(graph, creationResult -> {
                 if (creationResult.exception() != null) {
                     creationResult.exception().printStackTrace();
                 }
                 long ts1 = System.currentTimeMillis();
+                assertNull(creationResult.exception());
+                assertNull(creationResult.output());
                 assertEquals(1, creationResult.size());
                 assertTrue(creationResult.get(0) instanceof Node);
                 assertEquals("Node 0", ((Node) creationResult.get(0)).get("name"));
-                assertNull(creationResult.exception());
-                assertNull(creationResult.output());
 
                 graph.disconnect(disconnected -> {
                     latch.countDown();
