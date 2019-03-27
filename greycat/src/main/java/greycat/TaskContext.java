@@ -18,6 +18,7 @@ package greycat;
 import greycat.struct.Buffer;
 import greycat.utility.LMap;
 import greycat.utility.Tuple;
+import greycat.workers.WorkerAffinity;
 
 public interface TaskContext {
 
@@ -124,4 +125,9 @@ public interface TaskContext {
     void track(Node ptr);
 
     Callback<TaskResult> getResultCallback();
+
+    byte getWorkerAffinity();
+
+    void setWorkerAffinity(byte affinity);
+
 }

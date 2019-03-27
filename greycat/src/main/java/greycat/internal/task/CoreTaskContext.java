@@ -24,6 +24,7 @@ import greycat.internal.task.math.MathExpressionEngine;
 import greycat.base.BaseNode;
 import greycat.struct.Buffer;
 import greycat.utility.*;
+import greycat.workers.WorkerAffinity;
 
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +58,7 @@ class CoreTaskContext implements TaskContext {
     private Callback<TaskProgressReport> _progressHook = null;
     private boolean _taskProgressAutoReporting = false;
     private LMap _transactionTracker = null;
+    private byte _workerAffinity = WorkerAffinity.GENERAL_PURPOSE_WORKER;
 
     int in_registry_id;
     AtomicBoolean ext_stop;
@@ -133,6 +135,15 @@ class CoreTaskContext implements TaskContext {
         return _callback;
     }
 
+    @Override
+    public byte getWorkerAffinity() {
+        return _workerAffinity;
+    }
+
+    @Override
+    public void setWorkerAffinity(byte affinity) {
+        this._workerAffinity = affinity;
+    }
 
     @Override
     public final Tuple<String, TaskResult>[] variables() {
