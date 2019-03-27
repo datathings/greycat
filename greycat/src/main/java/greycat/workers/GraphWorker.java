@@ -29,6 +29,7 @@ import greycat.chunk.KeyHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @ignore ts
@@ -41,6 +42,7 @@ public class GraphWorker implements Runnable {
     protected GraphBuilder workingGraphBuilder;
     protected WorkerCallbacksRegistry callbacksRegistry;
     protected ArrayList<byte[]> pendingConnectionTasks;
+    private AtomicBoolean graphReady = new AtomicBoolean(false);
 
     private String name;
     private boolean haltRequested = false;
@@ -77,6 +79,10 @@ public class GraphWorker implements Runnable {
         return mailboxId;
     }
 
+    public boolean submit(byte[] activity) {
+        return this.mailbox.submit(activity);
+    }
+
     @Override
     public void run() {
         //System.out.println(getName() + ": Started");
@@ -89,8 +95,10 @@ public class GraphWorker implements Runnable {
         workingGraphInstance.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean connected) {
-                workingGraphInstance.log().debug(getName() + ": New Graph connected.");
+                workingGraphInstance.log().debug(getName() + ": Graph connected.");
+                graphReady.set(true);
                 if (pendingConnectionTasks != null) {
+                    workingGraphInstance.log().debug(getName() + ": Re-enqueuing pending connection tasks.");
                     mailbox.addAll(pendingConnectionTasks);
                     pendingConnectionTasks.clear();
                     pendingConnectionTasks = null;
@@ -107,12 +115,14 @@ public class GraphWorker implements Runnable {
                 }
                 if (tmpTaskBuffer != null && tmpTaskBuffer != MailboxRegistry.VOID_TASK_NOTIFY) {
                     try {
-                        if (workingGraphInstance.isConnected()) {
+                        if (graphReady.get() || (tmpTaskBuffer[0] % 2 == 1)) {
+                            //Graph connected or RESPONSE ONLY
                             processBuffer(tmpTaskBuffer);
                         } else {
                             if (pendingConnectionTasks == null) {
                                 pendingConnectionTasks = new ArrayList<>();
                             }
+                            workingGraphInstance.log().debug(getName() + ": Adding task to pending connection list");
                             pendingConnectionTasks.add(tmpTaskBuffer);
                         }
                     } catch (Exception e) {
