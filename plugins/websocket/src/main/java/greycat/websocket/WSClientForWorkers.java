@@ -26,6 +26,7 @@ import greycat.utility.Base64;
 import greycat.utility.L3GMap;
 import greycat.utility.Tuple;
 import greycat.workers.StorageMessageType;
+import greycat.workers.WorkerAffinity;
 import io.undertow.connector.ByteBufferPool;
 import io.undertow.server.DefaultByteBufferPool;
 import io.undertow.websockets.client.WebSocketClient;
@@ -236,36 +237,32 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
     }
 
     @Override
-    public final void execute(final Callback<TaskResult> callback, final Task task, final TaskContext prepared) {
+    public final void execute(final Callback<TaskResult> taskResultCallback, final Task task, final TaskContext prepared) {
+
         final Buffer buffer = _graph.newBuffer();
-        task.saveToBuffer(buffer);
+
         final int hashPrint;
         final int hashProgress;
         if (prepared != null) {
-            buffer.write(Constants.BUFFER_SEP);
             final Callback<String> printHook = prepared.printHook();
             if (printHook != null) {
                 hashPrint = registerCallback(printHook);
-                Base64.encodeIntToBuffer(hashPrint, buffer);
             } else {
                 hashPrint = -1;
             }
-
-            buffer.write(Constants.BUFFER_SEP);
             final Callback<TaskProgressReport> progressHook = prepared.progressHook();
             if (progressHook != null) {
                 hashProgress = registerCallback(progressHook);
-                Base64.encodeIntToBuffer(hashProgress, buffer);
             } else {
                 hashProgress = -1;
             }
-            buffer.write(Constants.BUFFER_SEP);
-            prepared.saveToBuffer(buffer);
         } else {
             hashPrint = -1;
             hashProgress = -1;
         }
-        send_rpc_req(StorageMessageType.REQ_TASK, buffer, new Callback<Buffer>() {
+
+
+        Callback<Buffer> onResult = new Callback<Buffer>() {
             @Override
             public void on(final Buffer bufferResult) {
                 if (hashPrint != -1) {
@@ -283,11 +280,60 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
                     @Override
                     public void on(Boolean result) {
                         bufferResult.free();
-                        callback.on(baseTaskResult);
+                        taskResultCallback.on(baseTaskResult);
                     }
                 });
             }
+        };
+
+
+        //Header
+        buffer.write(StorageMessageType.REQ_TASK);
+        buffer.write(Constants.BUFFER_SEP);
+        //Using workerMailbox place to send worker affinity for remote execution
+        if(prepared != null) {
+            buffer.writeInt(prepared.getWorkerAffinity());
+        } else {
+            buffer.writeInt(WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        }
+        buffer.write(Constants.BUFFER_SEP);
+        int onResultCallback = registerCallback(onResult);
+        Base64.encodeIntToBuffer(onResultCallback, buffer);
+        //Payload
+        buffer.write(Constants.BUFFER_SEP);
+        task.saveToBuffer(buffer);
+
+        if (prepared != null) {
+            buffer.write(Constants.BUFFER_SEP);
+            if (hashPrint != -1) {
+                Base64.encodeIntToBuffer(hashPrint, buffer);
+            }
+
+            buffer.write(Constants.BUFFER_SEP);
+            if (hashProgress != -1) {
+                Base64.encodeIntToBuffer(hashProgress, buffer);
+            }
+            buffer.write(Constants.BUFFER_SEP);
+            prepared.saveToBuffer(buffer);
+        }
+
+        if (_channel == null) {
+            throw new RuntimeException(StorageMessageType.DISCONNECTED_ERROR);
+        }
+
+        final ByteBuffer wrapped = ByteBuffer.wrap(buffer.data());
+        buffer.free();
+        WebSockets.sendBinary(wrapped, _channel, new WebSocketCallback<Void>() {
+            @Override
+            public void complete(WebSocketChannel webSocketChannel, Void aVoid) {
+            }
+
+            @Override
+            public void onError(WebSocketChannel webSocketChannel, Void aVoid, Throwable throwable) {
+                throwable.printStackTrace();
+            }
         });
+
     }
 
     @Override
@@ -328,7 +374,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
         buffer.write(operationId);
         buffer.write(Constants.BUFFER_SEP);
         //Reserving 4 bytes for the channels
-        buffer.writeInt(0);
+        buffer.writeInt(WorkerAffinity.GENERAL_PURPOSE_WORKER);
         buffer.write(Constants.BUFFER_SEP);
         int hash = registerCallback(callback);
         Base64.encodeIntToBuffer(hash, buffer);
