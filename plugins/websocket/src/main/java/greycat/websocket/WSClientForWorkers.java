@@ -432,14 +432,6 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
                     }
                 }
                 break;
-                case StorageMessageType.NOTIFY_PRINT: {
-                    final Buffer printContentView = it.next();
-                    final int callbackPrintCode = Base64.decodeToIntWithBounds(callbackIdBufferView, 0, callbackIdBufferView.length());
-                    final String printContent = Base64.decodeToStringWithBounds(printContentView, 0, printContentView.length());
-                    final Callback printCallback = _callbacks.get(callbackPrintCode);
-                    printCallback.on(printContent);
-                }
-                break;
                 case StorageMessageType.NOTIFY_PROGRESS: {
                     final Buffer progressCallbackView = it.next();
                     final int progressCallbackCode = Base64.decodeToIntWithBounds(callbackIdBufferView, 0, callbackIdBufferView.length());
@@ -473,22 +465,15 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
                     resolvedCallback.on(newBuf);
                 }
                     break;
-                case StorageMessageType.RESP_TASK_STATS: {
-                    Buffer messageQueueId = it.next(); //Ignore
-                    final Buffer statsContentView = it.next();
-                    final int callbackStatsCode = Base64.decodeToIntWithBounds(callbackIdBufferView, 0, callbackIdBufferView.length());
-                    final String statsContent = Base64.decodeToStringWithBounds(statsContentView, 0, statsContentView.length());
-                    final Callback statCallback = _callbacks.get(callbackStatsCode);
-                    statCallback.on(statsContent);
-                    break;
+                case StorageMessageType.RESP_TASK_STATS:
+                case StorageMessageType.NOTIFY_PRINT: {
+                    final Buffer contentView = it.next();
+                    final int callbackCode = Base64.decodeToIntWithBounds(callbackIdBufferView, 0, callbackIdBufferView.length());
+                    final String content = Base64.decodeToStringWithBounds(contentView, 0, contentView.length());
+                    final Callback localCallback = _callbacks.get(callbackCode);
+                    localCallback.on(content);
                 }
-                case StorageMessageType.RESP_TASK_STOP: {
-                    final int genericCode = Base64.decodeToIntWithBounds(callbackIdBufferView, 0, callbackIdBufferView.length());
-                    Callback genericCallback = _callbacks.get(genericCode);
-                    _callbacks.remove(genericCode);
-                    genericCallback.on(true);
-                    break;
-                }
+                break;
                 default: {
                     final int genericCode = Base64.decodeToIntWithBounds(callbackIdBufferView, 0, callbackIdBufferView.length());
                     Callback genericCallback = _callbacks.get(genericCode);
