@@ -22,10 +22,7 @@ import greycat.internal.CoreGraphLogFile;
 import greycat.internal.heap.HeapBuffer;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
-import greycat.workers.MailboxRegistry;
-import greycat.workers.StorageMessageType;
-import greycat.workers.WorkerCallbacksRegistry;
-import greycat.workers.WorkerMailbox;
+import greycat.workers.*;
 import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
@@ -126,6 +123,9 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         Thread mailboxReaper;
         WorkerMailbox localMailbox;
         int localMailboxId;
+        private Integer sessionWorkerId;
+        protected Map<Integer, Integer> taskWorkersMap = new HashMap<>();
+
 
         public PeerInternalListener(final WebSocketChannel channel) {
             localMailbox = new WorkerMailbox(false);
@@ -147,7 +147,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
                             @Override
                             public void onError(WebSocketChannel webSocketChannel, Void aVoid, Throwable throwable) {
-                                System.err.println("Error occured while sending to channel " + localMailboxId);
+                                System.err.println("Error occurred while sending to channel " + localMailboxId);
                                 if (throwable != null) {
                                     throwable.printStackTrace();
                                 }
@@ -160,6 +160,14 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                 logger.debug("WSServer\tMailbox reaper exited for peer (" + localMailboxId + ")");
             }, "WSServerReaper_" + channel.getDestinationAddress().getPort());
             mailboxReaper.start();
+        }
+
+
+        public boolean submitActivityToSessionWorker(byte[] activity) {
+            if (sessionWorkerId == null) {
+                sessionWorkerId = GraphWorkerPool.getInstance().createGraphWorkerWithRef(WorkerAffinity.SESSION_WORKER, "Session "+localMailboxId+" Worker");
+            }
+            return MailboxRegistry.getInstance().getMailbox(sessionWorkerId).submit(activity);
         }
 
 
@@ -179,9 +187,15 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         @Override
         protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
             logger.info("WSServer\tPeer (" + localMailboxId + ") connection closed: " + webSocketChannel.getCloseCode() + "\t" + webSocketChannel.getCloseReason());
+            if (sessionWorkerId != null) {
+                logger.debug("WSServer\tDestroying session worker id:" + sessionWorkerId);
+                GraphWorkerPool.getInstance().destroyWorkerById(sessionWorkerId);
+            }
             peers.remove(webSocketChannel);
+            logger.debug("WSServer\tClosing mailbox id:" + localMailboxId);
             MailboxRegistry.getInstance().removeMailbox(localMailboxId);
             mailboxReaper.interrupt();
+
             super.onClose(webSocketChannel, channel);
         }
 
@@ -192,8 +206,6 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
             Buffer jobBuffer = new HeapBuffer();
             jobBuffer.writeAll(input);
-            //Override mailboxId for response
-            jobBuffer.writeIntAt(this.localMailboxId, 2);
 
             if (Constants.enableDebug) {
                 final BufferIterator it = jobBuffer.iterator();
@@ -208,10 +220,47 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                 logger.debug("WSServer\tRaw: " + jobBuffer.toString());
             }
 
-            WorkerMailbox destMailbox = MailboxRegistry.getInstance().getMailbox(MailboxRegistry.getInstance().getDefaultMailboxId());
 
-            destMailbox.submit(jobBuffer.data());
-            MailboxRegistry.getInstance().notifyMailboxes();
+            //read worker affinity
+            byte workerAffinity = (byte) (0xFF & jobBuffer.readInt(2));
+            logger.debug("WSServer\tSubmitting task to " + WorkerAffinity.byteToString(workerAffinity));
+
+            //Override worker affinity with mailboxId for response
+            jobBuffer.writeIntAt(this.localMailboxId, 2);
+
+            PeerInternalListener internalListener = (PeerInternalListener) ((SimpleSetter<WebSocketChannel>) channel.getReceiveSetter()).get();
+
+            WorkerMailbox destMailbox;
+            switch (workerAffinity) {
+                case WorkerAffinity.GENERAL_PURPOSE_WORKER: {
+                    destMailbox = MailboxRegistry.getInstance().getMailbox(MailboxRegistry.getInstance().getDefaultMailboxId());
+                    destMailbox.submit(jobBuffer.data());
+                    MailboxRegistry.getInstance().notifyMailboxes();
+                }
+                break;
+                case WorkerAffinity.SESSION_WORKER: {
+                    internalListener.submitActivityToSessionWorker(jobBuffer.data());
+                }
+                break;
+                case WorkerAffinity.TASK_WORKER: {
+                    BufferIterator it = jobBuffer.iterator();
+                    Buffer bufferTypeBufferView = it.next();
+                    Buffer respChannelBufferView = it.next();
+                    Buffer callbackBufferView = it.next();
+
+                    int callbackId = Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length());
+                    //Create and register a specific worker for the task, identified by the callbackID of teh task for this channel.
+                    int taskWorkerId = GraphWorkerPool.getInstance().createGraphWorkerWithRef(WorkerAffinity.TASK_WORKER, "TaskWorker(" + callbackId + ")");
+                    internalListener.taskWorkersMap.put(callbackId, taskWorkerId);
+
+                    MailboxRegistry.getInstance().getMailbox(taskWorkerId).submit(jobBuffer.data());
+                }
+                break;
+                default: {
+                    logger.warn("WSServer\tUnexpected value for WorkerAffinity: " + (int) workerAffinity);
+                }
+            }
+
 
         }
 

@@ -107,7 +107,7 @@ public class SlaveWorkerStorage implements Storage {
         int callbackId = callbacksRegistry.register(callback);
 
         Buffer taskBuffer = new HeapBuffer();
-        //Type REQ_TASK
+        //Type
         taskBuffer.write(operationId);
         taskBuffer.write(Constants.BUFFER_SEP);
         //Resp. Channel

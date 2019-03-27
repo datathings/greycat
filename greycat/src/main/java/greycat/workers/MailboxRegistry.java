@@ -17,8 +17,10 @@ package greycat.workers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * @ignore ts
@@ -41,7 +43,7 @@ public class MailboxRegistry {
     }
 
 
-    private Map<Integer, WorkerMailbox> mailboxMap = new HashMap<>();
+    private Map<Integer, WorkerMailbox> mailboxMap = new ConcurrentHashMap<>();
     private AtomicInteger nextMailboxId = new AtomicInteger(0);
 
     private WorkerMailbox defaultMailbox = new WorkerMailbox(false);
@@ -75,9 +77,9 @@ public class MailboxRegistry {
     public static final byte[] VOID_TASK_NOTIFY = new byte[0];
 
     public void notifyMailboxes() {
-        mailboxMap.forEach(new BiConsumer<Integer, WorkerMailbox>() {
+        mailboxMap.values().forEach(new Consumer<WorkerMailbox>() {
             @Override
-            public void accept(Integer id, WorkerMailbox mailbox) {
+            public void accept(WorkerMailbox mailbox) {
                 if (mailbox.canProcessGeneralTaskQueue()) {
                     mailbox.submit(VOID_TASK_NOTIFY);
                 }

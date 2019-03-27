@@ -19,6 +19,7 @@ import greycat.*;
 import greycat.workers.GraphWorkerPool;
 import greycat.workers.MailboxRegistry;
 import greycat.workers.SlaveWorkerStorage;
+import greycat.workers.WorkerAffinity;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -45,10 +46,9 @@ public class GraphWorkerTest {
     public static void setUp() {
         GraphWorkerPool workersPool = GraphWorkerPool.getInstance();
         workersPool.initialize(GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()));
-        //worker1Id = workersPool.createGraphWorker();
-        workersPool.createGraphWorker();
-        workersPool.createGraphWorker();
-        workersPool.createGraphWorker();
+        workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
 
         localWorker = new TestGraphWorker(GraphBuilder.newBuilder().withStorage(new SlaveWorkerStorage()).withPlugin(new PluginForWorkersTest()), "TestWorker", true);
         localThread = new Thread(localWorker, "TestWorker");
