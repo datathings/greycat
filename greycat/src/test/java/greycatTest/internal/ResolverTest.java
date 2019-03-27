@@ -142,14 +142,14 @@ public class ResolverTest {
 
     @Test
     public void lookupTimesSparseTest() {
-        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        Graph g = GraphBuilder.newBuilder().withMemorySize(1000000).withScheduler(new NoopScheduler()).build();
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean connectionResult) {
                 long availableBefore = g.space().available();
 
                 BaseNode n = (BaseNode) g.newNode(0, 0);
-                for (long i = 1000; i < 2000; i++) {
+                for (long i = 0; i < 10000; i++) {
                     final long finalI = i;
                     g.lookup(0, i, n.id(), new Callback<Node>() {
                         @Override
@@ -160,15 +160,19 @@ public class ResolverTest {
                     });
                 }
 
-                int limit = 50;
-                g.lookupTimesSparse(0, 100, 10000, n.id(), limit, new Callback<Node[]>() {
-                    @Override
-                    public void on(Node[] result) {
-                        //check size
-                        Assert.assertEquals(limit, result.length);
-                        g.freeNodes(result);
-                    }
-                });
+                int limit = 218;
+                double tolerance = 5 / 100.;
+                for (int i = 0; i < 80; i++) {
+                    g.lookupTimesSparse(0, 35 * i, 10000, n.id(), limit, new Callback<Node[]>() {
+                        @Override
+                        public void on(Node[] result) {
+                            //check size
+                            //System.out.println(result[0].time() + " " + result[result.length - 1].time() + " " + result.length);
+                            Assert.assertTrue(limit * (1 - tolerance) < result.length && result.length < limit * (1 + tolerance));
+                            g.freeNodes(result);
+                        }
+                    });
+                }
                 n.free();
                 g.save(null);
 
