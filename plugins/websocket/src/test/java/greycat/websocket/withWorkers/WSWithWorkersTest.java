@@ -19,11 +19,11 @@ import greycat.*;
 import greycat.websocket.WSClientForWorkers;
 import greycat.websocket.WSServerWithWorkers;
 import greycat.workers.GraphWorkerPool;
+import greycat.workers.WorkerAffinity;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.*;
@@ -39,15 +39,14 @@ public class WSWithWorkersTest {
     @BeforeClass
     public static void setUp() {
         Constants.enableDebug = false;
-        GraphWorkerPool.getInstance().initialize(GraphBuilder.newBuilder());
-        GraphWorkerPool.getInstance().createGraphWorker();
+        GraphWorkerPool.getInstance().initialize(GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()));
+        GraphWorkerPool.getInstance().createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
         wsServer = new WSServerWithWorkers(1234);
         wsServer.start();
     }
 
     @Test
     public void connectionTest() throws InterruptedException {
-        Constants.enableDebug=false;
         CountDownLatch latch = new CountDownLatch(1);
         GraphBuilder builder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()).withStorage(new WSClientForWorkers("ws://localhost:1234/ws"));
         Graph graph = builder.build();

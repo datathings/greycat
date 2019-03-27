@@ -21,6 +21,7 @@ import greycat.websocket.WSClientForWorkers;
 import greycat.websocket.WSServerWithWorkers;
 import greycat.workers.GraphWorkerPool;
 import greycat.workers.MailboxRegistry;
+import greycat.workers.WorkerAffinity;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,11 +42,9 @@ public class WSWithWorkersMultiCLientTest {
     public static void setUp() {
         Constants.enableDebug = false;
         GraphWorkerPool.getInstance().initialize(GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()));
-        GraphWorkerPool.getInstance().createGraphWorker();
-        GraphWorkerPool.getInstance().createGraphWorker();
-        GraphWorkerPool.getInstance().createGraphWorker();
-        GraphWorkerPool.getInstance().createGraphWorker();
-        GraphWorkerPool.getInstance().createGraphWorker();
+        for (int i = 0; i < 5; i++) {
+            GraphWorkerPool.getInstance().createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        }
         wsServer = new WSServerWithWorkers(1234);
         wsServer.start();
     }
@@ -72,7 +71,7 @@ public class WSWithWorkersMultiCLientTest {
     private void runClient(int nbTasks, CountDownLatch clientsLatch, AtomicInteger reportsCounter) {
         try {
 
-            CountDownLatch latch = new CountDownLatch(nbTasks*11);
+            CountDownLatch latch = new CountDownLatch(nbTasks * 11);
             GraphBuilder builder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()).withStorage(new WSClientForWorkers("ws://localhost:1234/ws"));
             Graph graph = builder.build();
             graph.connect(graphConnected -> {
@@ -95,7 +94,7 @@ public class WSWithWorkersMultiCLientTest {
                     latch.countDown();
                 });
                 for (int i = 0; i < nbTasks; i++) {
-                    taskContext.setVariable("taskId", ""+i);
+                    taskContext.setVariable("taskId", "" + i);
                     withProgress.executeRemotelyUsing(taskContext);
                 }
             });
