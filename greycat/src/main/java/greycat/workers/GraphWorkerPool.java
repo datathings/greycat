@@ -77,13 +77,13 @@ public class GraphWorkerPool {
         //ROOT GRAPH
         rootGraphWorker = new GraphWorker(rootBuilder, "RootWorker", false);
 
-        rootGraphWorkerThread = new Thread(rootGraphWorker, "RootWorker_" + rootGraphWorker.getMailboxId());
+        rootGraphWorkerThread = new Thread(rootGraphWorker, "RootWorker_" + rootGraphWorker.getId());
         rootGraphWorkerThread.setUncaughtExceptionHandler(exceptionHandler);
         rootGraphWorkerThread.start();
     }
 
     public int getRootWorkerMailboxId() {
-        return rootGraphWorker.getMailboxId();
+        return rootGraphWorker.getId();
     }
 
     public void halt() {
@@ -121,36 +121,36 @@ public class GraphWorkerPool {
         logger.info("Halting done.");
     }
 
-    public int createGraphWorker(byte workerKind) {
+    public GraphWorker createGraphWorker(byte workerKind) {
         return createGraphWorkerWithBuilderAndRef(workerKind, rootBuilder, null);
     }
 
-    public int createGraphWorkerWithRef(byte workerKind, String ref) {
+    public GraphWorker createGraphWorkerWithRef(byte workerKind, String ref) {
         return createGraphWorkerWithBuilderAndRef(workerKind, rootBuilder, ref);
     }
 
-    public int createGraphWorkerWithBuilder(byte workerKind, GraphBuilder builder) {
+    public GraphWorker createGraphWorkerWithBuilder(byte workerKind, GraphBuilder builder) {
         return createGraphWorkerWithBuilderAndRef(workerKind, builder, null);
     }
 
-    public int createGraphWorkerWithBuilderAndRef(byte workerKind, GraphBuilder builder, String ref) {
+    public GraphWorker createGraphWorkerWithBuilderAndRef(byte workerKind, GraphBuilder builder, String ref) {
 
         GraphBuilder slaveWorkerBuilder = builder.clone().withStorage(new SlaveWorkerStorage());
 
         GraphWorker worker = new GraphWorker(slaveWorkerBuilder, workerKind == WorkerAffinity.GENERAL_PURPOSE_WORKER);
 
-        worker.setName(ref == null ? "Worker" + worker.getMailboxId() : ref);
-        workersById.put(worker.getMailboxId(), worker);
+        worker.setName(ref == null ? "Worker" + worker.getId() : ref);
+        workersById.put(worker.getId(), worker);
         workersByRef.put(worker.getName(), worker);
 
         Thread workerThread = new Thread(workersThreadGroup, worker, worker.getName());
         workerThread.setUncaughtExceptionHandler(exceptionHandler);
         workerThread.start();
-        threads.put(worker.getMailboxId(), workerThread);
+        threads.put(worker.getId(), workerThread);
 
-        logger.info("Worker " + worker.getName() + "(" + worker.getMailboxId() + ") created.");
+        logger.info("Worker " + worker.getName() + "(" + worker.getId() + ") created.");
 
-        return worker.getMailboxId();
+        return worker;
     }
 
     public void destroyWorkerById(int id) {
@@ -158,9 +158,9 @@ public class GraphWorkerPool {
         GraphWorker worker = workersById.get(id);
         if (worker != null) {
             workersByRef.remove(worker.getName());
-            workersById.remove(worker.getMailboxId());
+            workersById.remove(worker.getId());
             worker.halt();
-            Thread workerThread = threads.remove(worker.getMailboxId());
+            Thread workerThread = threads.remove(worker.getId());
             if (workerThread != null) {
                 try {
                     workerThread.interrupt();
@@ -169,7 +169,7 @@ public class GraphWorkerPool {
                     //e.printStackTrace();
                 }
             }
-            logger.info("Worker " + worker.getName() + "(" + worker.getMailboxId() + ") destroyed.");
+            logger.info("Worker " + worker.getName() + "(" + worker.getId() + ") destroyed.");
         } else {
             logger.warn("Asked for destruction of worker id: " + id + " but the worker was not found.");
         }
@@ -178,8 +178,16 @@ public class GraphWorkerPool {
     public void destroyWorkerByRef(String ref) {
         GraphWorker w = workersByRef.get(ref);
         if (w != null) {
-            destroyWorkerById(w.getMailboxId());
+            destroyWorkerById(w.getId());
         }
+    }
+
+    public GraphWorker getWorkerById(int id) {
+        return workersById.get(id);
+    }
+
+    public GraphWorker getWorkerByRef(String ref) {
+        return workersByRef.get(ref);
     }
 
     private void resetExceptionsHandler() {

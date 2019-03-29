@@ -118,7 +118,7 @@ public class GraphWorkerTest {
                 assertNull(lookupResult.output());
                 //System.out.println("Duration: " + (ts1 - ts0) + "ms");
                 latch.countDown();
-            }, localWorker.getMailboxId());
+            }, localWorker.getId());
             latch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -141,7 +141,7 @@ public class GraphWorkerTest {
                 assertNull(lookupResult.output());
                 //System.out.println("Duration: " + (ts1 - ts0) + "ms");
                 latch.countDown();
-            }, localWorker.getMailboxId());
+            }, localWorker.getId());
             latch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -163,7 +163,7 @@ public class GraphWorkerTest {
                 assertNull(actionAresult.output());
                 //System.out.println("Duration: " + (ts1 - ts0) + "ms");
                 latch.countDown();
-            }, localWorker.getMailboxId());
+            }, localWorker.getId());
 
             latch.await();
         } catch (InterruptedException e) {
@@ -183,7 +183,7 @@ public class GraphWorkerTest {
                 assertNotNull(exceptionAresult.exception());
                 //System.out.println("Duration: " + (ts1 - ts0) + "ms");
                 latch.countDown();
-            }, localWorker.getMailboxId());
+            }, localWorker.getId());
 
             latch.await();
         } catch (InterruptedException e) {
@@ -203,7 +203,7 @@ public class GraphWorkerTest {
                 assertNotNull(exceptionAresult.exception());
                 //System.out.println("Duration: " + (ts1 - ts0) + "ms");
                 latch.countDown();
-            }, localWorker.getMailboxId());
+            }, localWorker.getId());
 
             latch.await();
         } catch (InterruptedException e) {
@@ -231,7 +231,7 @@ public class GraphWorkerTest {
                 reportsCount.getAndIncrement();
             });
 
-            localWorker.submitPreparedTask(withProgress, taskContext, localWorker.getMailboxId());
+            localWorker.submitPreparedTask(withProgress, taskContext, localWorker.getId());
             latch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -259,7 +259,7 @@ public class GraphWorkerTest {
                 reportsCount.getAndIncrement();
             });
 
-            localWorker.submitPreparedTask(withProgress, taskContext, localWorker.getMailboxId());
+            localWorker.submitPreparedTask(withProgress, taskContext, localWorker.getId());
             latch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();

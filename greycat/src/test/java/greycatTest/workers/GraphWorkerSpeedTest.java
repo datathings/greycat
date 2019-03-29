@@ -187,11 +187,11 @@ public class GraphWorkerSpeedTest {
                         System.out.println("Lookup2: \t" + (ts5 - ts4) + "ms");
                         allDoneLatch.countDown();
 
-                    }, localWorker.getMailboxId());
+                    }, localWorker.getId());
 
-                }, localWorker.getMailboxId());
+                }, localWorker.getId());
 
-            }, localWorker.getMailboxId());
+            }, localWorker.getId());
 
 
             allDoneLatch.await();
@@ -241,8 +241,8 @@ public class GraphWorkerSpeedTest {
                     System.out.println("Lookup2: \t" + (ts3 - ts2) + "ms");
                     allDoneLatch.countDown();
 
-                }, localWorker.getMailboxId());
-            }, localWorker.getMailboxId());
+                }, localWorker.getId());
+            }, localWorker.getId());
 
 
             allDoneLatch.await();
