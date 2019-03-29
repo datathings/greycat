@@ -25,6 +25,7 @@ import greycat.struct.BufferIterator;
 import greycat.workers.*;
 import io.undertow.Handlers;
 import io.undertow.Undertow;
+import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.handlers.PathHandler;
 import io.undertow.websockets.WebSocketConnectionCallback;
@@ -40,6 +41,9 @@ import java.util.Set;
 
 public class WSServerWithWorkers implements WebSocketConnectionCallback, Callback<Buffer> {
 
+    private static final String SERVER_IP = "0.0.0.0";
+    private static final String SERVER_PREFIX = "/ws";
+
     private final Log logger = new CoreGraphLog(null);
 
     private final int port;
@@ -47,6 +51,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
     protected Set<WebSocketChannel> peers;
     protected Map<String, HttpHandler> handlers;
+    protected HttpHandler defaultHandler;
 
     private WorkerCallbacksRegistry callbackRegistry = new WorkerCallbacksRegistry();
 
@@ -58,22 +63,37 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
     }
 
+    public WSServerWithWorkers setDefaultHandler(HttpHandler httpHandler) {
+        this.defaultHandler = httpHandler;
+        return this;
+    }
+
     public WSServerWithWorkers addHandler(String prefix, HttpHandler httpHandler) {
         handlers.put(prefix, httpHandler);
         return this;
     }
 
-    private static final String SERVER_PREFIX = "/ws";
-    private static final String SERVER_IP = "0.0.0.0";
 
     public void start() {
+
         logger.debug("WSServer starting");
-        final PathHandler pathHandler = Handlers.path();
+        PathHandler pathHandler;
+        if (this.defaultHandler != null) {
+            pathHandler = Handlers.path(defaultHandler);
+        } else {
+            pathHandler = Handlers.path();
+        }
+        for (String name : handlers.keySet()) {
+            pathHandler.addPrefixPath(name, handlers.get(name));
+        }
         for (String name : handlers.keySet()) {
             pathHandler.addPrefixPath(name, handlers.get(name));
         }
         String serverPath = "ws://" + SERVER_IP + ":" + port + SERVER_PREFIX;
-        this.server = Undertow.builder().addHttpListener(port, SERVER_IP, pathHandler).build();
+        this.server = Undertow.builder()
+                .setServerOption(UndertowOptions.IDLE_TIMEOUT, 15*60000)
+                .addHttpListener(port, SERVER_IP, pathHandler).build();
+
         server.start();
         logger.info("WSServer started on " + serverPath);
     }
@@ -123,8 +143,8 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         Thread mailboxReaper;
         WorkerMailbox localMailbox;
         int localMailboxId;
-        private Integer sessionWorkerId;
-        protected Map<Integer, Integer> taskWorkersMap = new HashMap<>();
+        private GraphWorker sessionWorker;
+        protected Map<Integer, GraphWorker> taskWorkersMap = new HashMap<>();
 
 
         public PeerInternalListener(final WebSocketChannel channel) {
@@ -138,6 +158,17 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                     logger.debug("WSServer\tMailbox reaper ready for peer (" + localMailboxId + ")");
                     while (true) {
                         byte[] newMessage = localMailbox.take();
+                        Buffer jobBuffer = new HeapBuffer();
+                        jobBuffer.writeAll(newMessage);
+                        BufferIterator it = jobBuffer.iterator();
+                        Buffer bufferTypeBufferView = it.next();//Ignore
+                        Buffer respChannelBufferView = it.next();//Ignore
+                        Buffer callbackBufferView = it.next();
+                        int callbackId = Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length());
+                        GraphWorker taskWorker = taskWorkersMap.get(callbackId);
+                        if (taskWorker != null) {
+                            GraphWorkerPool.getInstance().destroyWorkerById(taskWorker.getId());
+                        }
                         logger.debug("WSServer\tForwarding response type " + StorageMessageType.byteToString(newMessage[0]) + " to peer " + localMailboxId);
                         WebSockets.sendBinary(ByteBuffer.wrap(newMessage), channel, new WebSocketCallback<Void>() {
                             @Override
@@ -164,10 +195,10 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
 
         public boolean submitActivityToSessionWorker(byte[] activity) {
-            if (sessionWorkerId == null) {
-                sessionWorkerId = GraphWorkerPool.getInstance().createGraphWorkerWithRef(WorkerAffinity.SESSION_WORKER, "Session "+localMailboxId+" Worker");
+            if (sessionWorker == null) {
+                sessionWorker = GraphWorkerPool.getInstance().createGraphWorkerWithRef(WorkerAffinity.SESSION_WORKER, "Session " + localMailboxId + " Worker");
             }
-            return MailboxRegistry.getInstance().getMailbox(sessionWorkerId).submit(activity);
+            return sessionWorker.submit(activity);
         }
 
 
@@ -187,9 +218,9 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         @Override
         protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
             logger.info("WSServer\tPeer (" + localMailboxId + ") connection closed: " + webSocketChannel.getCloseCode() + "\t" + webSocketChannel.getCloseReason());
-            if (sessionWorkerId != null) {
-                logger.debug("WSServer\tDestroying session worker id:" + sessionWorkerId);
-                GraphWorkerPool.getInstance().destroyWorkerById(sessionWorkerId);
+            if (sessionWorker != null) {
+                logger.debug("WSServer\tDestroying session worker id:" + sessionWorker.getId());
+                GraphWorkerPool.getInstance().destroyWorkerById(sessionWorker.getId());
             }
             peers.remove(webSocketChannel);
             logger.debug("WSServer\tClosing mailbox id:" + localMailboxId);
@@ -212,7 +243,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                 final Buffer bufferTypeBufferView = it.next();
                 final Buffer respChannelBufferView = it.next();
                 final Buffer callbackBufferView = it.next();
-
+                
                 logger.debug("WSServer\t========= WSServer Sending to Workers =========");
                 logger.debug("WSServer\tType: " + StorageMessageType.byteToString(bufferTypeBufferView.read(0)));
                 logger.debug("WSServer\tChannel: " + respChannelBufferView.readInt(0));
@@ -250,10 +281,10 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
                     int callbackId = Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length());
                     //Create and register a specific worker for the task, identified by the callbackID of teh task for this channel.
-                    int taskWorkerId = GraphWorkerPool.getInstance().createGraphWorkerWithRef(WorkerAffinity.TASK_WORKER, "TaskWorker(" + callbackId + ")");
-                    internalListener.taskWorkersMap.put(callbackId, taskWorkerId);
+                    GraphWorker taskWorker = GraphWorkerPool.getInstance().createGraphWorkerWithRef(WorkerAffinity.TASK_WORKER, "TaskWorker(" + callbackId + ")");
+                    internalListener.taskWorkersMap.put(callbackId, taskWorker);
 
-                    MailboxRegistry.getInstance().getMailbox(taskWorkerId).submit(jobBuffer.data());
+                    taskWorker.submit(jobBuffer.data());
                 }
                 break;
                 default: {
