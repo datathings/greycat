@@ -86,6 +86,21 @@ public class GraphWorker implements Runnable {
         return this.mailbox.submit(activity);
     }
 
+    private final Callback<Buffer> notifyGraphUpdate = (updateContent) -> {
+        //WebSocketChannel[] others = peers.toArray(new WebSocketChannel[peers.size()]);
+        Buffer notificationBuffer = workingGraphInstance.newBuffer();
+        notificationBuffer.write(StorageMessageType.NOTIFY_UPDATE);
+        notificationBuffer.write(Constants.BUFFER_SEP);
+        notificationBuffer.writeInt(mailboxId);
+        notificationBuffer.write(Constants.BUFFER_SEP);
+        Base64.encodeIntToBuffer(WorkerCallbacksRegistry.MAX_INTEGER, notificationBuffer);
+        notificationBuffer.write(Constants.BUFFER_SEP);
+        notificationBuffer.writeAll(updateContent.data());
+        byte[] notificationMsg = notificationBuffer.data();
+        notificationBuffer.free();
+        MailboxRegistry.getInstance().notifyGraphUpdate(mailboxId, notificationMsg);
+    };
+
     @Override
     public void run() {
         //System.out.println(getName() + ": Started");
@@ -99,6 +114,9 @@ public class GraphWorker implements Runnable {
             @Override
             public void on(Boolean connected) {
                 workingGraphInstance.log().debug(getName() + ": Graph connected.");
+                if(!(workingGraphInstance.storage() instanceof SlaveWorkerStorage)) {
+                    workingGraphInstance.storage().listen(GraphWorker.this.notifyGraphUpdate);
+                }
                 graphReady.set(true);
                 if (pendingConnectionTasks != null) {
                     workingGraphInstance.log().debug(getName() + ": Re-enqueuing pending connection tasks.");
@@ -173,18 +191,29 @@ public class GraphWorker implements Runnable {
 
         switch (operation) {
 
+            case StorageMessageType.NOTIFY_UPDATE: {
+                this.workingGraphInstance.remoteNotify(it.next());
+            }break;
+
             case StorageMessageType.RESP_LOG: {
                 //Nothing to do, no result
                 callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
             }
             break;
             case StorageMessageType.RESP_UNLOCK:
-            case StorageMessageType.RESP_PUT:
-            case StorageMessageType.RESP_REMOVE: {
+            case StorageMessageType.RESP_PUT: {
                 //Boolean result
                 Callback<Boolean> cb = callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
                 Buffer payload = it.next();
                 cb.on(Base64.decodeToIntWithBounds(payload, 0, payload.length()) == 1);
+            }
+            break;
+            case StorageMessageType.RESP_REMOVE: {
+                //Boolean result
+                Callback<Boolean> cb = callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
+                cb.on(null);
+                //Buffer payload = it.next();
+                //cb.on(Base64.decodeToIntWithBounds(payload, 0, payload.length()) == 1);
             }
             break;
             case StorageMessageType.RESP_LOCK:
@@ -304,8 +333,10 @@ public class GraphWorker implements Runnable {
                         responseBuffer.writeAll(respChannelBufferView.data());
                         responseBuffer.write(Constants.BUFFER_SEP);
                         responseBuffer.writeAll(callbackBufferView.data());
+                        /*
                         responseBuffer.write(Constants.BUFFER_SEP);
                         Base64.encodeIntToBuffer((result ? 1 : 0), responseBuffer);
+                        */
                         destMailbox.submit(responseBuffer.data());
                         responseBuffer.free();
                     }
@@ -565,7 +596,7 @@ public class GraphWorker implements Runnable {
             @Override
             public void on(Boolean result) {
                 buffer.free();
-                callback.on(null);
+                callback.on(result);
             }
         });
     }

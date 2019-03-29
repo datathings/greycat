@@ -27,8 +27,8 @@ public class WorkerCallbacksRegistry {
 
     public WorkerCallbacksRegistry() {
     }
-    private static final int MIN_INTEGER = -2147483648;
-    private static final int MAX_INTEGER = 2147483647;
+    public static final int MIN_INTEGER = -2147483648;
+    public static final int MAX_INTEGER = 2147483647;
     private HashMap<Integer, Callback> callbacks = new HashMap<>();
     private AtomicInteger callbackIds = new AtomicInteger(MIN_INTEGER);
 
