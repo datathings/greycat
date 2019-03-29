@@ -33,6 +33,7 @@ export class WSClient implements greycat.plugin.Storage {
   }
 
   private _listeners: greycat.Callback<greycat.struct.Buffer>[] = [];
+  private _onConnectionLost: () => void;
 
   listen(cb: greycat.Callback<greycat.struct.Buffer>) {
     this._listeners.push(cb);
@@ -55,7 +56,7 @@ export class WSClient implements greycat.plugin.Storage {
       let initialConnection = true;
       this.ws = new WebSocket(this.url);
 
-      this.ws.onmessage = function (msg: MessageEvent) {
+      this.ws.onmessage = (msg: MessageEvent) => {
         let fileReader = new FileReader();
         fileReader.onload = function () {
           selfPointer.process_rpc_resp(new Int8Array(fileReader.result as ArrayBuffer));
@@ -63,28 +64,36 @@ export class WSClient implements greycat.plugin.Storage {
         fileReader.readAsArrayBuffer(msg.data);
       };
 
-      this.ws.onclose = function (event: CloseEvent) {
+      this.ws.onclose = (event: CloseEvent) => {
         console.log('Connection closed.', event);
         if (initialConnection) {
           callback(false);
+        } else {
+          if(this._onConnectionLost != null) {
+            this._onConnectionLost();
+          }
         }
         self.ws = null;
         clearInterval(selfPointer.heartBeatFunctionId);
       };
 
-      this.ws.onerror = function (event: ErrorEvent) {
-        console.error('An error occurred while connecting to server:', event, this.readyState);
+      this.ws.onerror = (event: ErrorEvent) => {
+        console.error('An error occurred while connecting to server:', event);
         if (initialConnection) {
           callback(false);
+        } else {
+          if(this._onConnectionLost != null) {
+            this._onConnectionLost();
+          }
         }
         self.ws = null;
         clearInterval(selfPointer.heartBeatFunctionId);
       };
 
-      this.ws.onopen = function (event: Event) {
+      this.ws.onopen = (event: Event) => {
         initialConnection = false;
         callback(true);
-        selfPointer.heartBeatFunctionId = setInterval(selfPointer.heartbeat.bind(selfPointer), 50 * 1000);
+        this.heartBeatFunctionId = setInterval(this.heartbeat.bind(this), 50 * 1000);
       };
     } else {
       //do nothing
@@ -99,6 +108,10 @@ export class WSClient implements greycat.plugin.Storage {
       this.ws = null;
       callback(true);
     }
+  }
+
+  onConnectionLost(action: ()=>void) {
+    this._onConnectionLost = action;
   }
 
   get(keys: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void {
@@ -363,8 +376,8 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
   private callbacksCounter: number = WSClientForWorkers.MIN_INTEGER;
 
   private heartBeatFunctionId;
-
   private _listeners: greycat.Callback<greycat.struct.Buffer>[] = [];
+  private _onConnectionLost: () => void;
 
   constructor(p_url: string) {
     this.url = p_url;
@@ -381,7 +394,7 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
       let initialConnection = true;
       this.ws = new WebSocket(this.url);
 
-      this.ws.onmessage = function (msg: MessageEvent) {
+      this.ws.onmessage = (msg: MessageEvent) => {
         let fileReader = new FileReader();
         fileReader.onload = function () {
           selfPointer.process_rpc_resp(new Int8Array(fileReader.result as ArrayBuffer));
@@ -389,28 +402,36 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
         fileReader.readAsArrayBuffer(msg.data);
       };
 
-      this.ws.onclose = function (event: CloseEvent) {
+      this.ws.onclose = (event: CloseEvent) => {
         console.log('Connection closed.', event);
         if (initialConnection) {
           callback(false);
+        } else {
+          if(this._onConnectionLost != null) {
+            this._onConnectionLost();
+          }
         }
         self.ws = null;
         clearInterval(selfPointer.heartBeatFunctionId);
       };
 
-      this.ws.onerror = function (event: ErrorEvent) {
-        console.error('An error occurred while connecting to server:', event, this.readyState);
+      this.ws.onerror = (event: ErrorEvent) => {
+        console.error('An error occurred while connecting to server:', event);
         if (initialConnection) {
           callback(false);
+        } else {
+          if(this._onConnectionLost != null) {
+            this._onConnectionLost();
+          }
         }
         self.ws = null;
         clearInterval(selfPointer.heartBeatFunctionId);
       };
 
-      this.ws.onopen = function (event: Event) {
+      this.ws.onopen = (event: Event) => {
         initialConnection = false;
         callback(true);
-        selfPointer.heartBeatFunctionId = setInterval(selfPointer.heartbeat.bind(selfPointer), 50 * 1000);
+        //selfPointer.heartBeatFunctionId = setInterval(selfPointer.heartbeat.bind(selfPointer), 50 * 1000);
       };
     } else {
       //do nothing
@@ -427,13 +448,18 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
     }
   }
 
-  private registerCallback(callbask: any): number {
+  onConnectionLost(action: () => void) {
+    this._onConnectionLost = action;
+  }
+
+
+  private registerCallback(callback: any): number {
     let callbackId = this.callbacksCounter;
     this.callbacksCounter++;
     if (this.callbacksCounter == WSClientForWorkers.MAX_INTEGER) {
       this.callbacksCounter = WSClientForWorkers.MIN_INTEGER;
     }
-    this.callbacks[callbackId];
+    this.callbacks[callbackId] = callback;
     return callbackId;
   }
 
@@ -508,7 +534,6 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
       } else {
         printHash = -1;
       }
-      reqBuffer.write(greycat.Constants.BUFFER_SEP);
       let progressHook = prepared.progressHook();
       if (progressHook != null) {
         progressHash = this.registerCallback(progressHook);
