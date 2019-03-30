@@ -87,9 +87,9 @@ public class MailboxRegistry {
         });
     }
 
-    public void notifyGraphUpdate(final int sourceWorkerId, final byte[] notification) {
+    public void notifyGraphUpdate(final byte[] notification) {
         mailboxMap.forEach((id, workerMailbox) -> {
-            if(id != defaultMailboxId && id != sourceWorkerId) {
+            if(id != defaultMailboxId) {
                 workerMailbox.submit(notification);
             }
         });

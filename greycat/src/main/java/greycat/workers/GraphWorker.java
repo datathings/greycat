@@ -98,7 +98,7 @@ public class GraphWorker implements Runnable {
         notificationBuffer.writeAll(updateContent.data());
         byte[] notificationMsg = notificationBuffer.data();
         notificationBuffer.free();
-        MailboxRegistry.getInstance().notifyGraphUpdate(mailboxId, notificationMsg);
+        MailboxRegistry.getInstance().notifyGraphUpdate(notificationMsg);
     };
 
     @Override
@@ -192,14 +192,10 @@ public class GraphWorker implements Runnable {
         switch (operation) {
 
             case StorageMessageType.NOTIFY_UPDATE: {
-                this.workingGraphInstance.remoteNotify(it.next());
+                while (it.hasNext()) {
+                    this.workingGraphInstance.remoteNotify(it.next());
+                }
             }break;
-
-            case StorageMessageType.RESP_LOG: {
-                //Nothing to do, no result
-                callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
-            }
-            break;
             case StorageMessageType.RESP_UNLOCK:
             case StorageMessageType.RESP_PUT: {
                 //Boolean result
@@ -217,20 +213,23 @@ public class GraphWorker implements Runnable {
             }
             break;
             case StorageMessageType.RESP_LOCK:
-            case StorageMessageType.RESP_GET: {
+            case StorageMessageType.RESP_GET:
+            case StorageMessageType.RESP_TASK:
+            case StorageMessageType.RESP_LOG: {
                 //Buffer result
                 Callback<Buffer> cb = callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
                 Buffer payload = new HeapBuffer();
-                payload.writeAll(it.next().data());
+                boolean isFirst = true;
+                while (it.hasNext()) {
+                    if (isFirst) {
+                        isFirst = false;
+                    } else {
+                        payload.write(Constants.BUFFER_SEP);
+                    }
+                    payload.writeAll(it.next().data());
+                }
                 cb.on(payload);
-            }
-            break;
-            case StorageMessageType.RESP_TASK: {
-                //Buffer result
-                Callback<Buffer> cb = callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
-                Buffer payload = new HeapBuffer();
-                payload.writeAll(it.next().data());
-                cb.on(payload);
+
             }
             break;
             case StorageMessageType.NOTIFY_PRINT: {
@@ -557,23 +556,23 @@ public class GraphWorker implements Runnable {
         workingGraphInstance.storage().unlock(toUnlock, callback);
     }
 
-    private void process_put(final Graph graph, final ChunkKey[] keys, final Buffer[] values, Job job) {
-        final DeferCounter defer = workingGraphInstance.newCounter(keys.length);
+    private void process_put(Graph graph, final ChunkKey[] keys, final Buffer[] values, Job job) {
+        final DeferCounter defer = graph.newCounter(keys.length);
         defer.then(job);
         for (int i = 0; i < keys.length; i++) {
             final int finalI = i;
             ChunkKey tuple = keys[i];
-            workingGraphInstance.space().getOrLoadAndMark(tuple.type, tuple.world, tuple.time, tuple.id, new Callback<Chunk>() {
+            graph.space().getOrLoadAndMark(tuple.type, tuple.world, tuple.time, tuple.id, new Callback<Chunk>() {
                 @Override
                 public void on(Chunk memoryChunk) {
                     if (memoryChunk != null) {
                         memoryChunk.loadDiff(values[finalI]);
-                        workingGraphInstance.space().unmark(memoryChunk.index());
+                        graph.space().unmark(memoryChunk.index());
                     } else {
-                        Chunk newChunk = workingGraphInstance.space().createAndMark(tuple.type, tuple.world, tuple.time, tuple.id);
+                        Chunk newChunk = graph.space().createAndMark(tuple.type, tuple.world, tuple.time, tuple.id);
                         if (newChunk != null) {
                             newChunk.loadDiff(values[finalI]);
-                            workingGraphInstance.space().unmark(newChunk.index());
+                            graph.space().unmark(newChunk.index());
                         }
                     }
                     defer.count();
@@ -582,32 +581,32 @@ public class GraphWorker implements Runnable {
         }
     }
 
-    private void process_remove(final Graph graph, ChunkKey[] keys, final Callback<Boolean> callback) {
-        Buffer buffer = workingGraphInstance.newBuffer();
+    private void process_remove(Graph graph, ChunkKey[] keys, final Callback callback) {
+        Buffer buffer = graph.newBuffer();
         for (int i = 0; i < keys.length; i++) {
             if (i != 0) {
                 buffer.write(Constants.BUFFER_SEP);
             }
             ChunkKey tuple = keys[i];
-            KeyHelper.chunckKeyToBuffer(tuple, buffer);
-            workingGraphInstance.space().delete(tuple.type, tuple.world, tuple.time, tuple.id);
+            KeyHelper.keyToBuffer(buffer, tuple.type, tuple.world, tuple.time, tuple.id);
+            graph.space().delete(tuple.type, tuple.world, tuple.time, tuple.id);
         }
-        workingGraphInstance.storage().remove(buffer, new Callback<Boolean>() {
+        graph.storage().remove(buffer, new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
                 buffer.free();
-                callback.on(result);
+                callback.on(null);
             }
         });
     }
 
-    private void process_get(final Graph graph, ChunkKey[] keys, final Callback<Buffer> callback) {
-        final DeferCounter defer = workingGraphInstance.newCounter(keys.length);
+    private void process_get(Graph graph, ChunkKey[] keys, final Callback<Buffer> callback) {
+        final DeferCounter defer = graph.newCounter(keys.length);
         final Buffer[] buffers = new Buffer[keys.length];
         defer.then(new Job() {
             @Override
             public void run() {
-                Buffer stream = workingGraphInstance.newBuffer();
+                Buffer stream = graph.newBuffer();
                 for (int i = 0; i < buffers.length; i++) {
                     if (i != 0) {
                         stream.write(Constants.BUFFER_SEP);
@@ -623,13 +622,13 @@ public class GraphWorker implements Runnable {
         for (int i = 0; i < keys.length; i++) {
             final int fixedI = i;
             ChunkKey tuple = keys[i];
-            workingGraphInstance.space().getOrLoadAndMark(tuple.type, tuple.world, tuple.time, tuple.id, new Callback<Chunk>() {
+            graph.space().getOrLoadAndMark(tuple.type, tuple.world, tuple.time, tuple.id, new Callback<Chunk>() {
                 @Override
                 public void on(Chunk memoryChunk) {
                     if (memoryChunk != null) {
-                        final Buffer toSaveBuffer = workingGraphInstance.newBuffer();
+                        final Buffer toSaveBuffer = graph.newBuffer();
                         memoryChunk.save(toSaveBuffer);
-                        workingGraphInstance.space().unmark(memoryChunk.index());
+                        graph.space().unmark(memoryChunk.index());
                         buffers[fixedI] = toSaveBuffer;
                     } else {
                         buffers[fixedI] = null;

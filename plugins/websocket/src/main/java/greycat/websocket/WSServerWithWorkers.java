@@ -34,6 +34,7 @@ import io.undertow.websockets.spi.WebSocketHttpExchange;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -180,7 +181,15 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                             public void onError(WebSocketChannel webSocketChannel, Void aVoid, Throwable throwable) {
                                 System.err.println("Error occurred while sending to channel " + localMailboxId);
                                 if (throwable != null) {
-                                    throwable.printStackTrace();
+                                    if(throwable instanceof ClosedChannelException) {
+                                        try {
+                                            onClose(webSocketChannel,null);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    } else {
+                                        throwable.printStackTrace();
+                                    }
                                 }
                             }
                         });
