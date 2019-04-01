@@ -22,9 +22,7 @@ import greycat.websocket.WSServerWithWorkers;
 import greycat.workers.GraphWorkerPool;
 import greycat.workers.MailboxRegistry;
 import greycat.workers.WorkerAffinity;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,10 +34,10 @@ import static org.junit.Assert.*;
  */
 public class WSWithWorkersMultiCLientTest {
 
-    private static WSServerWithWorkers wsServer;
+    private WSServerWithWorkers wsServer;
 
-    @BeforeClass
-    public static void setUp() {
+    @Before
+    public void setUp() {
         Constants.enableDebug = false;
         GraphWorkerPool.getInstance().initialize(GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()));
         for (int i = 0; i < 5; i++) {
@@ -130,8 +128,8 @@ public class WSWithWorkersMultiCLientTest {
         }
     }
 
-    @AfterClass
-    public static void tearDown() {
+    @After
+    public void tearDown() {
         wsServer.stop();
     }
 
