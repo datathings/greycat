@@ -21,6 +21,7 @@ import greycat.internal.CoreGraphLog;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
 /**
@@ -138,6 +139,9 @@ public class GraphWorkerPool {
         GraphBuilder slaveWorkerBuilder = builder.clone().withStorage(new SlaveWorkerStorage());
 
         GraphWorker worker = new GraphWorker(slaveWorkerBuilder, workerKind == WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        if(workerKind == WorkerAffinity.TASK_WORKER) {
+            worker.setTaskWorker();
+        }
 
         worker.setName(ref == null ? "Worker" + worker.getId() : ref);
         workersById.put(worker.getId(), worker);
@@ -198,6 +202,23 @@ public class GraphWorkerPool {
                 thread.setUncaughtExceptionHandler(exceptionHandler);
             }
         });
+    }
+
+    public String tasksStats() {
+        StringBuilder sb = new StringBuilder();
+        final AtomicBoolean first = new AtomicBoolean(true);
+        sb.append("{");
+        workersByRef.values().forEach(worker -> {
+            if (!first.get()) {
+                sb.append(",");
+            } else {
+                first.set(false);
+            }
+            sb.append("\"" + worker.getName() + "\":");
+            sb.append(worker.workingGraphInstance.taskContextRegistry().stats());
+        });
+        sb.append("}");
+        return sb.toString();
     }
 
 

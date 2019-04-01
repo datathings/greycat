@@ -145,7 +145,6 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         WorkerMailbox localMailbox;
         int localMailboxId;
         private GraphWorker sessionWorker;
-        protected Map<Integer, GraphWorker> taskWorkersMap = new HashMap<>();
 
 
         public PeerInternalListener(final WebSocketChannel channel) {
@@ -166,10 +165,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                         Buffer respChannelBufferView = it.next();//Ignore
                         Buffer callbackBufferView = it.next();
                         int callbackId = Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length());
-                        GraphWorker taskWorker = taskWorkersMap.get(callbackId);
-                        if (taskWorker != null) {
-                            GraphWorkerPool.getInstance().destroyWorkerById(taskWorker.getId());
-                        }
+
                         logger.debug("WSServer\tForwarding response type " + StorageMessageType.byteToString(newMessage[0]) + " to peer " + localMailboxId);
                         WebSockets.sendBinary(ByteBuffer.wrap(newMessage), channel, new WebSocketCallback<Void>() {
                             @Override
@@ -182,11 +178,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                                 System.err.println("Error occurred while sending to channel " + localMailboxId);
                                 if (throwable != null) {
                                     if(throwable instanceof ClosedChannelException) {
-                                        try {
-                                            onClose(webSocketChannel,null);
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
+                                        killSession(webSocketChannel);
                                     } else {
                                         throwable.printStackTrace();
                                     }
@@ -226,6 +218,12 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
         @Override
         protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
+           killSession(webSocketChannel);
+
+            super.onClose(webSocketChannel, channel);
+        }
+
+        private void killSession(WebSocketChannel webSocketChannel) {
             logger.info("WSServer\tPeer (" + localMailboxId + ") connection closed: " + webSocketChannel.getCloseCode() + "\t" + webSocketChannel.getCloseReason());
             if (sessionWorker != null) {
                 logger.debug("WSServer\tDestroying session worker id:" + sessionWorker.getId());
@@ -235,8 +233,6 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
             logger.debug("WSServer\tClosing mailbox id:" + localMailboxId);
             MailboxRegistry.getInstance().removeMailbox(localMailboxId);
             mailboxReaper.interrupt();
-
-            super.onClose(webSocketChannel, channel);
         }
 
         private void process_rpc(final byte[] input, final WebSocketChannel channel) {
@@ -249,12 +245,12 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
             if (Constants.enableDebug) {
                 final BufferIterator it = jobBuffer.iterator();
-                final Buffer bufferTypeBufferView = it.next();
+                final Buffer frameTypeBufferView = it.next();
                 final Buffer respChannelBufferView = it.next();
                 final Buffer callbackBufferView = it.next();
                 
                 logger.debug("WSServer\t========= WSServer Sending to Workers =========");
-                logger.debug("WSServer\tType: " + StorageMessageType.byteToString(bufferTypeBufferView.read(0)));
+                logger.debug("WSServer\tType: " + StorageMessageType.byteToString(frameTypeBufferView.read(0)));
                 logger.debug("WSServer\tChannel: " + respChannelBufferView.readInt(0));
                 logger.debug("WSServer\tCallback: " + Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
                 logger.debug("WSServer\tRaw: " + jobBuffer.toString());
@@ -291,8 +287,6 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                     int callbackId = Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length());
                     //Create and register a specific worker for the task, identified by the callbackID of teh task for this channel.
                     GraphWorker taskWorker = GraphWorkerPool.getInstance().createGraphWorkerWithRef(WorkerAffinity.TASK_WORKER, "TaskWorker(" + callbackId + ")");
-                    internalListener.taskWorkersMap.put(callbackId, taskWorker);
-
                     taskWorker.submit(jobBuffer.data());
                 }
                 break;

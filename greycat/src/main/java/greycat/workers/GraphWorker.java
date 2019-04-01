@@ -49,6 +49,7 @@ public class GraphWorker implements Runnable {
 
     private String name;
     private boolean haltRequested = false;
+    private boolean isTaskWorker = false;
 
     public GraphWorker(GraphBuilder workingGraphBuilder, boolean canProcessGeneralTaskQueue) {
         this.workingGraphBuilder = workingGraphBuilder;
@@ -80,6 +81,10 @@ public class GraphWorker implements Runnable {
 
     public int getId() {
         return mailboxId;
+    }
+
+    public void setTaskWorker() {
+        isTaskWorker = true;
     }
 
     public boolean submit(byte[] activity) {
@@ -114,7 +119,7 @@ public class GraphWorker implements Runnable {
             @Override
             public void on(Boolean connected) {
                 workingGraphInstance.log().debug(getName() + ": Graph connected.");
-                if(!(workingGraphInstance.storage() instanceof SlaveWorkerStorage)) {
+                if (!(workingGraphInstance.storage() instanceof SlaveWorkerStorage)) {
                     workingGraphInstance.storage().listen(GraphWorker.this.notifyGraphUpdate);
                 }
                 graphReady.set(true);
@@ -195,7 +200,8 @@ public class GraphWorker implements Runnable {
                 while (it.hasNext()) {
                     this.workingGraphInstance.remoteNotify(it.next());
                 }
-            }break;
+            }
+            break;
             case StorageMessageType.RESP_UNLOCK:
             case StorageMessageType.RESP_PUT: {
                 //Boolean result
@@ -277,7 +283,7 @@ public class GraphWorker implements Runnable {
                 responseBuffer.write(Constants.BUFFER_SEP);
                 responseBuffer.writeAll(callbackBufferView.data());
                 responseBuffer.write(Constants.BUFFER_SEP);
-                Base64.encodeStringToBuffer(workingGraphInstance.taskContextRegistry().stats(), responseBuffer);
+                Base64.encodeStringToBuffer(GraphWorkerPool.getInstance().tasksStats(), responseBuffer);
                 destMailbox.submit(responseBuffer.data());
                 responseBuffer.free();
 
@@ -286,9 +292,14 @@ public class GraphWorker implements Runnable {
             case StorageMessageType.REQ_TASK_STOP: {
                 workingGraphInstance.setProperty("ws.last", System.currentTimeMillis());
                 if (it.hasNext()) {
-                    Buffer view = it.next();
-                    int taskCode = Base64.decodeToIntWithBounds(view, 0, view.length());
-                    workingGraphInstance.taskContextRegistry().forceStop(taskCode);
+                    Buffer workerRefView = it.next();
+                    String workerRef = Base64.decodeToStringWithBounds(workerRefView, 0, workerRefView.length());
+                    GraphWorker destWorker = GraphWorkerPool.getInstance().getWorkerByRef(workerRef);
+                    if (destWorker != null) {
+                        Buffer taskCodeWiew = it.next();
+                        int taskCode = Base64.decodeToIntWithBounds(taskCodeWiew, 0, taskCodeWiew.length());
+                        destWorker.workingGraphInstance.taskContextRegistry().forceStop(taskCode);
+                    }
                 }
 
                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
@@ -384,6 +395,9 @@ public class GraphWorker implements Runnable {
                             taskBuffer.free();
                             destMailbox.submit(responseBuffer.data());
                             responseBuffer.free();
+                            if (GraphWorker.this.isTaskWorker) {
+                                GraphWorkerPool.getInstance().destroyWorkerById(GraphWorker.this.getId());
+                            }
                         }
                     };
                     Task t = Tasks.newTask();

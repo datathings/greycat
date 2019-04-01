@@ -505,8 +505,10 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
     this.send_rpc_req(greycat.workers.StorageMessageType.REQ_TASK_STATS, null, callback);
   }
 
-  taskStop(id: number, callback: greycat.Callback<boolean>): void {
+  taskStop(workerRef: string, id: number, callback: greycat.Callback<boolean>): void {
     let reqBuffer = this.graph.newBuffer();
+    greycat.utility.Base64.encodeStringToBuffer(workerRef, reqBuffer);
+    reqBuffer.write(greycat.Constants.BUFFER_SEP);
     greycat.utility.Base64.encodeIntToBuffer(id, reqBuffer);
     this.send_rpc_req(greycat.workers.StorageMessageType.REQ_TASK_STOP, reqBuffer, callback);
     reqBuffer.free();
