@@ -36,11 +36,26 @@ public class CoreGraphLog implements Log {
     }
 
 
+    /** {@native ts
+     * let builder: java.lang.StringBuilder = new java.lang.StringBuilder();
+     * builder.append(CoreGraphLog.debug_msg);
+     * builder.append(greycat.internal.CoreGraphLog.processMessage(message, ...params));
+     * this.writeMessage(builder);
+     * return this;
+     * }
+     */
     @Override
     public final Log debug(String message, Object... params) {
         if(Constants.enableDebug) {
             StringBuilder builder = new StringBuilder();
+            StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
             builder.append(debug_msg);
+            builder.append(caller.getClassName());
+            builder.append(".");
+            builder.append(caller.getMethodName());
+            builder.append(":");
+            builder.append(caller.getLineNumber());
+            builder.append("\t");
             builder.append(processMessage(message, params));
             writeMessage(builder);
         }
