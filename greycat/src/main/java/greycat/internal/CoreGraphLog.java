@@ -21,8 +21,9 @@ import greycat.Log;
 import greycat.plugin.TaskExecutor;
 
 @SuppressWarnings("Duplicates")
-public class CoreGraphLog implements Log {
+public class CoreGraphLog extends Log {
 
+    private static final String trace_msg = "TRACE  ";
     private static final String debug_msg = "DEBUG  ";
     private static final String info_msg = "INFO   ";
     private static final String warn_msg = "WARN   ";
@@ -32,7 +33,34 @@ public class CoreGraphLog implements Log {
     boolean remote;
 
     public CoreGraphLog(Graph graph) {
+        super();
         this.graph = graph;
+    }
+
+    /** {@native ts
+     * let builder: java.lang.StringBuilder = new java.lang.StringBuilder();
+     * builder.append(CoreGraphLog.trace_msg);
+     * builder.append(greycat.internal.CoreGraphLog.processMessage(message, ...params));
+     * this.writeMessage(builder);
+     * return this;
+     * }
+     */
+    @Override
+    public final Log trace(String message, Object... params) {
+        if(LOG_LEVEL >= Log.TRACE) {
+            StringBuilder builder = new StringBuilder();
+            StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+            builder.append(trace_msg);
+            builder.append(caller.getClassName());
+            builder.append(".");
+            builder.append(caller.getMethodName());
+            builder.append(":");
+            builder.append(caller.getLineNumber());
+            builder.append("\t");
+            builder.append(processMessage(message, params));
+            writeMessage(builder);
+        }
+        return this;
     }
 
 
@@ -46,7 +74,7 @@ public class CoreGraphLog implements Log {
      */
     @Override
     public final Log debug(String message, Object... params) {
-        if(Constants.enableDebug) {
+        if(LOG_LEVEL >= Log.DEBUG) {
             StringBuilder builder = new StringBuilder();
             StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
             builder.append(debug_msg);
@@ -64,28 +92,49 @@ public class CoreGraphLog implements Log {
 
     @Override
     public final Log info(String message, Object... params) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(info_msg);
-        builder.append(processMessage(message, params));
-        writeMessage(builder);
+        if(LOG_LEVEL >= Log.INFO) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(info_msg);
+            builder.append(processMessage(message, params));
+            writeMessage(builder);
+        }
         return this;
     }
 
     @Override
     public final Log warn(String message, Object... params) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(warn_msg);
-        builder.append(processMessage(message, params));
-        writeMessage(builder);
+        if(LOG_LEVEL >= Log.WARNING) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(warn_msg);
+            builder.append(processMessage(message, params));
+            writeMessage(builder);
+        }
         return this;
     }
 
+    /** {@native ts
+     * let builder: java.lang.StringBuilder = new java.lang.StringBuilder();
+     * builder.append(CoreGraphLog.error_msg);
+     * builder.append(greycat.internal.CoreGraphLog.processMessage(message, ...params));
+     * this.writeMessage(builder);
+     * return this;
+     * }
+     */
     @Override
     public final Log error(String message, Object... params) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(error_msg);
-        builder.append(processMessage(message, params));
-        writeMessage(builder);
+        if(LOG_LEVEL >= Log.ERROR) {
+            StringBuilder builder = new StringBuilder();
+            StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+            builder.append(error_msg);
+            builder.append(caller.getClassName());
+            builder.append(".");
+            builder.append(caller.getMethodName());
+            builder.append(":");
+            builder.append(caller.getLineNumber());
+            builder.append("\t");
+            builder.append(processMessage(message, params));
+            writeMessage(builder);
+        }
         return this;
     }
 

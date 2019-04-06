@@ -15,16 +15,28 @@
  */
 package greycat;
 
-public interface Log {
+public abstract class Log {
 
-    Log debug(String message, Object... params);
+    public static final byte TRACE = 5;
+    public static final byte DEBUG = 4;
+    public static final byte INFO = 3;
+    public static final byte WARNING = 2;
+    public static final byte ERROR = 1;
+    public static final byte OFF = 0;
 
-    Log info(String message, Object... params);
+    public static byte LOG_LEVEL = INFO;
 
-    Log warn(String message, Object... params);
 
-    Log error(String message, Object... params);
+    public abstract Log trace(String message, Object... params);
 
-    Log activateRemote();
+    public abstract Log debug(String message, Object... params);
+
+    public abstract Log info(String message, Object... params);
+
+    public abstract Log warn(String message, Object... params);
+
+    public abstract Log error(String message, Object... params);
+
+    public abstract Log activateRemote();
 
 }

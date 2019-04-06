@@ -38,7 +38,6 @@ public class WSWithWorkersMultiCLientTest {
 
     @Before
     public void setUp() {
-        Constants.enableDebug = false;
         GraphWorkerPool.getInstance().initialize(GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()));
         for (int i = 0; i < 5; i++) {
             GraphWorkerPool.getInstance().createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);

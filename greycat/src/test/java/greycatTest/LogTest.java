@@ -51,6 +51,7 @@ public class LogTest {
             g.log().error("hello from {}, mode: {}", "GreyCat", "test");
             g.log().warn("hello from {}, mode: {}", "GreyCat", "test");
             g.log().debug("hello from {}, mode: {}", "GreyCat", "test");
+            g.log().trace("hello from {}, mode: {}", "GreyCat", "test");
         }
 
 

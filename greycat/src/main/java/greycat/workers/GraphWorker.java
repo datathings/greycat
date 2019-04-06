@@ -180,11 +180,11 @@ public class GraphWorker implements Runnable {
         final Buffer callbackBufferView = it.next();
 
         // --------   DEBUG PRINT ----------
-        workingGraphInstance.log().debug(getName() + "\t========= " + getName() + " Received =========");
-        workingGraphInstance.log().debug(getName() + "\tType: " + StorageMessageType.byteToString(bufferTypeBufferView.read(0)));
-        workingGraphInstance.log().debug(getName() + "\tChannel: " + respChannelBufferView.readInt(0));
-        workingGraphInstance.log().debug(getName() + "\tCallback: " + Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
-        workingGraphInstance.log().debug(getName() + "\tRaw: " + taskBuffer.toString());
+        workingGraphInstance.log().trace(getName() + "\t========= " + getName() + " Received =========");
+        workingGraphInstance.log().trace(getName() + "\tType: " + StorageMessageType.byteToString(bufferTypeBufferView.read(0)));
+        workingGraphInstance.log().trace(getName() + "\tChannel: " + respChannelBufferView.readInt(0));
+        workingGraphInstance.log().trace(getName() + "\tCallback: " + Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
+        workingGraphInstance.log().trace(getName() + "\tRaw: " + taskBuffer.toString());
 
         // --------   DEBUG PRINT END ----------
 
@@ -556,7 +556,7 @@ public class GraphWorker implements Runnable {
             }
             break;
             default: {
-                System.err.println("Operation not yet supported " + (int) operation);
+                workingGraphInstance.log().error("Operation not yet supported " + (int) operation);
             }
         }
     }

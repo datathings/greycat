@@ -20,8 +20,6 @@ package greycat;
  */
 public class Constants {
 
-    public static boolean enableDebug = false;
-
     public static final int KEY_SIZE = 4;
 
     // Limit long lengths to 53 bits because of JS limitation

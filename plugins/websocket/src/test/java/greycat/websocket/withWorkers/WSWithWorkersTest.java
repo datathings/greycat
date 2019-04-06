@@ -38,7 +38,6 @@ public class WSWithWorkersTest {
 
     @BeforeClass
     public static void setUp() {
-        Constants.enableDebug = false;
         GraphWorkerPool.getInstance().initialize(GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()));
         GraphWorkerPool.getInstance().createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
         wsServer = new WSServerWithWorkers(1234);
