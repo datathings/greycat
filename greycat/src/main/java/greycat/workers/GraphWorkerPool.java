@@ -34,7 +34,7 @@ public class GraphWorkerPool {
     private static Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
         @Override
         public void uncaughtException(Thread t, Throwable e) {
-            logger.error("Uncaught exception handler !!!", e);
+            e.printStackTrace();
         }
     };
 
