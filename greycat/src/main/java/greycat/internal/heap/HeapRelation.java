@@ -141,6 +141,7 @@ class HeapRelation implements Relation {
             final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(nextSize) / Math.log(2)));
             allocate(closePowerOfTwo);
             System.arraycopy(newValues, 0, _backend, _size, newValues.length);
+            _size = nextSize;
             parent.declareDirty();
         }
         return this;
