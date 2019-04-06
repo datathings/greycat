@@ -25,6 +25,7 @@ import greycat.language.Relation;
 import greycat.language.Type;
 import greycat.struct.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 import static greycat.generator.Helper.*;
@@ -106,6 +107,11 @@ class TypeGenerator {
                 .initializer("new $T($S,$L,$L)", gMeta, gType.name(), hash(gType.name()), hash(gType.name()))
                 .build());
 
+       MethodSpec.Builder metaMapBuilder = MethodSpec.methodBuilder("computeMetaMap")
+                .addModifiers(PRIVATE, STATIC, FINAL)
+                .returns(ParameterizedTypeName.get(ClassName.get(java.util.Map.class), ClassName.get(String.class), gMeta))
+                .addStatement("$T map = new $T()", ParameterizedTypeName.get(ClassName.get(java.util.Map.class), ClassName.get(String.class), gMeta), ClassName.get(HashMap.class));
+
         // properties
         gType.properties().forEach(o -> {
             // constants
@@ -138,6 +144,7 @@ class TypeGenerator {
                         .addModifiers(PUBLIC, STATIC, FINAL)
                         .initializer("new $T($S, $L,$L)", gMeta, att.name(), typeName(att.type()), hash(att.name()))
                         .build());
+                metaMapBuilder.addStatement("map.put($S,$L)", att.name(), att.name().toUpperCase());
 
                 javaClass.addMethod(MethodSpec.methodBuilder("get" + Generator.upperCaseFirstChar(att.name()))
                         .addModifiers(PUBLIC, FINAL)
@@ -168,6 +175,7 @@ class TypeGenerator {
                         .addModifiers(PUBLIC, STATIC, FINAL)
                         .initializer("new $T($S, $L, $L)", gMeta, rel.name(), "greycat.Type.RELATION", hash(rel.name()))
                         .build());
+                metaMapBuilder.addStatement("map.put($S,$L)", rel.name(), metaRelation);
 
                 javaClass.addMethod(MethodSpec.methodBuilder("get" + Generator.upperCaseFirstChar(rel.name()))
                         .addModifiers(PUBLIC, FINAL)
@@ -228,6 +236,7 @@ class TypeGenerator {
                         .addModifiers(PUBLIC, STATIC, FINAL)
                         .initializer("new $T($S, $L, $L)", gMeta, ref.name(), "greycat.Type.RELATION", hash(ref.name()))
                         .build());
+                metaMapBuilder.addStatement("map.put($S,$L)", ref.name(), ref.name().toUpperCase());
 
                 javaClass.addMethod(MethodSpec.methodBuilder("get" + Generator.upperCaseFirstChar(ref.name()))
                         .addModifiers(PUBLIC, FINAL)
@@ -287,6 +296,7 @@ class TypeGenerator {
                         .addModifiers(PUBLIC, STATIC, FINAL)
                         .initializer("new $T($S, $L, $L)", gMeta, li.name(), "greycat.Type.INDEX", hash(li.name()))
                         .build());
+                metaMapBuilder.addStatement("map.put($S,$L)", li.name(), li.name().toUpperCase());
 
                 //Index method
                 if (li.opposite() != null) {
@@ -404,6 +414,14 @@ class TypeGenerator {
                         .endControlFlow().build());
             }
         });
+
+        javaClass.addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(java.util.Map.class), ClassName.get(String.class), gMeta),"META_MAP")
+                .addModifiers(PUBLIC, STATIC, FINAL)
+                .initializer("computeMetaMap()")
+                .build());
+
+        metaMapBuilder.addStatement("return map");
+        javaClass.addMethod(metaMapBuilder.build());
 
         //Init method
         MethodSpec.Builder initMethod = MethodSpec.methodBuilder("init")
