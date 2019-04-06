@@ -21,6 +21,10 @@ public class CoreActions {
 
     //Context manipulation zone
 
+    public static Action free() {
+        return new ActionFree();
+    }
+
     public static Action flat() {
         return new ActionFlat();
     }

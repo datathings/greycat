@@ -91,6 +91,7 @@ public class CoreActionNames {
     public static String SELECT_OBJECT = "selectObject";
     public static String THEN_DO = "thenDo";
     public static String WHILE_DO = "whileDo";
+    public static String FREE = "free";
 
 }
 

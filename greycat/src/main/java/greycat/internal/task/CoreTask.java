@@ -1665,6 +1665,11 @@ public class CoreTask implements Task {
     }
 
     @Override
+    public final Task free() {
+        return then(CoreActions.free());
+    }
+
+    @Override
     public final Task flat() {
         return then(CoreActions.flat());
     }

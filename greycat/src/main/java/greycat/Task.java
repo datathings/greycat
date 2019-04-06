@@ -92,6 +92,8 @@ public interface Task {
      */
     Task forEachPar(Task subTask);
 
+    Task free();
+
     /**
      * Flat a TaskResult containing TaskResult to a flat TaskResult
      *
