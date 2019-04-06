@@ -21,6 +21,7 @@ import greycat.DeferCounter;
 import greycat.Graph;
 import greycat.chunk.*;
 import greycat.plugin.Job;
+import greycat.plugin.NodeDeclaration;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.struct.EStructArray;
@@ -786,19 +787,33 @@ public class HeapChunkSpace implements ChunkSpace {
                 if (_chunkMarks.get(i) != 0) {
                     switch (_chunkTypes.get(i)) {
                         case ChunkType.STATE_CHUNK:
-                            System.out.println("STATE(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
+                            System.out.println("STATE\t\t\t(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")\t->marks->" + _chunkMarks.get(i));
                             break;
                         case ChunkType.SUPER_TIME_TREE_CHUNK:
-                            System.out.println("SUPER_TIME_TREE(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
+                            System.out.println("SUPER_TIME_TREE\t(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")\t->marks->" + _chunkMarks.get(i));
                             break;
                         case ChunkType.TIME_TREE_CHUNK:
-                            System.out.println("TIME_TREE(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
+                            System.out.println("TIME_TREE\t\t(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")\t->marks->" + _chunkMarks.get(i));
                             break;
-                        case ChunkType.WORLD_ORDER_CHUNK:
-                            System.out.println("WORLD_ORDER(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
+                        case ChunkType.WORLD_ORDER_CHUNK: {
+                            String type = "";
+                            long chunkType = ((WorldOrderChunk)_chunkValues.get(i)).type();
+                            if(chunkType != Constants.NULL_LONG) {
+                                if(chunkType == -1) {
+                                    type = " nodeType: BaseNode";
+                                } else {
+                                    NodeDeclaration nd = graph().nodeRegistry().declarationByHash((int) chunkType);
+                                    if (nd != null) {
+                                        type += " nodeType: ";
+                                        type += nd.name();
+                                    }
+                                }
+                            }
+                            System.out.println("WORLD_ORDER\t\t(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")\t->marks->" + _chunkMarks.get(i) + type);
+                        }
                             break;
                         case ChunkType.GEN_CHUNK:
-                            System.out.println("GENERATOR(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
+                            System.out.println("GENERATOR\t\t(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")\t->marks->" + _chunkMarks.get(i));
                             break;
                     }
                 }
