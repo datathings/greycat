@@ -33,6 +33,7 @@ import greycat.utility.Tuple;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @ignore ts
@@ -380,6 +381,7 @@ public class GraphWorker implements Runnable {
             case StorageMessageType.REQ_TASK: {
                 workingGraphInstance.setProperty("ws.last", System.currentTimeMillis());
                 if (it.hasNext()) {
+                    AtomicReference<TaskContext> contextRef = new AtomicReference();
                     final Callback<TaskResult> end = new Callback<TaskResult>() {
                         @Override
                         public void on(TaskResult result) {
@@ -392,6 +394,18 @@ public class GraphWorker implements Runnable {
                             responseBuffer.write(Constants.BUFFER_SEP);
                             result.saveToBuffer(responseBuffer);
                             result.free();
+                            if (contextRef.get() != null) {
+                                TaskContext finisedTaskContext = contextRef.get();
+                                for (int i = 0; i < finisedTaskContext.variables().length; i++) {
+                                    Tuple<String, TaskResult> var = finisedTaskContext.variables()[i];
+                                    var.right().free();
+                                }
+                                if (Log.LOG_LEVEL > Log.DEBUG) {
+                                    System.out.println();
+                                    workingGraphInstance.space().printMarked();
+                                }
+                                contextRef.set(null);
+                            }
                             taskBuffer.free();
                             destMailbox.submit(responseBuffer.data());
                             responseBuffer.free();
@@ -413,6 +427,7 @@ public class GraphWorker implements Runnable {
                                 end.on(result);
                             }
                         });
+                        contextRef.set(ctx);
                         ctx.silentSave();
                         if (it.hasNext()) {
                             final int printHookCode;
