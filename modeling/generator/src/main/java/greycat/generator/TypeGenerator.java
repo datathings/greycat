@@ -107,8 +107,8 @@ class TypeGenerator {
                 .initializer("new $T($S,$L,$L)", gMeta, gType.name(), hash(gType.name()), hash(gType.name()))
                 .build());
 
-       MethodSpec.Builder metaMapBuilder = MethodSpec.methodBuilder("computeMetaMap")
-                .addModifiers(PRIVATE, STATIC, FINAL)
+        MethodSpec.Builder metaMapBuilder = MethodSpec.methodBuilder("computeMetaMap")
+                .addModifiers(PROTECTED, STATIC)
                 .returns(ParameterizedTypeName.get(ClassName.get(java.util.Map.class), ClassName.get(String.class), gMeta))
                 .addStatement("$T map = new $T()", ParameterizedTypeName.get(ClassName.get(java.util.Map.class), ClassName.get(String.class), gMeta), ClassName.get(HashMap.class));
 
@@ -415,10 +415,12 @@ class TypeGenerator {
             }
         });
 
-        javaClass.addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(java.util.Map.class), ClassName.get(String.class), gMeta),"META_MAP")
-                .addModifiers(PUBLIC, STATIC, FINAL)
-                .initializer("computeMetaMap()")
-                .build());
+        if (gType.parent() == null) {
+            javaClass.addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(java.util.Map.class), ClassName.get(String.class), gMeta), "META_MAP")
+                    .addModifiers(PUBLIC, STATIC)
+                    .initializer("computeMetaMap()")
+                    .build());
+        }
 
         metaMapBuilder.addStatement("return map");
         javaClass.addMethod(metaMapBuilder.build());
