@@ -47,6 +47,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
     private final Log logger = new CoreGraphLog(null);
 
+    private int wsMaxIdle = 60*60000; //1h by default
     private final int port;
     private Undertow server;
 
@@ -74,6 +75,10 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         return this;
     }
 
+    public void setMaxIdle(int maxIdle) {
+        this.wsMaxIdle = maxIdle;
+    }
+
 
     public void start() {
 
@@ -92,8 +97,9 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         }
         String serverPath = "ws://" + SERVER_IP + ":" + port + SERVER_PREFIX;
         this.server = Undertow.builder()
-                .setServerOption(UndertowOptions.IDLE_TIMEOUT, 15*60000)
-                .addHttpListener(port, SERVER_IP, pathHandler).build();
+                .addHttpListener(port, SERVER_IP, pathHandler)
+                .setServerOption(UndertowOptions.IDLE_TIMEOUT, wsMaxIdle)
+                .build();
 
         server.start();
         logger.info("WSServer started on " + serverPath);
@@ -156,8 +162,9 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
             mailboxReaper = new Thread(() -> {
                 try {
                     logger.debug("WSServer\tMailbox reaper ready for peer (" + localMailboxId + ")");
-                    while (true) {
+                    while (true && channel.isOpen()) {
                         byte[] newMessage = localMailbox.take();
+                        /*
                         Buffer jobBuffer = new HeapBuffer();
                         jobBuffer.writeAll(newMessage);
                         BufferIterator it = jobBuffer.iterator();
@@ -165,6 +172,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                         Buffer respChannelBufferView = it.next();//Ignore
                         Buffer callbackBufferView = it.next();
                         int callbackId = Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length());
+                        */
 
                         logger.trace("WSServer\tForwarding response type " + StorageMessageType.byteToString(newMessage[0]) + " to peer " + localMailboxId);
                         WebSockets.sendBinary(ByteBuffer.wrap(newMessage), channel, new WebSocketCallback<Void>() {
