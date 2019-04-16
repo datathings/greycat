@@ -797,17 +797,21 @@ public class HeapChunkSpace implements ChunkSpace {
                             break;
                         case ChunkType.WORLD_ORDER_CHUNK: {
                             String type = "";
-                            long chunkType = ((WorldOrderChunk)_chunkValues.get(i)).type();
-                            if(chunkType != Constants.NULL_LONG) {
-                                if(chunkType == -1) {
+                            long nodeTypeValue = ((WorldOrderChunk)_chunkValues.get(i)).type();
+                            if(nodeTypeValue != Constants.NULL_LONG) {
+                                if(nodeTypeValue == -1) {
                                     type = " nodeType: BaseNode";
                                 } else {
-                                    NodeDeclaration nd = graph().nodeRegistry().declarationByHash((int) chunkType);
+                                    NodeDeclaration nd = graph().nodeRegistry().declarationByHash((int) nodeTypeValue);
                                     if (nd != null) {
                                         type += " nodeType: ";
                                         type += nd.name();
+                                    } else {
+                                        type += " nodeType: " + nodeTypeValue;
                                     }
                                 }
+                            } else {
+                                type = " nodeType: BaseNode";
                             }
                             System.out.println("WORLD_ORDER\t\t(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")\t->marks->" + _chunkMarks.get(i) + type);
                         }
