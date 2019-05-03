@@ -52,6 +52,8 @@ public class GraphWorker implements Runnable {
     private boolean haltRequested = false;
     private boolean isTaskWorker = false;
 
+    private boolean running = false;
+
     public GraphWorker(GraphBuilder workingGraphBuilder, boolean canProcessGeneralTaskQueue) {
         this.workingGraphBuilder = workingGraphBuilder;
         mailbox = new WorkerMailbox(canProcessGeneralTaskQueue);
@@ -110,7 +112,7 @@ public class GraphWorker implements Runnable {
     @Override
     public void run() {
         //System.out.println(getName() + ": Started");
-
+        running = true;
         //System.out.println(getName() + ": Creating new Graph");
         workingGraphInstance = workingGraphBuilder.build();
         //workingGraphInstance.logDirectory(this.name, "2MB");
@@ -299,7 +301,11 @@ public class GraphWorker implements Runnable {
                     if (destWorker != null) {
                         Buffer taskCodeWiew = it.next();
                         int taskCode = Base64.decodeToIntWithBounds(taskCodeWiew, 0, taskCodeWiew.length());
-                        destWorker.workingGraphInstance.taskContextRegistry().forceStop(taskCode);
+                        if (destWorker.isRunning()) {
+                            destWorker.workingGraphInstance.taskContextRegistry().forceStop(taskCode);
+                        } else {
+                            GraphWorkerPool.getInstance().removeTaskWorker(destWorker);
+                        }
                     }
                 }
 
@@ -781,4 +787,7 @@ public class GraphWorker implements Runnable {
         mailbox.submit(taskBuffer.data());
     }
 
+    public boolean isRunning() {
+        return running;
+    }
 }

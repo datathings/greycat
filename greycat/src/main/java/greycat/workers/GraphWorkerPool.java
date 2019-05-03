@@ -21,6 +21,7 @@ import greycat.internal.CoreGraphLog;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
@@ -30,6 +31,8 @@ import java.util.function.BiConsumer;
 public class GraphWorkerPool {
 
     private static Log logger = new CoreGraphLog(null);
+    private static int NUMBER_OF_TASK_WORKER = 1;
+    private static int MAXIMUM_TASK_QUEUE_SIZE = 100;
 
     private static Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
         @Override
@@ -64,6 +67,7 @@ public class GraphWorkerPool {
     private Map<Integer, GraphWorker> workersById = new HashMap<>();
     private Map<Integer, Thread> threads = new HashMap<>();
     private Map<String, GraphWorker> workersByRef = new HashMap<>();
+    private ExecutorService taskworkerPool;
 
     private GraphBuilder rootBuilder;
 
@@ -81,6 +85,8 @@ public class GraphWorkerPool {
         rootGraphWorkerThread = new Thread(rootGraphWorker, "RootWorker_" + rootGraphWorker.getId());
         rootGraphWorkerThread.setUncaughtExceptionHandler(exceptionHandler);
         rootGraphWorkerThread.start();
+        final BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(MAXIMUM_TASK_QUEUE_SIZE);
+        taskworkerPool = new ThreadPoolExecutor(NUMBER_OF_TASK_WORKER, NUMBER_OF_TASK_WORKER, 0L, TimeUnit.MILLISECONDS, queue);
     }
 
     public int getRootWorkerMailboxId() {
@@ -109,6 +115,8 @@ public class GraphWorkerPool {
         });
         workersById.clear();
         workersByRef.clear();
+
+        taskworkerPool.shutdown();
 
         logger.debug("Halting root graph worker");
         rootGraphWorker.halt();
@@ -139,7 +147,7 @@ public class GraphWorkerPool {
         GraphBuilder slaveWorkerBuilder = builder.clone().withStorage(new SlaveWorkerStorage());
 
         GraphWorker worker = new GraphWorker(slaveWorkerBuilder, workerKind == WorkerAffinity.GENERAL_PURPOSE_WORKER);
-        if(workerKind == WorkerAffinity.TASK_WORKER) {
+        if (workerKind == WorkerAffinity.TASK_WORKER) {
             worker.setTaskWorker();
         }
 
@@ -149,9 +157,12 @@ public class GraphWorkerPool {
 
         Thread workerThread = new Thread(workersThreadGroup, worker, worker.getName());
         workerThread.setUncaughtExceptionHandler(exceptionHandler);
-        workerThread.start();
-        threads.put(worker.getId(), workerThread);
-
+        if (workerKind == WorkerAffinity.TASK_WORKER) {
+            taskworkerPool.submit(workerThread);
+        } else {
+            workerThread.start();
+            threads.put(worker.getId(), workerThread);
+        }
         logger.info("Worker " + worker.getName() + "(" + worker.getId() + ") created.");
 
         return worker;
@@ -194,6 +205,14 @@ public class GraphWorkerPool {
         return workersByRef.get(ref);
     }
 
+    public boolean removeTaskWorker(GraphWorker worker) {
+        boolean result = ((ThreadPoolExecutor) taskworkerPool).remove(worker);
+        workersByRef.remove(worker.getName());
+        workersById.remove(worker.getId());
+        ((ThreadPoolExecutor) taskworkerPool).purge();
+        return result;
+    }
+
     private void resetExceptionsHandler() {
         rootGraphWorkerThread.setUncaughtExceptionHandler(exceptionHandler);
         threads.forEach(new BiConsumer<Integer, Thread>() {
@@ -215,7 +234,40 @@ public class GraphWorkerPool {
                 first.set(false);
             }
             sb.append("\"" + worker.getName() + "\":");
-            sb.append(worker.workingGraphInstance.taskContextRegistry().stats());
+            if (worker.isRunning()) {
+                sb.append(worker.workingGraphInstance.taskContextRegistry().stats());
+            } else {
+                sb.append("[");
+                sb.append("{");
+
+                sb.append("\"id\":");
+                sb.append(String.valueOf(0));
+
+                sb.append(",\"start_timestamp\":");
+                sb.append(String.valueOf(System.currentTimeMillis()));
+
+                sb.append(",\"progress_timestamp\":");
+                sb.append(String.valueOf(System.currentTimeMillis()));
+
+                sb.append(",\"last_report\":");
+                sb.append("{");
+
+                sb.append("\"actionPath\":");
+                sb.append("\"\"");
+
+                sb.append(",\"actionSumPath\":");
+                sb.append("\"1\"");
+
+                sb.append(",\"progress\":");
+                sb.append("0");
+
+                sb.append(",\"comment\":");
+                sb.append("\"waiting to be executed\"");
+
+                sb.append('}');
+                sb.append('}');
+                sb.append(']');
+            }
         });
         sb.append("}");
         return sb.toString();
