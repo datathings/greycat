@@ -167,7 +167,8 @@ public class GraphWorker implements Runnable {
         workingGraphInstance.disconnect(new Callback<Boolean>() {
             @Override
             public void on(Boolean disconnected) {
-                //System.out.println(getName() + ": Graph disconnected");
+                running = false;
+                System.out.println(getName() + ": Graph disconnected");
             }
         });
     }
@@ -413,7 +414,9 @@ public class GraphWorker implements Runnable {
                                 contextRef.set(null);
                             }
                             taskBuffer.free();
-                            destMailbox.submit(responseBuffer.data());
+                            if (destMailbox != null) {
+                                destMailbox.submit(responseBuffer.data());
+                            }
                             responseBuffer.free();
                             if (GraphWorker.this.isTaskWorker) {
                                 GraphWorkerPool.getInstance().destroyWorkerById(GraphWorker.this.getId());
@@ -452,7 +455,9 @@ public class GraphWorker implements Runnable {
                                         Base64.encodeIntToBuffer(printHookCode, printBuffer);
                                         printBuffer.write(Constants.BUFFER_SEP);
                                         Base64.encodeStringToBuffer(result, printBuffer);
-                                        destMailbox.submit(printBuffer.data());
+                                        if (destMailbox != null) {
+                                            destMailbox.submit(printBuffer.data());
+                                        }
                                         printBuffer.free();
 
                                     }
@@ -473,7 +478,9 @@ public class GraphWorker implements Runnable {
                                         Base64.encodeIntToBuffer(progressHookCode, progressBuffer);
                                         progressBuffer.write(Constants.BUFFER_SEP);
                                         report.saveToBuffer(progressBuffer);
-                                        destMailbox.submit(progressBuffer.data());
+                                        if (destMailbox != null) {
+                                            destMailbox.submit(progressBuffer.data());
+                                        }
                                         progressBuffer.free();
 
                                     }

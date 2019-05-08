@@ -180,11 +180,11 @@ public class GraphWorkerPool {
                 try {
                     workerThread.interrupt();
                     workerThread.join();
+                    logger.info("Worker " + worker.getName() + "(" + worker.getId() + ") destroyed.");
                 } catch (InterruptedException e) {
                     //e.printStackTrace();
                 }
             }
-            logger.info("Worker " + worker.getName() + "(" + worker.getId() + ") destroyed.");
         } else {
             logger.warn("Asked for destruction of worker id: " + id + " but the worker was not found.");
         }
@@ -206,10 +206,10 @@ public class GraphWorkerPool {
     }
 
     public boolean removeTaskWorker(GraphWorker worker) {
-        boolean result = ((ThreadPoolExecutor) taskworkerPool).remove(worker);
+        boolean result = taskworkerPool.remove(worker);
         workersByRef.remove(worker.getName());
         workersById.remove(worker.getId());
-        ((ThreadPoolExecutor) taskworkerPool).purge();
+        taskworkerPool.purge();
         return result;
     }
 
@@ -235,7 +235,9 @@ public class GraphWorkerPool {
             }
             sb.append("\"" + worker.getName() + "\":");
             if (worker.isRunning()) {
-                sb.append(worker.workingGraphInstance.taskContextRegistry().stats());
+                if (worker.workingGraphInstance.taskContextRegistry() != null) {
+                    sb.append(worker.workingGraphInstance.taskContextRegistry().stats());
+                }
             } else {
                 sb.append("[");
                 sb.append("{");
