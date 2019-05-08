@@ -67,7 +67,7 @@ public class GraphWorkerPool {
     private Map<Integer, GraphWorker> workersById = new HashMap<>();
     private Map<Integer, Thread> threads = new HashMap<>();
     private Map<String, GraphWorker> workersByRef = new HashMap<>();
-    private ExecutorService taskworkerPool;
+    private ThreadPoolExecutor taskworkerPool;
 
     private GraphBuilder rootBuilder;
 
@@ -155,11 +155,11 @@ public class GraphWorkerPool {
         workersById.put(worker.getId(), worker);
         workersByRef.put(worker.getName(), worker);
 
-        Thread workerThread = new Thread(workersThreadGroup, worker, worker.getName());
-        workerThread.setUncaughtExceptionHandler(exceptionHandler);
         if (workerKind == WorkerAffinity.TASK_WORKER) {
-            taskworkerPool.submit(workerThread);
+            taskworkerPool.submit(worker);
         } else {
+            Thread workerThread = new Thread(workersThreadGroup, worker, worker.getName());
+            workerThread.setUncaughtExceptionHandler(exceptionHandler);
             workerThread.start();
             threads.put(worker.getId(), workerThread);
         }
