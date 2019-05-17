@@ -18,13 +18,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-generator</artifactId>
-    <version>15-SNAPSHOT</version>
+    <version>15</version>
     <name>greycat-generator</name>
 
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings</groupId>
-        <version>15-SNAPSHOT</version>
+        <version>15</version>
         <relativePath>../..</relativePath>
     </parent>
 
