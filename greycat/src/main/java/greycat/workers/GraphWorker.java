@@ -52,6 +52,8 @@ public class GraphWorker implements Runnable {
     private boolean haltRequested = false;
     private boolean isTaskWorker = false;
 
+    private boolean running = false;
+
     public GraphWorker(GraphBuilder workingGraphBuilder, boolean canProcessGeneralTaskQueue) {
         this.workingGraphBuilder = workingGraphBuilder;
         mailbox = new WorkerMailbox(canProcessGeneralTaskQueue);
@@ -110,7 +112,7 @@ public class GraphWorker implements Runnable {
     @Override
     public void run() {
         //System.out.println(getName() + ": Started");
-
+        running = true;
         //System.out.println(getName() + ": Creating new Graph");
         workingGraphInstance = workingGraphBuilder.build();
         //workingGraphInstance.logDirectory(this.name, "2MB");
@@ -165,7 +167,8 @@ public class GraphWorker implements Runnable {
         workingGraphInstance.disconnect(new Callback<Boolean>() {
             @Override
             public void on(Boolean disconnected) {
-                //System.out.println(getName() + ": Graph disconnected");
+                running = false;
+                System.out.println(getName() + ": Graph disconnected");
             }
         });
     }
@@ -299,7 +302,11 @@ public class GraphWorker implements Runnable {
                     if (destWorker != null) {
                         Buffer taskCodeWiew = it.next();
                         int taskCode = Base64.decodeToIntWithBounds(taskCodeWiew, 0, taskCodeWiew.length());
-                        destWorker.workingGraphInstance.taskContextRegistry().forceStop(taskCode);
+                        if (destWorker.isRunning()) {
+                            destWorker.workingGraphInstance.taskContextRegistry().forceStop(taskCode);
+                        } else {
+                            GraphWorkerPool.getInstance().removeTaskWorker(destWorker);
+                        }
                     }
                 }
 
@@ -407,7 +414,9 @@ public class GraphWorker implements Runnable {
                                 contextRef.set(null);
                             }
                             taskBuffer.free();
-                            destMailbox.submit(responseBuffer.data());
+                            if (destMailbox != null) {
+                                destMailbox.submit(responseBuffer.data());
+                            }
                             responseBuffer.free();
                             if (GraphWorker.this.isTaskWorker) {
                                 GraphWorkerPool.getInstance().destroyWorkerById(GraphWorker.this.getId());
@@ -446,7 +455,9 @@ public class GraphWorker implements Runnable {
                                         Base64.encodeIntToBuffer(printHookCode, printBuffer);
                                         printBuffer.write(Constants.BUFFER_SEP);
                                         Base64.encodeStringToBuffer(result, printBuffer);
-                                        destMailbox.submit(printBuffer.data());
+                                        if (destMailbox != null) {
+                                            destMailbox.submit(printBuffer.data());
+                                        }
                                         printBuffer.free();
 
                                     }
@@ -467,7 +478,9 @@ public class GraphWorker implements Runnable {
                                         Base64.encodeIntToBuffer(progressHookCode, progressBuffer);
                                         progressBuffer.write(Constants.BUFFER_SEP);
                                         report.saveToBuffer(progressBuffer);
-                                        destMailbox.submit(progressBuffer.data());
+                                        if (destMailbox != null) {
+                                            destMailbox.submit(progressBuffer.data());
+                                        }
                                         progressBuffer.free();
 
                                     }
@@ -781,4 +794,7 @@ public class GraphWorker implements Runnable {
         mailbox.submit(taskBuffer.data());
     }
 
+    public boolean isRunning() {
+        return running;
+    }
 }

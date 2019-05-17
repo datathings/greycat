@@ -495,7 +495,7 @@ class CoreTaskContext implements TaskContext {
     @Override
     public final void continueTask() {
         if (this.ext_stop.get()) {
-            endTask(this._result, new RuntimeException("stopped from external!"));
+            endTask(newResult(), new RuntimeException("stopped from external!"));
             return;
         }
         final TaskHook[] globalHooks = this._graph.taskHooks();
