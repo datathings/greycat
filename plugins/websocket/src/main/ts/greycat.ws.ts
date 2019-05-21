@@ -387,7 +387,7 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
 
   connect(p_graph: greycat.Graph, callback: greycat.Callback<boolean>): void {
     this.graph = p_graph;
-    let self = this;
+    //let self = this;
 
     if (this.ws == null) {
       let selfPointer = this;
@@ -411,7 +411,7 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
             this._onConnectionLost();
           }
         }
-        self.ws = null;
+        this.ws = null;
         clearInterval(selfPointer.heartBeatFunctionId);
       };
 
@@ -424,14 +424,14 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
             this._onConnectionLost();
           }
         }
-        self.ws = null;
+        this.ws = null;
         clearInterval(selfPointer.heartBeatFunctionId);
       };
 
       this.ws.onopen = (event: Event) => {
         initialConnection = false;
         callback(true);
-        //selfPointer.heartBeatFunctionId = setInterval(selfPointer.heartbeat.bind(selfPointer), 50 * 1000);
+        this.heartBeatFunctionId = setInterval(selfPointer.heartbeat.bind(selfPointer), 50 * 1000);
       };
     } else {
       //do nothing
@@ -716,6 +716,7 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
           }
         }
           break;
+        case greycat.workers.StorageMessageType.HEART_BEAT_PONG: break;
         default:
           let genericCode = greycat.utility.Base64.decodeToIntWithBounds(callbackIdBufferView, 0, callbackIdBufferView.length());
           let genericCallback = this.callbacks[genericCode];

@@ -33,6 +33,7 @@ import io.undertow.websockets.core.*;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 
 import java.io.IOException;
+import java.net.SocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.util.HashMap;
@@ -47,7 +48,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
     private final Log logger = new CoreGraphLog(null);
 
-    private int wsMaxIdle = 60*60000; //1h by default
+    private int wsMaxIdle = 3600 * 1000; //1h by default
     private final int port;
     private Undertow server;
 
@@ -98,7 +99,9 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         String serverPath = "ws://" + SERVER_IP + ":" + port + SERVER_PREFIX;
         this.server = Undertow.builder()
                 .addHttpListener(port, SERVER_IP, pathHandler)
+                .setServerOption(UndertowOptions.NO_REQUEST_TIMEOUT, wsMaxIdle)
                 .setServerOption(UndertowOptions.IDLE_TIMEOUT, wsMaxIdle)
+                .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, true)
                 .build();
 
         server.start();
@@ -147,6 +150,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
     protected class PeerInternalListener extends AbstractReceiveListener {
 
+        private final byte[] PONG_MESSAGE = new byte[]{StorageMessageType.HEART_BEAT_PONG};
         Thread mailboxReaper;
         WorkerMailbox localMailbox;
         int localMailboxId;
@@ -245,6 +249,11 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
         private void process_rpc(final byte[] input, final WebSocketChannel channel) {
             if (input.length == 0) {
+                return;
+            }
+
+            if(input[0] == StorageMessageType.HEART_BEAT_PING) {
+                localMailbox.submit(PONG_MESSAGE);
                 return;
             }
 
