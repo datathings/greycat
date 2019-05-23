@@ -33,7 +33,7 @@ public class Gaussian {
     public static final String AVG = "avg";
     public static final String COV = "cov";
     public static final String COR = "cor";
-
+    public static final String PVALUE = "pvalue";
     public static final String STD = "std";
     public static final String SUM = "sum";
     public static final String SUMSQ = "sumsq";

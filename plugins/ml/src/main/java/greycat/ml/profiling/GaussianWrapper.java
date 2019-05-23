@@ -16,6 +16,7 @@
 package greycat.ml.profiling;
 
 import greycat.Type;
+import greycat.ml.math.TDistribution;
 import greycat.struct.DMatrix;
 import greycat.struct.DoubleArray;
 import greycat.struct.EStruct;
@@ -324,6 +325,37 @@ public class GaussianWrapper {
         }
         return covtemp;
     }
+
+    public DMatrix getPValue() {
+        if (!initCov()) {
+            return null;
+        }
+        VolatileDMatrix pvalue = VolatileDMatrix.empty(cov.rows(), cov.columns());
+
+        int n = (int) (getTotal());
+        TDistribution tdist = new TDistribution(n - 2);
+        double cor;
+        double t;
+        for (int i = 0; i < pvalue.rows(); i++) {
+            for (int j = 0; j < pvalue.columns(); j++) {
+                if (cov.get(i, i) != 0 && cov.get(j, j) != 0) {
+                    cor = (cov.get(i, j) / Math.sqrt(cov.get(i, i) * cov.get(j, j)));
+                    if (cor == 1) {
+                        pvalue.set(i, j, 0);
+                    } else {
+                        t = cor / Math.sqrt((1 - (cor * cor)) / (n - 2));
+                        try {
+                            pvalue.set(i, j, tdist.twoTailsDist(t));
+                        }catch (Exception ex){
+                            pvalue.set(i, j, 0);
+                        }
+                    }
+                }
+            }
+        }
+        return pvalue;
+    }
+
 
     public double[] getSum() {
         long total = backend.getWithDefault(Gaussian.TOTAL, 0l);

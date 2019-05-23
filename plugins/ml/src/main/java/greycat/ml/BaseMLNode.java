@@ -32,12 +32,6 @@ public abstract class BaseMLNode extends BaseNode {
         super(p_world, p_time, p_id, p_graph);
     }
 
-    /**
-     * If {@code obj} is null, throws {@code NullPointerException} with a {@code message}
-     *
-     * @param obj
-     * @param message
-     */
     protected static void requireNotNull(Object obj, String message) {
         if (obj == null) {
             throw new RuntimeException(message);
