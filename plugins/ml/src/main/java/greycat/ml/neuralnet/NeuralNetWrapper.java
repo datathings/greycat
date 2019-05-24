@@ -152,6 +152,15 @@ public class NeuralNetWrapper {
         return new DMatrix[]{actualOutput, error};
     }
 
+    public DMatrix[] test(double[] inputs, double[] outputs) {
+        ProcessGraph cg = new ProcessGraph(random, false);
+        ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
+        ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
+        ExMatrix actualOutput = internalForward(cg, input, 0, layers.length);
+        return new DMatrix[]{actualOutput, cg.applyLoss(testLoss, actualOutput, targetOutput, true)};
+    }
+
+
     public DMatrix[] testVec(DMatrix inputs, DMatrix outputs) {
         ProcessGraph cg = new ProcessGraph(random, false);
         ExMatrix input = ExMatrix.createFromW(inputs);
