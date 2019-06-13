@@ -188,7 +188,7 @@ public class PCAWrapper {
 
 
     public void setDimension(int dim) {
-        if(_backend.get(SELECTED_DIM)==null || (int)_backend.get(SELECTED_DIM)!=dim) {
+        if (_backend.get(SELECTED_DIM) == null || (int) _backend.get(SELECTED_DIM) != dim) {
             DMatrix _spaceOrigin = _backend.getDMatrix(SPACE_ORIGIN);
             if (_spaceOrigin == null) {
                 throw new RuntimeException("You should fit data first!");
@@ -198,7 +198,7 @@ public class PCAWrapper {
             }
 
 
-            DMatrix res = MatrixOps.cropMatrix(_spaceOrigin, _spaceOrigin.rows(), dim);
+            DMatrix res = MatrixOps.cropMatrix(_spaceOrigin, _spaceOrigin.rows(), dim, 0, 0);
             _backend.remove(SPACE_CROPPED);
             DMatrix _spaceCropped = (DMatrix) _backend.getOrCreate(SPACE_CROPPED, Type.DMATRIX);
             MatrixOps.copy(res, _spaceCropped);
@@ -206,8 +206,6 @@ public class PCAWrapper {
             _backend.set(SELECTED_DIM, Type.INT, dim);
         }
     }
-
-
 
 
     public double[] convertVector(double[] data, boolean workInPlace) {
@@ -396,10 +394,8 @@ public class PCAWrapper {
         double[] singularValues = ((DoubleArray) _backend.get(SINGULAR_VALUES)).extract();
         double[] dimInfo = ((DoubleArray) _backend.get(DIM_INFORMATION)).extract();
         double[] explainedVariance = ((DoubleArray) _backend.get(EXPLAINED_VARIANCE)).extract();
-
-
         int originalDim = (int) _backend.get(ORIGINAL_DIM);
-        int selectedDim = (int) _backend.get(SELECTED_DIM);
+
         int bestDim = (int) _backend.get(BEST_DIM);
         double percentAtBestDim = (double) _backend.get(PERCENT_AT_BEST_DIM);
         DMatrix spaceCropped = _backend.getDMatrix(SPACE_CROPPED);
@@ -420,20 +416,24 @@ public class PCAWrapper {
         System.out.println("");
 
         System.out.println("Original dimension:\t" + originalDim);
-        System.out.println("Selected dimension:\t" + selectedDim);
+
         System.out.println("Best dimension:\t" + bestDim);
         System.out.println("Percentage at best dim:\t" + percentAtBestDim);
         System.out.println("");
 
-        System.out.println("PCA main components:");
-        for (int i = 0; i < selectedDim; i++) {
-            System.out.print("vector " + i + ":\t");
-            for (int j = 0; j < originalDim; j++) {
-                System.out.print(spaceCropped.get(j, i) + "\t");
+        if (_backend.get(SELECTED_DIM) != null) {
+            int selectedDim = (int) _backend.get(SELECTED_DIM);
+            System.out.println("Selected dimension:\t" + selectedDim);
+            System.out.println("PCA main components:");
+            for (int i = 0; i < selectedDim; i++) {
+                System.out.print("vector " + i + ":\t");
+                for (int j = 0; j < originalDim; j++) {
+                    System.out.print(spaceCropped.get(j, i) + "\t");
+                }
+                System.out.println("");
             }
             System.out.println("");
         }
-        System.out.println("");
     }
 
     public int getBestDim() {

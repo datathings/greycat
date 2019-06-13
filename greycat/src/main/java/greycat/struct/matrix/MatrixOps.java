@@ -341,7 +341,7 @@ public class MatrixOps {
 
 
     public static void printArray(double[] arrayA, String name) {
-        System.out.println("Matrix " + name);
+        System.out.println("Array " + name);
         for (int j = 0; j < arrayA.length; j++) {
             System.out.print(arrayA[j] + "\t");
         }
@@ -354,14 +354,14 @@ public class MatrixOps {
     }
 
 
-    public static DMatrix cropMatrix(DMatrix original, int rows, int columns) {
-        if (rows > original.rows() || columns > original.columns()) {
+    public static DMatrix cropMatrix(DMatrix original, int rows, int columns, int offsetRow, int offsetCol) {
+        if (rows + offsetRow > original.rows() || columns + offsetCol > original.columns()) {
             throw new RuntimeException("Rows and columns must be less or equal to the original matrix rows and columns");
         }
         VolatileDMatrix res = VolatileDMatrix.empty(rows, columns);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
-                res.set(i, j, original.get(i, j));
+                res.set(i, j, original.get(i + offsetRow, j + offsetCol));
             }
         }
         return res;
