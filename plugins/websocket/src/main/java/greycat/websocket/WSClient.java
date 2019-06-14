@@ -20,11 +20,16 @@ import greycat.base.BaseTaskResult;
 import greycat.internal.task.CoreProgressReport;
 import greycat.plugin.TaskExecutor;
 import greycat.struct.BufferIterator;
-import greycat.utility.*;
+
+import greycat.utility.Base64;
+import greycat.utility.L3GMap;
+import greycat.utility.Tuple;
 import greycat.workers.StorageMessageType;
 import io.undertow.connector.ByteBufferPool;
 import io.undertow.server.DefaultByteBufferPool;
+import io.undertow.websockets.WebSocketExtension;
 import io.undertow.websockets.client.WebSocketClient;
+import io.undertow.websockets.client.WebSocketClientNegotiation;
 import io.undertow.websockets.core.*;
 import greycat.plugin.Storage;
 import greycat.struct.Buffer;
@@ -46,20 +51,30 @@ import java.util.concurrent.TimeUnit;
 public class WSClient implements Storage, TaskExecutor {
 
     private final String _url;
-
     private WebSocketChannel _channel;
-
     private XnioWorker _worker;
-
     private Graph _graph;
-
     private Map<Integer, Callback> _callbacks;
-
     private final List<Callback<Buffer>> _listeners = new ArrayList<Callback<Buffer>>();
+
+    private String user = null;
+    private String password = null;
 
     public WSClient(String p_url) {
         this._url = p_url;
         this._callbacks = new ConcurrentHashMap<Integer, Callback>();
+    }
+
+    /**
+     * @param p_url
+     * @param user
+     * @param password
+     */
+    public WSClient(String p_url, String user, String password) {
+        this._url = p_url;
+        this._callbacks = new ConcurrentHashMap<Integer, Callback>();
+        this.user = user;
+        this.password = password;
     }
 
     @Override
@@ -119,6 +134,7 @@ public class WSClient implements Storage, TaskExecutor {
         }
         this._graph = p_graph;
         try {
+
             final Xnio xnio = Xnio.getInstance(io.undertow.websockets.client.WebSocketClient.class.getClassLoader());
             _worker = xnio.createWorker(OptionMap.builder()
                     .set(Options.WORKER_IO_THREADS, 2)
@@ -164,10 +180,28 @@ public class WSClient implements Storage, TaskExecutor {
 
 
             ByteBufferPool _buffer = new DefaultByteBufferPool(true, 1024 * 1024);
+
+
             WebSocketClient.ConnectionBuilder builder = io.undertow.websockets.client.WebSocketClient
                     .connectionBuilder(_worker, _buffer, new URI(_url));
             if (sc != null) {
                 builder.setSsl(new JsseXnioSsl(xnio, OptionMap.create(Options.USE_DIRECT_BUFFERS, true), sc));
+            }
+
+            if (user != null && password != null) {
+                WebSocketClientNegotiation clientNegotiation = new WebSocketClientNegotiation(
+                        new ArrayList<String>(), new ArrayList<WebSocketExtension>()) {
+                    @Override
+                    public void beforeRequest(Map<String, List<String>> headers) {
+                        String basicAuthPlainUserPass = user + ":" + password;
+                        String basicAuthEncodedUserPass = java.util.Base64.getEncoder().encodeToString(basicAuthPlainUserPass.getBytes());
+                        List<String> params = new ArrayList<>();
+                        params.add("Basic " + basicAuthEncodedUserPass);
+                        headers.put("Authorization", params);  // <<< This is where the magic happens
+                    }
+                };
+
+                builder.setClientNegotiation(clientNegotiation);
             }
 
             IoFuture<WebSocketChannel> futureChannel = builder.connect();
@@ -177,6 +211,7 @@ public class WSClient implements Storage, TaskExecutor {
                 if (callback != null) {
                     callback.on(null);
                 }
+                return;
             }
 
             _channel = futureChannel.get();

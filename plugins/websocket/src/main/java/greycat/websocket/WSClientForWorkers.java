@@ -29,7 +29,9 @@ import greycat.workers.StorageMessageType;
 import greycat.workers.WorkerAffinity;
 import io.undertow.connector.ByteBufferPool;
 import io.undertow.server.DefaultByteBufferPool;
+import io.undertow.websockets.WebSocketExtension;
 import io.undertow.websockets.client.WebSocketClient;
+import io.undertow.websockets.client.WebSocketClientNegotiation;
 import io.undertow.websockets.core.*;
 import org.xnio.*;
 import org.xnio.ssl.JsseXnioSsl;
@@ -65,10 +67,25 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
     private AtomicInteger callbackCounters = new AtomicInteger(MIN_INTEGER);
 
     private final List<Callback<Buffer>> _listeners = new ArrayList<Callback<Buffer>>();
+    
+    private String user = null;
+    private String password = null;
 
     public WSClientForWorkers(String p_url) {
         this._url = p_url;
         this._callbacks = new ConcurrentHashMap<Integer, Callback>();
+    }
+
+    /**
+     * @param p_url
+     * @param user
+     * @param password
+     */
+    public WSClientForWorkers(String p_url, String user, String password) {
+        this._url = p_url;
+        this._callbacks = new ConcurrentHashMap<Integer, Callback>();
+        this.user = user;
+        this.password = password;
     }
 
     private int registerCallback(Callback c) {
@@ -188,6 +205,23 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
             if (sc != null) {
                 builder.setSsl(new JsseXnioSsl(xnio, OptionMap.create(Options.USE_DIRECT_BUFFERS, true), sc));
             }
+
+            if (user != null && password != null) {
+                WebSocketClientNegotiation clientNegotiation = new WebSocketClientNegotiation(
+                        new ArrayList<String>(), new ArrayList<WebSocketExtension>()) {
+                    @Override
+                    public void beforeRequest(Map<String, List<String>> headers) {
+                        String basicAuthPlainUserPass = user + ":" + password;
+                        String basicAuthEncodedUserPass = java.util.Base64.getEncoder().encodeToString(basicAuthPlainUserPass.getBytes());
+                        List<String> params = new ArrayList<>();
+                        params.add("Basic " + basicAuthEncodedUserPass);
+                        headers.put("Authorization", params);  // <<< This is where the magic happens
+                    }
+                };
+
+                builder.setClientNegotiation(clientNegotiation);
+            }
+
 
             IoFuture<WebSocketChannel> futureChannel = builder.connect();
             futureChannel.await(5, TimeUnit.SECONDS); //Todo change this magic number!!!
