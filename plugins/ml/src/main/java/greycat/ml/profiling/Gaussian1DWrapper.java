@@ -33,22 +33,22 @@ public class Gaussian1DWrapper {
     }
 
     public double getMin() {
-        return (double) backend.get(Gaussian.MIN);
+        return (double) backend.getWithDefault(Gaussian.MIN, 0.0);
     }
 
     public double getMax() {
-        return (double) backend.get(Gaussian.MAX);
+        return (double) backend.getWithDefault(Gaussian.MAX, 0.0);
     }
 
     public double getSum() {
-        return (double) backend.get(Gaussian.SUM);
+        return (double) backend.getWithDefault(Gaussian.SUM, 0.0);
     }
     public double getSumSq() {
-        return (double) backend.get(Gaussian.SUMSQ);
+        return (double) backend.getWithDefault(Gaussian.SUMSQ, 0.0);
     }
 
     public long getTotal() {
-        return (long) backend.get(Gaussian.TOTAL);
+        return (long) backend.getWithDefault(Gaussian.TOTAL, 0L);
     }
 
     public double getAvg() {
@@ -56,7 +56,7 @@ public class Gaussian1DWrapper {
         if (total == 0) {
             return 0;
         } else {
-            double sum = (double) backend.get(Gaussian.SUM);
+            double sum = (double) backend.getWithDefault(Gaussian.SUM, 0.0);
             return sum / total;
         }
     }
@@ -70,8 +70,8 @@ public class Gaussian1DWrapper {
         if (total < 2) {
             return 0;
         } else {
-            double sum = (double) backend.get(Gaussian.SUM);
-            double sumsq = (double) backend.get(Gaussian.SUMSQ);
+            double sum = (double) backend.getWithDefault(Gaussian.SUM, 0.0);
+            double sumsq = (double) backend.getWithDefault(Gaussian.SUMSQ, 0.0);
             return Gaussian1D.getCovariance(sum, sumsq, total);
         }
     }
@@ -90,10 +90,10 @@ public class Gaussian1DWrapper {
     public void learn(double value) {
         //Create dirac
         long total = getTotal();
-        double sum = (double) backend.get(Gaussian.SUM);
-        double sumsq = (double) backend.get(Gaussian.SUMSQ);
-        double min = (double) backend.get(Gaussian.MIN);
-        double max = (double) backend.get(Gaussian.MAX);
+        double sum = (double) backend.getWithDefault(Gaussian.SUM, 0.0);
+        double sumsq = (double) backend.getWithDefault(Gaussian.SUMSQ, 0.0);
+        double min = (double) backend.getWithDefault(Gaussian.MIN, 0.0);
+        double max = (double) backend.getWithDefault(Gaussian.MAX, 0.0);
         if (total == 0) {
             sum = value;
             min = value;
