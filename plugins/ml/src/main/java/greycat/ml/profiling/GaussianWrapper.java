@@ -48,6 +48,10 @@ public class GaussianWrapper {
         ((DoubleArray) backend.getOrCreate(Gaussian.PRECISIONS, Type.DOUBLE_ARRAY)).initWith(precisions);
     }
 
+    public DMatrix getRawCov() {
+        initCov();
+        return this.cov;
+    }
 
     public void learnWithOccurence(double[] values, int occ) {
         int features = values.length;
@@ -346,7 +350,7 @@ public class GaussianWrapper {
                         t = cor / Math.sqrt((1 - (cor * cor)) / (n - 2));
                         try {
                             pvalue.set(i, j, tdist.twoTailsDist(t));
-                        }catch (Exception ex){
+                        } catch (Exception ex) {
                             pvalue.set(i, j, 0);
                         }
                     }
