@@ -1198,6 +1198,9 @@ final class MWResolver implements Resolver {
     @Override
     public final void lookupTimesSparse(long world, long rfrom, long rto, long id, int limit, Callback<Node[]> callback) {
         final MWResolver selfPointer = this;
+        if(limit<1){
+            throw new RuntimeException("Limit should be strictly superior to 0");
+        }else{
         _space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
             @Override
             public void on(final Chunk resolved) {
@@ -1394,7 +1397,7 @@ final class MWResolver implements Resolver {
 
                                         //filter with max now
                                         int firmLimit;
-                                        if (limit == -1 || limit >= timeCollector.size()) {
+                                        if (limit >= timeCollector.size()) {
                                             firmLimit = timeCollector.size();
                                         } else {
                                             firmLimit = limit;
@@ -1507,6 +1510,7 @@ final class MWResolver implements Resolver {
                 });
             }
         });
+        }
     }
 
     private long resolve_world(final LongLongMap globalWorldOrder, final LongLongMap nodeWorldOrder, final long timeToResolve, long originWorld) {
