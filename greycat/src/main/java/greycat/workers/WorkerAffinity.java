@@ -18,9 +18,6 @@ package greycat.workers;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Gregory NAIN on 2019-03-25.
- */
 public class WorkerAffinity {
 
     public static final byte SESSION_WORKER = 1;

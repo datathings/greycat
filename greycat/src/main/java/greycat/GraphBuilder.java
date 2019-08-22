@@ -142,7 +142,7 @@ public class GraphBuilder {
     }
 
     /**
-     * Declare a plugin to the graph builder.
+     * Declare a plugin to the graph graphBuilder.
      *
      * @param plugin that has to be added
      * @return the {@link GraphBuilder}, for a fluent API

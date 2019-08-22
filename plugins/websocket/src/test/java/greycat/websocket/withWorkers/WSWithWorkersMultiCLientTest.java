@@ -19,9 +19,7 @@ import greycat.*;
 import greycat.plugin.Job;
 import greycat.websocket.WSClientForWorkers;
 import greycat.websocket.WSServerWithWorkers;
-import greycat.workers.GraphWorkerPool;
-import greycat.workers.MailboxRegistry;
-import greycat.workers.WorkerAffinity;
+import greycat.workers.*;
 import org.junit.*;
 
 import java.util.concurrent.CountDownLatch;
@@ -38,7 +36,15 @@ public class WSWithWorkersMultiCLientTest {
 
     @Before
     public void setUp() {
-        GraphWorkerPool.getInstance().initialize(GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()));
+        GraphBuilder graphBuilder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest());
+        WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
+        WorkerBuilderFactory defaultRootFactory = () -> DefaultRootWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
+
+        GraphWorkerPool workersPool = GraphWorkerPool.getInstance()
+                .withRootWorkerBuilderFactory(defaultRootFactory)
+                .withDefaultWorkerBuilderFactory(defaultFactory);
+        workersPool.initialize();
+
         for (int i = 0; i < 5; i++) {
             GraphWorkerPool.getInstance().createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
         }

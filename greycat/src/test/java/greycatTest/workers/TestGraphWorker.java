@@ -22,10 +22,7 @@ import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.L3GMap;
 import greycat.utility.Tuple;
-import greycat.workers.GraphWorker;
-import greycat.workers.MailboxRegistry;
-import greycat.workers.StorageMessageType;
-import greycat.workers.WorkerMailbox;
+import greycat.workers.*;
 
 import java.util.List;
 
@@ -45,6 +42,14 @@ public class TestGraphWorker extends GraphWorker {
 
     public Graph getWorkingGraph() {
         return workingGraphInstance;
+    }
+
+    public int getMailboxId() {
+        return this.mailboxId;
+    }
+
+    public WorkerCallbacksRegistry getCallbackRegistry() {
+        return this.callbacksRegistry;
     }
 
     public void submitTask(final Task requestedTask, final Callback<TaskResult> requesterCallback, final int destMailboxId) {

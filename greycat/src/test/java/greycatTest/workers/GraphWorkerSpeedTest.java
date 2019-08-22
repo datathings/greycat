@@ -16,8 +16,7 @@
 package greycatTest.workers;
 
 import greycat.*;
-import greycat.workers.GraphWorkerPool;
-import greycat.workers.SlaveWorkerStorage;
+import greycat.workers.*;
 import greycatTest.internal.MockStorage;
 
 import java.util.concurrent.CountDownLatch;
@@ -152,11 +151,16 @@ public class GraphWorkerSpeedTest {
 
             CountDownLatch allDoneLatch = new CountDownLatch(1);
 
+            GraphBuilder graphBuilder = GraphBuilder.newBuilder().withStorage(queueStorage);
+            WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
+            WorkerBuilderFactory defaultRootFactory = () -> DefaultRootWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
 
-            GraphWorkerPool workersPool = GraphWorkerPool.getInstance();
-            workersPool.initialize(GraphBuilder.newBuilder().withStorage(queueStorage));
+            GraphWorkerPool workersPool = GraphWorkerPool.getInstance()
+                    .withRootWorkerBuilderFactory(defaultRootFactory)
+                    .withDefaultWorkerBuilderFactory(defaultFactory);
+            workersPool.initialize();
 
-            TestGraphWorker localWorker = new TestGraphWorker(GraphBuilder.newBuilder().withStorage(new SlaveWorkerStorage()).withPlugin(new PluginForWorkersTest()), "TestWorker", true);
+            TestGraphWorker localWorker = (TestGraphWorker) TestWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder).withName("TestWorker").withWorkerKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
             Thread localThread = new Thread(localWorker, "TestWorker");
             localThread.start();
 
@@ -215,10 +219,16 @@ public class GraphWorkerSpeedTest {
             CountDownLatch allDoneLatch = new CountDownLatch(1);
 
 
-            GraphWorkerPool workersPool = GraphWorkerPool.getInstance();
-            workersPool.initialize(GraphBuilder.newBuilder().withStorage(queueStorage));
+            GraphBuilder graphBuilder = GraphBuilder.newBuilder().withStorage(queueStorage);
+            WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
+            WorkerBuilderFactory defaultRootFactory = () -> DefaultRootWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
 
-            TestGraphWorker localWorker = new TestGraphWorker(GraphBuilder.newBuilder().withStorage(new SlaveWorkerStorage()).withPlugin(new PluginForWorkersTest()), "TestWorker", true);
+            GraphWorkerPool workersPool = GraphWorkerPool.getInstance()
+                    .withRootWorkerBuilderFactory(defaultRootFactory)
+                    .withDefaultWorkerBuilderFactory(defaultFactory);
+            workersPool.initialize();
+
+            TestGraphWorker localWorker = (TestGraphWorker) TestWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder).withName("TestWorker").withWorkerKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
             Thread localThread = new Thread(localWorker, "TestWorker");
             localThread.start();
 

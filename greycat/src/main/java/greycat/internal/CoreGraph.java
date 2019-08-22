@@ -185,7 +185,7 @@ public class CoreGraph implements Graph {
         final NodeFactory resolvedFactory = factoryByCode(extraCode);
         BaseNode newNode;
         if (resolvedFactory == null) {
-            System.out.println("WARNING: UnKnow NodeType " + nodeType + ", missing plugin configuration in the builder ? Using generic node as a fallback");
+            System.out.println("WARNING: UnKnow NodeType " + nodeType + ", missing plugin configuration in the graphBuilder ? Using generic node as a fallback");
             newNode = new BaseNode(world, time, this._nodeKeyCalculator.newKey(), this);
         } else {
             newNode = (BaseNode) resolvedFactory.create(world, time, this._nodeKeyCalculator.newKey(), this);
@@ -202,7 +202,7 @@ public class CoreGraph implements Graph {
         final NodeFactory resolvedFactory = factoryByCode(nodeType);
         BaseNode newNode;
         if (resolvedFactory == null) {
-            System.out.println("WARNING: UnKnow NodeType " + nodeType + ", missing plugin configuration in the builder ? Using generic node as a fallback");
+            System.out.println("WARNING: UnKnow NodeType " + nodeType + ", missing plugin configuration in the graphBuilder ? Using generic node as a fallback");
             newNode = new BaseNode(world, time, this._nodeKeyCalculator.newKey(), this);
         } else {
             newNode = (BaseNode) resolvedFactory.create(world, time, this._nodeKeyCalculator.newKey(), this);

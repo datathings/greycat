@@ -18,8 +18,7 @@ package greycat.websocket.withWorkers;
 import greycat.*;
 import greycat.websocket.WSClientForWorkers;
 import greycat.websocket.WSServerWithWorkers;
-import greycat.workers.GraphWorkerPool;
-import greycat.workers.WorkerAffinity;
+import greycat.workers.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -38,8 +37,15 @@ public class WSWithWorkersTest {
 
     @BeforeClass
     public static void setUp() {
-        GraphWorkerPool.getInstance().initialize(GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()));
-        GraphWorkerPool.getInstance().createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        GraphBuilder graphBuilder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest());
+        WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
+        WorkerBuilderFactory defaultRootFactory = () -> DefaultRootWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
+
+        GraphWorkerPool workersPool = GraphWorkerPool.getInstance()
+                .withRootWorkerBuilderFactory(defaultRootFactory)
+                .withDefaultWorkerBuilderFactory(defaultFactory);
+        workersPool.initialize();
+        workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
         wsServer = new WSServerWithWorkers(1234);
         wsServer.start();
     }

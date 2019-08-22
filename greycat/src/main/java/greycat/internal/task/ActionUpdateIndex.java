@@ -76,22 +76,22 @@ class ActionUpdateIndex implements Action {
         /*
         if (_timed) {
             if (_remove) {
-                builder.writeString(CoreActionNames.REMOVE_FROM_GLOBAL_TIMED_INDEX);
+                graphBuilder.writeString(CoreActionNames.REMOVE_FROM_GLOBAL_TIMED_INDEX);
             } else {
-                builder.writeString(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX);
+                graphBuilder.writeString(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX);
             }
         } else {
             if (_remove) {
-                builder.writeString(CoreActionNames.REMOVE_FROM_GLOBAL_INDEX);
+                graphBuilder.writeString(CoreActionNames.REMOVE_FROM_GLOBAL_INDEX);
             } else {
-                builder.writeString(CoreActionNames.ADD_TO_GLOBAL_INDEX);
+                graphBuilder.writeString(CoreActionNames.ADD_TO_GLOBAL_INDEX);
             }
         }
         */
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder, true);
-        //builder.writeChar(Constants.TASK_PARAM_SEP);
-        //TaskHelper.serializeStringParams(_attributes, builder);
+        //graphBuilder.writeChar(Constants.TASK_PARAM_SEP);
+        //TaskHelper.serializeStringParams(_attributes, graphBuilder);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 

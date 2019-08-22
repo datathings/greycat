@@ -18,6 +18,7 @@ package greycat.workers;
 import greycat.GraphBuilder;
 import greycat.Log;
 import greycat.internal.CoreGraphLog;
+import greycat.plugin.Job;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,24 +70,46 @@ public class GraphWorkerPool {
     private Map<String, GraphWorker> workersByRef = new HashMap<>();
     private ThreadPoolExecutor taskworkerPool;
 
-    private GraphBuilder rootBuilder;
+    private WorkerBuilderFactory rootWorkerBuilder;
+    private WorkerBuilderFactory defaultWorkerBuilder;
+
+    private Job onPoolReady;
+
+    //private GraphBuilder rootBuilder;
 
     private GraphWorkerPool() {
     }
 
-    public void initialize(GraphBuilder rootBuilder) {
-        this.rootBuilder = rootBuilder;
+    public GraphWorkerPool withRootWorkerBuilderFactory(WorkerBuilderFactory rootWorkerBuilder) {
+        this.rootWorkerBuilder = rootWorkerBuilder;
+        return this;
+    }
+
+    public GraphWorkerPool withDefaultWorkerBuilderFactory(WorkerBuilderFactory defaultWorkerBuilder) {
+        this.defaultWorkerBuilder = defaultWorkerBuilder;
+        return this;
+    }
+
+    public void initialize() {
 
         workersThreadGroup = new ThreadGroup("GreyCat workersById group");
 
         //ROOT GRAPH
-        rootGraphWorker = new GraphWorker(rootBuilder, "RootWorker", false);
+        rootGraphWorker = rootWorkerBuilder.newBuilder().withName("RootWorker").withWorkerKind(WorkerAffinity.SESSION_WORKER).build();
 
         rootGraphWorkerThread = new Thread(rootGraphWorker, "RootWorker_" + rootGraphWorker.getId());
         rootGraphWorkerThread.setUncaughtExceptionHandler(exceptionHandler);
+
+        rootGraphWorker.setOnWorkerStarted(onPoolReady);
         rootGraphWorkerThread.start();
-        final BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(MAXIMUM_TASK_QUEUE_SIZE);
-        taskworkerPool = new ThreadPoolExecutor(NUMBER_OF_TASK_WORKER, NUMBER_OF_TASK_WORKER, 0L, TimeUnit.MILLISECONDS, queue);
+
+        BlockingQueue<Runnable> tasksQueue = new ArrayBlockingQueue<>(MAXIMUM_TASK_QUEUE_SIZE);
+        taskworkerPool = new ThreadPoolExecutor(NUMBER_OF_TASK_WORKER, NUMBER_OF_TASK_WORKER, 0L, TimeUnit.MILLISECONDS, tasksQueue);
+    }
+
+    public GraphWorkerPool setOnPoolReady(Job onPoolReady) {
+        this.onPoolReady = onPoolReady;
+        return this;
     }
 
     public int getRootWorkerMailboxId() {
@@ -99,31 +122,46 @@ public class GraphWorkerPool {
             @Override
             public void accept(Integer id, GraphWorker worker) {
                 worker.halt();
+                worker.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
             }
         });
         logger.debug("Waiting threads");
+        CountDownLatch latch = new CountDownLatch(threads.size());
         threads.forEach(new BiConsumer<Integer, Thread>() {
             @Override
             public void accept(Integer id, Thread thread) {
                 try {
-                    thread.interrupt();
-                    thread.join(1000);
+                    //thread.interrupt();
+                    thread.join(4000);
+                    logger.trace("Thead " + thread.getName() + " halted.");
+                    latch.countDown();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         });
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         workersById.clear();
         workersByRef.clear();
 
+        try {
+            taskworkerPool.execute(()->{});
         taskworkerPool.shutdown();
+        taskworkerPool.awaitTermination(5000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
+        try {
         logger.debug("Halting root graph worker");
         rootGraphWorker.halt();
-        try {
-            logger.debug("Waiting root thread");
-            rootGraphWorkerThread.interrupt();
-            rootGraphWorkerThread.join(1000);
+        rootGraphWorker.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
+        logger.debug("Waiting root thread");
+            rootGraphWorkerThread.join(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -131,32 +169,21 @@ public class GraphWorkerPool {
     }
 
     public GraphWorker createGraphWorker(byte workerKind) {
-        return createGraphWorkerWithBuilderAndRef(workerKind, rootBuilder, null);
+        return createGraphWorkerWithRef(workerKind, null);
     }
 
     public GraphWorker createGraphWorkerWithRef(byte workerKind, String ref) {
-        return createGraphWorkerWithBuilderAndRef(workerKind, rootBuilder, ref);
-    }
 
-    public GraphWorker createGraphWorkerWithBuilder(byte workerKind, GraphBuilder builder) {
-        return createGraphWorkerWithBuilderAndRef(workerKind, builder, null);
-    }
+        GraphWorker worker = defaultWorkerBuilder.newBuilder()
+                .withName(ref)
+                .withWorkerKind(workerKind)
+                .build();
 
-    public GraphWorker createGraphWorkerWithBuilderAndRef(byte workerKind, GraphBuilder builder, String ref) {
-
-        GraphBuilder slaveWorkerBuilder = builder.clone().withStorage(new SlaveWorkerStorage());
-
-        GraphWorker worker = new GraphWorker(slaveWorkerBuilder, workerKind == WorkerAffinity.GENERAL_PURPOSE_WORKER);
-        if (workerKind == WorkerAffinity.TASK_WORKER) {
-            worker.setTaskWorker();
-        }
-
-        worker.setName(ref == null ? "Worker" + worker.getId() : ref);
         workersById.put(worker.getId(), worker);
         workersByRef.put(worker.getName(), worker);
 
         if (workerKind == WorkerAffinity.TASK_WORKER) {
-            taskworkerPool.submit(worker);
+            taskworkerPool.execute(worker);
         } else {
             Thread workerThread = new Thread(workersThreadGroup, worker, worker.getName());
             workerThread.setUncaughtExceptionHandler(exceptionHandler);
@@ -175,12 +202,13 @@ public class GraphWorkerPool {
             workersByRef.remove(worker.getName());
             workersById.remove(worker.getId());
             worker.halt();
+            worker.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
             Thread workerThread = threads.remove(worker.getId());
             if (workerThread != null) {
                 try {
-                    workerThread.interrupt();
+                    //workerThread.interrupt();
                     workerThread.join();
-                    logger.info("Worker " + worker.getName() + "(" + worker.getId() + ") destroyed.");
+                    logger.debug("Worker " + worker.getName() + "(" + worker.getId() + ") destroyed.");
                 } catch (InterruptedException e) {
                     //e.printStackTrace();
                 }

@@ -16,10 +16,7 @@
 package greycatTest.workers;
 
 import greycat.*;
-import greycat.workers.GraphWorkerPool;
-import greycat.workers.MailboxRegistry;
-import greycat.workers.SlaveWorkerStorage;
-import greycat.workers.WorkerAffinity;
+import greycat.workers.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -44,13 +41,19 @@ public class GraphWorkerTest {
 
     @BeforeClass
     public static void setUp() {
-        GraphWorkerPool workersPool = GraphWorkerPool.getInstance();
-        workersPool.initialize(GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()));
+        GraphBuilder graphBuilder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest());
+        WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
+        WorkerBuilderFactory defaultRootFactory = () -> DefaultRootWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
+
+        GraphWorkerPool workersPool = GraphWorkerPool.getInstance()
+                .withRootWorkerBuilderFactory(defaultRootFactory)
+                .withDefaultWorkerBuilderFactory(defaultFactory);
+        workersPool.initialize();
         workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
         workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
         workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
 
-        localWorker = new TestGraphWorker(GraphBuilder.newBuilder().withStorage(new SlaveWorkerStorage()).withPlugin(new PluginForWorkersTest()), "TestWorker", true);
+        localWorker = (TestGraphWorker) TestWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder).withName("TestWorker").withWorkerKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
         localThread = new Thread(localWorker, "TestWorker");
         localThread.start();
     }

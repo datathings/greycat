@@ -38,10 +38,10 @@ public class CoreGraphLog extends Log {
     }
 
     /** {@native ts
-     * let builder: java.lang.StringBuilder = new java.lang.StringBuilder();
-     * builder.append(CoreGraphLog.trace_msg);
-     * builder.append(greycat.internal.CoreGraphLog.processMessage(message, ...params));
-     * this.writeMessage(builder);
+     * let graphBuilder: java.lang.StringBuilder = new java.lang.StringBuilder();
+     * graphBuilder.append(CoreGraphLog.trace_msg);
+     * graphBuilder.append(greycat.internal.CoreGraphLog.processMessage(message, ...params));
+     * this.writeMessage(graphBuilder);
      * return this;
      * }
      */
@@ -65,10 +65,10 @@ public class CoreGraphLog extends Log {
 
 
     /** {@native ts
-     * let builder: java.lang.StringBuilder = new java.lang.StringBuilder();
-     * builder.append(CoreGraphLog.debug_msg);
-     * builder.append(greycat.internal.CoreGraphLog.processMessage(message, ...params));
-     * this.writeMessage(builder);
+     * let graphBuilder: java.lang.StringBuilder = new java.lang.StringBuilder();
+     * graphBuilder.append(CoreGraphLog.debug_msg);
+     * graphBuilder.append(greycat.internal.CoreGraphLog.processMessage(message, ...params));
+     * this.writeMessage(graphBuilder);
      * return this;
      * }
      */
@@ -113,10 +113,10 @@ public class CoreGraphLog extends Log {
     }
 
     /** {@native ts
-     * let builder: java.lang.StringBuilder = new java.lang.StringBuilder();
-     * builder.append(CoreGraphLog.error_msg);
-     * builder.append(greycat.internal.CoreGraphLog.processMessage(message, ...params));
-     * this.writeMessage(builder);
+     * let graphBuilder: java.lang.StringBuilder = new java.lang.StringBuilder();
+     * graphBuilder.append(CoreGraphLog.error_msg);
+     * graphBuilder.append(greycat.internal.CoreGraphLog.processMessage(message, ...params));
+     * this.writeMessage(graphBuilder);
      * return this;
      * }
      */

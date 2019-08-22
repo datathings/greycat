@@ -27,9 +27,10 @@ public class WorkerMailbox {
 
     private boolean canProcessGeneralTaskQueue;
 
-    private BlockingQueue<byte[]> tasksQueue = new LinkedBlockingQueue<byte[]>();
+    private BlockingQueue<byte[]> tasksQueue;
 
     public WorkerMailbox(boolean canProcessGeneralTaskQueue) {
+        tasksQueue = new LinkedBlockingQueue<byte[]>();
         this.canProcessGeneralTaskQueue = canProcessGeneralTaskQueue;
     }
 
@@ -39,15 +40,18 @@ public class WorkerMailbox {
 
     /**
      * Submits a work task in form of a byte array to the queue.
+     *
      * @param taskBuffer the work task to queue.
      * @return true if the task has been queued; false otherwise.
      */
     public boolean submit(byte[] taskBuffer) {
         return tasksQueue.offer(taskBuffer);
+
     }
 
     /**
      * Enqueues all the working tasks given as parameter.
+     *
      * @param c the collection of work tasks to queue
      * @return true if all have been added; false otherwise.
      */
@@ -57,6 +61,7 @@ public class WorkerMailbox {
 
     /**
      * Non-Blocking retrieve of message
+     *
      * @return a working task submitted to the queue; null is the queue is empty.
      */
     public byte[] poll() {
@@ -77,7 +82,7 @@ public class WorkerMailbox {
      * Blocking retrieve of message, with timeout.
      *
      * @param timeout the quantity of time to wait
-     * @param unit the unit of the quantity of time to wait
+     * @param unit    the unit of the quantity of time to wait
      * @return a working task submitted to the queue; null if returned on timeout
      * @throws InterruptedException In case of interruption while waiting
      */

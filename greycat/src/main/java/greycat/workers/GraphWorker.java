@@ -47,6 +47,7 @@ public class GraphWorker implements Runnable {
     protected WorkerCallbacksRegistry callbacksRegistry;
     protected ArrayList<byte[]> pendingConnectionTasks;
     private AtomicBoolean graphReady = new AtomicBoolean(false);
+    private Job onWorkerStarted;
 
     private String name;
     private boolean haltRequested = false;
@@ -59,9 +60,6 @@ public class GraphWorker implements Runnable {
         mailbox = new WorkerMailbox(canProcessGeneralTaskQueue);
         callbacksRegistry = new WorkerCallbacksRegistry();
         mailboxId = MailboxRegistry.getInstance().addMailbox(mailbox);
-        if (workingGraphBuilder.storage instanceof SlaveWorkerStorage) {
-            ((SlaveWorkerStorage) workingGraphBuilder.storage).setWorkerMailboxId(mailboxId, callbacksRegistry);
-        }
     }
 
     public GraphWorker(GraphBuilder workingGraphBuilder, String name, boolean canProcessGeneralTaskQueue) {
@@ -94,7 +92,11 @@ public class GraphWorker implements Runnable {
         return this.mailbox.submit(activity);
     }
 
-    private final Callback<Buffer> notifyGraphUpdate = (updateContent) -> {
+    public void setOnWorkerStarted(Job onWorkerStarted) {
+        this.onWorkerStarted = onWorkerStarted;
+    }
+
+    protected final Callback<Buffer> notifyGraphUpdate = (updateContent) -> {
         //WebSocketChannel[] others = peers.toArray(new WebSocketChannel[peers.size()]);
         Buffer notificationBuffer = workingGraphInstance.newBuffer();
         notificationBuffer.write(StorageMessageType.NOTIFY_UPDATE);
@@ -114,7 +116,9 @@ public class GraphWorker implements Runnable {
         //System.out.println(getName() + ": Started");
         running = true;
         //System.out.println(getName() + ": Creating new Graph");
-        workingGraphInstance = workingGraphBuilder.build();
+        if(workingGraphInstance == null) {
+            workingGraphInstance = workingGraphBuilder.build();
+        }
         //workingGraphInstance.logDirectory(this.name, "2MB");
         workingGraphInstance.log().debug(getName() + ": New Graph created. Connecting");
 
@@ -122,53 +126,57 @@ public class GraphWorker implements Runnable {
             @Override
             public void on(Boolean connected) {
                 workingGraphInstance.log().debug(getName() + ": Graph connected.");
-                if (!(workingGraphInstance.storage() instanceof SlaveWorkerStorage)) {
-                    workingGraphInstance.storage().listen(GraphWorker.this.notifyGraphUpdate);
-                }
                 graphReady.set(true);
+
                 if (pendingConnectionTasks != null) {
                     workingGraphInstance.log().debug(getName() + ": Re-enqueuing pending connection tasks.");
                     mailbox.addAll(pendingConnectionTasks);
                     pendingConnectionTasks.clear();
                     pendingConnectionTasks = null;
                 }
+
+                if(onWorkerStarted != null) {
+                    onWorkerStarted.run();
+                }
             }
         });
+
 
         while (!haltRequested) {
             try {
                 byte[] tmpTaskBuffer = mailbox.take();
-                if (tmpTaskBuffer == MailboxRegistry.VOID_TASK_NOTIFY && !haltRequested && mailbox.canProcessGeneralTaskQueue()) {
-                    //Checks if a task is available in the taskPool mailbox
-                    tmpTaskBuffer = MailboxRegistry.getInstance().getDefaultMailbox().poll();
-                }
-                if (tmpTaskBuffer != null && tmpTaskBuffer != MailboxRegistry.VOID_TASK_NOTIFY) {
-                    try {
-                        if (graphReady.get() || (tmpTaskBuffer[0] % 2 == 1)) {
-                            //Graph connected or RESPONSE ONLY
-                            processBuffer(tmpTaskBuffer);
-                        } else {
-                            if (pendingConnectionTasks == null) {
-                                pendingConnectionTasks = new ArrayList<>();
+                if(!haltRequested) {
+                    if (tmpTaskBuffer == MailboxRegistry.VOID_TASK_NOTIFY && mailbox.canProcessGeneralTaskQueue()) {
+                        //Checks if a task is available in the taskPool mailbox
+                        tmpTaskBuffer = MailboxRegistry.getInstance().getDefaultMailbox().poll();
+                    }
+
+                    if (tmpTaskBuffer != null && tmpTaskBuffer != MailboxRegistry.VOID_TASK_NOTIFY) {
+                        try {
+                            if (graphReady.get() || (tmpTaskBuffer[0] % 2 == 1)) {
+                                //Graph connected or RESPONSE ONLY
+                                processBuffer(tmpTaskBuffer);
+                            } else {
+                                if (pendingConnectionTasks == null) {
+                                    pendingConnectionTasks = new ArrayList<>();
+                                }
+                                workingGraphInstance.log().debug(getName() + ": Adding task to pending connection list");
+                                pendingConnectionTasks.add(tmpTaskBuffer);
                             }
-                            workingGraphInstance.log().debug(getName() + ": Adding task to pending connection list");
-                            pendingConnectionTasks.add(tmpTaskBuffer);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
                 }
-
             } catch (InterruptedException e) {
                 // e.printStackTrace();
             }
         }
-
+        workingGraphInstance.log().debug(getName() + ": Graph disconnecting");
         workingGraphInstance.disconnect(new Callback<Boolean>() {
             @Override
             public void on(Boolean disconnected) {
                 running = false;
-                System.out.println(getName() + ": Graph disconnected");
             }
         });
     }
