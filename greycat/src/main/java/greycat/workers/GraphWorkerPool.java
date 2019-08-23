@@ -172,7 +172,7 @@ public class GraphWorkerPool {
         logger.info("Halting done.");
     }
 
-    public GraphWorker createWorker(byte workerKind, String ref, HashMap<String, String> properties) {
+    public GraphWorker createWorker(byte workerKind, String ref, Map<String, String> properties) {
 
         GraphWorker worker = defaultWorkerBuilder.newBuilder()
                 .withName(ref)

@@ -282,7 +282,13 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
             PeerInternalListener internalListener = (PeerInternalListener) ((SimpleSetter<WebSocketChannel>) channel.getReceiveSetter()).get();
 
+            submitToWorker(workerAffinity, jobBuffer, internalListener);
+
+        }
+
+        protected void submitToWorker(byte workerAffinity, Buffer jobBuffer, PeerInternalListener internalListener) {
             WorkerMailbox destMailbox;
+
             switch (workerAffinity) {
                 case WorkerAffinity.GENERAL_PURPOSE_WORKER: {
                     destMailbox = MailboxRegistry.getInstance().getMailbox(MailboxRegistry.getInstance().getDefaultMailboxId());
