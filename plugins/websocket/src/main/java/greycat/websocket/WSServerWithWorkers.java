@@ -18,7 +18,6 @@ package greycat.websocket;
 import greycat.*;
 import greycat.internal.CoreGraphLog;
 import greycat.utility.Base64;
-import greycat.internal.CoreGraphLogFile;
 import greycat.internal.heap.HeapBuffer;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
@@ -33,7 +32,6 @@ import io.undertow.websockets.core.*;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 
 import java.io.IOException;
-import java.net.SocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.util.HashMap;
@@ -93,9 +91,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         for (String name : handlers.keySet()) {
             pathHandler.addPrefixPath(name, handlers.get(name));
         }
-        for (String name : handlers.keySet()) {
-            pathHandler.addPrefixPath(name, handlers.get(name));
-        }
+
         String serverPath = "ws://" + SERVER_IP + ":" + port + SERVER_PREFIX;
         this.server = Undertow.builder()
                 .addHttpListener(port, SERVER_IP, pathHandler)
@@ -154,7 +150,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         Thread mailboxReaper;
         WorkerMailbox localMailbox;
         int localMailboxId;
-        private GraphWorker sessionWorker;
+        protected GraphWorker sessionWorker;
 
 
         public PeerInternalListener(final WebSocketChannel channel) {
@@ -164,6 +160,26 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
             logger.info("WSServer\tNew peer connected (" + localMailboxId + ")");
 
             mailboxReaper = new Thread(() -> {
+
+                final WebSocketCallback wsCallback = new WebSocketCallback<Void>() {
+                    @Override
+                    public void complete(WebSocketChannel webSocketChannel, Void aVoid) {
+                        logger.trace("WSServer\tSent message to peer " + localMailboxId);
+                    }
+
+                    @Override
+                    public void onError(WebSocketChannel webSocketChannel, Void aVoid, Throwable throwable) {
+                        logger.error("Error occurred while sending to channel " + localMailboxId);
+                        if (throwable != null) {
+                            if(throwable instanceof ClosedChannelException) {
+                                killSession(webSocketChannel);
+                            } else {
+                                throwable.printStackTrace();
+                            }
+                        }
+                    }
+                };
+
                 try {
                     logger.debug("WSServer\tMailbox reaper ready for peer (" + localMailboxId + ")");
                     while (true && channel.isOpen()) {
@@ -179,24 +195,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                         */
 
                         logger.trace("WSServer\tForwarding response type " + StorageMessageType.byteToString(newMessage[0]) + " to peer " + localMailboxId);
-                        WebSockets.sendBinary(ByteBuffer.wrap(newMessage), channel, new WebSocketCallback<Void>() {
-                            @Override
-                            public void complete(WebSocketChannel webSocketChannel, Void aVoid) {
-                                logger.trace("WSServer\tSent message to peer " + localMailboxId);
-                            }
-
-                            @Override
-                            public void onError(WebSocketChannel webSocketChannel, Void aVoid, Throwable throwable) {
-                                logger.error("Error occurred while sending to channel " + localMailboxId);
-                                if (throwable != null) {
-                                    if(throwable instanceof ClosedChannelException) {
-                                        killSession(webSocketChannel);
-                                    } else {
-                                        throwable.printStackTrace();
-                                    }
-                                }
-                            }
-                        });
+                        WebSockets.sendBinary(ByteBuffer.wrap(newMessage), channel, wsCallback);
                     }
                 } catch (InterruptedException e) {
                     //e.printStackTrace();
@@ -209,7 +208,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
         public boolean submitActivityToSessionWorker(byte[] activity) {
             if (sessionWorker == null) {
-                sessionWorker = GraphWorkerPool.getInstance().createGraphWorkerWithRef(WorkerAffinity.SESSION_WORKER, "Session " + localMailboxId + " Worker");
+                sessionWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.SESSION_WORKER, "Session " + localMailboxId + " Worker", null);
             }
             return sessionWorker.submit(activity);
         }
@@ -303,7 +302,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
                     int callbackId = Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length());
                     //Create and register a specific worker for the task, identified by the callbackID of teh task for this channel.
-                    GraphWorker taskWorker = GraphWorkerPool.getInstance().createGraphWorkerWithRef(WorkerAffinity.TASK_WORKER, "TaskWorker(" + callbackId + ")");
+                    GraphWorker taskWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, "TaskWorker(" + callbackId + ")", null);
                     taskWorker.submit(jobBuffer.data());
                 }
                 break;
@@ -311,10 +310,6 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                     logger.warn("WSServer\tUnexpected value for WorkerAffinity: " + (int) workerAffinity);
                 }
             }
-
-
         }
-
     }
-
 }

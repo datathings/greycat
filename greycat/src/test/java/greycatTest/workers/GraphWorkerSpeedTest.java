@@ -160,7 +160,7 @@ public class GraphWorkerSpeedTest {
                     .withDefaultWorkerBuilderFactory(defaultFactory);
             workersPool.initialize();
 
-            TestGraphWorker localWorker = (TestGraphWorker) TestWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder).withName("TestWorker").withWorkerKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
+            TestGraphWorker localWorker = (TestGraphWorker) TestWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder).withName("TestWorker").withKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
             Thread localThread = new Thread(localWorker, "TestWorker");
             localThread.start();
 
@@ -228,7 +228,7 @@ public class GraphWorkerSpeedTest {
                     .withDefaultWorkerBuilderFactory(defaultFactory);
             workersPool.initialize();
 
-            TestGraphWorker localWorker = (TestGraphWorker) TestWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder).withName("TestWorker").withWorkerKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
+            TestGraphWorker localWorker = (TestGraphWorker) TestWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder).withName("TestWorker").withKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
             Thread localThread = new Thread(localWorker, "TestWorker");
             localThread.start();
 

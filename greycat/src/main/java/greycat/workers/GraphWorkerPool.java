@@ -72,10 +72,9 @@ public class GraphWorkerPool {
 
     private WorkerBuilderFactory rootWorkerBuilder;
     private WorkerBuilderFactory defaultWorkerBuilder;
+    private Map<String, String> rootGraphProperties;
 
     private Job onPoolReady;
-
-    //private GraphBuilder rootBuilder;
 
     private GraphWorkerPool() {
     }
@@ -90,12 +89,17 @@ public class GraphWorkerPool {
         return this;
     }
 
+    public GraphWorkerPool withRootGraphProperties(Map<String, String> rootGraphProperties) {
+        this.rootGraphProperties = rootGraphProperties;
+        return this;
+    }
+
     public void initialize() {
 
         workersThreadGroup = new ThreadGroup("GreyCat workersById group");
 
         //ROOT GRAPH
-        rootGraphWorker = rootWorkerBuilder.newBuilder().withName("RootWorker").withWorkerKind(WorkerAffinity.SESSION_WORKER).build();
+        rootGraphWorker = rootWorkerBuilder.newBuilder().withName("RootWorker").withKind(WorkerAffinity.SESSION_WORKER).withProperties(rootGraphProperties).build();
 
         rootGraphWorkerThread = new Thread(rootGraphWorker, "RootWorker_" + rootGraphWorker.getId());
         rootGraphWorkerThread.setUncaughtExceptionHandler(exceptionHandler);
@@ -168,15 +172,12 @@ public class GraphWorkerPool {
         logger.info("Halting done.");
     }
 
-    public GraphWorker createGraphWorker(byte workerKind) {
-        return createGraphWorkerWithRef(workerKind, null);
-    }
-
-    public GraphWorker createGraphWorkerWithRef(byte workerKind, String ref) {
+    public GraphWorker createWorker(byte workerKind, String ref, HashMap<String, String> properties) {
 
         GraphWorker worker = defaultWorkerBuilder.newBuilder()
                 .withName(ref)
-                .withWorkerKind(workerKind)
+                .withKind(workerKind)
+                .withProperties(properties)
                 .build();
 
         workersById.put(worker.getId(), worker);

@@ -34,9 +34,7 @@ public class WSWithWorkersAffinityTest {
 
     @Before
     public void setUp() {
-
-        Log.LOG_LEVEL = Log.TRACE;
-
+        
         GraphBuilder graphBuilder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest());
         WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
         WorkerBuilderFactory defaultRootFactory = () -> DefaultRootWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
@@ -45,7 +43,7 @@ public class WSWithWorkersAffinityTest {
                 .withRootWorkerBuilderFactory(defaultRootFactory)
                 .withDefaultWorkerBuilderFactory(defaultFactory);
         workersPool.initialize();
-        workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        workersPool.createWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER, "GeneralPurposeWorker_0", null);
 
 
         wsServer = new WSServerWithWorkers(1234);

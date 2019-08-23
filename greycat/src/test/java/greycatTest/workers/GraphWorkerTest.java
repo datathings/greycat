@@ -49,11 +49,11 @@ public class GraphWorkerTest {
                 .withRootWorkerBuilderFactory(defaultRootFactory)
                 .withDefaultWorkerBuilderFactory(defaultFactory);
         workersPool.initialize();
-        workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
-        workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
-        workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        for(int i = 0; i < 3; i++) {
+         workersPool.createWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER, "GeneralPurposeWorker_" + i, null);
+        }
 
-        localWorker = (TestGraphWorker) TestWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder).withName("TestWorker").withWorkerKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
+        localWorker = (TestGraphWorker) TestWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder).withName("TestWorker").withKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
         localThread = new Thread(localWorker, "TestWorker");
         localThread.start();
     }

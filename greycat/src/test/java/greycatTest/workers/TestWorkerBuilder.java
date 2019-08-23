@@ -34,12 +34,16 @@ public class TestWorkerBuilder extends DefaultWorkerBuilder {
         SlaveWorkerStorage workerStorage = new SlaveWorkerStorage();
         GraphBuilder localGraphBuilder = graphBuilder.clone().withStorage(workerStorage);
 
-        TestGraphWorker worker = new TestGraphWorker(localGraphBuilder, workerKind == WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        TestGraphWorker worker = new TestGraphWorker(localGraphBuilder, kind == WorkerAffinity.GENERAL_PURPOSE_WORKER);
         workerStorage.setWorkerMailboxId(worker.getMailboxId(), worker.getCallbackRegistry());
 
-        if (workerKind == WorkerAffinity.TASK_WORKER) {
+        if (kind == WorkerAffinity.TASK_WORKER) {
             worker.setTaskWorker();
         }
+
+        worker.buildGraph();
+        setGraphProperties(worker);
+
         return worker;
     }
 

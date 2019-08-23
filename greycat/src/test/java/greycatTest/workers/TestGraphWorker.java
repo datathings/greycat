@@ -40,6 +40,10 @@ public class TestGraphWorker extends GraphWorker {
         super(workingGraphBuilder, name, canProcessGeneralTaskQueue);
     }
 
+    public void buildGraph() {
+        super.buildGraph();
+    }
+
     public Graph getWorkingGraph() {
         return workingGraphInstance;
     }

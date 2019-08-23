@@ -29,10 +29,12 @@ public class DefaultRootWorkerBuilder extends DefaultWorkerBuilder {
     @Override
     public GraphWorker build() {
         GraphWorker worker = new GraphWorker(graphBuilder, false);
-        Graph rootGraph = graphBuilder.build();
-        worker.workingGraphInstance = rootGraph;
+        worker.buildGraph();
         worker.workingGraphInstance.storage().listen(worker.notifyGraphUpdate);
         worker.setName(this.name);
+
+        setGraphProperties(worker);
+
         return worker;
     }
 }

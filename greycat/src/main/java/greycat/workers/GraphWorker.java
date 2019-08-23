@@ -96,6 +96,12 @@ public class GraphWorker implements Runnable {
         this.onWorkerStarted = onWorkerStarted;
     }
 
+    protected void buildGraph() {
+        if (workingGraphInstance == null) {
+            workingGraphInstance = workingGraphBuilder.build();
+        }
+    }
+
     protected final Callback<Buffer> notifyGraphUpdate = (updateContent) -> {
         //WebSocketChannel[] others = peers.toArray(new WebSocketChannel[peers.size()]);
         Buffer notificationBuffer = workingGraphInstance.newBuffer();
@@ -116,8 +122,8 @@ public class GraphWorker implements Runnable {
         //System.out.println(getName() + ": Started");
         running = true;
         //System.out.println(getName() + ": Creating new Graph");
-        if(workingGraphInstance == null) {
-            workingGraphInstance = workingGraphBuilder.build();
+        if (workingGraphInstance == null) {
+            buildGraph();
         }
         //workingGraphInstance.logDirectory(this.name, "2MB");
         workingGraphInstance.log().debug(getName() + ": New Graph created. Connecting");
@@ -135,7 +141,7 @@ public class GraphWorker implements Runnable {
                     pendingConnectionTasks = null;
                 }
 
-                if(onWorkerStarted != null) {
+                if (onWorkerStarted != null) {
                     onWorkerStarted.run();
                 }
             }
@@ -145,7 +151,7 @@ public class GraphWorker implements Runnable {
         while (!haltRequested) {
             try {
                 byte[] tmpTaskBuffer = mailbox.take();
-                if(!haltRequested) {
+                if (!haltRequested) {
                     if (tmpTaskBuffer == MailboxRegistry.VOID_TASK_NOTIFY && mailbox.canProcessGeneralTaskQueue()) {
                         //Checks if a task is available in the taskPool mailbox
                         tmpTaskBuffer = MailboxRegistry.getInstance().getDefaultMailbox().poll();

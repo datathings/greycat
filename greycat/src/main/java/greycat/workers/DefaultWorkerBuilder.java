@@ -17,6 +17,9 @@ package greycat.workers;
 
 import greycat.GraphBuilder;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @ignore ts
  */
@@ -24,7 +27,8 @@ public class DefaultWorkerBuilder implements WorkerBuilder {
 
     protected GraphBuilder graphBuilder;
     protected String name;
-    protected byte workerKind;
+    protected byte kind;
+    protected Map<String, String> properties;
 
     public static DefaultWorkerBuilder newBuilder() {
         return new DefaultWorkerBuilder();
@@ -36,15 +40,27 @@ public class DefaultWorkerBuilder implements WorkerBuilder {
         SlaveWorkerStorage workerStorage = new SlaveWorkerStorage();
         GraphBuilder localGraphBuilder = graphBuilder.clone().withStorage(workerStorage);
 
-        GraphWorker worker = new GraphWorker(localGraphBuilder, workerKind == WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        GraphWorker worker = new GraphWorker(localGraphBuilder, kind == WorkerAffinity.GENERAL_PURPOSE_WORKER);
 
         workerStorage.setWorkerMailboxId(worker.mailboxId, worker.callbacksRegistry);
 
         worker.setName(this.name);
-        if (workerKind == WorkerAffinity.TASK_WORKER) {
+        if (kind == WorkerAffinity.TASK_WORKER) {
             worker.setTaskWorker();
         }
+
+        worker.buildGraph();
+        setGraphProperties(worker);
+
         return worker;
+    }
+
+    protected void setGraphProperties(GraphWorker worker) {
+        if(properties != null) {
+            properties.forEach((key, value)->{
+                worker.workingGraphInstance.setProperty(key, value);
+            });
+        }
     }
 
     public WorkerBuilder withGraphBuilder(GraphBuilder graphBuilder) {
@@ -59,8 +75,14 @@ public class DefaultWorkerBuilder implements WorkerBuilder {
     }
 
     @Override
-    public WorkerBuilder withWorkerKind(byte workerKind) {
-        this.workerKind = workerKind;
+    public WorkerBuilder withKind(byte kind) {
+        this.kind = kind;
+        return this;
+    }
+
+    @Override
+    public WorkerBuilder withProperties(Map<String, String> properties) {
+        this.properties = properties;
         return this;
     }
 }

@@ -46,7 +46,7 @@ public class WSWithWorkersMultiCLientTest {
         workersPool.initialize();
 
         for (int i = 0; i < 5; i++) {
-            GraphWorkerPool.getInstance().createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
+            GraphWorkerPool.getInstance().createWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER, "GeneralPurposeWorker_" + i, null);
         }
         wsServer = new WSServerWithWorkers(1234);
         wsServer.start();

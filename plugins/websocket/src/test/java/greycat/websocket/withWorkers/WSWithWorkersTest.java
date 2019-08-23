@@ -45,7 +45,7 @@ public class WSWithWorkersTest {
                 .withRootWorkerBuilderFactory(defaultRootFactory)
                 .withDefaultWorkerBuilderFactory(defaultFactory);
         workersPool.initialize();
-        workersPool.createGraphWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER);
+        workersPool.createWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER, "GeneralPurposeWorker_0", null);
         wsServer = new WSServerWithWorkers(1234);
         wsServer.start();
     }

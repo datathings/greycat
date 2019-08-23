@@ -15,6 +15,8 @@
  */
 package greycat.workers;
 
+import java.util.Map;
+
 /**
  * @ignore ts
  */
@@ -23,5 +25,7 @@ public interface WorkerBuilder {
 
     WorkerBuilder withName(String name);
 
-    WorkerBuilder withWorkerKind(byte workerKind);
+    WorkerBuilder withKind(byte workerKind);
+
+    WorkerBuilder withProperties(Map<String, String> properties);
 }
