@@ -32,6 +32,7 @@ import greycat.utility.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -47,7 +48,7 @@ public class GraphWorker implements Runnable {
     protected WorkerCallbacksRegistry callbacksRegistry;
     protected ArrayList<byte[]> pendingConnectionTasks;
     private AtomicBoolean graphReady = new AtomicBoolean(false);
-    private Job onWorkerStarted;
+    private PoolReadyCallback onWorkerStarted;
 
     private String name;
     private boolean haltRequested = false;
@@ -101,7 +102,7 @@ public class GraphWorker implements Runnable {
         return this.mailbox.submit(activity);
     }
 
-    public void setOnWorkerStarted(Job onWorkerStarted) {
+    public void setOnWorkerStarted(PoolReadyCallback onWorkerStarted) {
         this.onWorkerStarted = onWorkerStarted;
     }
 
@@ -160,7 +161,25 @@ public class GraphWorker implements Runnable {
                 }
 
                 if (onWorkerStarted != null) {
-                    onWorkerStarted.run();
+                        workingGraphInstance.log().debug("Calling onWorkerStarted");
+                        GraphWorker temporary = (new DefaultWorkerBuilder()).withGraphBuilder(workingGraphBuilder.withStorage(new SlaveWorkerStorage())).withName("TempGp").withKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
+                        Thread tmpWorkerThread = new Thread(temporary, temporary.getName());
+                        tmpWorkerThread.setUncaughtExceptionHandler((t, e) -> {
+                            workingGraphInstance.log().error("Thread " + t.getName() + " throw an exception", e);
+                        });
+                        tmpWorkerThread.start();
+                        workingGraphInstance.log().trace("Temporary worker created. Calling callback");
+                        onWorkerStarted.onReady(temporary, ()->{
+                            workingGraphInstance.log().trace("Temporary halting");
+                            temporary.halt();
+                            temporary.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
+                            /*
+                            try {
+                                tmpWorkerThread.join();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }*/
+                        });
                 }
             }
         });

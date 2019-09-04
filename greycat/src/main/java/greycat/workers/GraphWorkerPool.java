@@ -15,7 +15,7 @@
  */
 package greycat.workers;
 
-import greycat.GraphBuilder;
+import greycat.Callback;
 import greycat.Log;
 import greycat.internal.CoreGraphLog;
 import greycat.plugin.Job;
@@ -74,7 +74,7 @@ public class GraphWorkerPool {
     private WorkerBuilderFactory defaultWorkerBuilder;
     private Map<String, String> rootGraphProperties;
 
-    private Job onPoolReady;
+    private PoolReadyCallback onPoolReady;
 
     private GraphWorkerPool() {
     }
@@ -111,7 +111,7 @@ public class GraphWorkerPool {
         taskworkerPool = new ThreadPoolExecutor(NUMBER_OF_TASK_WORKER, NUMBER_OF_TASK_WORKER, 0L, TimeUnit.MILLISECONDS, tasksQueue);
     }
 
-    public GraphWorkerPool setOnPoolReady(Job onPoolReady) {
+    public GraphWorkerPool setOnPoolReady(PoolReadyCallback onPoolReady) {
         this.onPoolReady = onPoolReady;
         return this;
     }
