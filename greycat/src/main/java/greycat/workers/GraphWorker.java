@@ -53,6 +53,9 @@ public class GraphWorker implements Runnable {
     private boolean haltRequested = false;
     private boolean isTaskWorker = false;
 
+    private String logPath;
+    private String logMaxSize;
+
     private boolean running = false;
 
     public GraphWorker(GraphBuilder workingGraphBuilder, boolean canProcessGeneralTaskQueue) {
@@ -65,6 +68,12 @@ public class GraphWorker implements Runnable {
     public GraphWorker(GraphBuilder workingGraphBuilder, String name, boolean canProcessGeneralTaskQueue) {
         this(workingGraphBuilder, canProcessGeneralTaskQueue);
         this.name = name;
+    }
+
+    public GraphWorker withLogDirectory(String path, String maxSize) {
+        this.logPath = path;
+        this.logMaxSize = maxSize;
+        return this;
     }
 
     public void setName(String name) {
@@ -96,6 +105,10 @@ public class GraphWorker implements Runnable {
         this.onWorkerStarted = onWorkerStarted;
     }
 
+    public Log log() {
+        return workingGraphInstance.log();
+    }
+
     protected void buildGraph() {
         if (workingGraphInstance == null) {
             workingGraphInstance = workingGraphBuilder.build();
@@ -125,8 +138,13 @@ public class GraphWorker implements Runnable {
         if (workingGraphInstance == null) {
             buildGraph();
         }
-        //workingGraphInstance.logDirectory(this.name, "2MB");
+
+        if(this.logPath != null) {
+            workingGraphInstance.logDirectory(this.logPath , this.logMaxSize);
+        }
+
         workingGraphInstance.log().debug(getName() + ": New Graph created. Connecting");
+
 
         workingGraphInstance.connect(new Callback<Boolean>() {
             @Override

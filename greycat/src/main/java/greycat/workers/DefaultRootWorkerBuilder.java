@@ -15,7 +15,6 @@
  */
 package greycat.workers;
 
-import greycat.Graph;
 
 /**
  * @ignore ts

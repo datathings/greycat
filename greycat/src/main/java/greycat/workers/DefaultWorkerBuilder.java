@@ -30,6 +30,8 @@ public class DefaultWorkerBuilder implements WorkerBuilder {
     protected byte kind;
     protected Map<String, String> properties;
 
+    protected String logPath, logMaxSize;
+
     public static DefaultWorkerBuilder newBuilder() {
         return new DefaultWorkerBuilder();
     }
@@ -49,6 +51,10 @@ public class DefaultWorkerBuilder implements WorkerBuilder {
             worker.setTaskWorker();
         }
 
+        if(this.logPath != null) {
+            worker.withLogDirectory(this.logPath, this.logMaxSize);
+        }
+
         worker.buildGraph();
         setGraphProperties(worker);
 
@@ -65,6 +71,12 @@ public class DefaultWorkerBuilder implements WorkerBuilder {
 
     public WorkerBuilder withGraphBuilder(GraphBuilder graphBuilder) {
         this.graphBuilder = graphBuilder;
+        return this;
+    }
+
+    public WorkerBuilder withLogDirectory(String path, String maxSize) {
+        this.logPath = path;
+        this.logMaxSize = maxSize;
         return this;
     }
 
