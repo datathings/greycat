@@ -27,9 +27,9 @@
     <description>The GreyCat project</description>
 
     <scm>
-        <connection>scm:git:git@github.com:datathings/greycat.git</connection>
-        <developerConnection>scm:git:git@github.com:datathings/greycat.git</developerConnection>
-        <url>http://github.com/datathings/greycat.git</url>
+        <connection>scm:git:git@hub.datathings.com:greycat-java/greycat.git</connection>
+        <developerConnection>scm:git:git@hub.datathings.com:greycat-java/greycat.git</developerConnection>
+        <url>https://hub.datathings.com/greycat-java/greycat.git</url>
     </scm>
 
     <licenses>
