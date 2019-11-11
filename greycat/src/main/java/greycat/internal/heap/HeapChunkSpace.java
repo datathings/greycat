@@ -831,6 +831,7 @@ public class HeapChunkSpace implements ChunkSpace {
         long i = 0;
         long cleaned = 0;
         int offset;
+        int m;
         while (i < this._lru.size() && cleaned < nb_to_clean) {
             offset = (int) this._lru.dequeueTail();
             if (offset == -1) {
@@ -838,6 +839,41 @@ public class HeapChunkSpace implements ChunkSpace {
             }
             this._lru.enqueue(offset);
             if (_chunkValues.get(offset) != null) {
+
+                final long victimWorld = _chunkWorlds.get(offset);
+                final long victimTime = _chunkTimes.get(offset);
+                final long victimObj = _chunkIds.get(offset);
+                final byte victimType = _chunkTypes.get(offset);
+                final int indexVictim;
+                if (_deep_priority) {
+                    indexVictim = (int) HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
+                } else {
+                    indexVictim = (int) HashHelper.simpleTripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
+                }
+                m = _hash.get(indexVictim);
+                int last = -1;
+                while (m >= 0) {
+                    if (victimType == _chunkTypes.get(m) && victimWorld == _chunkWorlds.get(m) && victimTime == _chunkTimes.get(m) && victimObj == _chunkIds.get(m)) {
+                        break;
+                    }
+                    last = m;
+                    m = _hashNext.get(m);
+                }
+                //POP THE VALUE FROM THE NEXT LIST
+                if (last == -1) {
+                    int previousNext = _hashNext.get(m);
+                    _hash.set(indexVictim, previousNext);
+                } else {
+                    if (m == -1) {
+                        _hashNext.set(last, -1);
+                    } else {
+                        _hashNext.set(last, _hashNext.get(m));
+                    }
+                }
+                if (m != -1) {
+                    _hashNext.set(m, -1);
+                }
+                
                 _chunkValues.set(offset, null);
                 cleaned++;
             }
