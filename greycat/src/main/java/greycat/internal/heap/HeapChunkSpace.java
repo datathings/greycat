@@ -797,9 +797,9 @@ public class HeapChunkSpace implements ChunkSpace {
                             break;
                         case ChunkType.WORLD_ORDER_CHUNK: {
                             String type = "";
-                            long nodeTypeValue = ((WorldOrderChunk)_chunkValues.get(i)).type();
-                            if(nodeTypeValue != Constants.NULL_LONG) {
-                                if(nodeTypeValue == -1) {
+                            long nodeTypeValue = ((WorldOrderChunk) _chunkValues.get(i)).type();
+                            if (nodeTypeValue != Constants.NULL_LONG) {
+                                if (nodeTypeValue == -1) {
                                     type = " nodeType: BaseNode";
                                 } else {
                                     NodeDeclaration nd = graph().nodeRegistry().declarationByHash((int) nodeTypeValue);
@@ -815,7 +815,7 @@ public class HeapChunkSpace implements ChunkSpace {
                             }
                             System.out.println("WORLD_ORDER\t\t(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")\t->marks->" + _chunkMarks.get(i) + type);
                         }
-                            break;
+                        break;
                         case ChunkType.GEN_CHUNK:
                             System.out.println("GENERATOR\t\t(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")\t->marks->" + _chunkMarks.get(i));
                             break;
@@ -823,6 +823,27 @@ public class HeapChunkSpace implements ChunkSpace {
                 }
             }
         }
+    }
+
+    @Override
+    public long clean(int percent) {
+        final long nb_to_clean = this._lru.size() * percent / 100;
+        long i = 0;
+        long cleaned = 0;
+        int offset;
+        while (i < this._lru.size() && cleaned < nb_to_clean) {
+            offset = (int) this._lru.dequeueTail();
+            if (offset == -1) {
+                break;
+            }
+            this._lru.enqueue(offset);
+            if (_chunkValues.get(offset) != null) {
+                _chunkValues.set(offset, null);
+                cleaned++;
+            }
+            i++;
+        }
+        return cleaned;
     }
 
 }

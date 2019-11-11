@@ -151,4 +151,6 @@ public interface ChunkSpace {
 
     void printMarked();
 
+    long clean(int percent);
+
 }
