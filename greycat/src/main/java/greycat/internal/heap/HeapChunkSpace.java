@@ -62,6 +62,8 @@ public class HeapChunkSpace implements ChunkSpace {
 
     private Interceptor[] _interceptors;
 
+    private long cache_size = 0;
+
     @Override
     public final Graph graph() {
         return this._graph;
@@ -473,6 +475,7 @@ public class HeapChunkSpace implements ChunkSpace {
         _hashNext.set(currentVictimIndex, _hash.get(hashIndex));
         _hash.set(hashIndex, currentVictimIndex);
         //free the lock
+        cache_size++;
         return toInsert;
     }
 
@@ -873,13 +876,19 @@ public class HeapChunkSpace implements ChunkSpace {
                 if (m != -1) {
                     _hashNext.set(m, -1);
                 }
-                
+
                 _chunkValues.set(offset, null);
+                cache_size--;
                 cleaned++;
             }
             i++;
         }
         return cleaned;
+    }
+
+    @Override
+    public long cacheSize() {
+        return cache_size;
     }
 
 }

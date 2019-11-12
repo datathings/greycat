@@ -20,9 +20,13 @@ public class GuardTest {
         }
         g.save(null);
 
+        Assert.assertEquals(404, g.space().cacheSize());
+
         long cleaned = g.space().clean(25);
         Assert.assertEquals(cleaned, 249);
-        
+
+        Assert.assertEquals(155, g.space().cacheSize());
+
         g.disconnect(null);
     }
 

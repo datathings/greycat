@@ -153,4 +153,6 @@ public interface ChunkSpace {
 
     long clean(int percent);
 
+    long cacheSize();
+
 }
