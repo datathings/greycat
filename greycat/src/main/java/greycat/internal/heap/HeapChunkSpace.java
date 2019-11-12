@@ -833,6 +833,11 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
+    public final long capacity() {
+        return _maxEntries;
+    }
+
+    @Override
     public final long dirties() {
         return _dirtiesStack.size();
     }

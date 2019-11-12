@@ -134,6 +134,8 @@ public interface ChunkSpace {
 
     long available();
 
+    long capacity();
+
     long dirties();
 
     /**
