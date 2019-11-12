@@ -130,7 +130,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
     @Override
     public final void on(final Buffer result) {
-        logger.trace("WSServer\tNotifying update");
+        //logger.trace("WSServer\tNotifying update");
         //broadcast to anyone...
         WebSocketChannel[] others = peers.toArray(new WebSocketChannel[peers.size()]);
         Buffer notificationBuffer = new HeapBuffer();
@@ -164,7 +164,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                 final WebSocketCallback wsCallback = new WebSocketCallback<Void>() {
                     @Override
                     public void complete(WebSocketChannel webSocketChannel, Void aVoid) {
-                        logger.trace("WSServer\tSent message to peer " + localMailboxId);
+                        //logger.trace("WSServer\tSent message to peer " + localMailboxId);
                     }
 
                     @Override
@@ -194,7 +194,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                         int callbackId = Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length());
                         */
 
-                        logger.trace("WSServer\tForwarding response type " + StorageMessageType.byteToString(newMessage[0]) + " to peer " + localMailboxId);
+                        //logger.trace("WSServer\tForwarding response type " + StorageMessageType.byteToString(newMessage[0]) + " to peer " + localMailboxId);
                         WebSockets.sendBinary(ByteBuffer.wrap(newMessage), channel, wsCallback);
                     }
                 } catch (InterruptedException e) {
@@ -237,7 +237,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
         private void killSession(WebSocketChannel webSocketChannel) {
             logger.info("WSServer\tPeer (" + localMailboxId + ") connection closed: " + webSocketChannel.getCloseCode() + "\t" + webSocketChannel.getCloseReason());
             if (sessionWorker != null) {
-                logger.trace("WSServer\tDestroying session worker id:" + sessionWorker.getId());
+                //logger.trace("WSServer\tDestroying session worker id:" + sessionWorker.getId());
                 GraphWorkerPool.getInstance().destroyWorkerById(sessionWorker.getId());
             }
             peers.remove(webSocketChannel);
@@ -260,6 +260,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
             jobBuffer.writeAll(input);
 
             if (Log.LOG_LEVEL >= Log.TRACE) {
+                /*
                 final BufferIterator it = jobBuffer.iterator();
                 final Buffer frameTypeBufferView = it.next();
                 final Buffer respChannelBufferView = it.next();
@@ -270,12 +271,13 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                 logger.trace("WSServer\tChannel: " + respChannelBufferView.readInt(0));
                 logger.trace("WSServer\tCallback: " + Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
                 logger.trace("WSServer\tRaw: " + jobBuffer.toString());
+                */
             }
 
 
             //read worker affinity
             byte workerAffinity = (byte) (0xFF & jobBuffer.readInt(2));
-            logger.trace("WSServer\tSubmitting task to " + WorkerAffinity.byteToString(workerAffinity));
+            //logger.trace("WSServer\tSubmitting task to " + WorkerAffinity.byteToString(workerAffinity));
 
             //Override worker affinity with mailboxId for response
             jobBuffer.writeIntAt(this.localMailboxId, 2);
