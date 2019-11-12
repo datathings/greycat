@@ -408,6 +408,7 @@ public class HeapChunkSpace implements ChunkSpace {
             }
         }
         if (found != -1) {
+            cache_size--;
             _dirtiesStack.dequeue(found);
             _chunkValues.set(found, null);
                 /*
@@ -551,6 +552,8 @@ public class HeapChunkSpace implements ChunkSpace {
             if (m != -1) {
                 _hashNext.set(m, -1);
             }
+        } else {
+            cache_size++;
         }
         _chunkValues.set(currentVictimIndex, toInsert);
         _chunkMarks.set(currentVictimIndex, 1);
@@ -562,7 +565,6 @@ public class HeapChunkSpace implements ChunkSpace {
         _hashNext.set(currentVictimIndex, _hash.get(hashIndex));
         _hash.set(hashIndex, currentVictimIndex);
         //free the lock
-        cache_size++;
         return toInsert;
     }
 
