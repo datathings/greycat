@@ -59,6 +59,8 @@ public class GraphWorker implements Runnable {
 
     private boolean running = false;
 
+    private AtomicBoolean cleanCache = new AtomicBoolean(false);
+
     public GraphWorker(GraphBuilder workingGraphBuilder, boolean canProcessGeneralTaskQueue) {
         this.workingGraphBuilder = workingGraphBuilder;
         mailbox = new WorkerMailbox(canProcessGeneralTaskQueue);
@@ -82,8 +84,11 @@ public class GraphWorker implements Runnable {
     }
 
     public String getName() {
-
         return (this.name != null ? this.name : "Worker_" + mailboxId);
+    }
+
+    public void cleanCache() {
+        this.cleanCache.set(true);
     }
 
     public void halt() {
@@ -194,6 +199,13 @@ public class GraphWorker implements Runnable {
                         tmpTaskBuffer = MailboxRegistry.getInstance().getDefaultMailbox().poll();
                     }
 
+                    if(this.cleanCache.get()) {
+                        long cleaned = this.workingGraphInstance.space().clean(20);
+                        System.gc();
+                        workingGraphInstance.log().debug(getName() + ": Cleaned " + cleaned + " elements" );
+                        this.cleanCache.set(false);
+                    }
+
                     if (tmpTaskBuffer != null && tmpTaskBuffer != MailboxRegistry.VOID_TASK_NOTIFY) {
                         try {
                             if (graphReady.get() || (tmpTaskBuffer[0] % 2 == 1)) {
@@ -219,12 +231,16 @@ public class GraphWorker implements Runnable {
         workingGraphInstance.disconnect(new Callback<Boolean>() {
             @Override
             public void on(Boolean disconnected) {
+                workingGraphInstance.log().debug(getName() + ": Calling GC");
+                System.gc();
                 running = false;
             }
         });
     }
 
     void processBuffer(final byte[] buffer) {
+
+
 
         Buffer taskBuffer = new HeapBuffer();
         taskBuffer.writeAll(buffer);
@@ -235,11 +251,13 @@ public class GraphWorker implements Runnable {
         final Buffer callbackBufferView = it.next();
 
         // --------   DEBUG PRINT ----------
+        /*
         workingGraphInstance.log().trace(getName() + "\t========= " + getName() + " Received =========");
         workingGraphInstance.log().trace(getName() + "\tType: " + StorageMessageType.byteToString(bufferTypeBufferView.read(0)));
         workingGraphInstance.log().trace(getName() + "\tChannel: " + respChannelBufferView.readInt(0));
         workingGraphInstance.log().trace(getName() + "\tCallback: " + Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
         workingGraphInstance.log().trace(getName() + "\tRaw: " + taskBuffer.toString());
+        */
 
         // --------   DEBUG PRINT END ----------
 

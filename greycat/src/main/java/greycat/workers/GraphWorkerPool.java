@@ -15,16 +15,21 @@
  */
 package greycat.workers;
 
-import greycat.Callback;
 import greycat.Log;
 import greycat.internal.CoreGraphLog;
-import greycat.plugin.Job;
 
+import javax.management.NotificationEmitter;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+
+import static greycat.Log.TRACE;
 
 /**
  * @ignore ts
@@ -68,13 +73,22 @@ public class GraphWorkerPool {
     private Map<Integer, GraphWorker> workersById = new HashMap<>();
     private Map<Integer, Thread> threads = new HashMap<>();
     private Map<String, GraphWorker> workersByRef = new HashMap<>();
-    private ThreadPoolExecutor taskworkerPool;
+    private ThreadPoolExecutor taskWorkerPool;
 
-    private WorkerBuilderFactory rootWorkerBuilder;
     private WorkerBuilderFactory defaultWorkerBuilder;
-    private Map<String, String> rootGraphProperties;
+    private WorkerBuilderFactory rootWorkerBuilder;
+    private WorkerBuilderFactory taskWorkerBuilder;
+    private WorkerBuilderFactory gpWorkerBuilder;
+    private WorkerBuilderFactory sessionWorkerBuilder;
 
+    private Map<String, String> rootGraphProperties;
     private PoolReadyCallback onPoolReady;
+    private ScheduledExecutorService scheduledExecutor;
+
+    private boolean memoryMonitorActivated = false;
+    private int memoryCheckDelay;
+    private TimeUnit memoryCheckTimeUnit;
+    private double cleanThreshold;
 
     private GraphWorkerPool() {
     }
@@ -94,6 +108,37 @@ public class GraphWorkerPool {
         return this;
     }
 
+    public GraphWorkerPool withTaskWorkerBuilder(WorkerBuilderFactory taskWorkerBuilder) {
+        this.taskWorkerBuilder = taskWorkerBuilder;
+        return this;
+    }
+
+    public GraphWorkerPool withGeneralPurposeWorkerBuilder(WorkerBuilderFactory gpWorkerBuilder) {
+        this.gpWorkerBuilder = gpWorkerBuilder;
+        return this;
+    }
+
+    public GraphWorkerPool withSessionWorkerBuilder(WorkerBuilderFactory sessionWorkerBuilder) {
+        this.sessionWorkerBuilder = sessionWorkerBuilder;
+        return this;
+    }
+
+    /**
+     * Activates memory monitor.
+     *
+     * @param cleanThreshold 0 < value < 1 defining the (usedMemory / maxMemory) threshold over which a cache clean is requested.
+     * @param delay          value of the memory check intervals
+     * @param timeUnit       unit of memory check intervals
+     * @return the GraphWorkerPool
+     */
+    public GraphWorkerPool withMemoryMonitorActivated(double cleanThreshold, int delay, TimeUnit timeUnit) {
+        this.memoryMonitorActivated = true;
+        this.memoryCheckDelay = delay;
+        this.memoryCheckTimeUnit = timeUnit;
+        this.cleanThreshold = cleanThreshold;
+        return this;
+    }
+
     public void initialize() {
 
         workersThreadGroup = new ThreadGroup("GreyCat workersById group");
@@ -108,7 +153,49 @@ public class GraphWorkerPool {
         rootGraphWorkerThread.start();
 
         BlockingQueue<Runnable> tasksQueue = new ArrayBlockingQueue<>(MAXIMUM_TASK_QUEUE_SIZE);
-        taskworkerPool = new ThreadPoolExecutor(NUMBER_OF_TASK_WORKER, NUMBER_OF_TASK_WORKER, 0L, TimeUnit.MILLISECONDS, tasksQueue);
+        taskWorkerPool = new ThreadPoolExecutor(NUMBER_OF_TASK_WORKER, NUMBER_OF_TASK_WORKER, 0L, TimeUnit.MILLISECONDS, tasksQueue);
+
+        MemoryMXBean mbean = ManagementFactory.getMemoryMXBean();
+        NotificationEmitter emitter = (NotificationEmitter) mbean;
+        emitter.addNotificationListener((notification, handback) -> {
+            logger.debug("Memory Notification: " + notification.getMessage() + "  ");
+        }, null, null);
+
+        if (memoryMonitorActivated) {
+            scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+            scheduledExecutor.scheduleWithFixedDelay(() -> {
+                MemoryUsage heapUsage = mbean.getHeapMemoryUsage();
+                MemoryUsage nonHeapUsage = mbean.getNonHeapMemoryUsage();
+
+                if (Log.LOG_LEVEL >= TRACE) {
+                    ArrayList<GraphWorker> localWorkers = new ArrayList<>(workersById.values());
+                    localWorkers.add(rootGraphWorker);
+                    localWorkers.stream().map(graphWorker -> graphWorker.getName() + " cacheSize: " + graphWorker.workingGraphInstance.space().capacity() + " " + ((graphWorker.workingGraphInstance.space().cacheSize() * 100) / graphWorker.workingGraphInstance.space().capacity()) + "% used.").forEach(v -> logger.trace(v));
+                    logger.trace("Memory Heap: init:{}, used:{}, committed:{}, max:{}", formatBytes(heapUsage.getInit(), 3), formatBytes(heapUsage.getUsed(), 3), formatBytes(heapUsage.getCommitted(), 3), formatBytes(heapUsage.getMax(), 3));
+                }
+                if ((heapUsage.getUsed() * 1. / heapUsage.getMax()) >= cleanThreshold) {
+                    logger.warn("Memory under pressure! Cleaning caches.");
+                    ArrayList<GraphWorker> localWorkers = new ArrayList<>(workersById.values());
+                    localWorkers.add(rootGraphWorker);
+                    localWorkers.forEach(worker -> worker.cleanCache());
+                    System.gc();
+                }
+
+            }, memoryCheckDelay, memoryCheckDelay, memoryCheckTimeUnit);
+        }
+
+    }
+
+    public static String formatBytes(double bytes, int digits) {
+        String[] dictionary = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
+        int index = 0;
+        for (index = 0; index < dictionary.length; index++) {
+            if (bytes < 1024) {
+                break;
+            }
+            bytes = bytes / 1024;
+        }
+        return String.format("%." + digits + "f", bytes) + " " + dictionary[index];
     }
 
     public GraphWorkerPool setOnPoolReady(PoolReadyCallback onPoolReady) {
@@ -121,6 +208,10 @@ public class GraphWorkerPool {
     }
 
     public void halt() {
+        if (memoryMonitorActivated) {
+            scheduledExecutor.shutdownNow();
+        }
+
         logger.info("Halting workers pool...");
         workersById.forEach(new BiConsumer<Integer, GraphWorker>() {
             @Override
@@ -153,18 +244,19 @@ public class GraphWorkerPool {
         workersByRef.clear();
 
         try {
-            taskworkerPool.execute(()->{});
-        taskworkerPool.shutdown();
-        taskworkerPool.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            taskWorkerPool.execute(() -> {
+            });
+            taskWorkerPool.shutdown();
+            taskWorkerPool.awaitTermination(5000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         try {
-        logger.debug("Halting root graph worker");
-        rootGraphWorker.halt();
-        rootGraphWorker.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
-        logger.debug("Waiting root thread");
+            logger.debug("Halting root graph worker");
+            rootGraphWorker.halt();
+            rootGraphWorker.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
+            logger.debug("Waiting root thread");
             rootGraphWorkerThread.join(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -174,7 +266,29 @@ public class GraphWorkerPool {
 
     public GraphWorker createWorker(byte workerKind, String ref, Map<String, String> properties) {
 
-        GraphWorker worker = defaultWorkerBuilder.newBuilder()
+        WorkerBuilderFactory workerBuilderFactoryToUse = this.defaultWorkerBuilder;
+        switch (workerKind) {
+            case WorkerAffinity.GENERAL_PURPOSE_WORKER: {
+                if (this.gpWorkerBuilder != null) {
+                    workerBuilderFactoryToUse = this.gpWorkerBuilder;
+                }
+            }
+            break;
+            case WorkerAffinity.SESSION_WORKER: {
+                if (this.sessionWorkerBuilder != null) {
+                    workerBuilderFactoryToUse = this.sessionWorkerBuilder;
+                }
+            }
+            break;
+            case WorkerAffinity.TASK_WORKER: {
+                if (this.taskWorkerBuilder != null) {
+                    workerBuilderFactoryToUse = this.taskWorkerBuilder;
+                }
+            }
+            break;
+        }
+
+        GraphWorker worker = workerBuilderFactoryToUse.newBuilder()
                 .withName(ref)
                 .withKind(workerKind)
                 .withProperties(properties)
@@ -184,7 +298,7 @@ public class GraphWorkerPool {
         workersByRef.put(worker.getName(), worker);
 
         if (workerKind == WorkerAffinity.TASK_WORKER) {
-            taskworkerPool.execute(worker);
+            taskWorkerPool.execute(worker);
         } else {
             Thread workerThread = new Thread(workersThreadGroup, worker, worker.getName());
             workerThread.setUncaughtExceptionHandler(exceptionHandler);
@@ -235,10 +349,10 @@ public class GraphWorkerPool {
     }
 
     public boolean removeTaskWorker(GraphWorker worker) {
-        boolean result = taskworkerPool.remove(worker);
+        boolean result = taskWorkerPool.remove(worker);
         workersByRef.remove(worker.getName());
         workersById.remove(worker.getId());
-        taskworkerPool.purge();
+        taskWorkerPool.purge();
         return result;
     }
 
