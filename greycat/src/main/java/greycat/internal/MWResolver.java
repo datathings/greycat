@@ -1004,7 +1004,7 @@ final class MWResolver implements Resolver {
                                     if (timeTree != null) {
                                         long currentDivergenceTime = objectWorldOrder.get(worldCollector.get(i));
                                         int finalI = i;
-                                        timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
+                                        timeTree.range(from, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
                                             @Override
                                             public void elem(final long superTime, final long superCapacity) {
                                                 if (!tempSuperTimeCollector.contains(superTime)) {
