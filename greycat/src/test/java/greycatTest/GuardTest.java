@@ -11,7 +11,7 @@ public class GuardTest {
     @Test
     public void test() {
         MockStorage storage = new MockStorage();
-        Graph g = GraphBuilder.newBuilder().withMemorySize(1000).withScheduler(new NoopScheduler()).withStorage(storage).build();
+        Graph g = GraphBuilder.newBuilder().withMemorySize(10).withScheduler(new NoopScheduler()).withStorage(storage).build();
         g.connect(null);
 
         for (int i = 0; i < 100; i++) {
@@ -19,13 +19,12 @@ public class GuardTest {
             n.free();
         }
         g.save(null);
-
-        Assert.assertEquals(404, g.space().cacheSize());
+        long cacheSizeBefore = g.space().cacheSize();
+        Assert.assertEquals(404, cacheSizeBefore);
 
         long cleaned = g.space().clean(25);
-        Assert.assertEquals(cleaned, 249);
-
-        Assert.assertEquals(155, g.space().cacheSize());
+        Assert.assertEquals(cleaned, 101);
+        Assert.assertEquals(cacheSizeBefore - cleaned, g.space().cacheSize());
 
         g.disconnect(null);
     }

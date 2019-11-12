@@ -37,24 +37,24 @@ public class HeapChunkSpace implements ChunkSpace {
 
     private static final int HASH_LOAD_FACTOR = 4;
 
-    private final int _maxEntries;
+    private int _maxEntries;
     private final int _batchSize;
-    private final int _hashEntries;
+    private int _hashEntries;
 
-    private final Stack _lru;
-    private final Stack _dirtiesStack;
+    private Stack _lru;
+    private Stack _dirtiesStack;
 
-    private final AtomicIntegerArray _hashNext;
-    private final AtomicIntegerArray _hash;
+    private AtomicIntegerArray _hashNext;
+    private AtomicIntegerArray _hash;
 
-    private final AtomicLongArray _chunkWorlds;
-    private final AtomicLongArray _chunkTimes;
-    private final AtomicLongArray _chunkIds;
-    private final HeapAtomicByteArray _chunkTypes;
+    private AtomicLongArray _chunkWorlds;
+    private AtomicLongArray _chunkTimes;
+    private AtomicLongArray _chunkIds;
+    private HeapAtomicByteArray _chunkTypes;
 
-    private final AtomicReferenceArray<Chunk> _chunkValues;
+    private AtomicReferenceArray<Chunk> _chunkValues;
 
-    private final AtomicLongArray _chunkMarks;
+    private AtomicLongArray _chunkMarks;
 
     private final Graph _graph;
 
@@ -107,6 +107,92 @@ public class HeapChunkSpace implements ChunkSpace {
         for (int i = 0; i < _maxEntries; i++) {
             _chunkMarks.set(i, 0);
         }
+    }
+
+    private void capacity_extends() {
+        int new_maxEntries = this._maxEntries * 2;
+        this._graph.log().warn("extends cache capacity from " + this._maxEntries + " to " + new_maxEntries);
+        int new_hashEntries = new_maxEntries * HASH_LOAD_FACTOR;
+        Stack new_lru = new HeapFixedStack(new_maxEntries, true);
+        Stack new_dirties = new HeapFixedStack(new_maxEntries, false);
+        AtomicIntegerArray new_hashNext = new AtomicIntegerArray(new_maxEntries);
+        AtomicIntegerArray new_hash = new AtomicIntegerArray(new_hashEntries);
+        for (int i = 0; i < new_maxEntries; i++) {
+            new_hashNext.set(i, -1);
+        }
+        for (int i = 0; i < new_hashEntries; i++) {
+            new_hash.set(i, -1);
+        }
+        AtomicReferenceArray<Chunk> new_chunkValues = new AtomicReferenceArray<Chunk>(new_maxEntries);
+        AtomicLongArray new_chunkWorlds = new AtomicLongArray(new_maxEntries);
+        AtomicLongArray new_chunkTimes = new AtomicLongArray(new_maxEntries);
+        AtomicLongArray new_chunkIds = new AtomicLongArray(new_maxEntries);
+        HeapAtomicByteArray new_chunkTypes = new HeapAtomicByteArray(new_maxEntries);
+        AtomicLongArray new_chunkMarks = new AtomicLongArray(new_maxEntries);
+        for (int i = 0; i < new_maxEntries; i++) {
+            new_chunkMarks.set(i, 0);
+        }
+
+        byte type;
+        long world;
+        long time;
+        long id;
+        Chunk chunk;
+        long marks;
+        int index;
+
+        int offset = (int) _dirtiesStack.dequeueTail();
+        while (offset != -1) {
+            new_dirties.enqueue(offset);
+            offset = (int) _dirtiesStack.dequeueTail();
+        }
+
+        for (int i = 0; i < _maxEntries; i++) {
+            new_lru.dequeue(i);
+
+            type = _chunkTypes.get(i);
+            world = _chunkWorlds.get(i);
+            time = _chunkTimes.get(i);
+            id = _chunkIds.get(i);
+            chunk = _chunkValues.get(i);
+            marks = _chunkMarks.get(i);
+            new_chunkTypes.set(i, type);
+            new_chunkWorlds.set(i, world);
+            new_chunkTimes.set(i, time);
+            new_chunkIds.set(i, id);
+            new_chunkValues.set(i, chunk);
+            new_chunkMarks.set(i, marks);
+
+            if (_deep_priority) {
+                index = (int) HashHelper.tripleHash(type, world, time, id, new_hashEntries);
+            } else {
+                index = (int) HashHelper.simpleTripleHash(type, world, time, id, new_hashEntries);
+            }
+
+            int previous_hash = new_hash.get(index);
+            new_hash.set(index, i);
+            new_hashNext.set(i, previous_hash);
+
+            if (marks == 0) {
+                new_lru.enqueue(i);
+            }
+            if (_dirtiesStack.dequeue(i)) {
+                new_dirties.enqueue(i);
+            }
+        }
+
+        this._maxEntries = new_maxEntries;
+        this._hashEntries = new_hashEntries;
+        this._lru = new_lru;
+        this._dirtiesStack = new_dirties;
+        this._hashNext = new_hashNext;
+        this._hash = new_hash;
+        this._chunkValues = new_chunkValues;
+        this._chunkWorlds = new_chunkWorlds;
+        this._chunkTimes = new_chunkTimes;
+        this._chunkIds = new_chunkIds;
+        this._chunkTypes = new_chunkTypes;
+        this._chunkMarks = new_chunkMarks;
     }
 
     @Override
@@ -232,10 +318,7 @@ public class HeapChunkSpace implements ChunkSpace {
         }
         if (reverse != null) {
             final int[] finalReverse = reverse;
-
-            //TODO //TODO
-
-
+            // TODO: enhance performance
             graph().storage().get(toLoadKeys, new Callback<Buffer>() {
                 @Override
                 public void on(final Buffer loadAllResult) {
@@ -405,8 +488,12 @@ public class HeapChunkSpace implements ChunkSpace {
             }
         }
         if (currentVictimIndex == -1) {
+            capacity_extends();
+            return internal_createAndMark(type, world, time, id);
+            //RESIZE
+            //CALL again
             // printMarked();
-            throw new RuntimeException("GreyCat crashed, cache is full, please avoid to much retention of nodes or augment cache capacity! available:" + available());
+            //throw new RuntimeException("GreyCat crashed, cache is full, please avoid to much retention of nodes or augment cache capacity! available:" + available());
         }
         Chunk toInsert = null;
         switch (type) {
@@ -830,7 +917,7 @@ public class HeapChunkSpace implements ChunkSpace {
 
     @Override
     public long clean(int percent) {
-        final long nb_to_clean = this._lru.size() * percent / 100;
+        final long nb_to_clean = this.cache_size * percent / 100;
         long i = 0;
         long cleaned = 0;
         int offset;
