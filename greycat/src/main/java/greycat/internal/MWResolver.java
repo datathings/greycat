@@ -1034,7 +1034,10 @@ final class MWResolver implements Resolver {
                                 for (int i = tempSuperTimeCollectorCapacity.size() - 1; i >= 0; i--) {
                                     sumCapacity = sumCapacity + ((int) tempSuperTimeCollectorCapacity.getValue(i));
                                     neededSubTrees++;
-                                    if (limit != -1 && sumCapacity >= limit && neededSubTrees != 1) {
+                                    if (limit != -1 && sumCapacity >= limit) {
+                                        if (i != 0) {
+                                            neededSubTrees++;
+                                        }
                                         break;
                                     }
                                 }
