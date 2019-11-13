@@ -167,7 +167,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         //lock and load fromVar main memory
         int nbElements = 0;
         int indexEnd = internal_previousOrEqual_index(endKey);
-        while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
+        while (indexEnd != -1 && ((indexEnd == _size-1) || (key(indexEnd + 1) >= startKey)) && nbElements < maxElements) {
             walker.elem(_k[indexEnd], _v[indexEnd]);
             nbElements++;
             indexEnd = internal_previous(indexEnd);
