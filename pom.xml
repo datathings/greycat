@@ -39,11 +39,13 @@
         </license>
     </licenses>
 
+    <!--
     <parent>
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
         <version>7</version>
     </parent>
+    -->
 
     <properties>
         <java2typescript.plugin.version>97</java2typescript.plugin.version>
