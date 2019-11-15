@@ -20,7 +20,7 @@
     <groupId>com.datathings</groupId>
     <artifactId>greycat-parent</artifactId>
     <packaging>pom</packaging>
-    <version>19-SNAPSHOT</version>
+    <version>19</version>
     <name>greycat-parent</name>
 
     <url>https://github.com/datathings/greycat</url>
@@ -41,12 +41,12 @@
     </licenses>
 
     <!--
+    -->
     <parent>
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
         <version>7</version>
     </parent>
-    -->
 
     <properties>
         <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
