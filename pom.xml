@@ -20,7 +20,7 @@
     <groupId>com.datathings</groupId>
     <artifactId>greycat-parent</artifactId>
     <packaging>pom</packaging>
-    <version>19-SNAPSHOT</version>
+    <version>20-SNAPSHOT</version>
     <name>greycat-parent</name>
 
     <url>https://github.com/datathings/greycat</url>
@@ -30,7 +30,8 @@
         <connection>scm:git:git@hub.datathings.com:greycat-java/greycat.git</connection>
         <developerConnection>scm:git:git@hub.datathings.com:greycat-java/greycat.git</developerConnection>
         <url>https://hub.datathings.com/greycat-java/greycat.git</url>
-    </scm>
+      <tag>HEAD</tag>
+  </scm>
 
     <licenses>
         <license>
@@ -48,6 +49,7 @@
     -->
 
     <properties>
+        <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
         <java2typescript.plugin.version>97</java2typescript.plugin.version>
         <header.path>${basedir}/HEADER</header.path>
         <undertow.version>1.4.18.Final</undertow.version>
