@@ -36,7 +36,7 @@ import static greycat.Log.TRACE;
  */
 public class GraphWorkerPool {
 
-    private static Log logger = new CoreGraphLog(null);
+    private static Log logger = new CoreGraphLog();
     private static int NUMBER_OF_TASK_WORKER = 1;
     private static int MAXIMUM_TASK_QUEUE_SIZE = 100;
 

@@ -17,6 +17,7 @@ package greycatTest;
 
 import greycat.Graph;
 import greycat.GraphBuilder;
+import greycat.internal.CoreGraphLogFile;
 import greycat.scheduler.NoopScheduler;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,8 +43,8 @@ public class LogTest {
     public void simpleFileTest() {
         Graph g = GraphBuilder.newBuilder()
                 .withScheduler(new NoopScheduler())
+                .withLogger(new CoreGraphLogFile("log_out", "10KB"))
                 .build();
-        g.logDirectory("log_out", "10KB");
 
         g.log().info("=> Say Hi: ", "GreyCat");
         for (int i = 0; i < 100; i++) {

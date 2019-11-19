@@ -54,7 +54,7 @@ public class RemoteLogTest {
                 graph2.connect(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
-                        graph2.log().activateRemote();
+                        graph2.log().activateRemote(graph2);
                         graph2.log().info("Say Hello from {}", "GreyCat remote");
 
 

@@ -322,7 +322,7 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public Graph logDirectory(String path, String maxSize) {
+    public Graph setLogger(Log logger) {
         return null;
     }
 

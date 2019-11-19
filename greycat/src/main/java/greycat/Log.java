@@ -37,6 +37,6 @@ public abstract class Log {
 
     public abstract Log error(String message, Object... params);
 
-    public abstract Log activateRemote();
+    public abstract Log activateRemote(Graph localGraph);
 
 }

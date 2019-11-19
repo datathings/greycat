@@ -17,6 +17,7 @@ package greycat;
 
 import greycat.internal.BlackHoleStorage;
 import greycat.internal.CoreGraph;
+import greycat.internal.CoreGraphLog;
 import greycat.plugin.StorageFactory;
 import greycat.scheduler.TrampolineScheduler;
 import greycat.internal.ReadOnlyStorage;
@@ -33,6 +34,7 @@ public class GraphBuilder {
     public StorageFactory storageFactory = null;
     private Scheduler _scheduler = null;
     private Plugin[] _plugins = null;
+    private Log logger = new CoreGraphLog();
     private long _memorySize = -1;
     private long _batchSize = -1;
     private boolean _readOnly = false;
@@ -54,6 +56,7 @@ public class GraphBuilder {
         copy._batchSize = this._batchSize;
         copy._readOnly = this._readOnly;
         copy._deepPriority = this._deepPriority;
+        copy.logger = this.logger;
         return copy;
     }
 
@@ -175,6 +178,11 @@ public class GraphBuilder {
         return this;
     }
 
+    public GraphBuilder withLogger(Log logger) {
+        this.logger = logger;
+        return this;
+    }
+
     public Graph build() {
         if (storage == null) {
             storage = new BlackHoleStorage();
@@ -194,6 +202,8 @@ public class GraphBuilder {
         } else {
             graph = new CoreGraph(storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority, _useProxies);
         }
+
+        graph.setLogger(logger);
 
         if (this.postBuildHook != null) {
             this.postBuildHook.on(graph);

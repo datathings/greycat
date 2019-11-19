@@ -32,9 +32,8 @@ public class CoreGraphLog extends Log {
     Graph graph;
     boolean remote;
 
-    public CoreGraphLog(Graph graph) {
+    public CoreGraphLog() {
         super();
-        this.graph = graph;
     }
 
     /** {@native ts
@@ -139,17 +138,18 @@ public class CoreGraphLog extends Log {
     }
 
     @Override
-    public final Log activateRemote() {
+    public final Log activateRemote(Graph localGraph) {
         this.remote = true;
+        this.graph = graph;
         return this;
     }
 
     public void writeMessage(StringBuilder builder) {
         String msg = builder.toString();
         System.out.println(msg);
-        if (graph != null) {
+        if (remote && graph != null) {
             Object str = graph.storage();
-            if (str != null && remote) {
+            if (str != null) {
                 TaskExecutor exec = (TaskExecutor) str;
                 exec.log(msg);
             }

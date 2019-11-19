@@ -31,8 +31,7 @@ public class CoreGraphLogFile extends CoreGraphLog {
     private File file;
     private OutputStream stream;
 
-    public CoreGraphLogFile(final Graph g, final String target, final String maxSize) {
-        super(g);
+    public CoreGraphLogFile(final String target, final String maxSize) {
         this.mutex = new Object();
         this.dir = new File(target);
         this.dir.mkdirs();
@@ -50,7 +49,7 @@ public class CoreGraphLogFile extends CoreGraphLog {
                 this.maxSize = Long.parseLong(maxSize);
             }
         } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("Size \"" + maxSize + "\" is not numberic");
+            throw new IllegalArgumentException("Size \"" + maxSize + "\" is not numeric");
         }
         if (this.maxSize <= 0L) {
             throw new IllegalArgumentException("Size must be > 0, but is " + this.maxSize);

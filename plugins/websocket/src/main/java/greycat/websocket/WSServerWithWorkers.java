@@ -44,7 +44,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
     private static final String SERVER_IP = "0.0.0.0";
     private static final String SERVER_PREFIX = "/ws";
 
-    private final Log logger = new CoreGraphLog(null);
+    private final Log logger = new CoreGraphLog();
 
     private int wsMaxIdle = 3600 * 1000; //1h by default
     private final int port;

@@ -295,7 +295,7 @@ public interface Graph {
 
     Log log();
 
-    Graph logDirectory(String path, String maxSize);
+    Graph setLogger(Log logger);
 
     boolean useProxies();
 

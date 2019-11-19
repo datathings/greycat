@@ -51,10 +51,6 @@ public class DefaultWorkerBuilder implements WorkerBuilder {
             worker.setTaskWorker();
         }
 
-        if(this.logPath != null) {
-            worker.withLogDirectory(this.logPath, this.logMaxSize);
-        }
-
         worker.buildGraph();
         setGraphProperties(worker);
 

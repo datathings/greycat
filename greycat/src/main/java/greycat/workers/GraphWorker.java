@@ -54,9 +54,6 @@ public class GraphWorker implements Runnable {
     private boolean haltRequested = false;
     private boolean isTaskWorker = false;
 
-    private String logPath;
-    private String logMaxSize;
-
     private boolean running = false;
 
     private AtomicBoolean cleanCache = new AtomicBoolean(false);
@@ -71,12 +68,6 @@ public class GraphWorker implements Runnable {
     public GraphWorker(GraphBuilder workingGraphBuilder, String name, boolean canProcessGeneralTaskQueue) {
         this(workingGraphBuilder, canProcessGeneralTaskQueue);
         this.name = name;
-    }
-
-    public GraphWorker withLogDirectory(String path, String maxSize) {
-        this.logPath = path;
-        this.logMaxSize = maxSize;
-        return this;
     }
 
     public void setName(String name) {
@@ -143,10 +134,6 @@ public class GraphWorker implements Runnable {
         //System.out.println(getName() + ": Creating new Graph");
         if (workingGraphInstance == null) {
             buildGraph();
-        }
-
-        if(this.logPath != null) {
-            workingGraphInstance.logDirectory(this.logPath , this.logMaxSize);
         }
 
         workingGraphInstance.log().debug(getName() + ": New Graph created. Connecting");
