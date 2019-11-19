@@ -140,7 +140,7 @@ public class CoreGraphLog extends Log {
     @Override
     public final Log activateRemote(Graph localGraph) {
         this.remote = true;
-        this.graph = graph;
+        this.graph = localGraph;
         return this;
     }
 
