@@ -6,6 +6,7 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "target": "es5",
+    "lib": ["dom","es2015"],
     "declaration": true
   },
   "files": [
