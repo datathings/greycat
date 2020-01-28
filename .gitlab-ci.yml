@@ -31,7 +31,7 @@ deploy:
     - export REPO_VERSION="${GIT_LAST_TAG}.${GIT_COMMITS_SINCE_LAST_TAG}"
     - echo "VERSION=${REPO_VERSION}"
 
-    - npm config set @greycat:registry https://dist.datathings.com/repository/greycat-core-npm/
+    - npm config set @greycat:registry dist.datathings.com/repository/greycat-core-npm/
     - npm config set '//dist.datathings.com/repository/greycat-core-npm/:_authToken' "NpmToken.${NPM_TOKEN2}"
     - yarn --yes init
     - yarn add @greycat/j2ts-jre
