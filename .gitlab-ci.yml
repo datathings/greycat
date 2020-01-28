@@ -2,15 +2,9 @@ image: greycat/web-x64
 
 cache:
   key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - node_modules/
-    - .m2/repository
 
 stages:
-  - build
-  - test
   - deploy
-  - bundle
 
 before_script:
   - echo -e "//dist.datathings.com/repository/greycat-core-npm/:_authToken=${NPM_TOKEN}" > .npmrc
@@ -35,7 +29,7 @@ deploy:
     - echo -e "//dist.datathings.com/repository/greycat-core-npm/:_authToken=${NPM_TOKEN}" > .npmrc
     - echo -e "@greycat:registry=https://dist.datathings.com/repository/greycat-core-npm/" >> .npmrc
     - yarn --yes init
-    - yarn add @greycat/j2ts-jre
+    - yarn add @greycat/cli
     - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} versions:set -DnewVersion="${REPO_VERSION}"
     - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} clean install
     #- mvn ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} deploy
