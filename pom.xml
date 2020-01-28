@@ -50,7 +50,7 @@
 
     <properties>
         <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-        <java2typescript.plugin.version>98-SNAPSHOT</java2typescript.plugin.version>
+        <java2typescript.plugin.version>98.0.17</java2typescript.plugin.version>
         <header.path>${basedir}/HEADER</header.path>
         <undertow.version>1.4.18.Final</undertow.version>
     </properties>
@@ -264,8 +264,8 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>datathings.public</id>
-            <url>https://registry.datathings.com/repository/public/</url>
+            <id>greycat-core</id>
+            <url>https://dist.datathings.com/repository/greycat-core-maven</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -277,13 +277,10 @@
 
     <distributionManagement>
         <repository>
-            <id>datathings.protected</id>
-            <url>https://registry.datathings.com/repository/public/</url>
+            <id>greycat-core</id>
+            <url>https://dist.datathings.com/repository/greycat-core-maven</url>
         </repository>
-        <snapshotRepository>
-            <id>datathings.protected</id>
-            <url>https://registry.datathings.com/repository/public/</url>
-        </snapshotRepository>
     </distributionManagement>
+
 
 </project>
