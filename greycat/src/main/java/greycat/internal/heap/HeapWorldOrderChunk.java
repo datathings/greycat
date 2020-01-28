@@ -25,18 +25,12 @@ import greycat.struct.LongLongMapCallBack;
 import greycat.utility.Base64;
 import greycat.utility.HashHelper;
 import greycat.utility.Listeners;
-import greycat.utility.Unsafe;
 import greycat.chunk.WorldOrderChunk;
 import greycat.internal.CoreConstants;
 
 import java.util.Arrays;
 
 final class HeapWorldOrderChunk implements WorldOrderChunk {
-
-    /**
-     * @ignore ts
-     */
-    private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
     private final HeapChunkSpace _space;
     private final long _index;
@@ -60,25 +54,6 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     private boolean _inSync;
 
     private Listeners _listeners = null;
-
-    /**
-     * @ignore ts
-     */
-    private static final long _lockOffset;
-    /**
-     * @ignore ts
-     */
-    private static final long _externalLockOffset;
-
-    /** @ignore ts */
-    static {
-        try {
-            _lockOffset = unsafe.objectFieldOffset(HeapWorldOrderChunk.class.getDeclaredField("_lock"));
-            _externalLockOffset = unsafe.objectFieldOffset(HeapWorldOrderChunk.class.getDeclaredField("_externalLock"));
-        } catch (Exception ex) {
-            throw new Error(ex);
-        }
-    }
 
     @Override
     public synchronized final boolean inSync() {
@@ -173,8 +148,10 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      */
     @Override
     public final void lock() {
-        while (!unsafe.compareAndSwapInt(this, _lockOffset, 0, 1)) {
+        while(this._lock != 0){
+            //wait
         }
+        this._lock = 1;
     }
 
     /**
@@ -182,9 +159,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      */
     @Override
     public final void unlock() {
-        if (!unsafe.compareAndSwapInt(this, _lockOffset, 1, 0)) {
-            throw new RuntimeException("CAS Error !!!");
-        }
+        this._lock = 0;
     }
 
     /**
@@ -192,9 +167,10 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      */
     @Override
     public final void externalLock() {
-        while (!unsafe.compareAndSwapInt(this, _externalLockOffset, 0, 1)) {
-
+        while(this._externalLock != 0){
+            //wait
         }
+        this._lock = 1;
     }
 
     /**
@@ -202,9 +178,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      */
     @Override
     public final void externalUnlock() {
-        if (!unsafe.compareAndSwapInt(this, _externalLockOffset, 1, 0)) {
-            throw new RuntimeException("CAS Error !!!");
-        }
+        this._externalLock = 0;
     }
 
 

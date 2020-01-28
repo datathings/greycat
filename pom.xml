@@ -50,7 +50,7 @@
 
     <properties>
         <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-        <java2typescript.plugin.version>97</java2typescript.plugin.version>
+        <java2typescript.plugin.version>98-SNAPSHOT</java2typescript.plugin.version>
         <header.path>${basedir}/HEADER</header.path>
         <undertow.version>1.4.18.Final</undertow.version>
     </properties>

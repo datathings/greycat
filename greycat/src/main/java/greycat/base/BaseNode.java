@@ -24,7 +24,6 @@ import greycat.struct.proxy.*;
 import greycat.utility.HashHelper;
 import greycat.utility.Tuple;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,11 +31,6 @@ import java.util.Set;
  * Base implementation to develop NodeFactory plugins without overriding every methods
  */
 public class BaseNode implements Node {
-
-    /**
-     * @ignore ts
-     */
-    private static sun.misc.Unsafe unsafe;
 
     protected final long _world;
     protected final long _time;
@@ -65,35 +59,13 @@ public class BaseNode implements Node {
     }
 
     /**
-     * @ignore ts
-     */
-    private static final long _lockOffset;
-
-    /**
-     * @ignore ts
-     */
-    static {
-        if (unsafe == null) {
-            try {
-                Field theUnsafe = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
-                theUnsafe.setAccessible(true);
-                unsafe = (sun.misc.Unsafe) theUnsafe.get(null);
-            } catch (Exception e) {
-                throw new RuntimeException("ERROR: unsafe operations are not available");
-            }
-        }
-        try {
-            _lockOffset = unsafe.objectFieldOffset(BaseNode.class.getDeclaredField("_lock"));
-        } catch (Exception ex) {
-            throw new Error(ex);
-        }
-    }
-
-    /**
      * @native ts
      */
     public final void cacheLock() {
-        while (!unsafe.compareAndSwapInt(this, _lockOffset, 0, 1)) ;
+        while(this._lock != 0){
+            //wait
+        }
+        this._lock = 1;
     }
 
     /**
