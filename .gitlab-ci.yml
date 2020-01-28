@@ -8,7 +8,7 @@ stages:
 
 before_script:
   - echo -e "//dist.datathings.com/repository/greycat-core-npm/:_authToken=${NPM_TOKEN}" > .npmrc
-  - echo -e "@greycat:registry=https://dist.datathings.com/repository/greycat-core-npm/" >>
+  - echo -e "@greycat:registry=https://dist.datathings.com/repository/greycat-core-npm/" >> .npmrc
 
 variables:
   MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
