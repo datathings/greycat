@@ -30,7 +30,9 @@ deploy:
     - export GIT_COMMIT_ID=`git rev-parse --short HEAD`
     - export REPO_VERSION="${GIT_LAST_TAG}.${GIT_COMMITS_SINCE_LAST_TAG}"
     - echo "VERSION=${REPO_VERSION}"
+    - mkdir greycat/target/classes-npm
     - echo -e "registry=https://dist.datathings.com/repository/greycat-core-npm/\n_auth=${NPM_TOKEN}" >> .npmrc
+    - echo -e "registry=https://dist.datathings.com/repository/greycat-core-npm/\n_auth=${NPM_TOKEN}" >> greycat/target/classes-npm/.npmrc
     - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} versions:set -DnewVersion="${REPO_VERSION}"
     - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} clean install
     #- mvn ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} deploy
