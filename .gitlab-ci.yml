@@ -24,7 +24,8 @@ deploy:
     - master
   script:
     - echo "VERSION=${REPO_VERSION}"
-    - mkdir temp & cd temp
+    - mkdir temp
+    - cd temp
     - yarn --yes init
     - yarn add @greycat/cli
     #- mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} versions:set -DnewVersion="${REPO_VERSION}"
