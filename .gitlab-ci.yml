@@ -30,8 +30,8 @@ deploy:
     - export GIT_COMMIT_ID=`git rev-parse --short HEAD`
     - export REPO_VERSION="${GIT_LAST_TAG}.${GIT_COMMITS_SINCE_LAST_TAG}"
     - echo "VERSION=${REPO_VERSION}"
-    - echo -e "//dist.datathings.com/repository/greycat-core-npm/:_authToken=NpmToken.${NPM_TOKEN2}" >> ~/.npmrc
-    - echo -e "@greycat:registry=https://dist.datathings.com/repository/greycat-core-npm/" >> ~/.npmrc
+    - echo -e "//dist.datathings.com/repository/greycat-core-npm/:_authToken=NpmToken.${NPM_TOKEN2}" >> .npmrc
+    - echo -e "@greycat:registry=https://dist.datathings.com/repository/greycat-core-npm/" >> .npmrc
     - yarn --yes init
     - yarn add @greycat/j2ts-jre
     - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} versions:set -DnewVersion="${REPO_VERSION}"
