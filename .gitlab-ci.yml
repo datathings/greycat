@@ -1,5 +1,3 @@
-image: greycat/web-x64
-
 cache:
   key: ${CI_COMMIT_REF_SLUG}
 
@@ -9,30 +7,28 @@ stages:
 before_script:
   - echo -e "//dist.datathings.com/repository/greycat-core-npm/:_authToken=${NPM_TOKEN}" > .npmrc
   - echo -e "@greycat:registry=https://dist.datathings.com/repository/greycat-core-npm/" >> .npmrc
+  - export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::")
+  - export GIT_LAST_TAG=`git describe --abbrev=0 --tags`
+  - export GIT_COMMITS_SINCE_LAST_TAG=`git rev-list ${GIT_LAST_TAG}..HEAD --count`
+  - export GIT_COMMIT_ID=`git rev-parse --short HEAD`
+  - export REPO_VERSION="${GIT_LAST_TAG}.${GIT_COMMITS_SINCE_LAST_TAG}"
 
 variables:
   MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
 
 deploy:
-  image: greycat/web-x64
+  image: greycat/linux-x64
   stage: deploy
   only:
     - master
   script:
-    - export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::")
-    - export GIT_LAST_TAG=`git describe --abbrev=0 --tags`
-    - export GIT_COMMITS_SINCE_LAST_TAG=`git rev-list ${GIT_LAST_TAG}..HEAD --count`
-    - export GIT_COMMIT_ID=`git rev-parse --short HEAD`
-    - export REPO_VERSION="${GIT_LAST_TAG}.${GIT_COMMITS_SINCE_LAST_TAG}"
     - echo "VERSION=${REPO_VERSION}"
-    - more .npmrc
-    - mkdir temp
-    - cd temp
+    - mkdir temp & cd temp
     - yarn --yes init
     - yarn add @greycat/cli
-    - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} versions:set -DnewVersion="${REPO_VERSION}"
-    - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} clean install
+    #- mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} versions:set -DnewVersion="${REPO_VERSION}"
+    #- mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} clean install
     #- mvn ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} deploy
     #- npm publish transpiler/target/greycat-j2ts-jre-${REPO_VERSION}.tgz
     #- npm publish transpiler/target/greycat-j2ts-junit-${REPO_VERSION}.tgz
