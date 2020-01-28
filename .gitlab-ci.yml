@@ -29,7 +29,7 @@ deploy:
     - echo -e "//dist.datathings.com/repository/greycat-core-npm/:_authToken=${NPM_TOKEN}" > .npmrc
     - echo -e "@greycat:registry=https://dist.datathings.com/repository/greycat-core-npm/" >> .npmrc
     - yarn --yes init
-    - yarn add @greycat/cli
+    - npm i @greycat/cli
     - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} versions:set -DnewVersion="${REPO_VERSION}"
     - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} clean install
     #- mvn ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} deploy
