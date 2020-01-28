@@ -210,13 +210,6 @@
                         <exclude>**/moment.js</exclude>
                     </excludes>
                 </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <!--
             <plugin>
