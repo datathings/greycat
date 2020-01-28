@@ -178,7 +178,7 @@
                                 ant.replace(file: "${gbasedir}/target/test-classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
                                 ant.copy(file: "${gbasedir}/target/generated-test-sources/test.ts", todir: "${gbasedir}/target/test-classes-npm")
                                 ant.concat(append: "true", destfile: "${gbasedir}/target/test-classes-npm/test.ts", "export = greycatTest;")
-                                def npmInstallProcess = (prefix + "npm install").execute(null, new File("${gbasedir}/target/test-classes-npm"))
+                                def npmInstallProcess = (prefix + "yarn install").execute(null, new File("${gbasedir}/target/test-classes-npm"))
                                 npmInstallProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmInstallProcess.exitValue() != 0) {
                                     exit
