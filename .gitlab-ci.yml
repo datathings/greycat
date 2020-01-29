@@ -23,7 +23,7 @@ deploy:
   script:
     - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} versions:set -DnewVersion="${REPO_VERSION}"
     - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} clean install
-    - mvn ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} deploy
     - npm publish greycat/target/greycat-${REPO_VERSION}.tgz
+    - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} deploy
     - npm publish plugins/target/ml/greycat-ml-${REPO_VERSION}.tgz
     - npm publish plugins/target/websocket/greycat-websocket-${REPO_VERSION}.tgz
