@@ -27,3 +27,7 @@ deploy:
     - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} deploy
     - npm publish plugins/target/ml/greycat-ml-${REPO_VERSION}.tgz
     - npm publish plugins/target/websocket/greycat-websocket-${REPO_VERSION}.tgz
+    - npm publish modeling/gencli/target/greycat-greycat-gencli-${REPO_VERSION}.tgz
+
+
+
