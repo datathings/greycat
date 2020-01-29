@@ -144,7 +144,7 @@
                                 ant.replace(file: "${gbasedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
                                 ant.replace(file: "${gbasedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
 
-                                def npmInstallProcess = (prefix + "npm install").execute(null, new File("${gbasedir}/target/classes-npm"))
+                                def npmInstallProcess = (prefix + "yarn").execute(null, new File("${gbasedir}/target/classes-npm"))
                                 npmInstallProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmInstallProcess.exitValue() != 0) {
                                     exit
@@ -196,7 +196,7 @@
                                 ant.copy(file: "${gbasedir}/target/generated-test-sources/test.ts", todir: "${gbasedir}/target/test-classes-npm")
                                 ant.concat(append: "true", destfile: "${gbasedir}/target/test-classes-npm/test.ts", "export = greycatMLTest;")
                                 ant.replace(file: "${gbasedir}/target/test-classes-npm/test.ts", token: "greycat.ml", value: "greycatML.ml")
-                                def npmInstallProcess = (prefix + "npm install").execute(null, new File("${gbasedir}/target/test-classes-npm"))
+                                def npmInstallProcess = (prefix + "yarn").execute(null, new File("${gbasedir}/target/test-classes-npm"))
                                 npmInstallProcess.waitForProcessOutput(System.out, System.err)
                                 if (npmInstallProcess.exitValue() != 0) {
                                     exit
