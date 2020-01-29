@@ -1,10 +1,8 @@
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-
 stages:
   - deploy
 
 before_script:
+  - echo "VERSION=${REPO_VERSION}"
   - echo -e "//dist.datathings.com/repository/greycat-core-npm/:_authToken=${NPM_TOKEN}" > .npmrc
   - echo -e "@greycat:registry=https://dist.datathings.com/repository/greycat-core-npm/" >> .npmrc
   - export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::")
@@ -23,7 +21,6 @@ deploy:
   only:
     - master
   script:
-    - echo "VERSION=${REPO_VERSION}"
     - mkdir temp
     - cd temp
     - yarn --yes init
