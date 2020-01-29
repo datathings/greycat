@@ -193,25 +193,6 @@
                             </source>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>test.ts.run</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>execute</goal>
-                        </goals>
-                        <configuration>
-                            <source>
-                                //windows compat...
-                                def gbasedir = basedir.getAbsolutePath().replace('\\', '/')
-                                def prefix = (System.getProperty("os.name").toLowerCase().contains("win")) ? "CMD /C " : ""
-                                def jasmineProcess = (prefix + "node jasmine.js").execute(null, new File("${gbasedir}/target/test-classes-npm"))
-                                jasmineProcess.waitForProcessOutput(System.out, System.err)
-                                if (jasmineProcess.exitValue() != 0) {
-                                    exit
-                                }
-                            </source>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
         </plugins>
