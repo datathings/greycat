@@ -24,7 +24,6 @@ import greycat.struct.BufferIterator;
 import greycat.utility.Base64;
 import greycat.Callback;
 import greycat.utility.HashHelper;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
