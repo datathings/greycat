@@ -21,12 +21,8 @@ deploy:
   only:
     - master
   script:
-    - mkdir temp
-    - cd temp
-    - yarn --yes init
-    - yarn add @greycat/cli
-    #- mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} versions:set -DnewVersion="${REPO_VERSION}"
-    #- mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} clean install
+    - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} versions:set -DnewVersion="${REPO_VERSION}"
+    - mvn --no-transfer-progress ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} clean install
     #- mvn ${MAVEN_CLI_OPTS} ${MAVEN_OPTS} deploy
     #- npm publish transpiler/target/greycat-j2ts-jre-${REPO_VERSION}.tgz
     #- npm publish transpiler/target/greycat-j2ts-junit-${REPO_VERSION}.tgz
