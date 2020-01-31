@@ -254,13 +254,13 @@ public class Generator {
         // Install required package in TS
 
         if (isWindows()) {
-            processBuilderPre = new ProcessBuilder("CMD", "/C", "npm", "config", "set", "@greycat:registry", "https://registry.datathings.com/repository/npm-public/");
+            //processBuilderPre = new ProcessBuilder("CMD", "/C", "npm", "config", "set", "@greycat:registry", "https://registry.datathings.com/repository/npm-public/");
             processBuilder = new ProcessBuilder("CMD", "/C", "npm", "install");
             processBuilder2 = new ProcessBuilder("CMD", "/C", "node", "node_modules/typescript/lib/tsc.js");
             processBuilder3 = new ProcessBuilder("CMD", "/C", "npm", "pack");
             processBuilder4 = new ProcessBuilder("CMD", "/C", "npm", "install");
         } else {
-            processBuilderPre = new ProcessBuilder("npm", "config", "set", "@greycat:registry", "https://registry.datathings.com/repository/npm-public/");
+            //processBuilderPre = new ProcessBuilder("npm", "config", "set", "@greycat:registry", "https://registry.datathings.com/repository/npm-public/");
             processBuilder = new ProcessBuilder("npm", "install");
             processBuilder2 = new ProcessBuilder("node", "node_modules/typescript/lib/tsc.js");
             processBuilder3 = new ProcessBuilder("npm", "pack");
