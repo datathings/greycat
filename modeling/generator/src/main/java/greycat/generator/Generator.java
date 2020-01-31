@@ -245,7 +245,7 @@ public class Generator {
             e.printStackTrace();
         }
 
-        ProcessBuilder processBuilderPre;
+       // ProcessBuilder processBuilderPre;
         ProcessBuilder processBuilder;
         ProcessBuilder processBuilder2;
         ProcessBuilder processBuilder3;
@@ -267,8 +267,8 @@ public class Generator {
             processBuilder4 = new ProcessBuilder("npm", "install");
         }
 
-        processBuilderPre.directory(modelWeb);
-        processBuilderPre.inheritIO();
+      //  processBuilderPre.directory(modelWeb);
+      //  processBuilderPre.inheritIO();
         // Run TSC
         processBuilder.directory(modelWeb);
         processBuilder.inheritIO();
@@ -282,7 +282,7 @@ public class Generator {
         processBuilder4.directory(modelWebStarter);
         processBuilder4.inheritIO();
         try {
-            processBuilderPre.start().waitFor();
+         //   processBuilderPre.start().waitFor();
             processBuilder.start().waitFor();
             processBuilder2.start().waitFor();
             processBuilder3.start().waitFor();
