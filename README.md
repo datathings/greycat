@@ -1,3 +1,8 @@
+```diff
+- This repository contains the legacy version of GreyCat. 
+! DataThings crew is about to disclose a new, faster, ligher native GreyCat. Stay tuned and follow us on twitter/facebook or
+```
+
 # GreyCat - Next-Gen Live Analytics using Temporal Graph
   
 <h1 align="center">
