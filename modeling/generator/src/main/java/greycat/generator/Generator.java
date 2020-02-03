@@ -152,7 +152,8 @@ public class Generator {
                 projectVersion += ".0";
             }
         }
-
+        com.github.zafarkhaja.semver.Version projectVersionSem = com.github.zafarkhaja.semver.Version.valueOf(projectVersion);
+        projectVersion = projectVersionSem.getNormalVersion();
         String packageJsonContent = "{\n" +
                 "  \"name\": \"" + packageName + "\",\n" +
                 "  \"version\": \"" + projectVersion + "\",\n" +
