@@ -26,6 +26,8 @@ import greycat.utility.Tuple;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Base implementation to develop NodeFactory plugins without overriding every methods
@@ -48,7 +50,8 @@ public class BaseNode implements Node {
     public volatile long _super_time_magic = -1;
     public volatile long _time_magic = -1;
     public volatile boolean _dead = false;
-    private volatile int _lock;
+
+    private final AtomicBoolean _lock;
 
     public BaseNode(long p_world, long p_time, long p_id, Graph p_graph) {
         this._world = p_world;
@@ -56,23 +59,23 @@ public class BaseNode implements Node {
         this._id = p_id;
         this._graph = p_graph;
         this._resolver = p_graph.resolver();
+        _lock = new AtomicBoolean(false);
     }
 
     /**
      * @native ts
      */
     public final void cacheLock() {
-        while(this._lock != 0){
+        while(!_lock.compareAndSet(false, true)){
             //wait
         }
-        this._lock = 1;
     }
 
     /**
      * @native ts
      */
     public final void cacheUnlock() {
-        _lock = 0;
+        _lock.set(false);
     }
 
     /**
@@ -602,7 +605,7 @@ public class BaseNode implements Node {
 
     @Override
     public String toString() {
-        if (_lock == 1) {
+        if (_lock.get()) {
             return "locked";
         }
         final StringBuilder builder = new StringBuilder();

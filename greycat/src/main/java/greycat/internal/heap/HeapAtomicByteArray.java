@@ -29,7 +29,7 @@ public class HeapAtomicByteArray {
      * @param index The index requested
      * @return the byte value contained at this index in the array.
      */
-    public byte get(int index) {
+    public synchronized byte get(int index) {
         return this._back[index];
     }
 
@@ -39,7 +39,7 @@ public class HeapAtomicByteArray {
      * @param index the index to set
      * @param value the value to put
      */
-    public void set(int index, byte value) {
+    public synchronized void set(int index, byte value) {
         this._back[index] = value;
     }
 

@@ -29,14 +29,15 @@ import greycat.chunk.WorldOrderChunk;
 import greycat.internal.CoreConstants;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 final class HeapWorldOrderChunk implements WorldOrderChunk {
 
     private final HeapChunkSpace _space;
     private final long _index;
 
-    private volatile int _lock;
-    private volatile int _externalLock;
+    private final AtomicBoolean _lock;
+    private final AtomicBoolean _externalLock;
 
     private volatile long _magic;
     private volatile long _type;
@@ -84,7 +85,10 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     HeapWorldOrderChunk(final HeapChunkSpace p_space, final long p_index) {
         _index = p_index;
         _space = p_space;
-        _lock = 0;
+
+        _lock = new AtomicBoolean(false);
+        _externalLock = new AtomicBoolean(false);
+
         _magic = 0;
         _type = CoreConstants.NULL_LONG;
         _size = 0;
@@ -148,10 +152,9 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      */
     @Override
     public final void lock() {
-        while(this._lock != 0){
+        while (!_lock.compareAndSet(false, true)) {
             //wait
         }
-        this._lock = 1;
     }
 
     /**
@@ -159,7 +162,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      */
     @Override
     public final void unlock() {
-        this._lock = 0;
+        _lock.set(false);
     }
 
     /**
@@ -167,10 +170,9 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      */
     @Override
     public final void externalLock() {
-        while(this._externalLock != 0){
+        while (!_externalLock.compareAndSet(false, true)) {
             //wait
         }
-        this._lock = 1;
     }
 
     /**
@@ -178,9 +180,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      */
     @Override
     public final void externalUnlock() {
-        this._externalLock = 0;
+        _externalLock.set(false);
     }
-
 
     @Override
     public final long magic() {
