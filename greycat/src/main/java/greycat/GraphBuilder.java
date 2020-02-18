@@ -32,7 +32,7 @@ public class GraphBuilder {
 
     public Storage storage = null;
     public StorageFactory storageFactory = null;
-    private Scheduler _scheduler = null;
+    //private Scheduler _scheduler = null;
     private Plugin[] _plugins = null;
     private Log logger = new CoreGraphLog();
     private long _memorySize = -1;
@@ -50,7 +50,7 @@ public class GraphBuilder {
     public final GraphBuilder clone() {
         GraphBuilder copy = new GraphBuilder();
         copy.storage = this.storage;
-        copy._scheduler = this._scheduler;
+        //copy._scheduler = this._scheduler;
         copy._plugins = this._plugins;
         copy._memorySize = this._memorySize;
         copy._batchSize = this._batchSize;
@@ -129,7 +129,7 @@ public class GraphBuilder {
      * @return the {@link GraphBuilder}, for a fluent API
      */
     public GraphBuilder withScheduler(Scheduler scheduler) {
-        this._scheduler = scheduler;
+//        this._scheduler = scheduler;
         return this;
     }
 
@@ -190,17 +190,17 @@ public class GraphBuilder {
         if (_readOnly) {
             storage = new ReadOnlyStorage(storage);
         }
-        if (_scheduler == null) {
-            _scheduler = new TrampolineScheduler();
-        }
+//        if (_scheduler == null) {
+//            _scheduler = new TrampolineScheduler();
+//        }
         if (_memorySize == -1) {
             _memorySize = 100000;
         }
         Graph graph;
         if (storageFactory != null) {
-            graph = new CoreGraph(storageFactory.build(), _memorySize, _batchSize, _scheduler, _plugins, _deepPriority, _useProxies);
+            graph = new CoreGraph(storageFactory.build(), _memorySize, _batchSize, new TrampolineScheduler(), _plugins, _deepPriority, _useProxies);
         } else {
-            graph = new CoreGraph(storage, _memorySize, _batchSize, _scheduler, _plugins, _deepPriority, _useProxies);
+            graph = new CoreGraph(storage, _memorySize, _batchSize, new TrampolineScheduler(), _plugins, _deepPriority, _useProxies);
         }
 
         graph.setLogger(logger);

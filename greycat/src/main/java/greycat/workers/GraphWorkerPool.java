@@ -183,7 +183,6 @@ public class GraphWorkerPool {
 
             }, memoryCheckDelay, memoryCheckDelay, memoryCheckTimeUnit);
         }
-
     }
 
     public static String formatBytes(double bytes, int digits) {
