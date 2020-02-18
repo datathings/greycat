@@ -36,9 +36,9 @@ import static greycat.Log.TRACE;
  */
 public class GraphWorkerPool {
 
-    private static Log logger = new CoreGraphLog();
-    private static int NUMBER_OF_TASK_WORKER = 1;
-    private static int MAXIMUM_TASK_QUEUE_SIZE = 100;
+    private final static Log logger = new CoreGraphLog();
+    public static int NUMBER_OF_TASK_WORKER = 1;
+    public static int MAXIMUM_TASK_QUEUE_SIZE = 100;
 
     private static Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
         @Override
