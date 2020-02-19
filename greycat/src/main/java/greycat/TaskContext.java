@@ -18,7 +18,6 @@ package greycat;
 import greycat.struct.Buffer;
 import greycat.utility.LMap;
 import greycat.utility.Tuple;
-import greycat.workers.WorkerAffinity;
 
 public interface TaskContext {
 
@@ -45,6 +44,8 @@ public interface TaskContext {
     long longVar(String name);
 
     boolean boolVar(String name);
+
+    String stringVar(String name);
 
     boolean isGlobal(String name);
 
