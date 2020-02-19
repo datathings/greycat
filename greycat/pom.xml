@@ -20,12 +20,12 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat</artifactId>
     <name>greycat</name>
-    <version>22.1.0</version>
+    <version>22.2.3</version>
 
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings</groupId>
-        <version>22.1.0</version>
+        <version>22.2.3</version>
         <relativePath>..</relativePath>
     </parent>
 
