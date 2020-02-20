@@ -18,7 +18,6 @@ package greycat;
 import greycat.struct.Buffer;
 import greycat.utility.LMap;
 import greycat.utility.Tuple;
-import greycat.workers.WorkerAffinity;
 
 public interface TaskContext {
 
@@ -84,6 +83,8 @@ public interface TaskContext {
     long longResult();
 
     boolean boolResult();
+
+    int[] suspendTask();
 
     void continueTask();
 

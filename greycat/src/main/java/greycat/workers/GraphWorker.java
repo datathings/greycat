@@ -153,25 +153,25 @@ public class GraphWorker implements Runnable {
                 }
 
                 if (onWorkerStarted != null) {
-                        workingGraphInstance.log().debug("Calling onWorkerStarted");
-                        GraphWorker temporary = (new DefaultWorkerBuilder()).withGraphBuilder(workingGraphBuilder.withStorage(new SlaveWorkerStorage())).withName("TempGp").withKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
-                        Thread tmpWorkerThread = new Thread(temporary, temporary.getName());
-                        tmpWorkerThread.setUncaughtExceptionHandler((t, e) -> {
-                            workingGraphInstance.log().error("Thread " + t.getName() + " throw an exception", e);
-                        });
-                        tmpWorkerThread.start();
-                        workingGraphInstance.log().trace("Temporary worker created. Calling callback");
-                        onWorkerStarted.onReady(temporary, ()->{
-                            workingGraphInstance.log().trace("Temporary halting");
-                            temporary.halt();
-                            temporary.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
+                    workingGraphInstance.log().debug("Calling onWorkerStarted");
+                    GraphWorker temporary = (new DefaultWorkerBuilder()).withGraphBuilder(workingGraphBuilder.withStorage(new SlaveWorkerStorage())).withName("TempGp").withKind(WorkerAffinity.GENERAL_PURPOSE_WORKER).build();
+                    Thread tmpWorkerThread = new Thread(temporary, temporary.getName());
+                    tmpWorkerThread.setUncaughtExceptionHandler((t, e) -> {
+                        workingGraphInstance.log().error("Thread " + t.getName() + " throw an exception", e);
+                    });
+                    tmpWorkerThread.start();
+                    workingGraphInstance.log().trace("Temporary worker created. Calling callback");
+                    onWorkerStarted.onReady(temporary, () -> {
+                        workingGraphInstance.log().trace("Temporary halting");
+                        temporary.halt();
+                        temporary.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
                             /*
                             try {
                                 tmpWorkerThread.join();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }*/
-                        });
+                    });
                 }
             }
         });
@@ -186,10 +186,10 @@ public class GraphWorker implements Runnable {
                         tmpTaskBuffer = MailboxRegistry.getInstance().getDefaultMailbox().poll();
                     }
 
-                    if(this.cleanCache.get()) {
+                    if (this.cleanCache.get()) {
                         long cleaned = this.workingGraphInstance.space().clean(20);
                         System.gc();
-                        workingGraphInstance.log().debug(getName() + ": Cleaned " + cleaned + " elements" );
+                        workingGraphInstance.log().debug(getName() + ": Cleaned " + cleaned + " elements");
                         this.cleanCache.set(false);
                     }
 
@@ -228,7 +228,6 @@ public class GraphWorker implements Runnable {
     void processBuffer(final byte[] buffer) {
 
 
-
         Buffer taskBuffer = new HeapBuffer();
         taskBuffer.writeAll(buffer);
 
@@ -260,6 +259,11 @@ public class GraphWorker implements Runnable {
                 while (it.hasNext()) {
                     this.workingGraphInstance.remoteNotify(it.next());
                 }
+            }
+            break;
+            case StorageMessageType.RESP_ASYNC: {
+                Callback<String> cb = callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
+                cb.on(new String(it.next().data()));
             }
             break;
             case StorageMessageType.RESP_UNLOCK:
@@ -853,4 +857,22 @@ public class GraphWorker implements Runnable {
     public boolean isRunning() {
         return running;
     }
+
+    public static void wakeup(int[] ids, String b) {
+        if (ids.length != 2) {
+            throw new RuntimeException("api error");
+        }
+        final Buffer responseBuffer = new HeapBuffer();
+        responseBuffer.write(StorageMessageType.RESP_ASYNC);
+        Base64.encodeIntToBuffer(ids[0], responseBuffer);
+        responseBuffer.write(Constants.BUFFER_SEP);
+        responseBuffer.writeInt(0);
+        responseBuffer.write(Constants.BUFFER_SEP);
+        Base64.encodeIntToBuffer(ids[1], responseBuffer);
+        responseBuffer.write(Constants.BUFFER_SEP);
+        responseBuffer.writeString(b);
+        MailboxRegistry.getInstance().getMailbox(ids[0]).submit(responseBuffer.data());
+        //responseBuffer.free();
+    }
+
 }

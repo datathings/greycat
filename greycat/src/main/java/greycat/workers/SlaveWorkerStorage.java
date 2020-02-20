@@ -30,6 +30,14 @@ import static greycat.workers.StorageMessageType.*;
  */
 public class SlaveWorkerStorage implements Storage {
 
+    public WorkerCallbacksRegistry getCallbacksRegistry() {
+        return callbacksRegistry;
+    }
+
+    public int getWorkerMailboxId() {
+        return workerMailboxId;
+    }
+
     private WorkerCallbacksRegistry callbacksRegistry;
     private int workerMailboxId;
 

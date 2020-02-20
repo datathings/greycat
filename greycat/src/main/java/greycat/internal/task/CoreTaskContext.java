@@ -24,6 +24,7 @@ import greycat.internal.task.math.MathExpressionEngine;
 import greycat.base.BaseNode;
 import greycat.struct.Buffer;
 import greycat.utility.*;
+import greycat.workers.SlaveWorkerStorage;
 import greycat.workers.WorkerAffinity;
 
 import java.util.HashMap;
@@ -548,6 +549,23 @@ class CoreTaskContext implements TaskContext {
                 }
             }
         }
+    }
+
+    /**
+     * @native ts
+     * return null;
+     */
+    @Override
+    public final int[] suspendTask() {
+        if (!(this.graph().storage() instanceof SlaveWorkerStorage)) {
+            throw new RuntimeException("suspend task can only be used with GraphWorker");
+        }
+        SlaveWorkerStorage slaveWorkerStorage = (SlaveWorkerStorage) this.graph().storage();
+        final TaskContext self = this;
+        int callbackId = slaveWorkerStorage.getCallbacksRegistry().register(result -> {
+            self.continueWith(new BaseTaskResult(result, false));
+        });
+        return new int[]{slaveWorkerStorage.getWorkerMailboxId(), callbackId};
     }
 
     @Override

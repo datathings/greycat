@@ -18,19 +18,16 @@ package greycat.workers;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Gregory NAIN on 2019-03-06.
- */
 public class StorageMessageType {
 
     public static final String DISCONNECTED_ERROR = "Please connect your WebSocket client first.";
 
     /*  !!!!! IMPORTANT !!!!!
-    *
-    *   REQUEST must always be even
-    *   RESPONSE must always be odd
-    *
-    * */
+     *
+     *   REQUEST must always be even
+     *   RESPONSE must always be odd
+     *
+     * */
 
     public static final byte REQ_GET = 0;
     public static final byte RESP_GET = 1;
@@ -62,21 +59,22 @@ public class StorageMessageType {
     public static final byte REQ_LOG = 18;
     public static final byte RESP_LOG = 19;
 
+    public static final byte RESP_ASYNC = 20;
+
+
     /*  !!!!!!! IMPORTANT !!!!!!!
-    *
-    *   Single values always even
-    *
-    * */
-    public static final byte NOTIFY_UPDATE = 20;
-    public static final byte NOTIFY_PRINT = 22;
-    public static final byte NOTIFY_PROGRESS = 24;
+     *
+     *   Single values always even
+     *
+     * */
+    public static final byte NOTIFY_UPDATE = 22;
+    public static final byte NOTIFY_PRINT = 24;
+    public static final byte NOTIFY_PROGRESS = 26;
 
-
-
-    public static Map<Byte, String> byteToStringMap  = initMap();
+    public static Map<Byte, String> byteToStringMap = initMap();
 
     private static Map<Byte, String> initMap() {
-        Map<Byte, String> localMap  = new HashMap<>();
+        Map<Byte, String> localMap = new HashMap<>();
         localMap.put(REQ_GET, "REQ_GET");
         localMap.put(REQ_PUT, "REQ_PUT");
         localMap.put(REQ_LOCK, "REQ_LOCK");
@@ -100,18 +98,17 @@ public class StorageMessageType {
         localMap.put(RESP_TASK_STOP, "RESP_TASK_STOP");
         localMap.put(REQ_LOG, "REQ_LOG");
         localMap.put(RESP_LOG, "RESP_LOG");
+        localMap.put(RESP_ASYNC, "RESP_ASYNC");
+
         return localMap;
     }
 
     public static String byteToString(byte messageType) {
         String resp = byteToStringMap.get(messageType);
-        if(resp == null) {
-            resp = "Unknown: " + (int)messageType;
+        if (resp == null) {
+            resp = "Unknown: " + (int) messageType;
         }
         return resp;
     }
-
-
-
 
 }
