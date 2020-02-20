@@ -45,6 +45,8 @@ public interface TaskContext {
 
     boolean boolVar(String name);
 
+    String stringVar(String name);
+
     boolean isGlobal(String name);
 
     TaskResult wrap(Object input);
