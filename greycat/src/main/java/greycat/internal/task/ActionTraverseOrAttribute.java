@@ -86,7 +86,7 @@ class ActionTraverseOrAttribute implements Action {
                                 if (_params != null && _params.length > 0) {
                                     query = ctx.graph().newQuery();
                                     for (int k = 0; k < keys.length && k < _params.length; k++) {
-                                        query.addRaw(keys[i], ctx.template(_params[k]));
+                                        query.addRaw(keys[k], ctx.template(_params[k]));
                                     }
                                 } else {
                                     query = null;
