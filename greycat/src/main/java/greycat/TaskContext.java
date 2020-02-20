@@ -19,6 +19,8 @@ import greycat.struct.Buffer;
 import greycat.utility.LMap;
 import greycat.utility.Tuple;
 
+import java.util.List;
+
 public interface TaskContext {
 
     TaskContext setEndHook(final Callback<TaskContext> endHook);
@@ -91,6 +93,8 @@ public interface TaskContext {
     void continueTask();
 
     void continueWith(TaskResult nextResult);
+
+    void continueWhenAllFinished(final List<Task> tasks, final List<TaskContext> contexts, String name);
 
     void endTask(TaskResult nextResult, Exception e);
 

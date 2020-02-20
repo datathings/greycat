@@ -875,4 +875,26 @@ public class GraphWorker implements Runnable {
         //responseBuffer.free();
     }
 
+    public static void wakeups(int[] ids, String[] b) {
+        if (ids.length != 2) {
+            throw new RuntimeException("api error");
+        }
+        final Buffer responseBuffer = new HeapBuffer();
+        responseBuffer.write(StorageMessageType.RESP_ASYNC);
+        Base64.encodeIntToBuffer(ids[0], responseBuffer);
+        responseBuffer.write(Constants.BUFFER_SEP);
+        responseBuffer.writeInt(0);
+        responseBuffer.write(Constants.BUFFER_SEP);
+        Base64.encodeIntToBuffer(ids[1], responseBuffer);
+        for (int i = 0; i < b.length; i++) {
+            responseBuffer.write(Constants.BUFFER_SEP);
+            if (b[i] != null) {
+                responseBuffer.writeString(b[i]);
+            }
+        }
+        MailboxRegistry.getInstance().getMailbox(ids[0]).submit(responseBuffer.data());
+        //responseBuffer.free();
+    }
+
+
 }

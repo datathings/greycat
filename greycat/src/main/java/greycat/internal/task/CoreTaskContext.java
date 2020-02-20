@@ -19,11 +19,14 @@ import greycat.*;
 import greycat.base.BaseTaskResult;
 import greycat.chunk.StateChunk;
 import greycat.internal.CoreConstants;
+import greycat.internal.CoreDeferCounter;
 import greycat.internal.task.math.CoreMathExpressionEngine;
 import greycat.internal.task.math.MathExpressionEngine;
 import greycat.base.BaseNode;
 import greycat.struct.Buffer;
 import greycat.utility.*;
+import greycat.workers.GraphWorker;
+import greycat.workers.GraphWorkerPool;
 import greycat.workers.SlaveWorkerStorage;
 import greycat.workers.WorkerAffinity;
 
@@ -42,7 +45,7 @@ class CoreTaskContext implements TaskContext {
     private final TaskContext _parent;
     private final Graph _graph;
 
-    final Callback<TaskResult> _callback;
+    Callback<TaskResult> _callback;
     private Callback<TaskContext> _end_hook;
 
     private Map<String, TaskResult> _localVariables = null;
@@ -500,6 +503,43 @@ class CoreTaskContext implements TaskContext {
         }
         _result = nextResult;
         continueTask();
+    }
+
+    /**
+     * @native ts
+     */
+    @Override
+    public void continueWhenAllFinished(final List<Task> tasks, final List<TaskContext> contexts, String name) {
+        if (tasks.size() != contexts.size()) {
+            throw new RuntimeException("bad api");
+        }
+        for (int i = 0; i < contexts.size(); i++) {
+            CoreTaskContext subctx = (CoreTaskContext) contexts.get(i);
+            if (subctx._callback != null) {
+                throw new RuntimeException("bad api usage, you can't use result callback on // call");
+            }
+        }
+
+        final int[] ids = this.suspendTask();
+        final String[] results = new String[contexts.size()];
+        final DeferCounter counter = new CoreDeferCounter(contexts.size());
+        counter.then(() -> GraphWorker.wakeups(ids, results));
+
+        for (int i = 0; i < contexts.size(); i++) {
+            String sub_name = name + "_" + i;
+            final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, sub_name, null);
+            worker.setName(sub_name);
+
+            CoreTaskContext subctx = (CoreTaskContext) contexts.get(i);
+            int finalI = i;
+            subctx._callback = result -> {
+                if (result != null) {
+                    results[finalI] = result.toString();
+                }
+            };
+            Task subtask = tasks.get(i);
+            worker.submitPreparedTask(subtask, subctx);
+        }
     }
 
     @Override
