@@ -284,7 +284,6 @@ public class GraphWorker implements Runnable {
             break;
             case StorageMessageType.RESP_LOCK:
             case StorageMessageType.RESP_GET:
-            case StorageMessageType.RESP_TASK:
             case StorageMessageType.RESP_LOG: {
                 //Buffer result
                 Callback<Buffer> cb = callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
@@ -299,7 +298,25 @@ public class GraphWorker implements Runnable {
                     payload.writeAll(it.next().data());
                 }
                 cb.on(payload);
-
+            }
+            break;
+            case StorageMessageType.RESP_TASK: {
+                //Buffer result
+                Callback<Buffer> cb = callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
+                Buffer payload = new HeapBuffer();
+                boolean isFirst = true;
+                while (it.hasNext()) {
+                    if (isFirst) {
+                        isFirst = false;
+                    } else {
+                        payload.write(Constants.BUFFER_SEP);
+                    }
+                    payload.writeAll(it.next().data());
+                }
+                cb.on(payload);
+                if (GraphWorker.this.isTaskWorker) {
+                    GraphWorkerPool.getInstance().destroyWorkerById(GraphWorker.this.getId());
+                }
             }
             break;
             case StorageMessageType.NOTIFY_PRINT: {
@@ -478,8 +495,13 @@ public class GraphWorker implements Runnable {
                                 destMailbox.submit(responseBuffer.data());
                             }
                             responseBuffer.free();
+
                             if (GraphWorker.this.isTaskWorker) {
-                                GraphWorkerPool.getInstance().destroyWorkerById(GraphWorker.this.getId());
+                                //Suicide only if taskWorker AND destMailbox is not ours (called locally from backend
+                                //In that case, the suicide is handled by RESP_TASK case
+                                if (destMailbox != null && (destMailboxId != GraphWorker.this.mailboxId)) {
+                                    GraphWorkerPool.getInstance().destroyWorkerById(GraphWorker.this.getId());
+                                }
                             }
                         }
                     };
