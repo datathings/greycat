@@ -19,9 +19,15 @@ import greycat.*;
 import greycat.ml.BaseMLNode;
 import greycat.ml.RegressionNode;
 import greycat.ml.math.PolynomialFit;
+import greycat.ml.profiling.Gaussian;
 import greycat.plugin.NodeState;
 import greycat.struct.DoubleArray;
 import greycat.utility.Enforcer;
+
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+
+import static greycat.Tasks.newTask;
 
 public class PolynomialNode extends BaseMLNode implements RegressionNode {
 
@@ -40,17 +46,22 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
      */
     public final static String NAME = "PolynomialNode";
 
-    //Internal state variables private and starts with _
-    public static final String INTERNAL_WEIGHT_KEY = "weight";
-    public static final String INTERNAL_STEP_KEY = "step";
+
     //Other default parameters that should not be changed externally:
     public static final String MAX_DEGREE = "maxdegree";
     public static final int MAX_DEGREE_DEF = 20; // maximum polynomial degree
+
     private static final String INTERNAL_TIME_BUFFER = "times";
     private static final String INTERNAL_VALUES_BUFFER = "values";
+
+    //Internal state variables private and starts with _
+    public static final String INTERNAL_WEIGHT_KEY = "weight";
+    public static final String INTERNAL_STEP_KEY = "step";
     private static final String INTERNAL_NB_PAST_KEY = "nb";
     private static final String INTERNAL_LAST_TIME_KEY = "lastTime";
     private static final String INTERNAL_TIME_ORIGIN = "timeorigin";
+
+
     private final static String NOT_MANAGED_ATT_ERROR = "Polynomial node can only handle value attribute, please use a super node to store other data";
     private static final Enforcer enforcer = new Enforcer().asPositiveDouble(PRECISION);
     private static final Enforcer degenforcer = new Enforcer().asPositiveInt(MAX_DEGREE);
@@ -413,6 +424,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
 
     @Override
     public final String toString() {
+        final NodeState state = unphasedState();
         StringBuilder builder = new StringBuilder();
         builder.append("{\"world\":");
         builder.append(world());
@@ -420,12 +432,17 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         builder.append(time());
         builder.append(",\"id\":");
         builder.append(id());
-        final NodeState state = unphasedState();
+
+        builder.append(",\"timeRange\":\"[");
+        builder.append(time());
+        builder.append(" - ");
+        builder.append((long) state.get(INTERNAL_LAST_TIME_KEY) + time());
+        builder.append("]\"");
         long timeOrigin = state.time();
         long step = state.getWithDefault(INTERNAL_STEP_KEY, 1l);
         double[] weight = state.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
         if (weight != null) {
-            builder.append("\",polynomial\":\"");
+            builder.append(",\"polynomial\":\"");
             for (int i = 0; i < weight.length; i++) {
                 if (i != 0) {
                     builder.append("+(");
@@ -473,5 +490,65 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         builder.append("}");
         return builder.toString();
     }
+
+    public static Task export = newTask()
+            .setAsVar("polynomialNode")
+            .declareVar("validityBatchTsStart")
+            .declareVar("validityBatchTsEnd")
+            .declareVar("batchSize")
+            .thenDo(ctx -> {
+                ctx.setVariable("validityBatchTsStart", Constants.BEGINNING_OF_TIME_STR);
+                ctx.setVariable("validityBatchTsEnd", Constants.END_OF_TIME_STR);
+                ctx.setVariable("batchSize", "128");
+                ctx.continueTask();
+            })
+            .declareVar("lastBatchSize")
+            .declareVar("lastBatchTimepoint")
+            .doWhile(Tasks.newTask()
+                            .readVar("polynomialNode")
+                            .traverseTimeline("{{validityBatchTsStart}}", "{{validityBatchTsEnd}}", "{{batchSize}}")
+                            .flat()
+                            .ifThenElse(ctx -> ctx.result().size() == 0,
+                                    Tasks.newTask().thenDo(ctx -> ctx.setVariable("lastBatchSize", 0).continueTask()),
+                                    Tasks.newTask()
+                                            .setAsVar("valueNodeBatch")
+                                            .thenDo(ctx -> {
+
+                                                TaskResult<Node> nodes = ctx.resultAsNodes();
+
+                                                for (int i = 0; i < nodes.size(); i++) {
+                                                    Node n= nodes.get(i);
+
+                                                    //todo serialize the follow
+                                                    double precision = (double) n.getWithDefault(PRECISION, PRECISION_DEF);
+                                                    int maxDegree = (int) n.getWithDefault(MAX_DEGREE, MAX_DEGREE_DEF);
+
+                                                    double[] weights = n.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
+                                                    long step = n.getWithDefault(INTERNAL_STEP_KEY, 1l);
+                                                    int num = (int) n.get(INTERNAL_NB_PAST_KEY);
+                                                    long startTime = n.time();  //On import jump in time on this value and forceset at this timepoint
+                                                    long relativeLastTime = (long)  n.get(INTERNAL_LAST_TIME_KEY);
+                                                    
+                                                }
+
+
+                                                ctx.setVariable("lastBatchSize", nodes.size());
+                                                ctx.setVariable("lastBatchTimepoint", nodes.get(nodes.size() - 1).time());
+                                                ctx.continueTask();
+                                            })
+                            ),
+                    ctx -> {
+                        if (ctx.variable("lastBatchSize").size() > 0) {
+                            int lastBatchSize = (int) ctx.variable("lastBatchSize").get(0);
+                            if (lastBatchSize > 0) {
+                                ctx.setVariable("validityBatchTsStart", ((long) ctx.variable("lastBatchTimepoint").get(0)) + 1);
+                            }
+                            return lastBatchSize > 0;
+                        } else {
+                            return false;
+                        }
+                    }
+            );
+
 
 }
