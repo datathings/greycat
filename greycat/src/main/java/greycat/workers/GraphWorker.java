@@ -136,17 +136,17 @@ public class GraphWorker implements Runnable {
             buildGraph();
         }
 
-        workingGraphInstance.log().debug(getName() + ": New Graph created. Connecting");
+        workingGraphInstance.log().trace(getName() + ": New Graph created. Connecting");
 
 
         workingGraphInstance.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean connected) {
-                workingGraphInstance.log().debug(getName() + ": Graph connected.");
+                workingGraphInstance.log().trace(getName() + ": Graph connected.");
                 graphReady.set(true);
 
                 if (pendingConnectionTasks != null) {
-                    workingGraphInstance.log().debug(getName() + ": Re-enqueuing pending connection tasks.");
+                    workingGraphInstance.log().trace(getName() + ": Re-enqueuing pending connection tasks.");
                     mailbox.addAll(pendingConnectionTasks);
                     pendingConnectionTasks.clear();
                     pendingConnectionTasks = null;
@@ -189,7 +189,7 @@ public class GraphWorker implements Runnable {
                     if (this.cleanCache.get()) {
                         long cleaned = this.workingGraphInstance.space().clean(20);
                         System.gc();
-                        workingGraphInstance.log().debug(getName() + ": Cleaned " + cleaned + " elements");
+                        workingGraphInstance.log().trace(getName() + ": Cleaned " + cleaned + " elements");
                         this.cleanCache.set(false);
                     }
 
@@ -202,7 +202,7 @@ public class GraphWorker implements Runnable {
                                 if (pendingConnectionTasks == null) {
                                     pendingConnectionTasks = new ArrayList<>();
                                 }
-                                workingGraphInstance.log().debug(getName() + ": Adding task to pending connection list");
+                                workingGraphInstance.log().trace(getName() + ": Adding task to pending connection list");
                                 pendingConnectionTasks.add(tmpTaskBuffer);
                             }
                         } catch (Exception e) {
@@ -214,7 +214,7 @@ public class GraphWorker implements Runnable {
                 // e.printStackTrace();
             }
         }
-        workingGraphInstance.log().debug(getName() + ": Graph disconnecting");
+        workingGraphInstance.log().trace(getName() + ": Graph disconnecting");
         workingGraphInstance.disconnect(new Callback<Boolean>() {
             @Override
             public void on(Boolean disconnected) {

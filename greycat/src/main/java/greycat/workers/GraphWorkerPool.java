@@ -304,7 +304,7 @@ public class GraphWorkerPool {
             workerThread.start();
             threads.put(worker.getId(), workerThread);
         }
-        logger.info("Worker " + worker.getName() + "(" + worker.getId() + ") created.");
+        logger.trace("Worker " + worker.getName() + "(" + worker.getId() + ") created.");
 
         return worker;
     }
