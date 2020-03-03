@@ -491,7 +491,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         return builder.toString();
     }
 
-    public static Task export = newTask()
+    public static Task exportTask = newTask()
             .setAsVar("polynomialNode")
             .declareVar("validityBatchTsStart")
             .declareVar("validityBatchTsEnd")
