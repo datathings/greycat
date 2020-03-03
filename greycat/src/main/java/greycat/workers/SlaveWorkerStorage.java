@@ -102,7 +102,9 @@ public class SlaveWorkerStorage implements Storage {
 
     @Override
     public void backup(String path) throws Exception {
-        throw new UnsupportedOperationException();
+        Buffer buffer = new HeapBuffer();
+        Base64.encodeStringToBuffer(path,buffer);
+        bufferize(REQ_BACKUP, buffer, result -> {});
     }
 
     @Override
@@ -113,7 +115,6 @@ public class SlaveWorkerStorage implements Storage {
 
     private void bufferize(final byte operationId, final Buffer payload, final Callback callback) {
         int callbackId = callbacksRegistry.register(callback);
-
         Buffer taskBuffer = new HeapBuffer();
         //Type
         taskBuffer.write(operationId);
