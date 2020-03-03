@@ -528,7 +528,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
                                                     int num = (int) n.get(INTERNAL_NB_PAST_KEY);
                                                     long startTime = n.time();  //On import jump in time on this value and forceset at this timepoint
                                                     long relativeLastTime = (long)  n.get(INTERNAL_LAST_TIME_KEY);
-                                                    
+
                                                 }
 
 
