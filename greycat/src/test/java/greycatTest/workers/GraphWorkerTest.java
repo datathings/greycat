@@ -24,8 +24,10 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static greycat.Tasks.newTask;
 import static org.junit.Assert.*;
 
 
@@ -79,7 +81,7 @@ public class GraphWorkerTest {
         try {
             CountDownLatch latch = new CountDownLatch(1);
             long ts0 = System.currentTimeMillis();
-            Task createNode = Tasks.newTask()
+            Task createNode = newTask()
                     .declareIndex("nodes", "name")
                     .createNode()
                     .setAttribute("name", Type.STRING, "Node 0")
@@ -105,7 +107,7 @@ public class GraphWorkerTest {
         }
     }
 
-    Task nodeLookup = Tasks.newTask().readIndex("nodes", "Node 0");
+    Task nodeLookup = newTask().readIndex("nodes", "Node 0");
 
     @Test
     public void _01_lookupNodeFromWorkerA() {
@@ -158,7 +160,7 @@ public class GraphWorkerTest {
 
             long ts0 = System.currentTimeMillis();
 
-            localWorker.submitTask(Tasks.newTask().action(PluginForWorkersTest.CREATE_NODE), actionAresult -> {
+            localWorker.submitTask(newTask().action(PluginForWorkersTest.CREATE_NODE), actionAresult -> {
                 long ts1 = System.currentTimeMillis();
                 assertEquals(1, actionAresult.size());
                 assertTrue(actionAresult.get(0) instanceof Node);
@@ -181,7 +183,7 @@ public class GraphWorkerTest {
 
             long ts0 = System.currentTimeMillis();
 
-            localWorker.submitTask(Tasks.newTask().action(PluginForWorkersTest.THROW_EXCEPTION), exceptionAresult -> {
+            localWorker.submitTask(newTask().action(PluginForWorkersTest.THROW_EXCEPTION), exceptionAresult -> {
                 long ts1 = System.currentTimeMillis();
                 assertNotNull(exceptionAresult.exception());
                 //System.out.println("Duration: " + (ts1 - ts0) + "ms");
@@ -201,7 +203,7 @@ public class GraphWorkerTest {
 
             long ts0 = System.currentTimeMillis();
 
-            localWorker.submitTask(Tasks.newTask().action(PluginForWorkersTest.THROW_EXCEPTION_2), exceptionAresult -> {
+            localWorker.submitTask(newTask().action(PluginForWorkersTest.THROW_EXCEPTION_2), exceptionAresult -> {
                 long ts1 = System.currentTimeMillis();
                 assertNotNull(exceptionAresult.exception());
                 //System.out.println("Duration: " + (ts1 - ts0) + "ms");
@@ -222,7 +224,7 @@ public class GraphWorkerTest {
 
             long ts0 = System.currentTimeMillis();
 
-            Task withProgress = Tasks.newTask().action(PluginForWorkersTest.PROGRESS_REPORTS);
+            Task withProgress = newTask().action(PluginForWorkersTest.PROGRESS_REPORTS);
             TaskContext taskContext = withProgress.prepare(null, null, result -> {
                 long ts1 = System.currentTimeMillis();
                 assertEquals(10, reportsCount.get());
@@ -250,7 +252,7 @@ public class GraphWorkerTest {
 
             long ts0 = System.currentTimeMillis();
 
-            Task withProgress = Tasks.newTask().action(PluginForWorkersTest.PRINT_HOOK);
+            Task withProgress = newTask().action(PluginForWorkersTest.PRINT_HOOK);
             TaskContext taskContext = withProgress.prepare(null, null, result -> {
                 long ts1 = System.currentTimeMillis();
                 assertEquals(10, reportsCount.get());
@@ -271,7 +273,7 @@ public class GraphWorkerTest {
     }
 
     @Test
-    public void _15_taskPool() {
+    public void _15_GPPool() {
         try {
 
             int nbTasks = 10;
@@ -281,7 +283,7 @@ public class GraphWorkerTest {
 
             long ts0 = System.currentTimeMillis();
 
-            Task withProgress = Tasks.newTask().action(PluginForWorkersTest.PROGRESS_REPORTS);
+            Task withProgress = newTask().action(PluginForWorkersTest.PROGRESS_REPORTS);
             TaskContext taskContext = withProgress.prepare(null, null, result -> {
                 long ts1 = System.currentTimeMillis();
                 //assertEquals(10, reportsCount.get());
@@ -297,6 +299,31 @@ public class GraphWorkerTest {
             }
             latch.await();
             assertEquals(10 * nbTasks, reportsCount.get());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    @Test
+    public void _16_taskWorker() {
+        try {
+
+            CountDownLatch latch = new CountDownLatch(1);
+
+            GraphWorker taskWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, "TaskWorker", null);
+
+            taskWorker.submitTask(
+                    newTask().log("inTask","debug"),
+            lookupResult -> {
+                System.out.println("Got result");
+               // assertEquals("1", lookupResult.get(0));
+                latch.countDown();
+            });
+
+            boolean gotFreed = latch.await(5, TimeUnit.SECONDS);
+            assertEquals(true, gotFreed);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
