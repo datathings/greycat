@@ -679,10 +679,11 @@ public class GraphWorker implements Runnable {
                     final Buffer responseBuffer = workingGraphInstance.newBuffer();
                     responseBuffer.write(StorageMessageType.RESP_BACKUP);
                     responseBuffer.write(Constants.BUFFER_SEP);
-                    responseBuffer.writeAll(respChannelBufferView.data());
+                    responseBuffer.writeInt(destMailboxId);
                     responseBuffer.write(Constants.BUFFER_SEP);
                     responseBuffer.writeAll(callbackBufferView.data());
                     responseBuffer.write(Constants.BUFFER_SEP);
+                    taskBuffer.free();
                     destMailbox.submit(responseBuffer.data());
                     responseBuffer.free();
                 }
