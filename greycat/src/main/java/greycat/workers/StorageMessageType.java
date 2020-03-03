@@ -62,6 +62,8 @@ public class StorageMessageType {
     public static final byte RESP_ASYNC = 20;
 
 
+
+
     /*  !!!!!!! IMPORTANT !!!!!!!
      *
      *   Single values always even
@@ -70,6 +72,9 @@ public class StorageMessageType {
     public static final byte NOTIFY_UPDATE = 22;
     public static final byte NOTIFY_PRINT = 24;
     public static final byte NOTIFY_PROGRESS = 26;
+
+    public static final byte REQ_BACKUP = 27;
+    public static final byte RESP_BACKUP = 28;
 
     public static Map<Byte, String> byteToStringMap = initMap();
 
@@ -99,7 +104,8 @@ public class StorageMessageType {
         localMap.put(REQ_LOG, "REQ_LOG");
         localMap.put(RESP_LOG, "RESP_LOG");
         localMap.put(RESP_ASYNC, "RESP_ASYNC");
-
+        localMap.put(REQ_BACKUP, "REQ_BACKUP");
+        localMap.put(RESP_BACKUP, "RESP_BACKUP");
         return localMap;
     }
 

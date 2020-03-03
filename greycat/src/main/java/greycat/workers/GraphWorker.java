@@ -18,6 +18,8 @@ package greycat.workers;
 import greycat.*;
 import greycat.base.BaseTaskResult;
 import greycat.chunk.Chunk;
+import greycat.chunk.ChunkKey;
+import greycat.chunk.KeyHelper;
 import greycat.internal.CoreGraphLog;
 import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.CoreProgressReport;
@@ -25,14 +27,11 @@ import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.utility.Base64;
-import greycat.chunk.ChunkKey;
-import greycat.chunk.KeyHelper;
 import greycat.utility.L3GMap;
 import greycat.utility.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -274,7 +273,8 @@ public class GraphWorker implements Runnable {
                 cb.on(Base64.decodeToIntWithBounds(payload, 0, payload.length()) == 1);
             }
             break;
-            case StorageMessageType.RESP_REMOVE: {
+            case StorageMessageType.RESP_REMOVE:
+            case StorageMessageType.RESP_BACKUP: {
                 //Boolean result
                 Callback<Boolean> cb = callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
                 cb.on(null);
@@ -641,6 +641,28 @@ public class GraphWorker implements Runnable {
                         });
                     }
                 });
+            }
+            break;
+            case StorageMessageType.REQ_BACKUP:{
+                workingGraphInstance.setProperty("ws.last", System.currentTimeMillis());
+                Buffer path = it.next();
+                String paths =Base64.decodeToStringWithBounds(path,0,path.length());
+                try {
+                    workingGraphInstance.storage().backup(paths);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                finally {
+                    final Buffer responseBuffer = workingGraphInstance.newBuffer();
+                    responseBuffer.write(StorageMessageType.RESP_BACKUP);
+                    responseBuffer.write(Constants.BUFFER_SEP);
+                    responseBuffer.writeAll(respChannelBufferView.data());
+                    responseBuffer.write(Constants.BUFFER_SEP);
+                    responseBuffer.writeAll(callbackBufferView.data());
+                    responseBuffer.write(Constants.BUFFER_SEP);
+                    destMailbox.submit(responseBuffer.data());
+                    responseBuffer.free();
+                }
             }
             break;
             default: {
