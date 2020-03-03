@@ -21,4 +21,6 @@ public interface BufferIterator {
 
     Buffer next();
 
+    void skip(int length);
+
 }

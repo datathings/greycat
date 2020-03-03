@@ -232,25 +232,26 @@ public class GraphWorker implements Runnable {
 
         final BufferIterator it = taskBuffer.iterator();
         final Buffer bufferTypeBufferView = it.next();
-        final Buffer respChannelBufferView = it.next();
+
+        int destMailboxId = taskBuffer.readInt(2);
+        WorkerMailbox destMailbox = MailboxRegistry.getInstance().getMailbox(destMailboxId);
+
+        it.skip(5); // skip mailbox <int>#
+
         final Buffer callbackBufferView = it.next();
 
         // --------   DEBUG PRINT ----------
         /*
         workingGraphInstance.log().trace(getName() + "\t========= " + getName() + " Received =========");
         workingGraphInstance.log().trace(getName() + "\tType: " + StorageMessageType.byteToString(bufferTypeBufferView.read(0)));
-        workingGraphInstance.log().trace(getName() + "\tChannel: " + respChannelBufferView.readInt(0));
+        workingGraphInstance.log().trace(getName() + "\tChannel: " + destMailboxId);
         workingGraphInstance.log().trace(getName() + "\tCallback: " + Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
         workingGraphInstance.log().trace(getName() + "\tRaw: " + taskBuffer.toString());
         */
 
         // --------   DEBUG PRINT END ----------
 
-
-        int destMailboxId = respChannelBufferView.readInt(0);
-        WorkerMailbox destMailbox = MailboxRegistry.getInstance().getMailbox(destMailboxId);
         byte operation = bufferTypeBufferView.read(0);
-
 
         switch (operation) {
 
@@ -284,7 +285,6 @@ public class GraphWorker implements Runnable {
             break;
             case StorageMessageType.RESP_LOCK:
             case StorageMessageType.RESP_GET:
-            case StorageMessageType.RESP_TASK:
             case StorageMessageType.RESP_LOG: {
                 //Buffer result
                 Callback<Buffer> cb = callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
@@ -299,7 +299,25 @@ public class GraphWorker implements Runnable {
                     payload.writeAll(it.next().data());
                 }
                 cb.on(payload);
-
+            }
+            break;
+            case StorageMessageType.RESP_TASK: {
+                //Buffer result
+                Callback<Buffer> cb = callbacksRegistry.remove(Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
+                Buffer payload = new HeapBuffer();
+                boolean isFirst = true;
+                while (it.hasNext()) {
+                    if (isFirst) {
+                        isFirst = false;
+                    } else {
+                        payload.write(Constants.BUFFER_SEP);
+                    }
+                    payload.writeAll(it.next().data());
+                }
+                cb.on(payload);
+                if (GraphWorker.this.isTaskWorker) {
+                    GraphWorkerPool.getInstance().destroyWorkerById(GraphWorker.this.getId());
+                }
             }
             break;
             case StorageMessageType.NOTIFY_PRINT: {
@@ -330,7 +348,7 @@ public class GraphWorker implements Runnable {
                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
                 responseBuffer.write(StorageMessageType.RESP_LOG);
                 responseBuffer.write(Constants.BUFFER_SEP);
-                responseBuffer.writeAll(respChannelBufferView.data());
+                responseBuffer.writeInt(destMailboxId);
                 responseBuffer.write(Constants.BUFFER_SEP);
                 responseBuffer.writeAll(callbackBufferView.data());
                 destMailbox.submit(responseBuffer.data());
@@ -343,7 +361,7 @@ public class GraphWorker implements Runnable {
                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
                 responseBuffer.write(StorageMessageType.RESP_TASK_STATS);
                 responseBuffer.write(Constants.BUFFER_SEP);
-                responseBuffer.writeAll(respChannelBufferView.data());
+                responseBuffer.writeInt(destMailboxId);
                 responseBuffer.write(Constants.BUFFER_SEP);
                 responseBuffer.writeAll(callbackBufferView.data());
                 responseBuffer.write(Constants.BUFFER_SEP);
@@ -373,7 +391,7 @@ public class GraphWorker implements Runnable {
                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
                 responseBuffer.write(StorageMessageType.RESP_TASK_STOP);
                 responseBuffer.write(Constants.BUFFER_SEP);
-                responseBuffer.writeAll(respChannelBufferView.data());
+                responseBuffer.writeInt(destMailboxId);
                 responseBuffer.write(Constants.BUFFER_SEP);
                 responseBuffer.writeAll(callbackBufferView.data());
                 destMailbox.submit(responseBuffer.data());
@@ -384,7 +402,7 @@ public class GraphWorker implements Runnable {
                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
                 responseBuffer.write(StorageMessageType.HEART_BEAT_PONG);
                 responseBuffer.write(Constants.BUFFER_SEP);
-                responseBuffer.writeAll(respChannelBufferView.data());
+                responseBuffer.writeInt(destMailboxId);
                 responseBuffer.write(Constants.BUFFER_SEP);
                 responseBuffer.writeAll(callbackBufferView.data());
                 responseBuffer.writeString("ok");
@@ -408,7 +426,7 @@ public class GraphWorker implements Runnable {
                         final Buffer responseBuffer = workingGraphInstance.newBuffer();
                         responseBuffer.write(StorageMessageType.RESP_REMOVE);
                         responseBuffer.write(Constants.BUFFER_SEP);
-                        responseBuffer.writeAll(respChannelBufferView.data());
+                        responseBuffer.writeInt(destMailboxId);
                         responseBuffer.write(Constants.BUFFER_SEP);
                         responseBuffer.writeAll(callbackBufferView.data());
                         /*
@@ -434,7 +452,7 @@ public class GraphWorker implements Runnable {
                         final Buffer responseBuffer = workingGraphInstance.newBuffer();
                         responseBuffer.write(StorageMessageType.RESP_GET);
                         responseBuffer.write(Constants.BUFFER_SEP);
-                        responseBuffer.writeAll(respChannelBufferView.data());
+                        responseBuffer.writeInt(destMailboxId);
                         responseBuffer.write(Constants.BUFFER_SEP);
                         responseBuffer.writeAll(callbackBufferView.data());
                         responseBuffer.write(Constants.BUFFER_SEP);
@@ -455,7 +473,7 @@ public class GraphWorker implements Runnable {
                             final Buffer responseBuffer = workingGraphInstance.newBuffer();
                             responseBuffer.write(StorageMessageType.RESP_TASK);
                             responseBuffer.write(Constants.BUFFER_SEP);
-                            responseBuffer.writeAll(respChannelBufferView.data());
+                            responseBuffer.writeInt(destMailboxId);
                             responseBuffer.write(Constants.BUFFER_SEP);
                             responseBuffer.writeAll(callbackBufferView.data());
                             responseBuffer.write(Constants.BUFFER_SEP);
@@ -478,8 +496,13 @@ public class GraphWorker implements Runnable {
                                 destMailbox.submit(responseBuffer.data());
                             }
                             responseBuffer.free();
+
                             if (GraphWorker.this.isTaskWorker) {
-                                GraphWorkerPool.getInstance().destroyWorkerById(GraphWorker.this.getId());
+                                //Suicide only if taskWorker AND destMailbox is not ours (called locally from backend
+                                //In that case, the suicide is handled by RESP_TASK case
+                                if (destMailbox != null && (destMailboxId != GraphWorker.this.mailboxId)) {
+                                    GraphWorkerPool.getInstance().destroyWorkerById(GraphWorker.this.getId());
+                                }
                             }
                         }
                     };
@@ -510,7 +533,7 @@ public class GraphWorker implements Runnable {
                                         final Buffer printBuffer = workingGraphInstance.newBuffer();
                                         printBuffer.write(StorageMessageType.NOTIFY_PRINT);
                                         printBuffer.write(Constants.BUFFER_SEP);
-                                        printBuffer.writeAll(respChannelBufferView.data());
+                                        printBuffer.writeInt(destMailboxId);
                                         printBuffer.write(Constants.BUFFER_SEP);
                                         Base64.encodeIntToBuffer(printHookCode, printBuffer);
                                         printBuffer.write(Constants.BUFFER_SEP);
@@ -533,7 +556,7 @@ public class GraphWorker implements Runnable {
                                         final Buffer progressBuffer = workingGraphInstance.newBuffer();
                                         progressBuffer.write(StorageMessageType.NOTIFY_PROGRESS);
                                         progressBuffer.write(Constants.BUFFER_SEP);
-                                        progressBuffer.writeAll(respChannelBufferView.data());
+                                        progressBuffer.writeInt(destMailboxId);
                                         progressBuffer.write(Constants.BUFFER_SEP);
                                         Base64.encodeIntToBuffer(progressHookCode, progressBuffer);
                                         progressBuffer.write(Constants.BUFFER_SEP);
@@ -572,7 +595,7 @@ public class GraphWorker implements Runnable {
                         final Buffer responseBuffer = workingGraphInstance.newBuffer();
                         responseBuffer.write(StorageMessageType.RESP_LOCK);
                         responseBuffer.write(Constants.BUFFER_SEP);
-                        responseBuffer.writeAll(respChannelBufferView.data());
+                        responseBuffer.writeInt(destMailboxId);
                         responseBuffer.write(Constants.BUFFER_SEP);
                         responseBuffer.writeAll(callbackBufferView.data());
                         responseBuffer.write(Constants.BUFFER_SEP);
@@ -594,7 +617,7 @@ public class GraphWorker implements Runnable {
                         final Buffer responseBuffer = workingGraphInstance.newBuffer();
                         responseBuffer.write(StorageMessageType.RESP_UNLOCK);
                         responseBuffer.write(Constants.BUFFER_SEP);
-                        responseBuffer.writeAll(respChannelBufferView.data());
+                        responseBuffer.writeInt(destMailboxId);
                         responseBuffer.write(Constants.BUFFER_SEP);
                         responseBuffer.writeAll(callbackBufferView.data());
                         responseBuffer.write(Constants.BUFFER_SEP);
@@ -629,7 +652,7 @@ public class GraphWorker implements Runnable {
                                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
                                 responseBuffer.write(StorageMessageType.RESP_PUT);
                                 responseBuffer.write(Constants.BUFFER_SEP);
-                                responseBuffer.writeAll(respChannelBufferView.data());
+                                responseBuffer.writeInt(destMailboxId);
                                 responseBuffer.write(Constants.BUFFER_SEP);
                                 responseBuffer.writeAll(callbackBufferView.data());
                                 responseBuffer.write(Constants.BUFFER_SEP);
@@ -896,5 +919,27 @@ public class GraphWorker implements Runnable {
         MailboxRegistry.getInstance().getMailbox(ids[0]).submit(responseBuffer.data());
         //responseBuffer.free();
     }
+
+    public static void wakeups(int[] ids, String[] b) {
+        if (ids.length != 2) {
+            throw new RuntimeException("api error");
+        }
+        final Buffer responseBuffer = new HeapBuffer();
+        responseBuffer.write(StorageMessageType.RESP_ASYNC);
+        Base64.encodeIntToBuffer(ids[0], responseBuffer);
+        responseBuffer.write(Constants.BUFFER_SEP);
+        responseBuffer.writeInt(0);
+        responseBuffer.write(Constants.BUFFER_SEP);
+        Base64.encodeIntToBuffer(ids[1], responseBuffer);
+        for (int i = 0; i < b.length; i++) {
+            responseBuffer.write(Constants.BUFFER_SEP);
+            if (b[i] != null) {
+                responseBuffer.writeString(b[i]);
+            }
+        }
+        MailboxRegistry.getInstance().getMailbox(ids[0]).submit(responseBuffer.data());
+        //responseBuffer.free();
+    }
+
 
 }
