@@ -50,4 +50,8 @@ public class DefaultBufferIterator implements BufferIterator {
         }
         return null;
     }
+
+    public void skip(int length) {
+        _cursor += length;
+    }
 }
