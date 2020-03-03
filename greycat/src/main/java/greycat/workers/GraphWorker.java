@@ -233,25 +233,26 @@ public class GraphWorker implements Runnable {
 
         final BufferIterator it = taskBuffer.iterator();
         final Buffer bufferTypeBufferView = it.next();
-        final Buffer respChannelBufferView = it.next();
+
+        int destMailboxId = taskBuffer.readInt(2);
+        WorkerMailbox destMailbox = MailboxRegistry.getInstance().getMailbox(destMailboxId);
+
+        it.skip(5); // skip mailbox <int>#
+
         final Buffer callbackBufferView = it.next();
 
         // --------   DEBUG PRINT ----------
         /*
         workingGraphInstance.log().trace(getName() + "\t========= " + getName() + " Received =========");
         workingGraphInstance.log().trace(getName() + "\tType: " + StorageMessageType.byteToString(bufferTypeBufferView.read(0)));
-        workingGraphInstance.log().trace(getName() + "\tChannel: " + respChannelBufferView.readInt(0));
+        workingGraphInstance.log().trace(getName() + "\tChannel: " + destMailboxId);
         workingGraphInstance.log().trace(getName() + "\tCallback: " + Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length()));
         workingGraphInstance.log().trace(getName() + "\tRaw: " + taskBuffer.toString());
         */
 
         // --------   DEBUG PRINT END ----------
 
-
-        int destMailboxId = respChannelBufferView.readInt(0);
-        WorkerMailbox destMailbox = MailboxRegistry.getInstance().getMailbox(destMailboxId);
         byte operation = bufferTypeBufferView.read(0);
-
 
         switch (operation) {
 
@@ -330,7 +331,7 @@ public class GraphWorker implements Runnable {
                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
                 responseBuffer.write(StorageMessageType.RESP_LOG);
                 responseBuffer.write(Constants.BUFFER_SEP);
-                responseBuffer.writeAll(respChannelBufferView.data());
+                responseBuffer.writeInt(destMailboxId);
                 responseBuffer.write(Constants.BUFFER_SEP);
                 responseBuffer.writeAll(callbackBufferView.data());
                 destMailbox.submit(responseBuffer.data());
@@ -343,7 +344,7 @@ public class GraphWorker implements Runnable {
                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
                 responseBuffer.write(StorageMessageType.RESP_TASK_STATS);
                 responseBuffer.write(Constants.BUFFER_SEP);
-                responseBuffer.writeAll(respChannelBufferView.data());
+                responseBuffer.writeInt(destMailboxId);
                 responseBuffer.write(Constants.BUFFER_SEP);
                 responseBuffer.writeAll(callbackBufferView.data());
                 responseBuffer.write(Constants.BUFFER_SEP);
@@ -373,7 +374,7 @@ public class GraphWorker implements Runnable {
                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
                 responseBuffer.write(StorageMessageType.RESP_TASK_STOP);
                 responseBuffer.write(Constants.BUFFER_SEP);
-                responseBuffer.writeAll(respChannelBufferView.data());
+                responseBuffer.writeInt(destMailboxId);
                 responseBuffer.write(Constants.BUFFER_SEP);
                 responseBuffer.writeAll(callbackBufferView.data());
                 destMailbox.submit(responseBuffer.data());
@@ -384,7 +385,7 @@ public class GraphWorker implements Runnable {
                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
                 responseBuffer.write(StorageMessageType.HEART_BEAT_PONG);
                 responseBuffer.write(Constants.BUFFER_SEP);
-                responseBuffer.writeAll(respChannelBufferView.data());
+                responseBuffer.writeInt(destMailboxId);
                 responseBuffer.write(Constants.BUFFER_SEP);
                 responseBuffer.writeAll(callbackBufferView.data());
                 responseBuffer.writeString("ok");
@@ -408,7 +409,7 @@ public class GraphWorker implements Runnable {
                         final Buffer responseBuffer = workingGraphInstance.newBuffer();
                         responseBuffer.write(StorageMessageType.RESP_REMOVE);
                         responseBuffer.write(Constants.BUFFER_SEP);
-                        responseBuffer.writeAll(respChannelBufferView.data());
+                        responseBuffer.writeInt(destMailboxId);
                         responseBuffer.write(Constants.BUFFER_SEP);
                         responseBuffer.writeAll(callbackBufferView.data());
                         /*
@@ -434,7 +435,7 @@ public class GraphWorker implements Runnable {
                         final Buffer responseBuffer = workingGraphInstance.newBuffer();
                         responseBuffer.write(StorageMessageType.RESP_GET);
                         responseBuffer.write(Constants.BUFFER_SEP);
-                        responseBuffer.writeAll(respChannelBufferView.data());
+                        responseBuffer.writeInt(destMailboxId);
                         responseBuffer.write(Constants.BUFFER_SEP);
                         responseBuffer.writeAll(callbackBufferView.data());
                         responseBuffer.write(Constants.BUFFER_SEP);
@@ -455,7 +456,7 @@ public class GraphWorker implements Runnable {
                             final Buffer responseBuffer = workingGraphInstance.newBuffer();
                             responseBuffer.write(StorageMessageType.RESP_TASK);
                             responseBuffer.write(Constants.BUFFER_SEP);
-                            responseBuffer.writeAll(respChannelBufferView.data());
+                            responseBuffer.writeInt(destMailboxId);
                             responseBuffer.write(Constants.BUFFER_SEP);
                             responseBuffer.writeAll(callbackBufferView.data());
                             responseBuffer.write(Constants.BUFFER_SEP);
@@ -510,7 +511,7 @@ public class GraphWorker implements Runnable {
                                         final Buffer printBuffer = workingGraphInstance.newBuffer();
                                         printBuffer.write(StorageMessageType.NOTIFY_PRINT);
                                         printBuffer.write(Constants.BUFFER_SEP);
-                                        printBuffer.writeAll(respChannelBufferView.data());
+                                        printBuffer.writeInt(destMailboxId);
                                         printBuffer.write(Constants.BUFFER_SEP);
                                         Base64.encodeIntToBuffer(printHookCode, printBuffer);
                                         printBuffer.write(Constants.BUFFER_SEP);
@@ -533,7 +534,7 @@ public class GraphWorker implements Runnable {
                                         final Buffer progressBuffer = workingGraphInstance.newBuffer();
                                         progressBuffer.write(StorageMessageType.NOTIFY_PROGRESS);
                                         progressBuffer.write(Constants.BUFFER_SEP);
-                                        progressBuffer.writeAll(respChannelBufferView.data());
+                                        progressBuffer.writeInt(destMailboxId);
                                         progressBuffer.write(Constants.BUFFER_SEP);
                                         Base64.encodeIntToBuffer(progressHookCode, progressBuffer);
                                         progressBuffer.write(Constants.BUFFER_SEP);
@@ -572,7 +573,7 @@ public class GraphWorker implements Runnable {
                         final Buffer responseBuffer = workingGraphInstance.newBuffer();
                         responseBuffer.write(StorageMessageType.RESP_LOCK);
                         responseBuffer.write(Constants.BUFFER_SEP);
-                        responseBuffer.writeAll(respChannelBufferView.data());
+                        responseBuffer.writeInt(destMailboxId);
                         responseBuffer.write(Constants.BUFFER_SEP);
                         responseBuffer.writeAll(callbackBufferView.data());
                         responseBuffer.write(Constants.BUFFER_SEP);
@@ -594,7 +595,7 @@ public class GraphWorker implements Runnable {
                         final Buffer responseBuffer = workingGraphInstance.newBuffer();
                         responseBuffer.write(StorageMessageType.RESP_UNLOCK);
                         responseBuffer.write(Constants.BUFFER_SEP);
-                        responseBuffer.writeAll(respChannelBufferView.data());
+                        responseBuffer.writeInt(destMailboxId);
                         responseBuffer.write(Constants.BUFFER_SEP);
                         responseBuffer.writeAll(callbackBufferView.data());
                         responseBuffer.write(Constants.BUFFER_SEP);
@@ -629,7 +630,7 @@ public class GraphWorker implements Runnable {
                                 final Buffer responseBuffer = workingGraphInstance.newBuffer();
                                 responseBuffer.write(StorageMessageType.RESP_PUT);
                                 responseBuffer.write(Constants.BUFFER_SEP);
-                                responseBuffer.writeAll(respChannelBufferView.data());
+                                responseBuffer.writeInt(destMailboxId);
                                 responseBuffer.write(Constants.BUFFER_SEP);
                                 responseBuffer.writeAll(callbackBufferView.data());
                                 responseBuffer.write(Constants.BUFFER_SEP);
