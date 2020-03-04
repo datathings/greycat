@@ -80,14 +80,14 @@ public class TestPolynomialImportExport {
                 Assert.assertTrue(res[0] <= precision);
                 Assert.assertTrue(res[2] < size);
 
-                TaskContext ctx = PolynomialNode.export.prepare(graph, polynomialNode, new Callback<TaskResult>() {
+                TaskContext ctx = PolynomialNode.exportTask.prepare(graph, polynomialNode, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         System.out.println("Done");
                     }
                 });
 
-                PolynomialNode.export.executeUsing(ctx);
+                PolynomialNode.exportTask.executeUsing(ctx);
 
 
 
