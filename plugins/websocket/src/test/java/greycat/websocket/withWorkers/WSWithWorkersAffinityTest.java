@@ -235,6 +235,7 @@ public class WSWithWorkersAffinityTest {
     @After
     public void tearDown() {
         wsServer.stop();
+        GraphWorkerPool.getInstance().halt();
     }
 
 

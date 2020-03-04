@@ -59,9 +59,7 @@ public class StorageMessageType {
     public static final byte REQ_LOG = 18;
     public static final byte RESP_LOG = 19;
 
-    public static final byte RESP_ASYNC = 20;
-
-
+    public static final byte RESP_ASYNC = 21;
 
 
     /*  !!!!!!! IMPORTANT !!!!!!!
@@ -73,8 +71,10 @@ public class StorageMessageType {
     public static final byte NOTIFY_PRINT = 24;
     public static final byte NOTIFY_PROGRESS = 26;
 
-    public static final byte REQ_BACKUP = 27;
-    public static final byte RESP_BACKUP = 28;
+    public static final byte REQ_BACKUP = 28;
+    public static final byte RESP_BACKUP = 29;
+
+    //DO NOT USE 35
 
     public static Map<Byte, String> byteToStringMap = initMap();
 

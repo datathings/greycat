@@ -89,6 +89,7 @@ public class GraphWorkerPool {
     private int memoryCheckDelay;
     private TimeUnit memoryCheckTimeUnit;
     private double cleanThreshold;
+    private AtomicBoolean ready = new AtomicBoolean(false);
 
     private GraphWorkerPool() {
     }
@@ -161,6 +162,7 @@ public class GraphWorkerPool {
             logger.debug("Memory Notification: " + notification.getMessage() + "  ");
         }, null, null);
 
+        ready.set(true);
         if (memoryMonitorActivated) {
             scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
             scheduledExecutor.scheduleWithFixedDelay(() -> {
@@ -207,21 +209,24 @@ public class GraphWorkerPool {
     }
 
     public void halt() {
+        ready.set(false);
         if (memoryMonitorActivated) {
             scheduledExecutor.shutdownNow();
         }
 
         logger.info("Halting workers pool...");
-        workersById.forEach(new BiConsumer<Integer, GraphWorker>() {
+        Map<Integer, GraphWorker> tmpWorkers = new HashMap<>(workersById);
+        tmpWorkers.forEach(new BiConsumer<Integer, GraphWorker>() {
             @Override
             public void accept(Integer id, GraphWorker worker) {
                 worker.halt();
-                worker.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
+                //worker.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
             }
         });
         logger.debug("Waiting threads");
         CountDownLatch latch = new CountDownLatch(threads.size());
-        threads.forEach(new BiConsumer<Integer, Thread>() {
+        Map<Integer, Thread> tmpThreads = new HashMap<>(threads);
+        tmpThreads.forEach(new BiConsumer<Integer, Thread>() {
             @Override
             public void accept(Integer id, Thread thread) {
                 try {
@@ -265,6 +270,9 @@ public class GraphWorkerPool {
 
     public GraphWorker createWorker(byte workerKind, String ref, Map<String, String> properties) {
 
+        if(!ready.get()) {
+            return null;
+        }
         WorkerBuilderFactory workerBuilderFactoryToUse = this.defaultWorkerBuilder;
         switch (workerKind) {
             case WorkerAffinity.GENERAL_PURPOSE_WORKER: {
@@ -304,7 +312,7 @@ public class GraphWorkerPool {
             workerThread.start();
             threads.put(worker.getId(), workerThread);
         }
-        logger.info("Worker " + worker.getName() + "(" + worker.getId() + ") created.");
+        logger.debug("Worker " + worker.getName() + "(" + worker.getId() + ") created.");
 
         return worker;
     }

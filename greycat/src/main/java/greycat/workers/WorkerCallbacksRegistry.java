@@ -16,6 +16,7 @@
 package greycat.workers;
 
 import greycat.Callback;
+import greycat.plugin.Job;
 
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,7 +47,12 @@ public class WorkerCallbacksRegistry {
     }
 
     public Callback remove(int callbackId) {
-        return callbacks.remove(callbackId);
+        Callback cb = callbacks.remove(callbackId);
+        return cb;
+    }
+
+    public int awaiting() {
+        return callbacks.size();
     }
 
 }

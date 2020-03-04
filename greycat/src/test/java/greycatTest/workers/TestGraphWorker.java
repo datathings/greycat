@@ -141,10 +141,10 @@ public class TestGraphWorker extends GraphWorker {
             @Override
             public void on(Buffer buffer) {
                 if (printHookCallbackId != -1) {
-                    //callbacksRegistry.remove(printHookCallbackId);
+                    callbacksRegistry.remove(printHookCallbackId);
                 }
                 if (progressHookCallbackId != -1) {
-                    //callbacksRegistry.remove(progressHookCallbackId);
+                    callbacksRegistry.remove(progressHookCallbackId);
                 }
 
                 final BaseTaskResult baseTaskResult = new BaseTaskResult(null, false);
