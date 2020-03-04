@@ -15,7 +15,9 @@
  */
 package greycat.workers;
 
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -42,7 +44,8 @@ public class MailboxRegistry {
 
 
     private Map<Integer, WorkerMailbox> mailboxMap = new ConcurrentHashMap<>();
-    private AtomicInteger nextMailboxId = new AtomicInteger(0);
+    private AtomicInteger nextMailboxId = new AtomicInteger(Integer.MIN_VALUE);
+    private LinkedList<Integer> availableIds = new LinkedList<>();
 
     private WorkerMailbox defaultMailbox = new WorkerMailbox(false);
     private int defaultMailboxId;
@@ -60,9 +63,13 @@ public class MailboxRegistry {
     }
 
     public int addMailbox(WorkerMailbox mailbox) {
-        int id = nextMailboxId.getAndIncrement();
+        Integer id = availableIds.pollFirst();
+        if(id == null) {
+            id = nextMailboxId.getAndIncrement();
+        }
+
         if (id == Integer.MAX_VALUE) {
-            nextMailboxId.set(0);
+            throw new RuntimeException("Out of MailboxIds ! Please reboot.");
         }
         mailboxMap.put(id, mailbox);
         return id;
@@ -95,6 +102,7 @@ public class MailboxRegistry {
 
     public void removeMailbox(int mailboxId) {
         mailboxMap.remove(mailboxId);
+        availableIds.addLast(mailboxId);
     }
 
 }

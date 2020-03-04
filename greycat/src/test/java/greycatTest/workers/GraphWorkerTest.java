@@ -317,7 +317,7 @@ public class GraphWorkerTest {
             taskWorker.submitTask(
                     newTask().log("inTask","debug"),
             lookupResult -> {
-                System.out.println("Got result");
+                //System.out.println("Got result");
                // assertEquals("1", lookupResult.get(0));
                 latch.countDown();
             });
