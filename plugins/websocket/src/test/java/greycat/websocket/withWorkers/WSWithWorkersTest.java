@@ -86,6 +86,8 @@ public class WSWithWorkersTest {
     @AfterClass
     public static void tearDown() {
         wsServer.stop();
+        GraphWorkerPool.getInstance().halt();
+
     }
 
 

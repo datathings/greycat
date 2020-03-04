@@ -32,10 +32,10 @@ import static org.junit.Assert.*;
  */
 public class WSWithWorkersMultiCLientTest {
 
-    private WSServerWithWorkers wsServer;
+    private static WSServerWithWorkers wsServer;
 
-    @Before
-    public void setUp() {
+    @BeforeClass
+    public static void setUp() {
         GraphBuilder graphBuilder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest());
         WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
         WorkerBuilderFactory defaultRootFactory = () -> DefaultRootWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
@@ -133,9 +133,10 @@ public class WSWithWorkersMultiCLientTest {
         }
     }
 
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         wsServer.stop();
+        GraphWorkerPool.getInstance().halt();
     }
 
 
