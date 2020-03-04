@@ -19,15 +19,15 @@ import greycat.*;
 import greycat.ml.BaseMLNode;
 import greycat.ml.RegressionNode;
 import greycat.ml.math.PolynomialFit;
-import greycat.ml.profiling.Gaussian;
 import greycat.plugin.NodeState;
 import greycat.struct.DoubleArray;
 import greycat.utility.Enforcer;
 
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-
-import static greycat.Tasks.newTask;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PolynomialNode extends BaseMLNode implements RegressionNode {
 
@@ -491,64 +491,172 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         return builder.toString();
     }
 
-    public static Task export = newTask()
-            .setAsVar("polynomialNode")
-            .declareVar("validityBatchTsStart")
-            .declareVar("validityBatchTsEnd")
-            .declareVar("batchSize")
-            .thenDo(ctx -> {
-                ctx.setVariable("validityBatchTsStart", Constants.BEGINNING_OF_TIME_STR);
-                ctx.setVariable("validityBatchTsEnd", Constants.END_OF_TIME_STR);
-                ctx.setVariable("batchSize", "128");
-                ctx.continueTask();
-            })
-            .declareVar("lastBatchSize")
-            .declareVar("lastBatchTimepoint")
-            .doWhile(Tasks.newTask()
-                            .readVar("polynomialNode")
-                            .traverseTimeline("{{validityBatchTsStart}}", "{{validityBatchTsEnd}}", "{{batchSize}}")
-                            .flat()
-                            .ifThenElse(ctx -> ctx.result().size() == 0,
-                                    Tasks.newTask().thenDo(ctx -> ctx.setVariable("lastBatchSize", 0).continueTask()),
-                                    Tasks.newTask()
-                                            .setAsVar("valueNodeBatch")
-                                            .thenDo(ctx -> {
 
-                                                TaskResult<Node> nodes = ctx.resultAsNodes();
+    public void exportToJson(Callback<String> callback) {
+        long world = this.world();
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        builder.append("\n\t");
+        builder.append("\"degree\":").append(this.getWithDefault(MAX_DEGREE, MAX_DEGREE_DEF)).append(",");
+        builder.append("\n\t");
+        builder.append("\"precision\":").append(this.getWithDefault(PRECISION, PRECISION_DEF)).append(",");
+        builder.append("\n\t");
+        builder.append("\"future prediction\":").append(this.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF)).append(",");
+        builder.append("\n\t");
+        builder.append("\"polynomes\": [");
+        graph().lookupTimes(world, Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, this._id, -1, polynomes -> {
+            for (int i = 0; i < polynomes.length; i++) {
+                PolynomialNode node = (PolynomialNode) polynomes[i];
+                double[] weight = node.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
+                builder.append("\n\t\t");
+                if (i != 0) {
+                    builder.append("},");
+                    builder.append("\n\t\t");
+                }
+                builder.append('{');
+                builder.append("\n\t\t\t");
+                builder.append("\"time\":").append(node.time()).append(',');
+                builder.append("\n\t\t\t");
+                builder.append("\"validity\":").append(node.get(INTERNAL_LAST_TIME_KEY)).append(',');
+                builder.append("\n\t\t\t");
+                builder.append("\"step\":").append(node.getWithDefault(INTERNAL_STEP_KEY, 1L)).append(',');
+                builder.append("\n\t\t\t");
+                builder.append("\"number of keys\":").append(node.get(INTERNAL_NB_PAST_KEY)).append(',');
+                builder.append("\n\t\t\t");
+                builder.append("\"weights\": [");
+                for (int j = 0; j < weight.length; j++) {
+                    if (j != 0) {
+                        builder.append(',');
+                    }
+                    builder.append(weight[j]);
+                }
+                builder.append(']');
+                node.free();
+            }
+            if (polynomes.length > 0) {
+                builder.append("\n\t\t");
+                builder.append("}");
+                builder.append("\n\t");
+            }
+            builder.append("]");
+            builder.append("\n");
+            builder.append("}");
+            callback.on(builder.toString());
+        });
+    }
 
-                                                for (int i = 0; i < nodes.size(); i++) {
-                                                    Node n= nodes.get(i);
+    public static void importFromJson(Graph graph, String json, Callback<Node> callback) {
+        Pattern degreepat = Pattern.compile(".*\"degree\":([0-9]*)");
+        Pattern precisionpat = Pattern.compile(".*\"precision\":([0-9E\\-^.]*)");
+        Pattern futurepat = Pattern.compile(".*\"future prediction\":([0-9E\\-^.]*)");
+        Pattern timepat = Pattern.compile(".*\"time\":([0-9]*),");
+        Pattern validitypat = Pattern.compile(".*\"validity\":([0-9]*),");
+        Pattern steppat = Pattern.compile(".*\"step\":([0-9]*),");
+        Pattern keypat = Pattern.compile(".*\"number of keys\":([0-9]*),");
+        Pattern weightpat = Pattern.compile(".*\"weights\": \\[([0-9E\\-^.,]*)]");
 
-                                                    //todo serialize the follow
-                                                    double precision = (double) n.getWithDefault(PRECISION, PRECISION_DEF);
-                                                    int maxDegree = (int) n.getWithDefault(MAX_DEGREE, MAX_DEGREE_DEF);
+        Matcher degreematch = degreepat.matcher(json);
+        if (degreematch.find()) {
+            int degree = Integer.parseInt(degreematch.group(1));
+            if (degreematch.find()) {
+                graph.log().error("invalid Json: More than one degree field");
+                callback.on(null);
+            } else {
+                Matcher precisionMatch = precisionpat.matcher(json);
+                Matcher futurMacth = futurepat.matcher(json);
+                if(precisionMatch.find() && futurMacth.find()){
+                    double precision = Double.parseDouble(precisionMatch.group(1));
+                    boolean future =Boolean.parseBoolean(futurMacth.group(1));
+                    Matcher timeMatch = timepat.matcher(json);
+                    Matcher validityMatch = validitypat.matcher(json);
+                    Matcher stepMatch = steppat.matcher(json);
+                    Matcher keyMatch = keypat.matcher(json);
+                    Matcher weightMatch = weightpat.matcher(json);
 
-                                                    double[] weights = n.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
-                                                    long step = n.getWithDefault(INTERNAL_STEP_KEY, 1l);
-                                                    int num = (int) n.get(INTERNAL_NB_PAST_KEY);
-                                                    long startTime = n.time();  //On import jump in time on this value and forceset at this timepoint
-                                                    long relativeLastTime = (long)  n.get(INTERNAL_LAST_TIME_KEY);
-                                                    
-                                                }
-
-
-                                                ctx.setVariable("lastBatchSize", nodes.size());
-                                                ctx.setVariable("lastBatchTimepoint", nodes.get(nodes.size() - 1).time());
-                                                ctx.continueTask();
-                                            })
-                            ),
-                    ctx -> {
-                        if (ctx.variable("lastBatchSize").size() > 0) {
-                            int lastBatchSize = (int) ctx.variable("lastBatchSize").get(0);
-                            if (lastBatchSize > 0) {
-                                ctx.setVariable("validityBatchTsStart", ((long) ctx.variable("lastBatchTimepoint").get(0)) + 1);
-                            }
-                            return lastBatchSize > 0;
-                        } else {
-                            return false;
+                    List<Long> times = new ArrayList<>();
+                    List<Long> validities = new ArrayList<>();
+                    List<Long> steps = new ArrayList<>();
+                    List<Integer> keys = new ArrayList<>();
+                    List<double[]> weights = new ArrayList<>();
+                    boolean valid = true;
+                    long previoustime = Constants.BEGINNING_OF_TIME;
+                    while (timeMatch.find()){
+                        long time = Long.valueOf(timeMatch.group(1));
+                        if(time>=previoustime){
+                            times.add(time);
+                        }else {
+                            valid= false;
                         }
                     }
-            );
 
+                    while (validityMatch.find()){
+                        validities.add(Long.valueOf(validityMatch.group(1)));
+                    }
+
+                    while (stepMatch.find()){
+                        steps.add(Long.valueOf(stepMatch.group(1)));
+                    }
+
+                    while(keyMatch.find()){
+                        keys.add(Integer.parseInt(keyMatch.group(1)));
+                    }
+
+                    while(weightMatch.find()){
+                        String weightstring = weightMatch.group(1);
+                        String[] weightarray = weightstring.split(",");
+                        double[] weight= new double[weightarray.length];
+                        for(int i=0;i<weightarray.length;i++){
+                            weight[i]= Double.parseDouble(weightarray[i]);
+                        }
+                        weights.add(weight);
+                    }
+                    if(valid && times.size() == validities.size() && steps.size()==keys.size() && weights.size() == times.size() && validities.size()== steps.size()){
+                        Node node = graph.newTypedNode(0,times.get(0),NAME);
+                        node.set(PRECISION,Type.DOUBLE,precision);
+                        node.set(MAX_DEGREE,Type.INT,degree);
+                        node.set(FUTURE_PREDICTION,Type.BOOL,future);
+                        long[] worlds = new long[times.size()];
+                        long[] timesa = new long[times.size()];
+                        long[] ids = new long[times.size()];
+
+                        Arrays.fill(worlds,0);
+                        Arrays.fill(ids,node.id());
+                        for(int i= 0;i<times.size();i++){
+                            timesa[i]=times.get(i);
+                        }
+
+                        graph.lookupBatch(worlds,timesa,ids,nodes->{
+                            if(nodes.length==timesa.length){
+                                for(int i=0;i<nodes.length;i++){
+                                    Node currentTimeNode = nodes[i];
+                                    currentTimeNode.rephase();
+                                    DoubleArray arr  = (DoubleArray) currentTimeNode.getOrCreate(INTERNAL_WEIGHT_KEY,Type.DOUBLE_ARRAY);
+                                    arr.initWith(weights.get(i));
+                                    currentTimeNode.forceSet(INTERNAL_STEP_KEY,Type.LONG,steps.get(i));
+                                    currentTimeNode.forceSet(INTERNAL_NB_PAST_KEY,Type.INT,keys.get(i));
+                                    currentTimeNode.forceSet(INTERNAL_LAST_TIME_KEY,Type.LONG,validities.get(i));
+                                    currentTimeNode.free();
+                                }
+                                callback.on(node);
+                            }else{
+                                graph.log().error("time error");
+                                callback.on(null);
+                            }
+                        });
+                    }else{
+                        graph.log().error("invalid Json: temporal information incorrect");
+                        callback.on(null);
+                    }
+
+                }else {
+                    graph.log().error("invalid Json: Missing precision");
+                    callback.on(null);
+                }
+            }
+        } else {
+            graph.log().error("invalid Json: Missing degree");
+            callback.on(null);
+        }
+    }
 
 }
