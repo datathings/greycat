@@ -23,11 +23,12 @@ import greycat.plugin.NodeState;
 import greycat.struct.DoubleArray;
 import greycat.utility.Enforcer;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 public class PolynomialNode extends BaseMLNode implements RegressionNode {
 
@@ -439,7 +440,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         builder.append((long) state.get(INTERNAL_LAST_TIME_KEY) + time());
         builder.append("]\"");
         long timeOrigin = state.time();
-        long step = state.getWithDefault(INTERNAL_STEP_KEY, 1l);
+        long step = state.getWithDefault(INTERNAL_STEP_KEY, 1L);
         double[] weight = state.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
         if (weight != null) {
             builder.append(",\"polynomial\":\"");
@@ -466,20 +467,17 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
                     if (timeOrigin == 0) {
                         if (step == 1) {
                             builder.append("*t^");
-                            builder.append(i);
                         } else {
                             builder.append("*(t/").append(step).append(")^");
-                            builder.append(i);
                         }
                     } else {
                         if (step == 1) {
                             builder.append("*(t-").append(timeOrigin).append(")^");
-                            builder.append(i);
                         } else {
                             builder.append("*((t-").append(timeOrigin).append(")/").append(step).append(")^");
-                            builder.append(i);
                         }
                     }
+                    builder.append(i);
                 }
                 if (i != 0) {
                     builder.append(")");
@@ -491,9 +489,143 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         return builder.toString();
     }
 
+    // CSV Exporter
+    // Utils
+    private String generateHeader() {
+        String header = "precision,future,time,validity,keys,step";
+        int degree = this.getWithDefault(MAX_DEGREE, MAX_DEGREE_DEF);
+        for (int i = 0; i < degree; i++) {
+            header += "," + i;
+        }
+        return header;
+    }
 
-    public void exportToJson(Callback<String> callback) {
-        long world = this.world();
+    private String handlePolynomes(Node[] polynomes, double precision, boolean future) {
+        String line = "";
+        for (int i = 0; i < polynomes.length; i++) {
+            PolynomialNode node = (PolynomialNode) polynomes[i];
+            double[] weight = node.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
+
+            line += "\n" +
+                    precision + "," +
+                    future + "," +
+                    node.time() + "," +
+                    node.get(INTERNAL_LAST_TIME_KEY) + "," +
+                    node.get(INTERNAL_NB_PAST_KEY) + "," +
+                    node.getWithDefault(INTERNAL_STEP_KEY, 1L);
+            for (int j = 0; j < weight.length; j++) {
+                line += "," + weight[j];
+            }
+        }
+        return line;
+    }
+
+    // Batch Processing
+    /**
+     * @ignore ts
+     */
+    private void exportTimeToCSV(Writer builder, long start, double precision, boolean future, Callback<Boolean> done) {
+        graph().lookupTimes(world(), start, Constants.END_OF_TIME, this._id, 128, polynomes -> {
+            try {
+                builder.append(handlePolynomes(polynomes, precision, future));
+                if (polynomes.length == 0) {
+                    done.on(true);
+                } else {
+                    long lasttime = polynomes[polynomes.length - 1].time() + 1;
+                    graph().freeNodes(polynomes);
+                    exportTimeToCSV(builder, lasttime, precision, future, done);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                graph().freeNodes(polynomes);
+                done.on(false);
+            }
+        });
+    }
+
+    private void exportTimeToCSV(String csv, long start, double precision, boolean future, Callback<String> callback) {
+        graph().lookupTimes(world(), start, Constants.END_OF_TIME, this._id, 128, polynomes -> {
+            String currentcsv = csv;
+            currentcsv += handlePolynomes(polynomes, precision, future);
+            if (polynomes.length == 0) {
+                callback.on(currentcsv);
+            } else {
+                long lasttime = polynomes[polynomes.length - 1].time() + 1;
+                graph().freeNodes(polynomes);
+                exportTimeToCSV(currentcsv, lasttime, precision, future, callback);
+            }
+        });
+    }
+
+    //Main method to call
+    /**
+     * @ignore ts
+     */
+    public void exportNodeToCSV(Writer writer, Callback<Boolean> done) {
+        try {
+            writer.append(generateHeader());
+            exportTimeToCSV(writer, Constants.BEGINNING_OF_TIME, this.getWithDefault(PRECISION, PRECISION_DEF), this.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF), done);
+        } catch (IOException e) {
+            e.printStackTrace();
+            done.on(false);
+        }
+    }
+
+    public void exportNodeToCSV(Callback<String> callback) {
+        String csv = generateHeader();
+        this.exportTimeToCSV(csv, Constants.BEGINNING_OF_TIME, this.getWithDefault(PRECISION, PRECISION_DEF), this.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF), callback);
+    }
+
+    // Json Exporter
+    public void exportTimeBatchJSON(StringBuilder builder, long start, boolean first, boolean timestamps, Callback<String> callback) {
+        graph().lookupTimes(world(), start, Constants.END_OF_TIME, this._id, 128, polynomes -> {
+
+            for (int i = 0; i < polynomes.length; i++) {
+                PolynomialNode node = (PolynomialNode) polynomes[i];
+                double[] weight = node.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
+                builder.append("\n\t\t");
+                if (i != 0 || !first) {
+                    builder.append("},");
+                    builder.append("\n\t\t");
+                }
+                builder.append('{');
+                builder.append("\n\t\t\t");
+                builder.append("\"time\":").append(node.time()).append(",");
+                builder.append("\n\t\t\t");
+                builder.append("\"validity\":").append(node.get(INTERNAL_LAST_TIME_KEY)).append(",");
+                builder.append("\n\t\t\t");
+                builder.append("\"step\":").append(node.getWithDefault(INTERNAL_STEP_KEY, 1L)).append(",");
+                builder.append("\n\t\t\t");
+                builder.append("\"number of keys\":").append(node.get(INTERNAL_NB_PAST_KEY)).append(",");
+                builder.append("\n\t\t\t");
+                builder.append("\"weights\": [");
+                for (int j = 0; j < weight.length; j++) {
+                    if (j != 0) {
+                        builder.append(",");
+                    }
+                    builder.append(weight[j]);
+                }
+                builder.append(']');
+            }
+            if (polynomes.length == 0) {
+                if (timestamps) {
+                    builder.append("\n\t\t");
+                    builder.append("}");
+                    builder.append("\n\t");
+                }
+                builder.append("]");
+                builder.append("\n");
+                builder.append("}");
+                callback.on(builder.toString());
+            } else {
+                long lasttime = polynomes[polynomes.length - 1].time() + 1;
+                graph().freeNodes(polynomes);
+                exportTimeBatchJSON(builder, lasttime, false, true, callback);
+            }
+        });
+    }
+
+    public void exportNodeToJson(Callback<String> callback) {
         StringBuilder builder = new StringBuilder();
         builder.append("{");
         builder.append("\n\t");
@@ -504,159 +636,162 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         builder.append("\"future prediction\":").append(this.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF)).append(",");
         builder.append("\n\t");
         builder.append("\"polynomes\": [");
-        graph().lookupTimes(world, Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, this._id, -1, polynomes -> {
-            for (int i = 0; i < polynomes.length; i++) {
-                PolynomialNode node = (PolynomialNode) polynomes[i];
-                double[] weight = node.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
-                builder.append("\n\t\t");
-                if (i != 0) {
-                    builder.append("},");
-                    builder.append("\n\t\t");
-                }
-                builder.append('{');
-                builder.append("\n\t\t\t");
-                builder.append("\"time\":").append(node.time()).append(',');
-                builder.append("\n\t\t\t");
-                builder.append("\"validity\":").append(node.get(INTERNAL_LAST_TIME_KEY)).append(',');
-                builder.append("\n\t\t\t");
-                builder.append("\"step\":").append(node.getWithDefault(INTERNAL_STEP_KEY, 1L)).append(',');
-                builder.append("\n\t\t\t");
-                builder.append("\"number of keys\":").append(node.get(INTERNAL_NB_PAST_KEY)).append(',');
-                builder.append("\n\t\t\t");
-                builder.append("\"weights\": [");
-                for (int j = 0; j < weight.length; j++) {
-                    if (j != 0) {
-                        builder.append(',');
-                    }
-                    builder.append(weight[j]);
-                }
-                builder.append(']');
-                node.free();
+        exportTimeBatchJSON(builder, Constants.BEGINNING_OF_TIME, true, false, callback);
+    }
+
+
+    //CSV Importer
+    //Utils
+    private static void setFields(String[] timeline, Node node) {
+        node.rephase();
+        long validity = Long.parseLong(timeline[3]);
+        int keys = Integer.parseInt(timeline[4]);
+        long step = Long.parseLong(timeline[5]);
+        DoubleArray arr = (DoubleArray) node.getOrCreate(INTERNAL_WEIGHT_KEY, Type.DOUBLE_ARRAY);
+        arr.clear();
+        for (int j = 6; j < timeline.length; j++) {
+            if (timeline[j].length() > 0) {
+                arr.addElement(Double.parseDouble(timeline[j]));
+            } else {
+                break;
             }
-            if (polynomes.length > 0) {
-                builder.append("\n\t\t");
-                builder.append("}");
-                builder.append("\n\t");
+        }
+        node.forceSet(INTERNAL_STEP_KEY, Type.LONG, step);
+        node.forceSet(INTERNAL_NB_PAST_KEY, Type.INT, keys);
+        node.forceSet(INTERNAL_LAST_TIME_KEY, Type.LONG, validity);
+    }
+
+    private static long createNode(Graph graph, long world, String firstline, String degreeMaxStr) {
+        int degreeMax = Integer.parseInt(degreeMaxStr);
+        String[] fline = firstline.split(",");
+        long time = Long.parseLong(fline[2]);
+        double precision = Double.parseDouble(fline[0]);
+        boolean future = fline[1].equals("true");
+        PolynomialNode node = (PolynomialNode) graph.newTypedNode(world, time, NAME);
+        node.set(PRECISION, Type.DOUBLE, precision);
+        node.set(MAX_DEGREE, Type.INT, degreeMax);
+        node.set(FUTURE_PREDICTION, Type.BOOL, future);
+        setFields(fline, node);
+        long nodeId = node.id();
+        node.free();
+        return nodeId;
+    }
+
+    //Batch processing
+    /**
+     * @ignore ts
+     */
+    private static void createNodeTimeFromCSV(Graph graph, long world, long nodeId, BufferedReader reader, Callback<PolynomialNode> callback) {
+        try {
+            List<String[]> lines = new ArrayList<>();
+            int i = 0;
+            String line = reader.readLine();
+            while (i < 127 && line != null) {
+                lines.add(line.split(","));
+                i++;
+                line = reader.readLine();
             }
-            builder.append("]");
-            builder.append("\n");
-            builder.append("}");
-            callback.on(builder.toString());
+            if (line != null) {
+                lines.add(line.split(","));
+            }
+            long[] times = new long[lines.size()];
+            long[] worlds = new long[lines.size()];
+            long[] ids = new long[lines.size()];
+            for (i = 0; i < lines.size(); i++) {
+                String[] elements = lines.get(i);
+                times[i] = Long.parseLong(elements[2]);
+                worlds[i] = world;
+                ids[i] = nodeId;
+            }
+            String finalLine = line;
+            graph.lookupBatch(worlds, times, ids, result -> {
+                for (int j = 0; j < result.length; j++) {
+                    String[] elements = lines.get(j);
+                    setFields(elements, result[j]);
+                }
+                graph.freeNodes(result);
+                if (finalLine != null) {
+                    createNodeTimeFromCSV(graph, world, nodeId, reader, callback);
+                } else {
+                    graph.lookup(world, Constants.END_OF_TIME, nodeId, node -> callback.on((PolynomialNode) node));
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+            callback.on(null);
+        }
+
+    }
+
+    public static void createNodeTimeFromCSV(Graph graph, long world, long nodeId, String[] lines, int index, Callback<PolynomialNode> callback) {
+        int max = Math.min(lines.length, index + 128);
+        long[] times = new long[max - index];
+        long[] worlds = new long[max - index];
+        long[] ids = new long[max - index];
+        int counter = 0;
+        for (int i = index; i < max; i++) {
+            String[] elements = lines[i].split(",");
+            times[counter] = Long.parseLong(elements[2]);
+            worlds[counter] = world;
+            ids[counter] = nodeId;
+            counter++;
+        }
+        graph.lookupBatch(worlds, times, ids, result -> {
+            for (int i = 0; i < result.length; i++) {
+                String[] elements = lines[i + index].split(",");
+                setFields(elements, result[i]);
+            }
+            graph.freeNodes(result);
+            if (max != lines.length) {
+                createNodeTimeFromCSV(graph, world, nodeId, lines, max, callback);
+            } else {
+                graph.lookup(world, Constants.END_OF_TIME, nodeId, node -> callback.on((PolynomialNode) node));
+            }
         });
     }
 
-    public static void importFromJson(Graph graph, String json, Callback<Node> callback) {
-        Pattern degreepat = Pattern.compile(".*\"degree\":([0-9]*)");
-        Pattern precisionpat = Pattern.compile(".*\"precision\":([0-9E\\-^.]*)");
-        Pattern futurepat = Pattern.compile(".*\"future prediction\":([0-9E\\-^.]*)");
-        Pattern timepat = Pattern.compile(".*\"time\":([0-9]*),");
-        Pattern validitypat = Pattern.compile(".*\"validity\":([0-9]*),");
-        Pattern steppat = Pattern.compile(".*\"step\":([0-9]*),");
-        Pattern keypat = Pattern.compile(".*\"number of keys\":([0-9]*),");
-        Pattern weightpat = Pattern.compile(".*\"weights\": \\[([0-9E\\-^.,]*)]");
-
-        Matcher degreematch = degreepat.matcher(json);
-        if (degreematch.find()) {
-            int degree = Integer.parseInt(degreematch.group(1));
-            if (degreematch.find()) {
-                graph.log().error("invalid Json: More than one degree field");
-                callback.on(null);
-            } else {
-                Matcher precisionMatch = precisionpat.matcher(json);
-                Matcher futurMacth = futurepat.matcher(json);
-                if(precisionMatch.find() && futurMacth.find()){
-                    double precision = Double.parseDouble(precisionMatch.group(1));
-                    boolean future =Boolean.parseBoolean(futurMacth.group(1));
-                    Matcher timeMatch = timepat.matcher(json);
-                    Matcher validityMatch = validitypat.matcher(json);
-                    Matcher stepMatch = steppat.matcher(json);
-                    Matcher keyMatch = keypat.matcher(json);
-                    Matcher weightMatch = weightpat.matcher(json);
-
-                    List<Long> times = new ArrayList<>();
-                    List<Long> validities = new ArrayList<>();
-                    List<Long> steps = new ArrayList<>();
-                    List<Integer> keys = new ArrayList<>();
-                    List<double[]> weights = new ArrayList<>();
-                    boolean valid = true;
-                    long previoustime = Constants.BEGINNING_OF_TIME;
-                    while (timeMatch.find()){
-                        long time = Long.valueOf(timeMatch.group(1));
-                        if(time>=previoustime){
-                            times.add(time);
-                        }else {
-                            valid= false;
-                        }
-                    }
-
-                    while (validityMatch.find()){
-                        validities.add(Long.valueOf(validityMatch.group(1)));
-                    }
-
-                    while (stepMatch.find()){
-                        steps.add(Long.valueOf(stepMatch.group(1)));
-                    }
-
-                    while(keyMatch.find()){
-                        keys.add(Integer.parseInt(keyMatch.group(1)));
-                    }
-
-                    while(weightMatch.find()){
-                        String weightstring = weightMatch.group(1);
-                        String[] weightarray = weightstring.split(",");
-                        double[] weight= new double[weightarray.length];
-                        for(int i=0;i<weightarray.length;i++){
-                            weight[i]= Double.parseDouble(weightarray[i]);
-                        }
-                        weights.add(weight);
-                    }
-                    if(valid && times.size() == validities.size() && steps.size()==keys.size() && weights.size() == times.size() && validities.size()== steps.size()){
-                        Node node = graph.newTypedNode(0,times.get(0),NAME);
-                        node.set(PRECISION,Type.DOUBLE,precision);
-                        node.set(MAX_DEGREE,Type.INT,degree);
-                        node.set(FUTURE_PREDICTION,Type.BOOL,future);
-                        long[] worlds = new long[times.size()];
-                        long[] timesa = new long[times.size()];
-                        long[] ids = new long[times.size()];
-
-                        Arrays.fill(worlds,0);
-                        Arrays.fill(ids,node.id());
-                        for(int i= 0;i<times.size();i++){
-                            timesa[i]=times.get(i);
-                        }
-
-                        graph.lookupBatch(worlds,timesa,ids,nodes->{
-                            if(nodes.length==timesa.length){
-                                for(int i=0;i<nodes.length;i++){
-                                    Node currentTimeNode = nodes[i];
-                                    currentTimeNode.rephase();
-                                    DoubleArray arr  = (DoubleArray) currentTimeNode.getOrCreate(INTERNAL_WEIGHT_KEY,Type.DOUBLE_ARRAY);
-                                    arr.initWith(weights.get(i));
-                                    currentTimeNode.forceSet(INTERNAL_STEP_KEY,Type.LONG,steps.get(i));
-                                    currentTimeNode.forceSet(INTERNAL_NB_PAST_KEY,Type.INT,keys.get(i));
-                                    currentTimeNode.forceSet(INTERNAL_LAST_TIME_KEY,Type.LONG,validities.get(i));
-                                    currentTimeNode.free();
-                                }
-                                callback.on(node);
-                            }else{
-                                graph.log().error("time error");
-                                callback.on(null);
-                            }
-                        });
-                    }else{
-                        graph.log().error("invalid Json: temporal information incorrect");
-                        callback.on(null);
-                    }
-
-                }else {
-                    graph.log().error("invalid Json: Missing precision");
+    //Main method to call
+    /**
+     * @ignore ts
+     */
+    public static void createNodeFromCSV(Graph graph, long world, BufferedReader reader, Callback<PolynomialNode> callback) {
+        try {
+            String header = reader.readLine();
+            String firstlines = reader.readLine();
+            if (header != null && firstlines != null) {
+                String[] headers = header.split(",");
+                if (headers.length > 0) {
+                    long nodeId = createNode(graph, world, firstlines, headers[headers.length - 1]);
+                    createNodeTimeFromCSV(graph, world, nodeId, reader, callback);
+                } else {
                     callback.on(null);
                 }
+            } else {
+                callback.on(null);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            callback.on(null);
+        }
+
+    }
+
+    public static void createNodeFromCSV(Graph graph, long world, String csv, Callback<PolynomialNode> callback) {
+        String[] lines = csv.split("\n");
+        if (lines.length > 1) {
+            String[] headers = lines[0].split(",");
+            if (headers.length > 0) {
+                long nodeId = createNode(graph, world, lines[1], headers[headers.length - 1]);
+                createNodeTimeFromCSV(graph, world, nodeId, lines, 2, callback);
+            } else {
+                callback.on(null);
             }
         } else {
-            graph.log().error("invalid Json: Missing degree");
             callback.on(null);
         }
     }
 
 }
+
+
+
