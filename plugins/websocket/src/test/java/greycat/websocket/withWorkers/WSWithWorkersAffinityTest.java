@@ -20,21 +20,22 @@ import greycat.websocket.WSClientForWorkers;
 import greycat.websocket.WSServerWithWorkers;
 import greycat.workers.*;
 import org.junit.*;
+import org.junit.runners.MethodSorters;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
 /**
  * Created by Gregory NAIN on 2019-03-15.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class WSWithWorkersAffinityTest {
 
-    private WSServerWithWorkers wsServer;
+    private static WSServerWithWorkers wsServer;
 
-    @Before
-    public void setUp() {
+    @BeforeClass
+    public static void setUp() {
 
         GraphBuilder graphBuilder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest());
         WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
@@ -52,7 +53,7 @@ public class WSWithWorkersAffinityTest {
     }
 
     @Test
-    public void defaultTask() throws InterruptedException {
+    public void _00_defaultTask() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         GraphBuilder builder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()).withStorage(new WSClientForWorkers("ws://localhost:1234/ws"));
         Graph graph = builder.build();
@@ -75,17 +76,17 @@ public class WSWithWorkersAffinityTest {
                 assertTrue(creationResult.get(0) instanceof Node);
                 assertEquals("Node 0", ((Node) creationResult.get(0)).get("name"));
 
-                latch.countDown();
                 graph.disconnect(disconnected -> {
+                    latch.countDown();
                 });
             });
         });
-        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        latch.await();
     }
 
 
     @Test
-    public void explicitGPTest() throws InterruptedException {
+    public void _01_explicitGPTest() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         GraphBuilder builder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()).withStorage(new WSClientForWorkers("ws://localhost:1234/ws"));
         Graph graph = builder.build();
@@ -94,7 +95,7 @@ public class WSWithWorkersAffinityTest {
             Task createNode = Tasks.newTask()
                     .declareIndex("nodes", "name")
                     .createNode()
-                    .setAttribute("name", Type.STRING, "Node 0")
+                    .setAttribute("name", Type.STRING, "Node 1")
                     .updateIndex("nodes")
                     .save();
 
@@ -107,7 +108,7 @@ public class WSWithWorkersAffinityTest {
                 assertNull(creationResult.output());
                 assertEquals(1, creationResult.size());
                 assertTrue(creationResult.get(0) instanceof Node);
-                assertEquals("Node 0", ((Node) creationResult.get(0)).get("name"));
+                assertEquals("Node 1", ((Node) creationResult.get(0)).get("name"));
 
                 graph.disconnect(disconnected -> {
                     latch.countDown();
@@ -121,7 +122,7 @@ public class WSWithWorkersAffinityTest {
 
 
     @Test
-    public void sessionWorkerTest() throws InterruptedException {
+    public void _02_sessionWorkerTest() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         GraphBuilder builder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()).withStorage(new WSClientForWorkers("ws://localhost:1234/ws"));
         Graph graph = builder.build();
@@ -131,7 +132,7 @@ public class WSWithWorkersAffinityTest {
             Task createNode = Tasks.newTask()
                     .declareIndex("nodes", "name")
                     .createNode()
-                    .setAttribute("name", Type.STRING, "Node 0")
+                    .setAttribute("name", Type.STRING, "Node 2")
                     .updateIndex("nodes")
                     .save();
 
@@ -144,7 +145,7 @@ public class WSWithWorkersAffinityTest {
                 assertNull(creationResult.output());
                 assertEquals(1, creationResult.size());
                 assertTrue(creationResult.get(0) instanceof Node);
-                assertEquals("Node 0", ((Node) creationResult.get(0)).get("name"));
+                assertEquals("Node 2", ((Node) creationResult.get(0)).get("name"));
 
 
                 //Try to read the node in the session worker
@@ -177,7 +178,7 @@ public class WSWithWorkersAffinityTest {
 
 
     @Test
-    public void taskWorkerTest() throws InterruptedException {
+    public void _03_taskWorkerTest() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         GraphBuilder builder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest()).withStorage(new WSClientForWorkers("ws://localhost:1234/ws"));
         Graph graph = builder.build();
@@ -187,7 +188,7 @@ public class WSWithWorkersAffinityTest {
             Task createNode = Tasks.newTask()
                     .declareIndex("nodes", "name")
                     .createNode()
-                    .setAttribute("name", Type.STRING, "Node 0")
+                    .setAttribute("name", Type.STRING, "Node 3")
                     .updateIndex("nodes")
                     .save();
 
@@ -200,7 +201,7 @@ public class WSWithWorkersAffinityTest {
                 assertNull(creationResult.output());
                 assertEquals(1, creationResult.size());
                 assertTrue(creationResult.get(0) instanceof Node);
-                assertEquals("Node 0", ((Node) creationResult.get(0)).get("name"));
+                assertEquals("Node 3", ((Node) creationResult.get(0)).get("name"));
 
 
                 //Try to read the node in the session worker
@@ -233,8 +234,8 @@ public class WSWithWorkersAffinityTest {
 
 
 
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         wsServer.stop();
         GraphWorkerPool.getInstance().halt();
     }
