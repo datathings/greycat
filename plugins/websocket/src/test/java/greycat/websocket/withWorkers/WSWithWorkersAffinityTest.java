@@ -22,6 +22,7 @@ import greycat.workers.*;
 import org.junit.*;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -74,12 +75,12 @@ public class WSWithWorkersAffinityTest {
                 assertTrue(creationResult.get(0) instanceof Node);
                 assertEquals("Node 0", ((Node) creationResult.get(0)).get("name"));
 
+                latch.countDown();
                 graph.disconnect(disconnected -> {
-                    latch.countDown();
                 });
             });
         });
-        latch.await();
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
     }
 
 
