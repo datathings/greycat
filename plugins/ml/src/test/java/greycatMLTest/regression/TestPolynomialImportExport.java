@@ -16,7 +16,7 @@ public class TestPolynomialImportExport {
             @Override
             public void on(Boolean result) {
                 double precision = 0.00001;
-                int size = 10000;
+                int size = 1000;
 
                 long seed = 1545436547678348l;
                 //Random random = new Random(seed);
@@ -79,21 +79,19 @@ public class TestPolynomialImportExport {
 
                 Assert.assertTrue(res[0] <= precision);
                 Assert.assertTrue(res[2] < size);
-
-                TaskContext ctx = PolynomialNode.exportTask.prepare(graph, polynomialNode, new Callback<TaskResult>() {
-                    @Override
-                    public void on(TaskResult result) {
-                        System.out.println("Done");
-                    }
+                polynomialNode.exportNodeToCSV(result1 -> {
+                    System.out.println(result1);
+                    PolynomialNode.createNodeFromCSV(graph,0,result1,result2 -> {
+                        polynomialNode.travelInTime(Constants.END_OF_TIME,result3->{
+                            ((PolynomialNode)result3).derivate(result4 -> {
+                                System.out.println(result4);
+                            });
+                        });
+                        result2.derivate(result3 -> {
+                            System.out.println(result3);
+                        });
+                    });
                 });
-
-                PolynomialNode.exportTask.executeUsing(ctx);
-
-
-
-
-
-
             }
         });
 
