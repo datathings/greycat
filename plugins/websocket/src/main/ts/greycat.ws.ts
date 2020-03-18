@@ -624,20 +624,19 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
   process_rpc_resp(payload: Int8Array) {
     let payloadBuf = this.graph.newBuffer();
     payloadBuf.writeAll(payload);
+
     let it = payloadBuf.iterator();
     let operationCodeView = it.next();
+    it.skip(5); // skip mailbox <int>#
+
+
     if (operationCodeView != null && operationCodeView.length() != 0) {
 
       let operationCode = operationCodeView.read(0);
-      let messageQueueBufferView; //IGNORED
-      let callbackIdBufferView;
+      let callbackIdBufferView = null;
 
       if (operationCode != greycat.workers.StorageMessageType.NOTIFY_UPDATE) {
-        messageQueueBufferView = it.next();
         callbackIdBufferView = it.next();
-      } else {
-        messageQueueBufferView = null;
-        callbackIdBufferView = null;
       }
 
       switch (operationCode) {
