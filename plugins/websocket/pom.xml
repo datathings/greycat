@@ -121,6 +121,9 @@
                         </goals>
                         <configuration>
                             <source>
+                                def gbasedir = basedir.getAbsolutePath().replace('\\', '/')
+                                def prefix = (System.getProperty("os.name").toLowerCase().contains("win")) ? "CMD /C " : ""
+                                
                                 def yarnCacheClean = (prefix + "yarn cache clean").execute(null, new File("${gbasedir}"))
                                 yarnCacheClean.waitForProcessOutput(System.out, System.err)
                                 if (yarnCacheClean.exitValue() != 0) {
