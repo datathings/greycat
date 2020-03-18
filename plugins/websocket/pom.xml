@@ -114,8 +114,8 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>main.ts.compile</id>
-                        <phase>compile</phase>
+                        <id>main.ts.clean</id>
+                        <phase>clean</phase>
                         <goals>
                             <goal>execute</goal>
                         </goals>
