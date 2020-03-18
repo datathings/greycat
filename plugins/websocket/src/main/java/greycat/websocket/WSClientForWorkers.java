@@ -434,19 +434,17 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
     private void process_rpc_resp(byte[] payload) {
         Buffer payloadBuf = _graph.newBuffer();
         payloadBuf.writeAll(payload);
+
         BufferIterator it = payloadBuf.iterator();
         Buffer codeView = it.next();
+        it.skip(5); // skip mailbox <int>#
+
         if (codeView != null && codeView.length() != 0) {
 
             final byte firstCode = codeView.read(0);
-            final Buffer messageQueueBufferView;//Ignored
-            final Buffer callbackIdBufferView;
+            Buffer callbackIdBufferView = null;
             if (firstCode != StorageMessageType.NOTIFY_UPDATE) {
-                messageQueueBufferView = it.next();
                 callbackIdBufferView = it.next();
-            } else {
-                messageQueueBufferView = null;
-                callbackIdBufferView = null;
             }
 
             switch (firstCode) {
