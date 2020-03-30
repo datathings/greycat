@@ -25,7 +25,7 @@ public abstract class Log {
     public static final byte OFF = 0;
 
     public static byte LOG_LEVEL = INFO;
-
+    public static boolean LOG_SYSTEM_OUT = true; // all logs also go to system.out
 
     public abstract Log trace(String message, Object... params);
 

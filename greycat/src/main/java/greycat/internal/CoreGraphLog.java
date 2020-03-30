@@ -15,7 +15,6 @@
  */
 package greycat.internal;
 
-import greycat.Constants;
 import greycat.Graph;
 import greycat.Log;
 import greycat.plugin.TaskExecutor;
@@ -146,7 +145,9 @@ public class CoreGraphLog extends Log {
 
     public void writeMessage(StringBuilder builder) {
         String msg = builder.toString();
-        System.out.println(msg);
+        if (LOG_SYSTEM_OUT) {
+            System.out.println(msg);
+        }
         if (remote && graph != null) {
             Object str = graph.storage();
             if (str != null) {
