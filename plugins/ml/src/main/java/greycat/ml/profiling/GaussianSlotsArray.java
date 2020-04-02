@@ -32,7 +32,7 @@ public class GaussianSlotsArray {
 
     private EStruct root = null;
     private GaussianWrapper[] slots = null;
-    private GaussianWrapper generic_slot = null;
+    private GaussianWrapper genericSlot = null;
 
 
     public static int getNumberOfSlots(int[] dimensions) {
@@ -73,7 +73,7 @@ public class GaussianSlotsArray {
             backend.setRoot(root);
             ERelation rel = (ERelation) root.getOrCreate(GENERIC_SLOT, Type.ERELATION);
             rel.add(backend.newEStruct());
-            generic_slot = new GaussianWrapper(rel.node(0));
+            genericSlot = new GaussianWrapper(rel.node(0));
         }
 
     }
@@ -97,6 +97,12 @@ public class GaussianSlotsArray {
                 relation.node(i).drop();
             }
         }
+
+        root.remove(GENERIC_SLOT);
+        ERelation genericRelation = (ERelation) root.getOrCreate(GENERIC_SLOT, Type.ERELATION);
+        genericRelation.add(backend.newEStruct());
+        genericSlot = new GaussianWrapper(genericRelation.node(0));
+
         root.remove(SLOTS);
         relation = (ERelation) root.getOrCreate(SLOTS, Type.ERELATION);
         EStruct temp;
@@ -114,7 +120,7 @@ public class GaussianSlotsArray {
         }
         int slot = calculateSlotFromKeys(keys, root.getIntArray(DIMENSIONS).extract());
         slots[slot].learn(values);
-        generic_slot.learn(values);
+        genericSlot.learn(values);
     }
 
     public void learn(int slot, double[] values) {
@@ -126,7 +132,7 @@ public class GaussianSlotsArray {
             throw new RuntimeException("Slot number exceed maximum slots allocated!");
         }
         slots[slot].learn(values);
-        generic_slot.learn(values);
+        genericSlot.learn(values);
     }
 
     public GaussianWrapper getGaussianWithKeys(int[] keys) {
@@ -148,7 +154,7 @@ public class GaussianSlotsArray {
     }
 
     public GaussianWrapper getGeneric() {
-        return generic_slot;
+        return genericSlot;
     }
 
 
@@ -171,10 +177,39 @@ public class GaussianSlotsArray {
 
             rel = (ERelation) root.get(GENERIC_SLOT);
             if (rel != null) {
-                generic_slot = new GaussianWrapper(rel.node(0));
+                genericSlot = new GaussianWrapper(rel.node(0));
             }
             return true;
         }
+    }
+
+    public void serialize() {
+        if (slots == null) {
+            throw new RuntimeException("Please set the number of slots first!");
+        }
+        //todo serialize
+        IntArray dim = (IntArray) root.getOrCreate(DIMENSIONS, Type.INT_ARRAY);
+        int numberOfSlots = (int) root.get(NUMBER_OF_SLOTS);
+
+        genericSlot.serialize();
+
+        for (GaussianWrapper s : slots) {
+            s.serialize();
+        }
+    }
+
+    public void deserialize() {
+//        IntArray dim = (IntArray) root.getOrCreate(DIMENSIONS, Type.INT_ARRAY);
+//        dim.initWith(dimArray);
+
+        //this will set the number of slots and create the wrappers
+//        this.setNumberOfSlots(numberOfSlots);
+//
+//        genericSlot.deserialize();
+//        for (int i = 0; i < numberOfSlots; i++) {
+//            slots[i].deserialize();
+//        }
+
     }
 
 

@@ -436,4 +436,19 @@ public class GaussianWrapper {
     public void print() {
         System.out.println("Gaussian Enode: " + backend.toString());
     }
+
+
+    public void serialize(){
+        long total = backend.getWithDefault(Gaussian.TOTAL, 0l);
+        DoubleArray sum = (DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY);
+        DoubleArray min = (DoubleArray) backend.getOrCreate(Gaussian.MIN, Type.DOUBLE_ARRAY);
+        DoubleArray max = (DoubleArray) backend.getOrCreate(Gaussian.MAX, Type.DOUBLE_ARRAY);
+        DoubleArray sumSquares = (DoubleArray) backend.getOrCreate(Gaussian.SUMSQ, Type.DOUBLE_ARRAY);
+        //todo serialize these fields
+    }
+
+
+    public void deserialize(){
+
+    }
 }
