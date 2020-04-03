@@ -84,7 +84,7 @@ public class GraphWorker implements Runnable {
     public void halt() {
         haltRequested = true;
         if (running.get()) {
-            if(callbacksRegistry.awaiting()==0) {
+            if (callbacksRegistry.awaiting() == 0) {
                 disconnectGraph();
             }
         }
@@ -115,7 +115,7 @@ public class GraphWorker implements Runnable {
 
     public boolean submit(byte[] activity) {
         //if(!haltRequested) {
-            return this.mailbox.submit(activity);
+        return this.mailbox.submit(activity);
             /*
         } else {
             workingGraphInstance.log().warn("Submission requested for operation: " + activity[0]);
@@ -234,7 +234,7 @@ public class GraphWorker implements Runnable {
                     }
                 }
 
-                if(haltRequested && callbacksRegistry.awaiting() == 0) {
+                if (haltRequested && callbacksRegistry.awaiting() == 0) {
                     disconnectGraph();
                 }
             } catch (InterruptedException e) {
@@ -839,7 +839,12 @@ public class GraphWorker implements Runnable {
         taskBuffer.write(Constants.BUFFER_SEP);
         requestedTask.saveToBuffer(taskBuffer);
 
-        mailbox.submit(taskBuffer.data());
+        if (mailbox.canProcessGeneralTaskQueue()) {//If general purpose worker, we submit the task to the pool, not to self
+            MailboxRegistry.getInstance().getDefaultMailbox().submit(taskBuffer.data());
+            MailboxRegistry.getInstance().notifyMailboxes();
+        } else {
+            mailbox.submit(taskBuffer.data());
+        }
 
     }
 
@@ -918,7 +923,12 @@ public class GraphWorker implements Runnable {
             requestedTaskContext.saveToBuffer(taskBuffer);
         }
 
-        mailbox.submit(taskBuffer.data());
+        if (mailbox.canProcessGeneralTaskQueue()) {//If general purpose worker, we submit the task to the pool, not to self
+            MailboxRegistry.getInstance().getDefaultMailbox().submit(taskBuffer.data());
+            MailboxRegistry.getInstance().notifyMailboxes();
+        } else {
+            mailbox.submit(taskBuffer.data());
+        }
     }
 
     public boolean isRunning() {

@@ -15,7 +15,7 @@
  */
 package greycat.workers;
 
-import greycat.Log;
+import greycat.*;
 import greycat.internal.CoreGraphLog;
 
 import javax.management.NotificationEmitter;
@@ -73,6 +73,7 @@ public class GraphWorkerPool {
     private Map<Integer, GraphWorker> workersById = new HashMap<>();
     private Map<Integer, Thread> threads = new HashMap<>();
     private Map<String, GraphWorker> workersByRef = new HashMap<>();
+    private ArrayList<GraphWorker> gpWorkers = new ArrayList<>();
     private ThreadPoolExecutor taskWorkerPool;
 
     private WorkerBuilderFactory defaultWorkerBuilder;
@@ -90,6 +91,7 @@ public class GraphWorkerPool {
     private TimeUnit memoryCheckTimeUnit;
     private double cleanThreshold;
     private AtomicBoolean ready = new AtomicBoolean(false);
+
 
     private GraphWorkerPool() {
     }
@@ -303,6 +305,9 @@ public class GraphWorkerPool {
 
         workersById.put(worker.getId(), worker);
         workersByRef.put(worker.getName(), worker);
+        if(workerKind == WorkerAffinity.GENERAL_PURPOSE_WORKER) {
+            gpWorkers.add(worker);
+        }
 
         if (workerKind == WorkerAffinity.TASK_WORKER) {
             taskWorkerPool.execute(worker);
@@ -323,6 +328,7 @@ public class GraphWorkerPool {
         if (worker != null) {
             workersByRef.remove(worker.getName());
             workersById.remove(worker.getId());
+            gpWorkers.remove(worker);
             worker.halt();
             worker.mailbox.submit(MailboxRegistry.VOID_TASK_NOTIFY);
             Thread workerThread = threads.remove(worker.getId());
@@ -372,6 +378,23 @@ public class GraphWorkerPool {
             }
         });
     }
+
+    public void submitTaskToGeneralPurposeWorker(Task task, Callback<TaskResult> callback) {
+        if(gpWorkers.size() < 1) {
+            throw new RuntimeException("No GeneralPurpose worker available. Please create at least one.");
+        } else {
+            gpWorkers.get(0).submitTask(task, callback);
+        }
+    }
+
+    public void submitPreparedTaskToGeneralPurposeWorker(Task task, TaskContext context) {
+        if(gpWorkers.size() < 1) {
+            throw new RuntimeException("No GeneralPurpose worker available. Please create at least one.");
+        } else {
+            gpWorkers.get(0).submitPreparedTask(task, context);
+        }
+    }
+
 
     public String tasksStats() {
         StringBuilder sb = new StringBuilder();
