@@ -183,33 +183,58 @@ public class GaussianSlotsArray {
         }
     }
 
-    public void serialize() {
+    public String serialize() {
         if (slots == null) {
             throw new RuntimeException("Please set the number of slots first!");
         }
-        //todo serialize
         IntArray dim = (IntArray) root.getOrCreate(DIMENSIONS, Type.INT_ARRAY);
+
         int numberOfSlots = (int) root.get(NUMBER_OF_SLOTS);
 
-        genericSlot.serialize();
+        String lines = numberOfSlots + ";" + handleIntArray(dim) + "\n";
+        lines += genericSlot.serialize() + "\n";
 
         for (GaussianWrapper s : slots) {
-            s.serialize();
+            lines += s.serialize() + "\n";
         }
+        return lines;
     }
 
-    public void deserialize() {
-//        IntArray dim = (IntArray) root.getOrCreate(DIMENSIONS, Type.INT_ARRAY);
-//        dim.initWith(dimArray);
+
+    private String handleIntArray(IntArray dim) {
+        String array = "[";
+        for (int i = 0; i < dim.size(); i++) {
+            if (i != 0) {
+                array += ",";
+            }
+            array += dim.get(i);
+        }
+        array += "]";
+        return array;
+    }
+
+    public void deserialize(String s) {
+        String[] lines = s.split("\n");
+        String[] firstline = lines[0].split(";");
+
+        IntArray dim = (IntArray) root.getOrCreate(DIMENSIONS, Type.INT_ARRAY);
+        setIntArray(dim, firstline[0]);
 
         //this will set the number of slots and create the wrappers
-//        this.setNumberOfSlots(numberOfSlots);
-//
-//        genericSlot.deserialize();
-//        for (int i = 0; i < numberOfSlots; i++) {
-//            slots[i].deserialize();
-//        }
+        this.setNumberOfSlots(Integer.parseInt(firstline[0]));
 
+        genericSlot.deserialize(lines[1]);
+        for (int i = 0; i < lines.length - 2; i++) {
+            slots[i].deserialize(lines[i + 2]);
+        }
+
+    }
+
+    private void setIntArray(IntArray da, String element) {
+        String[] numbers = element.split(",");
+        for (int i = 0; i < numbers.length; i++) {
+            da.addElement(Integer.parseInt(numbers[i]));
+        }
     }
 
 

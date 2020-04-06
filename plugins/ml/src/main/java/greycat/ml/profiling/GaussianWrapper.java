@@ -438,17 +438,48 @@ public class GaussianWrapper {
     }
 
 
-    public void serialize(){
+    public String serialize() {
         long total = backend.getWithDefault(Gaussian.TOTAL, 0l);
         DoubleArray sum = (DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY);
         DoubleArray min = (DoubleArray) backend.getOrCreate(Gaussian.MIN, Type.DOUBLE_ARRAY);
         DoubleArray max = (DoubleArray) backend.getOrCreate(Gaussian.MAX, Type.DOUBLE_ARRAY);
         DoubleArray sumSquares = (DoubleArray) backend.getOrCreate(Gaussian.SUMSQ, Type.DOUBLE_ARRAY);
-        //todo serialize these fields
+        return total + ";" + handleDoubleArray(sum) + ";" + handleDoubleArray(min) + ";" + handleDoubleArray(max) + ";" + handleDoubleArray(sumSquares);
+    }
+
+    private String handleDoubleArray(DoubleArray sum) {
+        String array = "[";
+        for (int i = 0; i < sum.size(); i++) {
+            if (i != 0) {
+                array += ",";
+            }
+            array += sum.get(i);
+        }
+        array += "]";
+        return array;
     }
 
 
-    public void deserialize(){
+    public void deserialize(String line) {
+        String[] elements = line.split(";");
+        backend.set(Gaussian.TOTAL, Type.LONG, Long.parseLong(elements[0]));
+        DoubleArray sum = (DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY);
+        setDoubleArray(sum, elements[1]);
+        DoubleArray min = (DoubleArray) backend.getOrCreate(Gaussian.MIN, Type.DOUBLE_ARRAY);
+        setDoubleArray(min, elements[2]);
+        DoubleArray max = (DoubleArray) backend.getOrCreate(Gaussian.MAX, Type.DOUBLE_ARRAY);
+        setDoubleArray(max, elements[3]);
+        DoubleArray sumSquares = (DoubleArray) backend.getOrCreate(Gaussian.SUMSQ, Type.DOUBLE_ARRAY);
+        setDoubleArray(sumSquares, elements[4]);
+
 
     }
+
+    private void setDoubleArray(DoubleArray da, String element) {
+        String[] numbers = element.split(",");
+        for (int i = 0; i < numbers.length; i++) {
+            da.addElement(Double.parseDouble(numbers[i]));
+        }
+    }
+
 }
