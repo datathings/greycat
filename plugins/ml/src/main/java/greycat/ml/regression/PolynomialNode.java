@@ -152,12 +152,19 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     @Override
     public final void learn(double value, Callback<Boolean> callback) {
         NodeState previousState = unphasedState(); //past state, not cloned
+        double precision = previousState.getWithDefault(PRECISION, PRECISION_DEF);
+        int maxd = previousState.getWithDefault(MAX_DEGREE, MAX_DEGREE_DEF);
+
 
         //final long dephasing = timeDephasing();
         long timeOrigin = previousState.time();
 
         if (timeOrigin == Constants.BEGINNING_OF_TIME) {
             if (previousState.getWithDefault(INTERNAL_TIME_ORIGIN, null) == null) {
+                timeOrigin = this.time();
+                previousState = newState(timeOrigin);
+                previousState.set(PRECISION, Type.DOUBLE, precision);
+                previousState.set(MAX_DEGREE, Type.INT, maxd);
                 previousState.set(INTERNAL_TIME_ORIGIN, Type.LONG, this.time());
             } else {
                 timeOrigin = (long) previousState.get(INTERNAL_TIME_ORIGIN);
@@ -167,7 +174,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         long nodeTime = time();
 
 
-        double precision = previousState.getWithDefault(PRECISION, PRECISION_DEF);
+
         DoubleArray weight = (DoubleArray) previousState.get(INTERNAL_WEIGHT_KEY);
 
         //Initial feed for the very first time, the weight is set directly with the first value that arrives
@@ -227,7 +234,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
             t = t / stp;
             double maxError = maxErr(precision, deg);
 
-            int maxd = previousState.getWithDefault(MAX_DEGREE, MAX_DEGREE_DEF);
+
 
             double[] times = updateBuffer(previousState, t, maxd, INTERNAL_TIME_BUFFER);
             double[] values = updateBuffer(previousState, value, maxd, INTERNAL_VALUES_BUFFER);
@@ -521,6 +528,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     }
 
     // Batch Processing
+
     /**
      * @ignore ts
      */
@@ -558,6 +566,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     }
 
     //Main method to call
+
     /**
      * @ignore ts
      */
@@ -678,6 +687,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     }
 
     //Batch processing
+
     /**
      * @ignore ts
      */
@@ -751,6 +761,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     }
 
     //Main method to call
+
     /**
      * @ignore ts
      */
