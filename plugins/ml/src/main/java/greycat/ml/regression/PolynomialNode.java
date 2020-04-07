@@ -174,7 +174,6 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         long nodeTime = time();
 
 
-
         DoubleArray weight = (DoubleArray) previousState.get(INTERNAL_WEIGHT_KEY);
 
         //Initial feed for the very first time, the weight is set directly with the first value that arrives
@@ -233,7 +232,6 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
             ;
             t = t / stp;
             double maxError = maxErr(precision, deg);
-
 
 
             double[] times = updateBuffer(previousState, t, maxd, INTERNAL_TIME_BUFFER);
@@ -511,17 +509,19 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         String line = "";
         for (int i = 0; i < polynomes.length; i++) {
             PolynomialNode node = (PolynomialNode) polynomes[i];
-            double[] weight = node.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
+            if (getDoubleArray(INTERNAL_WEIGHT_KEY) != null) {
+                double[] weight = node.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
 
-            line += "\n" +
-                    precision + "," +
-                    future + "," +
-                    node.time() + "," +
-                    node.get(INTERNAL_LAST_TIME_KEY) + "," +
-                    node.get(INTERNAL_NB_PAST_KEY) + "," +
-                    node.getWithDefault(INTERNAL_STEP_KEY, 1L);
-            for (int j = 0; j < weight.length; j++) {
-                line += "," + weight[j];
+                line += "\n" +
+                        precision + "," +
+                        future + "," +
+                        node.time() + "," +
+                        node.get(INTERNAL_LAST_TIME_KEY) + "," +
+                        node.get(INTERNAL_NB_PAST_KEY) + "," +
+                        node.getWithDefault(INTERNAL_STEP_KEY, 1L);
+                for (int j = 0; j < weight.length; j++) {
+                    line += "," + weight[j];
+                }
             }
         }
         return line;
