@@ -539,6 +539,7 @@ class CoreTaskContext implements TaskContext {
                 if (result != null) {
                     results[finalI] = result.toString();
                 }
+                counter.count();
             };
             Task subtask = tasks.get(i);
             worker.submitPreparedTask(subtask, subctx);
