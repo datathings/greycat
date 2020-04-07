@@ -509,10 +509,14 @@ class CoreTaskContext implements TaskContext {
      * @native ts
      */
     @Override
-    public void continueWhenAllFinished(final List<Task> tasks, final List<TaskContext> contexts, String name) {
+    public void continueWhenAllFinished(final List<Task> tasks, final List<TaskContext> contexts, List<String> names) {
         if (tasks.size() != contexts.size()) {
             throw new RuntimeException("bad api");
         }
+        if (names.size() != contexts.size()) {
+            throw new RuntimeException("bad api");
+        }
+
         for (int i = 0; i < contexts.size(); i++) {
             CoreTaskContext subctx = (CoreTaskContext) contexts.get(i);
             if (subctx._callback != null) {
@@ -526,9 +530,8 @@ class CoreTaskContext implements TaskContext {
         counter.then(() -> GraphWorker.wakeups(ids, results));
 
         for (int i = 0; i < contexts.size(); i++) {
-            String sub_name = name + "_" + i;
-            final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, sub_name, null);
-            worker.setName(sub_name);
+            final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, names.get(i), null);
+            worker.setName(names.get(i));
 
             CoreTaskContext subctx = (CoreTaskContext) contexts.get(i);
             int finalI = i;

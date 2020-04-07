@@ -94,7 +94,7 @@ public interface TaskContext {
 
     void continueWith(TaskResult nextResult);
 
-    void continueWhenAllFinished(final List<Task> tasks, final List<TaskContext> contexts, String name);
+    void continueWhenAllFinished(final List<Task> tasks, final List<TaskContext> contexts, List<String> names);
 
     void endTask(TaskResult nextResult, Exception e);
 
