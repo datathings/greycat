@@ -29,6 +29,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
+import static greycat.Constants.BEGINNING_OF_TIME;
+
 
 public class PolynomialNode extends BaseMLNode implements RegressionNode {
 
@@ -159,7 +161,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         //final long dephasing = timeDephasing();
         long timeOrigin = previousState.time();
 
-        if (timeOrigin == Constants.BEGINNING_OF_TIME) {
+        if (timeOrigin == BEGINNING_OF_TIME) {
             if (previousState.getWithDefault(INTERNAL_TIME_ORIGIN, null) == null) {
                 timeOrigin = this.time();
                 previousState = newState(timeOrigin);
@@ -573,7 +575,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     public void exportNodeToCSV(Writer writer, Callback<Boolean> done) {
         try {
             writer.append(generateHeader());
-            exportTimeToCSV(writer, Constants.BEGINNING_OF_TIME, this.getWithDefault(PRECISION, PRECISION_DEF), this.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF), done);
+            exportTimeToCSV(writer, BEGINNING_OF_TIME, this.getWithDefault(PRECISION, PRECISION_DEF), this.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF), done);
         } catch (IOException e) {
             e.printStackTrace();
             done.on(false);
@@ -582,7 +584,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
 
     public void exportNodeToCSV(Callback<String> callback) {
         String csv = generateHeader();
-        this.exportTimeToCSV(csv, Constants.BEGINNING_OF_TIME, this.getWithDefault(PRECISION, PRECISION_DEF), this.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF), callback);
+        this.exportTimeToCSV(csv, BEGINNING_OF_TIME, this.getWithDefault(PRECISION, PRECISION_DEF), this.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF), callback);
     }
 
     // Json Exporter
@@ -645,7 +647,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         builder.append("\"future prediction\":").append(this.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF)).append(",");
         builder.append("\n\t");
         builder.append("\"polynomes\": [");
-        exportTimeBatchJSON(builder, Constants.BEGINNING_OF_TIME, true, false, callback);
+        exportTimeBatchJSON(builder, BEGINNING_OF_TIME, true, false, callback);
     }
 
 
@@ -673,14 +675,12 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     private static long createNode(Graph graph, long world, String firstline, String degreeMaxStr) {
         int degreeMax = Integer.parseInt(degreeMaxStr);
         String[] fline = firstline.split(",");
-        long time = Long.parseLong(fline[2]);
         double precision = Double.parseDouble(fline[0]);
         boolean future = fline[1].equals("true");
-        PolynomialNode node = (PolynomialNode) graph.newTypedNode(world, time, NAME);
+        PolynomialNode node = (PolynomialNode) graph.newTypedNode(world, BEGINNING_OF_TIME, NAME);
         node.set(PRECISION, Type.DOUBLE, precision);
         node.set(MAX_DEGREE, Type.INT, degreeMax);
         node.set(FUTURE_PREDICTION, Type.BOOL, future);
-        setFields(fline, node);
         long nodeId = node.id();
         node.free();
         return nodeId;
@@ -691,11 +691,16 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     /**
      * @ignore ts
      */
-    private static void createNodeTimeFromCSV(Graph graph, long world, long nodeId, BufferedReader reader, Callback<PolynomialNode> callback) {
+    private static void createNodeTimeFromCSV(Graph graph, long world, long nodeId, BufferedReader reader, Callback<PolynomialNode> callback, String firstline) {
         try {
             List<String[]> lines = new ArrayList<>();
             int i = 0;
-            String line = reader.readLine();
+            String line;
+            if (firstline != null) {
+                line = firstline;
+            } else {
+                line = reader.readLine();
+            }
             while (i < 127 && line != null) {
                 lines.add(line.split(","));
                 i++;
@@ -721,7 +726,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
                 }
                 graph.freeNodes(result);
                 if (finalLine != null) {
-                    createNodeTimeFromCSV(graph, world, nodeId, reader, callback);
+                    createNodeTimeFromCSV(graph, world, nodeId, reader, callback, null);
                 } else {
                     graph.lookup(world, Constants.END_OF_TIME, nodeId, node -> callback.on((PolynomialNode) node));
                 }
@@ -773,7 +778,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
                 String[] headers = header.split(",");
                 if (headers.length > 0) {
                     long nodeId = createNode(graph, world, firstlines, headers[headers.length - 1]);
-                    createNodeTimeFromCSV(graph, world, nodeId, reader, callback);
+                    createNodeTimeFromCSV(graph, world, nodeId, reader, callback, firstlines);
                 } else {
                     callback.on(null);
                 }
@@ -793,7 +798,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
             String[] headers = lines[0].split(",");
             if (headers.length > 0) {
                 long nodeId = createNode(graph, world, lines[1], headers[headers.length - 1]);
-                createNodeTimeFromCSV(graph, world, nodeId, lines, 2, callback);
+                createNodeTimeFromCSV(graph, world, nodeId, lines, 1, callback);
             } else {
                 callback.on(null);
             }
