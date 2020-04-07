@@ -509,7 +509,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         String line = "";
         for (int i = 0; i < polynomes.length; i++) {
             PolynomialNode node = (PolynomialNode) polynomes[i];
-            if (getDoubleArray(INTERNAL_WEIGHT_KEY) != null) {
+            if (node.getDoubleArray(INTERNAL_WEIGHT_KEY) != null) {
                 double[] weight = node.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
 
                 line += "\n" +
