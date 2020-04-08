@@ -543,9 +543,9 @@ class CoreTaskContext implements TaskContext {
                     results[finalI] = result.toString();
                 }
             };
-            subctx.setEndHook(endHook -> {
+            subctx._end_hook = ended -> {
                 counter.count();
-            });
+            };
 
             Task subtask = tasks.get(i);
             worker.submitPreparedTask(subtask, subctx);
