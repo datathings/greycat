@@ -8,8 +8,11 @@ import greycat.workers.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+/**
+ * @ignore ts
+ */
 public class SubTaskTest {
-    private static Graph graph;
+    private static String ROOT_ACTION = "RootAction";
 
     @BeforeClass
     public static void setUp() {
@@ -17,8 +20,8 @@ public class SubTaskTest {
         GraphWorkerPool.MAXIMUM_TASK_QUEUE_SIZE = 100;
 
         GraphBuilder graphBuilder = GraphBuilder.newBuilder();
-        graph = graphBuilder.build();
-        graph.actionRegistry().getOrCreateDeclaration("RootAction")
+        Graph graph = graphBuilder.build();
+        graph.actionRegistry().getOrCreateDeclaration(ROOT_ACTION)
                 .setFactory(params -> new RootAction());
 
         WorkerBuilderFactory defaultRootFactory = () -> DefaultRootWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
@@ -46,7 +49,7 @@ public class SubTaskTest {
     @Test
     public void createSubTaskTest() {
         final GraphWorker rootWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, "rootWorker", null);
-        rootWorker.submitTask(Tasks.newTask().action("RootAction"), result -> {
+        rootWorker.submitTask(Tasks.newTask().action(ROOT_ACTION), result -> {
             System.out.println("rootTask finished");
         });
     }
@@ -85,7 +88,7 @@ public class SubTaskTest {
 
         @Override
         public String name() {
-            return "RootAction";
+            return ROOT_ACTION;
         }
     }
 }
