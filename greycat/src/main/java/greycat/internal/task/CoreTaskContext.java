@@ -522,6 +522,9 @@ class CoreTaskContext implements TaskContext {
             if (subctx._callback != null) {
                 throw new RuntimeException("bad api usage, you can't use result callback on // call");
             }
+            if (subctx._end_hook != null) {
+                throw new RuntimeException("bad api usage, you can't use the endHook callback on // call");
+            }
         }
 
         final int[] ids = this.suspendTask();
@@ -539,8 +542,11 @@ class CoreTaskContext implements TaskContext {
                 if (result != null) {
                     results[finalI] = result.toString();
                 }
+            };
+            subctx._end_hook = ended -> {
                 counter.count();
             };
+
             Task subtask = tasks.get(i);
             worker.submitPreparedTask(subtask, subctx);
         }
