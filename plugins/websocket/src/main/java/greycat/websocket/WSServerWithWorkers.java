@@ -303,9 +303,12 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                 }
                 break;
                 case WorkerAffinity.TASK_WORKER: {
+                    //format: <byte>#<int>#<int>#
                     BufferIterator it = jobBuffer.iterator();
                     Buffer bufferTypeBufferView = it.next();
-                    Buffer respChannelBufferView = it.next();
+
+                    it.skip(5); // skip mailbox <int>#
+
                     Buffer callbackBufferView = it.next();
 
                     int callbackId = Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length());
