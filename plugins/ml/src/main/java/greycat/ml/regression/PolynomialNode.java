@@ -522,7 +522,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
                         node.get(INTERNAL_NB_PAST_KEY) + "," +
                         node.getWithDefault(INTERNAL_STEP_KEY, 1L);
                 for (int j = 0; j < weight.length; j++) {
-                    String[] number = ("" + (weight[j])).split(".");
+                    String[] number = ("" + (weight[j])).split("\\.");
                     line += "," + number[0];
                     if (number.length == 2) {
                         int min = Math.min(3, number[1].length());
