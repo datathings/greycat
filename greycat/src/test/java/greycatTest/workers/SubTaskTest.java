@@ -5,8 +5,11 @@ import greycat.plugin.Storage;
 import greycat.plugin.StorageFactory;
 import greycat.struct.Buffer;
 import greycat.workers.*;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @ignore ts
@@ -16,6 +19,9 @@ public class SubTaskTest {
 
     @BeforeClass
     public static void setUp() {
+
+        CountDownLatch latch = new CountDownLatch(1);
+
         GraphWorkerPool.NUMBER_OF_TASK_WORKER = 4;
         GraphWorkerPool.MAXIMUM_TASK_QUEUE_SIZE = 100;
 
@@ -25,24 +31,29 @@ public class SubTaskTest {
                 .setFactory(params -> new RootAction());
 
         WorkerBuilderFactory defaultRootFactory = () -> DefaultRootWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
-        WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder.clone().withStorageFactory(new StorageFactory() {
-            @Override
-            public Storage build() {
-                return new SlaveWorkerStorage();
-            }
-
-            @Override
-            public void listen(Callback<Buffer> synCallback) {
-
-            }
-        }));
+        WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
 
         GraphWorkerPool workersPool = GraphWorkerPool.getInstance()
                 .withRootWorkerBuilderFactory(defaultRootFactory)
                 .withDefaultWorkerBuilderFactory(defaultFactory);
 
+        workersPool.setOnPoolReady((worker, allSet) -> {
+           latch.countDown();
+            allSet.run();
+        });
         workersPool.initialize();
 
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        GraphWorkerPool.getInstance().halt();
     }
 
 
