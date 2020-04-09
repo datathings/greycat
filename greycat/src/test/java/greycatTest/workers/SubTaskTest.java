@@ -8,51 +8,60 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 import static greycat.Tasks.newTask;
+import static org.junit.Assert.fail;
 
 /**
  * @ignore ts
  */
 public class SubTaskTest {
     private static String ROOT_ACTION = "RootAction";
-    private static String SUB_TASK = "SubTask";
+    private static String SUB_ACTION = "SubAction";
+
+    private static Graph graph;
+
+    private static Task subTask;
+    private static TaskContext subCtx;
+    private static Task subTask2;
+    private static TaskContext subCtx2;
 
     @BeforeClass
     public static void setUp() {
-
         CountDownLatch latch = new CountDownLatch(1);
 
-        GraphWorkerPool.NUMBER_OF_TASK_WORKER = 4;
+        Log.LOG_LEVEL = Log.TRACE;
+
+        GraphWorkerPool.NUMBER_OF_TASK_WORKER = 2;
         GraphWorkerPool.MAXIMUM_TASK_QUEUE_SIZE = 100;
 
         GraphBuilder graphBuilder = GraphBuilder.newBuilder();
+        graph = graphBuilder.build();
 
         graphBuilder.withPlugin(new Plugin() {
             @Override
             public void start(Graph graph) {
-
                 graph.actionRegistry().getOrCreateDeclaration(ROOT_ACTION)
                         .setFactory(params -> new Action() {
                             @Override
                             public void eval(TaskContext ctx) {
-                                final GraphWorker subWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, "subWorker", null);
-                                subWorker.submitTask(newTask().action(SUB_TASK), result -> {
-                                    System.out.println("subTask done");
-                                    if (result.exception() != null) {
-                                        result.exception().printStackTrace();
-                                    }
-                                    ctx.continueTask();
-                                });
+                                subTask = Tasks.newTask().action(SUB_ACTION);
+                                subCtx = subTask.prepare(ctx.graph(), null, null);
 
+                                subTask2 = Tasks.newTask().action(SUB_ACTION);
+                                subCtx2 = subTask2.prepare(ctx.graph(), null, null);
+
+                                ctx.continueWhenAllFinished(
+                                        Arrays.asList(subTask, subTask2),
+                                        Arrays.asList(subCtx, subCtx2),
+                                        Arrays.asList("subTask", "subTask2")
+                                );
                             }
 
                             @Override
                             public void serialize(Buffer buffer) {
-                                buffer.writeString(name());
-                                buffer.writeChar(Constants.TASK_PARAM_OPEN);
-                                buffer.writeChar(Constants.TASK_PARAM_CLOSE);
                             }
 
                             @Override
@@ -61,8 +70,7 @@ public class SubTaskTest {
                             }
                         });
 
-                graph.actionRegistry().getOrCreateDeclaration(SUB_TASK).setFactory(params -> new Action() {
-
+                graph.actionRegistry().getOrCreateDeclaration(SUB_ACTION).setFactory(params -> new Action() {
                     @Override
                     public void eval(TaskContext ctx) {
                         Task internalSubTask = newTask()
@@ -78,8 +86,13 @@ public class SubTaskTest {
                                         }
                                         taskContext.continueTask();
                                     }
-                                });
-                        internalSubTask.executeFrom(ctx, ctx.result(), SchedulerAffinity.ANY_LOCAL_THREAD,ctx::continueWith);
+                                })
+                                .thenDo(taskContext -> {
+                                    System.out.println("done with waiting");
+                                    taskContext.continueWith(taskContext.newResult().add("5"));
+                                })
+                                ;
+                        internalSubTask.executeFrom(ctx, ctx.result(), SchedulerAffinity.ANY_LOCAL_THREAD, ctx::continueWith);
                     }
 
                     @Override
@@ -88,7 +101,7 @@ public class SubTaskTest {
 
                     @Override
                     public String name() {
-                        return null;
+                        return SUB_ACTION;
                     }
                 });
             }
@@ -127,7 +140,7 @@ public class SubTaskTest {
 
 
     @Test
-    public void createSubTaskTest() {
+    public void subTaskFinishTest() {
         CountDownLatch latch = new CountDownLatch(1);
 
         final GraphWorker rootWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, "rootWorker", null);
@@ -138,6 +151,40 @@ public class SubTaskTest {
             }
             latch.countDown();
         });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Test
+    public void subTaskKillTest() {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        final GraphWorker rootWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, "rootWorker", null);
+        rootWorker.submitTask(newTask().action(ROOT_ACTION), result -> {
+            System.out.println("rootTask finished");
+            if (result.exception() != null) {
+                result.exception().printStackTrace();
+            }
+            latch.countDown();
+        });
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        subCtx2.graph().taskContextRegistry().forceStop(0);
+
+        System.out.println(GraphWorkerPool.getInstance().tasksStats());
+        System.out.println(subCtx2.graph().taskContextRegistry().stats());
+
+
         try {
             latch.await();
         } catch (InterruptedException e) {
