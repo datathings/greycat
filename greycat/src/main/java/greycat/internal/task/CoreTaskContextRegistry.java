@@ -141,8 +141,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
     public final void forceStop(final Integer taskContextID) {
         TaskContextRecord rec = this.contexts.get(taskContextID);
         if (rec != null) {
-            CoreTaskContext ctx = (CoreTaskContext) rec.ctx;
-            ctx.ext_stop.set(true);
+           rec.ctx.terminateTask();
         }
     }
 
@@ -152,7 +151,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
         for (int i = 0; i < ids.length; i++) {
             Integer key = ids[i];
             TaskContextRecord rec = this.contexts.get(key);
-            ((CoreTaskContext)rec.ctx).ext_stop.set(true);
+            rec.ctx.terminateTask();
         }
     }
 

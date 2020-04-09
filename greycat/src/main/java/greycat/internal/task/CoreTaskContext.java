@@ -25,15 +25,13 @@ import greycat.internal.task.math.MathExpressionEngine;
 import greycat.base.BaseNode;
 import greycat.struct.Buffer;
 import greycat.utility.*;
+import greycat.utility.Base64;
 import greycat.workers.GraphWorker;
 import greycat.workers.GraphWorkerPool;
 import greycat.workers.SlaveWorkerStorage;
 import greycat.workers.WorkerAffinity;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -64,8 +62,12 @@ class CoreTaskContext implements TaskContext {
     private LMap _transactionTracker = null;
     private byte _workerAffinity = WorkerAffinity.GENERAL_PURPOSE_WORKER;
 
+    /** @ignore ts
+     * */
+    private Map<Integer, GraphWorker> childWorkers = new HashMap<>();
+
+    private AtomicBoolean ext_stop;
     int in_registry_id;
-    AtomicBoolean ext_stop;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this.in_registry_id = -1;
@@ -99,6 +101,23 @@ class CoreTaskContext implements TaskContext {
         }
         this._result = initial;
         this._callback = p_callback;
+    }
+
+    /**
+     * {@native ts
+     * this.ext_stop.set(true);
+     * }
+     */
+    @Override
+    public void terminateTask() {
+        this.ext_stop.set(true);
+        if(childWorkers.size() > 0) {
+            Map<Integer, GraphWorker> childWorkersWorkingCopy = new HashMap<>(childWorkers);
+            ArrayList<GraphWorker> workers = new ArrayList<>(childWorkersWorkingCopy.values());
+            for(int i = 0; i < workers.size(); i++) {
+                workers.get(i).terminateTasks();
+            }
+        }
     }
 
     @Override
@@ -532,6 +551,7 @@ class CoreTaskContext implements TaskContext {
         for (int i = 0; i < contexts.size(); i++) {
             final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, names.get(i), null);
             worker.setName(names.get(i));
+            childWorkers.put(worker.getId(), worker);
 
             CoreTaskContext subctx = (CoreTaskContext) contexts.get(i);
             int finalI = i;
@@ -539,6 +559,7 @@ class CoreTaskContext implements TaskContext {
                 if (result != null) {
                     results[finalI] = result.toString();
                 }
+                childWorkers.remove(worker.getId());
                 counter.count();
             };
 
@@ -550,7 +571,7 @@ class CoreTaskContext implements TaskContext {
     @Override
     public final void continueTask() {
         if (this.ext_stop.get()) {
-            endTask(newResult(), new RuntimeException("stopped from external!"));
+            endTask(newResult(), new InterruptedException("Termination requested before completion."));
             return;
         }
         final TaskHook[] globalHooks = this._graph.taskHooks();

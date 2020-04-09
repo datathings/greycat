@@ -23,6 +23,8 @@ import java.util.List;
 
 public interface TaskContext {
 
+    void terminateTask();
+
     TaskContext setEndHook(final Callback<TaskContext> endHook);
 
     Graph graph();

@@ -536,7 +536,7 @@ public class GraphWorker implements Runnable {
                         }
                     };
                     if(this.terminateTasks.get()) {
-                        end.on(Tasks.emptyResult().setException(new RuntimeException("Task killed.")));
+                        end.on(Tasks.emptyResult().setException(new InterruptedException("Termination requested before completion.")));
                     } else {
                         Task t = Tasks.newTask();
                         try {
