@@ -148,7 +148,12 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
 
     @Override
     public final void forceStopAll() {
-        this.contexts.forEach((id, rec)->((CoreTaskContext)rec.ctx).ext_stop.set(true));
+        Integer[] ids = this.contexts.keySet().toArray(new Integer[this.contexts.size()]);
+        for (int i = 0; i < ids.length; i++) {
+            Integer key = ids[i];
+            TaskContextRecord rec = this.contexts.get(key);
+            ((CoreTaskContext)rec.ctx).ext_stop.set(true);
+        }
     }
 
     public final void unregister(final int task_id) {
