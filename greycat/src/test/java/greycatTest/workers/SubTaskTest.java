@@ -27,14 +27,16 @@ public class SubTaskTest {
     private static TaskContext subCtx;
     private static Task subTask2;
     private static TaskContext subCtx2;
+    private static Task subTask3;
+    private static TaskContext subCtx3;
 
     @BeforeClass
     public static void setUp() {
         CountDownLatch latch = new CountDownLatch(1);
 
-        Log.LOG_LEVEL = Log.TRACE;
+        //Log.LOG_LEVEL = Log.TRACE;
 
-        GraphWorkerPool.NUMBER_OF_TASK_WORKER = 2;
+        GraphWorkerPool.NUMBER_OF_TASK_WORKER = 3;
         GraphWorkerPool.MAXIMUM_TASK_QUEUE_SIZE = 100;
 
         GraphBuilder graphBuilder = GraphBuilder.newBuilder();
@@ -49,14 +51,20 @@ public class SubTaskTest {
                             public void eval(TaskContext ctx) {
                                 subTask = Tasks.newTask().action(SUB_ACTION);
                                 subCtx = subTask.prepare(ctx.graph(), null, null);
+                                subCtx.setVariable("workerRef", "subTask");
 
                                 subTask2 = Tasks.newTask().action(SUB_ACTION);
                                 subCtx2 = subTask2.prepare(ctx.graph(), null, null);
+                                subCtx2.setVariable("workerRef", "subTask2");
+
+                                subTask3 = Tasks.newTask().action(SUB_ACTION);
+                                subCtx3 = subTask3.prepare(ctx.graph(), null, null);
+                                subCtx3.setVariable("workerRef", "subTask3");
 
                                 ctx.continueWhenAllFinished(
-                                        Arrays.asList(subTask, subTask2),
-                                        Arrays.asList(subCtx, subCtx2),
-                                        Arrays.asList("subTask", "subTask2")
+                                        Arrays.asList(subTask, subTask2, subTask3),
+                                        Arrays.asList(subCtx, subCtx2, subCtx3),
+                                        Arrays.asList("subTask", "subTask2", "subTask3")
                                 );
                             }
 
@@ -74,24 +82,27 @@ public class SubTaskTest {
                     @Override
                     public void eval(TaskContext ctx) {
                         Task internalSubTask = newTask()
+                                .inject(0)
+                                .setAsVar("iteration")
+                                .doWhile(newTask()
+                                                .thenDo(taskContext -> {
+                                                    int iteration = (int) taskContext.variable("iteration").get(0);
+                                                    try {
+                                                        System.out.println(taskContext.template("{{workerRef}}:waiting("+iteration+")..."));
+                                                        Thread.sleep(1000);
+                                                    } catch (InterruptedException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                    taskContext.setVariable("iteration", iteration + 1);
+                                                    taskContext.continueTask();
+
+                                                })
+                                        , doCtx -> ((int)doCtx.variable("iteration").get(0))!=5)
+
                                 .thenDo(taskContext -> {
-                                    boolean stop = false;
-                                    while (!stop) {
-                                        try {
-                                            System.out.println("waiting...");
-                                            Thread.sleep(2000);
-                                            stop = true;
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
-                                        }
-                                        taskContext.continueTask();
-                                    }
-                                })
-                                .thenDo(taskContext -> {
-                                    System.out.println("done with waiting");
+                                    System.out.println(taskContext.template("{{workerRef}}:done with waiting"));
                                     taskContext.continueWith(taskContext.newResult().add("5"));
-                                })
-                                ;
+                                });
                         internalSubTask.executeFrom(ctx, ctx.result(), SchedulerAffinity.ANY_LOCAL_THREAD, ctx::continueWith);
                     }
 
@@ -139,7 +150,7 @@ public class SubTaskTest {
     }
 
 
-    @Test
+    //@Test
     public void subTaskFinishTest() {
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -174,16 +185,19 @@ public class SubTaskTest {
         });
 
         try {
-            Thread.sleep(200);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        GraphWorkerPool.getInstance().getWorkerByRef("subTask3").terminateTasks();
 
-        subCtx2.graph().taskContextRegistry().forceStop(0);
 
-        System.out.println(GraphWorkerPool.getInstance().tasksStats());
-        System.out.println(subCtx2.graph().taskContextRegistry().stats());
-
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        GraphWorkerPool.getInstance().getWorkerByRef("subTask2").terminateTasks();
 
         try {
             latch.await();

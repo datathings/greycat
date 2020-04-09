@@ -27,4 +27,5 @@ public interface TaskContextRegistry {
 
     String statsOf(int id);
 
+    void forceStopAll();
 }
