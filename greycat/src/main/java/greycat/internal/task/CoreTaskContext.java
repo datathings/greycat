@@ -61,6 +61,7 @@ class CoreTaskContext implements TaskContext {
     private boolean _taskProgressAutoReporting = false;
     private LMap _transactionTracker = null;
     private byte _workerAffinity = WorkerAffinity.GENERAL_PURPOSE_WORKER;
+    private String _taskScopeName;
 
     /**
      * {@ignore ts}
@@ -122,6 +123,7 @@ class CoreTaskContext implements TaskContext {
             this._transactionTracker = castedParentContext._transactionTracker;
             this.ext_stop = castedParentContext.ext_stop;
             this.childWorkers = castedParentContext.childWorkers;
+            this._taskScopeName = castedParentContext._taskScopeName;
         }
         this._result = initial;
         this._callback = p_callback;
@@ -190,6 +192,14 @@ class CoreTaskContext implements TaskContext {
     @Override
     public void setWorkerAffinity(byte affinity) {
         this._workerAffinity = affinity;
+    }
+
+    public String getTaskScopeName() {
+        return _taskScopeName;
+    }
+
+    public void setTaskScopeName(String _taskScopeName) {
+        this._taskScopeName = _taskScopeName;
     }
 
     @Override
@@ -573,7 +583,12 @@ class CoreTaskContext implements TaskContext {
         counter.then(() -> GraphWorker.wakeups(ids, results));
 
         for (int i = 0; i < contexts.size(); i++) {
-            final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, names.get(i), null);
+            String workerName = "";
+            if(this._taskScopeName != null) {
+                workerName = this._taskScopeName + "_";
+            }
+            workerName += names.get(i);
+            final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, workerName, null);
             worker.setName(names.get(i));
             childWorkers.put(worker.getId(), worker);
 

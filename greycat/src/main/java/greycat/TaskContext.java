@@ -139,4 +139,7 @@ public interface TaskContext {
 
     void setWorkerAffinity(byte affinity);
 
+    void setTaskScopeName(String name);
+    String getTaskScopeName();
+
 }

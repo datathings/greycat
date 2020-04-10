@@ -340,8 +340,12 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
         buffer.write(Constants.BUFFER_SEP);
         int onResultCallback = registerCallback(onResult);
         Base64.encodeIntToBuffer(onResultCallback, buffer);
-        //Payload
         buffer.write(Constants.BUFFER_SEP);
+        if(prepared != null && prepared.getTaskScopeName() != null) {
+            Base64.encodeStringToBuffer(prepared.getTaskScopeName(), buffer);
+        }
+        buffer.write(Constants.BUFFER_SEP);
+        //Payload
         task.saveToBuffer(buffer);
 
         if (prepared != null) {

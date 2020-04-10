@@ -27,6 +27,7 @@ import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.utility.Base64;
+import greycat.utility.BufferView;
 import greycat.utility.L3GMap;
 import greycat.utility.Tuple;
 
@@ -92,7 +93,7 @@ public class GraphWorker implements Runnable {
 
     public void terminateTasks() {
         this.terminateTasks.set(true);
-        if(workingGraphInstance != null) {
+        if (workingGraphInstance != null) {
             workingGraphInstance.taskContextRegistry().forceStopAll();
         }
     }
@@ -495,6 +496,7 @@ public class GraphWorker implements Runnable {
             break;
             case StorageMessageType.REQ_TASK: {
                 workingGraphInstance.setProperty("ws.last", System.currentTimeMillis());
+                Buffer taskScopeNameBufferView = it.next();
                 if (it.hasNext()) {
                     AtomicReference<TaskContext> contextRef = new AtomicReference();
                     final Callback<TaskResult> end = new Callback<TaskResult>() {
@@ -536,7 +538,7 @@ public class GraphWorker implements Runnable {
                             }
                         }
                     };
-                    if(this.terminateTasks.get()) {
+                    if (this.terminateTasks.get()) {
                         end.on(Tasks.emptyResult().setException(new InterruptedException("Termination requested before completion.")));
                     } else {
                         Task t = Tasks.newTask();
@@ -552,6 +554,9 @@ public class GraphWorker implements Runnable {
                                     end.on(result);
                                 }
                             });
+                            if (taskScopeNameBufferView.length() > 0) {
+                                ctx.setTaskScopeName(Base64.decodeToStringWithBounds(taskScopeNameBufferView, 0, taskScopeNameBufferView.length()));
+                            }
                             contextRef.set(ctx);
                             ctx.silentSave();
                             if (it.hasNext()) {
@@ -849,6 +854,9 @@ public class GraphWorker implements Runnable {
         //Callback.id
         Base64.encodeIntToBuffer(taskCallbackId, taskBuffer);
         taskBuffer.write(Constants.BUFFER_SEP);
+        //taskScopeName
+        taskBuffer.write(Constants.BUFFER_SEP);
+
         requestedTask.saveToBuffer(taskBuffer);
 
         if (mailbox.canProcessGeneralTaskQueue()) {//If general purpose worker, we submit the task to the pool, not to self
@@ -919,6 +927,11 @@ public class GraphWorker implements Runnable {
         taskBuffer.write(Constants.BUFFER_SEP);
         //Callback.id
         Base64.encodeIntToBuffer(taskCallbackId, taskBuffer);
+        taskBuffer.write(Constants.BUFFER_SEP);
+        //taskScopeName
+        if(requestedTaskContext.getTaskScopeName() != null) {
+            Base64.encodeStringToBuffer(requestedTaskContext.getTaskScopeName(), taskBuffer);
+        }
         taskBuffer.write(Constants.BUFFER_SEP);
         requestedTask.saveToBuffer(taskBuffer);
 

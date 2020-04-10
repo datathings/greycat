@@ -20,7 +20,7 @@ public class KillTasksTest {
     public static void setUp() {
         CountDownLatch latch = new CountDownLatch(1);
 
-        //Log.LOG_LEVEL = Log.TRACE;
+        Log.LOG_LEVEL = Log.TRACE;
 
         GraphWorkerPool.NUMBER_OF_TASK_WORKER = 3;
         GraphWorkerPool.MAXIMUM_TASK_QUEUE_SIZE = 100;
@@ -69,6 +69,7 @@ public class KillTasksTest {
                     latch.countDown();
                 });
             });
+            taskContext.setTaskScopeName("ALVA_InferTopo");
             taskContext.setWorkerAffinity(WorkerAffinity.TASK_WORKER);
             System.out.println("Task submitted");
             task.executeRemotelyUsing(taskContext);
