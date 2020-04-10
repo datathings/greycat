@@ -157,7 +157,7 @@ public class SubTaskTest {
         final GraphWorker rootWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, "rootWorker", null);
         rootWorker.submitTask(newTask().action(ROOT_ACTION), result -> {
             System.out.println("rootTask finished");
-            if (result.exception() != null) {
+            if (result.exception() != null && !(result.exception() instanceof InterruptedException)) {
                 result.exception().printStackTrace();
             }
             latch.countDown();

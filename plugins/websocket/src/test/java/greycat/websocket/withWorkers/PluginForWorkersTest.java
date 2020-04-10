@@ -17,8 +17,10 @@ package greycat.websocket.withWorkers;
 
 import greycat.*;
 import greycat.plugin.Plugin;
+import greycat.plugin.Scheduler;
 import greycat.plugin.SchedulerAffinity;
 import greycat.struct.Buffer;
+import greycat.workers.WorkerAffinity;
 
 import java.util.Arrays;
 
@@ -36,6 +38,7 @@ public class PluginForWorkersTest implements Plugin {
 
     public static final String PARENT_TASK_LAUNCHER = "parentTaskLauncher";
     public static final String CHILD_TASK_LAUNCHED = "childTaskLaunched";
+    public static final String INTERMEDIATE_TASK_LAUNCHED = "intermediateTaskLaunched";
 
     @Override
     public void start(Graph graph) {
@@ -153,6 +156,24 @@ public class PluginForWorkersTest implements Plugin {
         });
 
         graph.actionRegistry().getOrCreateDeclaration(PARENT_TASK_LAUNCHER)
+                .setFactory(params -> new Action() {
+                    @Override
+                    public void eval(TaskContext ctx) {
+                        Task subTask = Tasks.newTask().action(INTERMEDIATE_TASK_LAUNCHED);
+                        subTask.executeFrom(ctx, ctx.result(), SchedulerAffinity.ANY_LOCAL_THREAD, ctx::continueWith);
+                    }
+
+                    @Override
+                    public void serialize(Buffer buffer) {
+                    }
+
+                    @Override
+                    public String name() {
+                        return PARENT_TASK_LAUNCHER;
+                    }
+                });
+
+        graph.actionRegistry().getOrCreateDeclaration(INTERMEDIATE_TASK_LAUNCHED)
                 .setFactory(params -> new Action() {
                     @Override
                     public void eval(TaskContext ctx) {

@@ -62,42 +62,66 @@ class CoreTaskContext implements TaskContext {
     private LMap _transactionTracker = null;
     private byte _workerAffinity = WorkerAffinity.GENERAL_PURPOSE_WORKER;
 
-    /** @ignore ts
-     * */
-    private Map<Integer, GraphWorker> childWorkers = new HashMap<>();
+    /**
+     * {@ignore ts}
+     */
+    private Map<Integer, GraphWorker> childWorkers;
 
     private AtomicBoolean ext_stop;
     int in_registry_id;
 
+    /**
+     * {@native ts
+     *      this.in_registry_id = -1;
+     *      this._origin = origin;
+     *      this._hooks = p_hooks;
+     *      this._graph = p_graph;
+     *      this._parent = parentContext;
+     *      if (parentContext == null) {
+     *         this._world = 0;
+     *         this._time = greycat.Constants.BEGINNING_OF_TIME;
+     *         this._globalVariables = new java.util.ConcurrentHashMap<string, greycat.TaskResult<any>>();
+     *         this._silent = null;
+     *         this._transactionTracker = null;
+     *         this.ext_stop = new java.util.concurrent.atomic.AtomicBoolean(false);
+     *      } else {
+     *         let castedParentContext: greycat.internal.task.CoreTaskContext = <greycat.internal.task.CoreTaskContext>parentContext;
+     *         this._time = castedParentContext.time();
+     *         this._world = castedParentContext.world();
+     *         this._globalVariables = castedParentContext.globalVariables();
+     *         this._silent = castedParentContext._silent;
+     *         this._transactionTracker = castedParentContext._transactionTracker;
+     *         this.ext_stop = castedParentContext.ext_stop;
+     *      }
+     *      this._result = initial;
+     *      this._callback = p_callback;
+     * }
+     */
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this.in_registry_id = -1;
 
-        if (parentContext != null) {
-            this.ext_stop = ((CoreTaskContext) parentContext).ext_stop;
-        } else {
-            this.ext_stop = new AtomicBoolean(false);
-        }
-
         this._origin = origin;
         this._hooks = p_hooks;
-        if (parentContext != null) {
-            this._time = parentContext.time();
-            this._world = parentContext.world();
-        } else {
-            this._world = 0;
-            this._time = Constants.BEGINNING_OF_TIME;
-        }
+
         this._graph = p_graph;
         this._parent = parentContext;
-        final CoreTaskContext castedParentContext = (CoreTaskContext) parentContext;
         if (parentContext == null) {
-            this._globalVariables = new ConcurrentHashMap<String, TaskResult>();
+            this._world = 0;
+            this._time = Constants.BEGINNING_OF_TIME;
+            this._globalVariables = new ConcurrentHashMap<>();
             this._silent = null;
             this._transactionTracker = null;
+            this.ext_stop = new AtomicBoolean(false);
+            this.childWorkers = new HashMap<>();
         } else {
+            CoreTaskContext castedParentContext = (CoreTaskContext) parentContext;
+            this._time = castedParentContext.time();
+            this._world = castedParentContext.world();
             this._globalVariables = castedParentContext.globalVariables();
             this._silent = castedParentContext._silent;
             this._transactionTracker = castedParentContext._transactionTracker;
+            this.ext_stop = castedParentContext.ext_stop;
+            this.childWorkers = castedParentContext.childWorkers;
         }
         this._result = initial;
         this._callback = p_callback;
@@ -111,10 +135,10 @@ class CoreTaskContext implements TaskContext {
     @Override
     public void terminateTask() {
         this.ext_stop.set(true);
-        if(childWorkers.size() > 0) {
+        if (childWorkers.size() > 0) {
             Map<Integer, GraphWorker> childWorkersWorkingCopy = new HashMap<>(childWorkers);
             ArrayList<GraphWorker> workers = new ArrayList<>(childWorkersWorkingCopy.values());
-            for(int i = 0; i < workers.size(); i++) {
+            for (int i = 0; i < workers.size(); i++) {
                 workers.get(i).terminateTasks();
             }
         }

@@ -60,7 +60,7 @@ public class KillTasksTest {
             Task task = newTask().action(PluginForWorkersTest.PARENT_TASK_LAUNCHER);
             TaskContext taskContext = task.prepare(clientGraph, null, result -> {
                 System.out.println("rootTask finished");
-                if (result.exception() != null) {
+                if (result.exception() != null && !(result.exception() instanceof InterruptedException)) {
                     result.exception().printStackTrace();
                 }
                 clientGraph.disconnect(disconnected -> {
@@ -95,7 +95,7 @@ public class KillTasksTest {
             Task task = newTask().action(PluginForWorkersTest.PARENT_TASK_LAUNCHER);
             TaskContext taskContext = task.prepare(clientGraph, null, result -> {
                 System.out.println("rootTask finished");
-                if (result.exception() != null) {
+                if (result.exception() != null && !(result.exception() instanceof InterruptedException)) {
                     result.exception().printStackTrace();
                 }
                 clientGraph.disconnect(disconnected -> {
@@ -149,7 +149,7 @@ public class KillTasksTest {
             Task task = newTask().action(PluginForWorkersTest.PARENT_TASK_LAUNCHER);
             TaskContext taskContext = task.prepare(clientGraph, null, result -> {
                 System.out.println("rootTask finished");
-                if (result.exception() != null) {
+                if (result.exception() != null && !(result.exception() instanceof InterruptedException)) {
                     result.exception().printStackTrace();
                 }
                 clientGraph.disconnect(disconnected -> {
