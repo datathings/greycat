@@ -412,7 +412,8 @@ public class GraphWorker implements Runnable {
                         if (destWorker.isRunning()) {
                             destWorker.workingGraphInstance.taskContextRegistry().forceStop(taskCode);
                         } else {
-                            GraphWorkerPool.getInstance().removeTaskWorker(destWorker);
+                            destWorker.terminateTasks();
+                            //GraphWorkerPool.getInstance().removeTaskWorker(destWorker);
                         }
                     }
                 }
