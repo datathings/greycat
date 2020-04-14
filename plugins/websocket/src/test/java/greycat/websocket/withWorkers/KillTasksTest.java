@@ -8,6 +8,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 
 import static greycat.Tasks.newTask;
@@ -69,7 +70,7 @@ public class KillTasksTest {
                     latch.countDown();
                 });
             });
-            taskContext.setTaskScopeName("ALVA_InferTopo");
+            taskContext.setTaskScopeName("RootWorkerForTestName");
             taskContext.setWorkerAffinity(WorkerAffinity.TASK_WORKER);
             System.out.println("Task submitted");
             task.executeRemotelyUsing(taskContext);
@@ -114,8 +115,15 @@ public class KillTasksTest {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            wsClient.workerTaskStop("subTask3", 0, registered -> {
-                System.out.println("subTask3 kill registered");
+            //String stats = GraphWorkerPool.getInstance().tasksStats();
+
+            Collection<String> workersRefs = GraphWorkerPool.getInstance().getRegisteredWorkers();
+            workersRefs.forEach(ref -> {
+                if(ref.contains("subTask3")) {
+                    wsClient.workerTaskStop(ref, 0, registered -> {
+                        System.out.println("subTask3 kill registered");
+                    });
+                }
             });
 
             try {
@@ -123,10 +131,14 @@ public class KillTasksTest {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            wsClient.workerTaskStop("subTask2", 0, registered -> {
-                System.out.println("subTask2 kill registered");
-            });
 
+            workersRefs.forEach(ref -> {
+                if(ref.contains("subTask2")) {
+                    wsClient.workerTaskStop(ref, 0, registered -> {
+                        System.out.println("subTask3 kill registered");
+                    });
+                }
+            });
 
         });
 
@@ -160,6 +172,7 @@ public class KillTasksTest {
                 });
             });
             taskContext.setWorkerAffinity(WorkerAffinity.TASK_WORKER);
+            taskContext.setTaskScopeName("RootTaskWorker");
             System.out.println("Root task submitted");
             task.executeRemotelyUsing(taskContext);
 
@@ -168,10 +181,17 @@ public class KillTasksTest {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            wsClient.workerTaskStop("TaskWorker(-2147483646)", 0, registered -> {
-                System.out.println("root kill registered");
-            });
 
+            //String stats = GraphWorkerPool.getInstance().tasksStats();
+
+            Collection<String> workersRefs = GraphWorkerPool.getInstance().getRegisteredWorkers();
+            workersRefs.forEach(ref -> {
+                if(ref.contains("RootTaskWorker")) {
+                    wsClient.workerTaskStop(ref, 0, registered -> {
+                        System.out.println("RootTaskWorker kill registered");
+                    });
+                }
+            });
         });
 
         try {

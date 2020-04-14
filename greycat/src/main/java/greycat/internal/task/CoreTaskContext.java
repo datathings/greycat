@@ -66,7 +66,7 @@ class CoreTaskContext implements TaskContext {
     /**
      * {@ignore ts}
      */
-    private Map<Integer, GraphWorker> childWorkers;
+    private Map<String, GraphWorker> childWorkers;
 
     private AtomicBoolean ext_stop;
     int in_registry_id;
@@ -138,7 +138,7 @@ class CoreTaskContext implements TaskContext {
     public void terminateTask() {
         this.ext_stop.set(true);
         if (childWorkers.size() > 0) {
-            Map<Integer, GraphWorker> childWorkersWorkingCopy = new HashMap<>(childWorkers);
+            Map<String, GraphWorker> childWorkersWorkingCopy = new HashMap<>(childWorkers);
             ArrayList<GraphWorker> workers = new ArrayList<>(childWorkersWorkingCopy.values());
             for (int i = 0; i < workers.size(); i++) {
                 workers.get(i).terminateTasks();
@@ -583,14 +583,13 @@ class CoreTaskContext implements TaskContext {
         counter.then(() -> GraphWorker.wakeups(ids, results));
 
         for (int i = 0; i < contexts.size(); i++) {
-            String workerName = "";
-            if(this._taskScopeName != null) {
-                workerName = this._taskScopeName + "_";
-            }
-            workerName += names.get(i);
+            String workerName = names.get(i);
             final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, workerName, null);
-            worker.setName(names.get(i));
-            childWorkers.put(worker.getId(), worker);
+            worker.setName(workerName);
+            if(this._taskScopeName != null) {
+                worker.setWorkerGroup(this._taskScopeName);
+            }
+            childWorkers.put(worker.getRef(), worker);
 
             CoreTaskContext subctx = (CoreTaskContext) contexts.get(i);
             int finalI = i;
@@ -598,7 +597,7 @@ class CoreTaskContext implements TaskContext {
                 if (result != null) {
                     results[finalI] = result.toString();
                 }
-                childWorkers.remove(worker.getId());
+                childWorkers.remove(worker.getRef());
                 counter.count();
             };
 

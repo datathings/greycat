@@ -311,16 +311,17 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
                     Buffer callbackBufferView = it.next();
                     int callbackId = Base64.decodeToIntWithBounds(callbackBufferView, 0, callbackBufferView.length());
-                    String workerRef = "TaskWorker(" + callbackId + ")";
+                    String workerName = "TaskWorker(" + callbackId + ")";
                     if(bufferTypeBufferView.read(0) == StorageMessageType.REQ_TASK) {
                         Buffer taskScopeNameBufferView = it.next();
                         if(taskScopeNameBufferView.length() >0) {
-                            workerRef = Base64.decodeToStringWithBounds(taskScopeNameBufferView, 0, taskScopeNameBufferView.length());
+                            workerName = Base64.decodeToStringWithBounds(taskScopeNameBufferView, 0, taskScopeNameBufferView.length());
                         }
                     }
 
                     //Create and register a specific worker for the task, identified by the callbackID of teh task for this channel.
-                    GraphWorker taskWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, workerRef, null);
+                    GraphWorker taskWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, workerName, null);
+                    taskWorker.setWorkerGroup(workerName);
                     taskWorker.submit(jobBuffer.data());
                 }
                 break;
