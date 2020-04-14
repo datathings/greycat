@@ -67,7 +67,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
     private AtomicInteger callbackCounters = new AtomicInteger(MIN_INTEGER);
 
     private final List<Callback<Buffer>> _listeners = new ArrayList<Callback<Buffer>>();
-    
+
     private String user = null;
     private String password = null;
 
@@ -90,7 +90,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
 
     private int registerCallback(Callback c) {
         int callbackId = callbackCounters.getAndIncrement();
-        if(callbackCounters.get() == MAX_INTEGER) {
+        if (callbackCounters.get() == MAX_INTEGER) {
             callbackCounters.set(MIN_INTEGER);
         }
         _callbacks.put(callbackId, c);
@@ -139,7 +139,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
 
     @Override
     public final void taskStop(Integer id, Callback<Boolean> callback) {
-       callback.on(false);
+        callback.on(false);
     }
 
     @Override
@@ -332,7 +332,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
         buffer.write(StorageMessageType.REQ_TASK);
         buffer.write(Constants.BUFFER_SEP);
         //Using workerMailbox place to send worker affinity for remote execution
-        if(prepared != null) {
+        if (prepared != null) {
             buffer.writeInt(prepared.getWorkerAffinity());
         } else {
             buffer.writeInt(WorkerAffinity.GENERAL_PURPOSE_WORKER);
@@ -341,7 +341,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
         int onResultCallback = registerCallback(onResult);
         Base64.encodeIntToBuffer(onResultCallback, buffer);
         buffer.write(Constants.BUFFER_SEP);
-        if(prepared != null && prepared.getTaskScopeName() != null) {
+        if (prepared != null && prepared.getTaskScopeName() != null) {
             Base64.encodeStringToBuffer(prepared.getTaskScopeName(), buffer);
         }
         buffer.write(Constants.BUFFER_SEP);
@@ -478,13 +478,13 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
                 case StorageMessageType.NOTIFY_PROGRESS: {
                     final Buffer progressCallbackView = it.next();
                     final int progressCallbackCode = Base64.decodeToIntWithBounds(callbackIdBufferView, 0, callbackIdBufferView.length());
-                    final CoreProgressReport report = new CoreProgressReport();
-                    report.loadFromBuffer(progressCallbackView);
                     Callback<TaskProgressReport> progressHook = _callbacks.get(progressCallbackCode);
-                    if(progressHook != null) {
+                    if (progressHook != null) {
+                        final CoreProgressReport report = new CoreProgressReport();
+                        report.loadFromBuffer(progressCallbackView);
                         progressHook.on(report);
                     } else {
-                        System.err.println();
+                        _graph.log().warn("NOTIFY_PROGRESS progressHook not found: " + progressCallbackCode);
                     }
                 }
                 break;
@@ -494,20 +494,24 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
                 case StorageMessageType.RESP_LOG: {
                     final int callbackCode = Base64.decodeToIntWithBounds(callbackIdBufferView, 0, callbackIdBufferView.length());
                     final Callback resolvedCallback = _callbacks.get(callbackCode);
-                    final Buffer newBuf = _graph.newBuffer();//will be free by the core
-                    boolean isFirst = true;
-                    while (it.hasNext()) {
-                        if (isFirst) {
-                            isFirst = false;
-                        } else {
-                            newBuf.write(Constants.BUFFER_SEP);
+                    if (resolvedCallback != null) {
+                        final Buffer newBuf = _graph.newBuffer();//will be free by the core
+                        boolean isFirst = true;
+                        while (it.hasNext()) {
+                            if (isFirst) {
+                                isFirst = false;
+                            } else {
+                                newBuf.write(Constants.BUFFER_SEP);
+                            }
+                            newBuf.writeAll(it.next().data());
                         }
-                        newBuf.writeAll(it.next().data());
+                        _callbacks.remove(callbackCode);
+                        resolvedCallback.on(newBuf);
+                    } else {
+                        _graph.log().warn("RESP_LOG callback not found: " + callbackCode);
                     }
-                    _callbacks.remove(callbackCode);
-                    resolvedCallback.on(newBuf);
                 }
-                    break;
+                break;
                 case StorageMessageType.RESP_TASK_STOP:
                 case StorageMessageType.RESP_TASK_STATS:
                 case StorageMessageType.NOTIFY_PRINT: {
