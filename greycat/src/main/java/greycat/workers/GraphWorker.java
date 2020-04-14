@@ -27,6 +27,7 @@ import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.utility.Base64;
+import greycat.utility.BufferView;
 import greycat.utility.L3GMap;
 import greycat.utility.Tuple;
 
@@ -54,8 +55,8 @@ public class GraphWorker implements Runnable {
     private boolean isTaskWorker = false;
 
     private AtomicBoolean running = new AtomicBoolean(false);
-
     private AtomicBoolean cleanCache = new AtomicBoolean(false);
+    private AtomicBoolean terminateTasks = new AtomicBoolean(false);
 
     public GraphWorker(GraphBuilder workingGraphBuilder, boolean canProcessGeneralTaskQueue) {
         this.workingGraphBuilder = workingGraphBuilder;
@@ -87,6 +88,13 @@ public class GraphWorker implements Runnable {
             if (callbacksRegistry.awaiting() == 0) {
                 disconnectGraph();
             }
+        }
+    }
+
+    public void terminateTasks() {
+        this.terminateTasks.set(true);
+        if (workingGraphInstance != null) {
+            workingGraphInstance.taskContextRegistry().forceStopAll();
         }
     }
 
@@ -405,7 +413,8 @@ public class GraphWorker implements Runnable {
                         if (destWorker.isRunning()) {
                             destWorker.workingGraphInstance.taskContextRegistry().forceStop(taskCode);
                         } else {
-                            GraphWorkerPool.getInstance().removeTaskWorker(destWorker);
+                            destWorker.terminateTasks();
+                            //GraphWorkerPool.getInstance().removeTaskWorker(destWorker);
                         }
                     }
                 }
@@ -487,6 +496,7 @@ public class GraphWorker implements Runnable {
             break;
             case StorageMessageType.REQ_TASK: {
                 workingGraphInstance.setProperty("ws.last", System.currentTimeMillis());
+                Buffer taskScopeNameBufferView = it.next();
                 if (it.hasNext()) {
                     AtomicReference<TaskContext> contextRef = new AtomicReference();
                     final Callback<TaskResult> end = new Callback<TaskResult>() {
@@ -528,82 +538,89 @@ public class GraphWorker implements Runnable {
                             }
                         }
                     };
-                    Task t = Tasks.newTask();
-                    try {
-                        t.loadFromBuffer(it.next(), workingGraphInstance);
-                        TaskContext ctx = t.prepare(workingGraphInstance, null, new Callback<TaskResult>() {
-                            @Override
-                            public void on(TaskResult result) {
-                                //we also dispatch locally
-                                if (result.notifications() != null && result.notifications().length() > 0) {
-                                    workingGraphInstance.remoteNotify(result.notifications());
-                                }
-                                end.on(result);
-                            }
-                        });
-                        contextRef.set(ctx);
-                        ctx.silentSave();
-                        if (it.hasNext()) {
-                            final int printHookCode;
-                            Buffer hookCodeView = it.next();
-                            if (hookCodeView.length() > 0) {
-                                printHookCode = Base64.decodeToIntWithBounds(hookCodeView, 0, hookCodeView.length());
-                                ctx.setPrintHook(new Callback<String>() {
-                                    @Override
-                                    public void on(String result) {
-
-                                        final Buffer printBuffer = workingGraphInstance.newBuffer();
-                                        printBuffer.write(StorageMessageType.NOTIFY_PRINT);
-                                        printBuffer.write(Constants.BUFFER_SEP);
-                                        printBuffer.writeInt(destMailboxId);
-                                        printBuffer.write(Constants.BUFFER_SEP);
-                                        Base64.encodeIntToBuffer(printHookCode, printBuffer);
-                                        printBuffer.write(Constants.BUFFER_SEP);
-                                        Base64.encodeStringToBuffer(result, printBuffer);
-                                        if (destMailbox != null) {
-                                            destMailbox.submit(printBuffer.data());
-                                        }
-                                        printBuffer.free();
-
-                                    }
-                                });
-                            }
-                            final int progressHookCode;
-                            Buffer progressHookCodeView = it.next();
-                            if (progressHookCodeView.length() > 0) {
-                                progressHookCode = Base64.decodeToIntWithBounds(progressHookCodeView, 0, progressHookCodeView.length());
-                                ctx.setProgressHook(new Callback<TaskProgressReport>() {
-                                    @Override
-                                    public void on(TaskProgressReport report) {
-                                        final Buffer progressBuffer = workingGraphInstance.newBuffer();
-                                        progressBuffer.write(StorageMessageType.NOTIFY_PROGRESS);
-                                        progressBuffer.write(Constants.BUFFER_SEP);
-                                        progressBuffer.writeInt(destMailboxId);
-                                        progressBuffer.write(Constants.BUFFER_SEP);
-                                        Base64.encodeIntToBuffer(progressHookCode, progressBuffer);
-                                        progressBuffer.write(Constants.BUFFER_SEP);
-                                        report.saveToBuffer(progressBuffer);
-                                        if (destMailbox != null) {
-                                            destMailbox.submit(progressBuffer.data());
-                                        }
-                                        progressBuffer.free();
-
-                                    }
-                                });
-                            }
-                            ctx.loadFromBuffer(it.next(), new Callback<Boolean>() {
+                    if (this.terminateTasks.get()) {
+                        end.on(Tasks.emptyResult().setException(new InterruptedException("Termination requested before completion.")));
+                    } else {
+                        Task t = Tasks.newTask();
+                        try {
+                            t.loadFromBuffer(it.next(), workingGraphInstance);
+                            TaskContext ctx = t.prepare(workingGraphInstance, null, new Callback<TaskResult>() {
                                 @Override
-                                public void on(Boolean loaded) {
-                                    workingGraphInstance.taskContextRegistry().register(ctx);
-                                    t.executeUsing(ctx);
+                                public void on(TaskResult result) {
+                                    //we also dispatch locally
+                                    if (result.notifications() != null && result.notifications().length() > 0) {
+                                        workingGraphInstance.remoteNotify(result.notifications());
+                                    }
+                                    end.on(result);
                                 }
                             });
-                        } else {
-                            workingGraphInstance.taskContextRegistry().register(ctx);
-                            t.executeUsing(ctx);
+                            if (taskScopeNameBufferView.length() > 0) {
+                                ctx.setTaskScopeName(Base64.decodeToStringWithBounds(taskScopeNameBufferView, 0, taskScopeNameBufferView.length()));
+                            }
+                            contextRef.set(ctx);
+                            ctx.silentSave();
+                            if (it.hasNext()) {
+                                final int printHookCode;
+                                Buffer hookCodeView = it.next();
+                                if (hookCodeView.length() > 0) {
+                                    printHookCode = Base64.decodeToIntWithBounds(hookCodeView, 0, hookCodeView.length());
+                                    ctx.setPrintHook(new Callback<String>() {
+                                        @Override
+                                        public void on(String result) {
+
+                                            final Buffer printBuffer = workingGraphInstance.newBuffer();
+                                            printBuffer.write(StorageMessageType.NOTIFY_PRINT);
+                                            printBuffer.write(Constants.BUFFER_SEP);
+                                            printBuffer.writeInt(destMailboxId);
+                                            printBuffer.write(Constants.BUFFER_SEP);
+                                            Base64.encodeIntToBuffer(printHookCode, printBuffer);
+                                            printBuffer.write(Constants.BUFFER_SEP);
+                                            Base64.encodeStringToBuffer(result, printBuffer);
+                                            if (destMailbox != null) {
+                                                destMailbox.submit(printBuffer.data());
+                                            }
+                                            printBuffer.free();
+
+                                        }
+                                    });
+                                }
+                                final int progressHookCode;
+                                Buffer progressHookCodeView = it.next();
+                                if (progressHookCodeView.length() > 0) {
+                                    progressHookCode = Base64.decodeToIntWithBounds(progressHookCodeView, 0, progressHookCodeView.length());
+                                    ctx.setProgressHook(new Callback<TaskProgressReport>() {
+                                        @Override
+                                        public void on(TaskProgressReport report) {
+                                            final Buffer progressBuffer = workingGraphInstance.newBuffer();
+                                            progressBuffer.write(StorageMessageType.NOTIFY_PROGRESS);
+                                            progressBuffer.write(Constants.BUFFER_SEP);
+                                            progressBuffer.writeInt(destMailboxId);
+                                            progressBuffer.write(Constants.BUFFER_SEP);
+                                            Base64.encodeIntToBuffer(progressHookCode, progressBuffer);
+                                            progressBuffer.write(Constants.BUFFER_SEP);
+                                            report.saveToBuffer(progressBuffer);
+                                            if (destMailbox != null) {
+                                                destMailbox.submit(progressBuffer.data());
+                                            }
+                                            progressBuffer.free();
+
+                                        }
+                                    });
+                                }
+                                ctx.loadFromBuffer(it.next(), new Callback<Boolean>() {
+                                    @Override
+                                    public void on(Boolean loaded) {
+                                        workingGraphInstance.taskContextRegistry().register(ctx);
+                                        t.executeUsing(ctx);
+                                    }
+                                });
+                            } else {
+                                workingGraphInstance.taskContextRegistry().register(ctx);
+                                t.executeUsing(ctx);
+                            }
+                        } catch (Exception e) {
+                            end.on(Tasks.emptyResult().setException(e));
                         }
-                    } catch (Exception e) {
-                        end.on(Tasks.emptyResult().setException(e));
                     }
                 }
             }
@@ -837,6 +854,9 @@ public class GraphWorker implements Runnable {
         //Callback.id
         Base64.encodeIntToBuffer(taskCallbackId, taskBuffer);
         taskBuffer.write(Constants.BUFFER_SEP);
+        //taskScopeName
+        taskBuffer.write(Constants.BUFFER_SEP);
+
         requestedTask.saveToBuffer(taskBuffer);
 
         if (mailbox.canProcessGeneralTaskQueue()) {//If general purpose worker, we submit the task to the pool, not to self
@@ -907,6 +927,11 @@ public class GraphWorker implements Runnable {
         taskBuffer.write(Constants.BUFFER_SEP);
         //Callback.id
         Base64.encodeIntToBuffer(taskCallbackId, taskBuffer);
+        taskBuffer.write(Constants.BUFFER_SEP);
+        //taskScopeName
+        if(requestedTaskContext.getTaskScopeName() != null) {
+            Base64.encodeStringToBuffer(requestedTaskContext.getTaskScopeName(), taskBuffer);
+        }
         taskBuffer.write(Constants.BUFFER_SEP);
         requestedTask.saveToBuffer(taskBuffer);
 

@@ -87,6 +87,8 @@ public class TestGraphWorker extends GraphWorker {
         //Callback.id
         Base64.encodeIntToBuffer(taskCallbackId, taskBuffer);
         taskBuffer.write(Constants.BUFFER_SEP);
+        //taskScopeName
+        taskBuffer.write(Constants.BUFFER_SEP);
         requestedTask.saveToBuffer(taskBuffer);
 
         // --------   DEBUG PRINT ----------
@@ -171,6 +173,11 @@ public class TestGraphWorker extends GraphWorker {
         taskBuffer.write(Constants.BUFFER_SEP);
         //Callback.id
         Base64.encodeIntToBuffer(taskCallbackId, taskBuffer);
+        taskBuffer.write(Constants.BUFFER_SEP);
+        //taskScopeName
+        if(requestedTaskContext.getTaskScopeName() != null) {
+            Base64.encodeStringToBuffer(requestedTaskContext.getTaskScopeName(), taskBuffer);
+        }
         taskBuffer.write(Constants.BUFFER_SEP);
         requestedTask.saveToBuffer(taskBuffer);
 

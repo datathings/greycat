@@ -576,8 +576,12 @@ export class WSClientForWorkers implements greycat.plugin.Storage {
     reqBuffer.write(greycat.Constants.BUFFER_SEP);
     let onResultCallback = this.registerCallback(onResult);
     greycat.utility.Base64.encodeIntToBuffer(onResultCallback, reqBuffer);
-    //Payload
     reqBuffer.write(greycat.Constants.BUFFER_SEP);
+    if(prepared != null && prepared.getTaskScopeName() != null) {
+      greycat.utility.Base64.encodeStringToBuffer(prepared.getTaskScopeName(), reqBuffer);
+    }
+    reqBuffer.write(greycat.Constants.BUFFER_SEP);
+    //Payload
     task.saveToBuffer(reqBuffer);
 
     if (prepared != null) {

@@ -23,6 +23,8 @@ import java.util.List;
 
 public interface TaskContext {
 
+    void terminateTask();
+
     TaskContext setEndHook(final Callback<TaskContext> endHook);
 
     Graph graph();
@@ -136,5 +138,8 @@ public interface TaskContext {
     byte getWorkerAffinity();
 
     void setWorkerAffinity(byte affinity);
+
+    void setTaskScopeName(String name);
+    String getTaskScopeName();
 
 }

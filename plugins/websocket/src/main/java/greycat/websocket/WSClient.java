@@ -126,6 +126,11 @@ public class WSClient implements Storage, TaskExecutor {
     }
 
     @Override
+    public void workerTaskStop(String workerRef, Integer id, Callback<String> callback) {
+        callback.on("false");
+    }
+
+    @Override
     public final void connect(final Graph p_graph, final Callback<Boolean> callback) {
         if (_channel != null) {
             if (callback != null) {

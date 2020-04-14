@@ -25,15 +25,13 @@ import greycat.internal.task.math.MathExpressionEngine;
 import greycat.base.BaseNode;
 import greycat.struct.Buffer;
 import greycat.utility.*;
+import greycat.utility.Base64;
 import greycat.workers.GraphWorker;
 import greycat.workers.GraphWorkerPool;
 import greycat.workers.SlaveWorkerStorage;
 import greycat.workers.WorkerAffinity;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -63,42 +61,89 @@ class CoreTaskContext implements TaskContext {
     private boolean _taskProgressAutoReporting = false;
     private LMap _transactionTracker = null;
     private byte _workerAffinity = WorkerAffinity.GENERAL_PURPOSE_WORKER;
+    private String _taskScopeName;
 
+    /**
+     * {@ignore ts}
+     */
+    private Map<Integer, GraphWorker> childWorkers;
+
+    private AtomicBoolean ext_stop;
     int in_registry_id;
-    AtomicBoolean ext_stop;
 
+    /**
+     * {@native ts
+     *      this.in_registry_id = -1;
+     *      this._origin = origin;
+     *      this._hooks = p_hooks;
+     *      this._graph = p_graph;
+     *      this._parent = parentContext;
+     *      if (parentContext == null) {
+     *         this._world = 0;
+     *         this._time = greycat.Constants.BEGINNING_OF_TIME;
+     *         this._globalVariables = new java.util.ConcurrentHashMap<string, greycat.TaskResult<any>>();
+     *         this._silent = null;
+     *         this._transactionTracker = null;
+     *         this.ext_stop = new java.util.concurrent.atomic.AtomicBoolean(false);
+     *      } else {
+     *         let castedParentContext: greycat.internal.task.CoreTaskContext = <greycat.internal.task.CoreTaskContext>parentContext;
+     *         this._time = castedParentContext.time();
+     *         this._world = castedParentContext.world();
+     *         this._globalVariables = castedParentContext.globalVariables();
+     *         this._silent = castedParentContext._silent;
+     *         this._transactionTracker = castedParentContext._transactionTracker;
+     *         this.ext_stop = castedParentContext.ext_stop;
+     *      }
+     *      this._result = initial;
+     *      this._callback = p_callback;
+     * }
+     */
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this.in_registry_id = -1;
 
-        if (parentContext != null) {
-            this.ext_stop = ((CoreTaskContext) parentContext).ext_stop;
-        } else {
-            this.ext_stop = new AtomicBoolean(false);
-        }
-
         this._origin = origin;
         this._hooks = p_hooks;
-        if (parentContext != null) {
-            this._time = parentContext.time();
-            this._world = parentContext.world();
-        } else {
-            this._world = 0;
-            this._time = Constants.BEGINNING_OF_TIME;
-        }
+
         this._graph = p_graph;
         this._parent = parentContext;
-        final CoreTaskContext castedParentContext = (CoreTaskContext) parentContext;
         if (parentContext == null) {
-            this._globalVariables = new ConcurrentHashMap<String, TaskResult>();
+            this._world = 0;
+            this._time = Constants.BEGINNING_OF_TIME;
+            this._globalVariables = new ConcurrentHashMap<>();
             this._silent = null;
             this._transactionTracker = null;
+            this.ext_stop = new AtomicBoolean(false);
+            this.childWorkers = new HashMap<>();
         } else {
+            CoreTaskContext castedParentContext = (CoreTaskContext) parentContext;
+            this._time = castedParentContext.time();
+            this._world = castedParentContext.world();
             this._globalVariables = castedParentContext.globalVariables();
             this._silent = castedParentContext._silent;
             this._transactionTracker = castedParentContext._transactionTracker;
+            this.ext_stop = castedParentContext.ext_stop;
+            this.childWorkers = castedParentContext.childWorkers;
+            this._taskScopeName = castedParentContext._taskScopeName;
         }
         this._result = initial;
         this._callback = p_callback;
+    }
+
+    /**
+     * {@native ts
+     * this.ext_stop.set(true);
+     * }
+     */
+    @Override
+    public void terminateTask() {
+        this.ext_stop.set(true);
+        if (childWorkers.size() > 0) {
+            Map<Integer, GraphWorker> childWorkersWorkingCopy = new HashMap<>(childWorkers);
+            ArrayList<GraphWorker> workers = new ArrayList<>(childWorkersWorkingCopy.values());
+            for (int i = 0; i < workers.size(); i++) {
+                workers.get(i).terminateTasks();
+            }
+        }
     }
 
     @Override
@@ -147,6 +192,14 @@ class CoreTaskContext implements TaskContext {
     @Override
     public void setWorkerAffinity(byte affinity) {
         this._workerAffinity = affinity;
+    }
+
+    public String getTaskScopeName() {
+        return _taskScopeName;
+    }
+
+    public void setTaskScopeName(String _taskScopeName) {
+        this._taskScopeName = _taskScopeName;
     }
 
     @Override
@@ -522,9 +575,6 @@ class CoreTaskContext implements TaskContext {
             if (subctx._callback != null) {
                 throw new RuntimeException("bad api usage, you can't use result callback on // call");
             }
-            if (subctx._end_hook != null) {
-                throw new RuntimeException("bad api usage, you can't use the endHook callback on // call");
-            }
         }
 
         final int[] ids = this.suspendTask();
@@ -533,8 +583,14 @@ class CoreTaskContext implements TaskContext {
         counter.then(() -> GraphWorker.wakeups(ids, results));
 
         for (int i = 0; i < contexts.size(); i++) {
-            final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, names.get(i), null);
+            String workerName = "";
+            if(this._taskScopeName != null) {
+                workerName = this._taskScopeName + "_";
+            }
+            workerName += names.get(i);
+            final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, workerName, null);
             worker.setName(names.get(i));
+            childWorkers.put(worker.getId(), worker);
 
             CoreTaskContext subctx = (CoreTaskContext) contexts.get(i);
             int finalI = i;
@@ -542,8 +598,7 @@ class CoreTaskContext implements TaskContext {
                 if (result != null) {
                     results[finalI] = result.toString();
                 }
-            };
-            subctx._end_hook = ended -> {
+                childWorkers.remove(worker.getId());
                 counter.count();
             };
 
@@ -555,7 +610,7 @@ class CoreTaskContext implements TaskContext {
     @Override
     public final void continueTask() {
         if (this.ext_stop.get()) {
-            endTask(newResult(), new RuntimeException("stopped from external!"));
+            endTask(newResult(), new InterruptedException("Termination requested before completion."));
             return;
         }
         final TaskHook[] globalHooks = this._graph.taskHooks();

@@ -25,6 +25,7 @@ public interface TaskExecutor {
     void taskStats(Callback<String> callback);
 
     void taskStop(Integer id, Callback<Boolean> callback);
+    void workerTaskStop(String workerRef, Integer id, Callback<String> callback);
 
     void execute(Callback<TaskResult> callback, Task task, TaskContext prepared);
 

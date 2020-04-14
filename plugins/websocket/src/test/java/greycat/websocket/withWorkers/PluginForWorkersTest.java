@@ -17,8 +17,14 @@ package greycat.websocket.withWorkers;
 
 import greycat.*;
 import greycat.plugin.Plugin;
+import greycat.plugin.Scheduler;
 import greycat.plugin.SchedulerAffinity;
 import greycat.struct.Buffer;
+import greycat.workers.WorkerAffinity;
+
+import java.util.Arrays;
+
+import static greycat.Tasks.newTask;
 
 /**
  * @ignore ts
@@ -29,6 +35,10 @@ public class PluginForWorkersTest implements Plugin {
     public static final String THROW_EXCEPTION_2 = "throwException2";
     public static final String PROGRESS_REPORTS = "progressReports";
     public static final String PRINT_HOOK = "printHook";
+
+    public static final String PARENT_TASK_LAUNCHER = "parentTaskLauncher";
+    public static final String CHILD_TASK_LAUNCHED = "childTaskLaunched";
+    public static final String INTERMEDIATE_TASK_LAUNCHED = "intermediateTaskLaunched";
 
     @Override
     public void start(Graph graph) {
@@ -145,6 +155,94 @@ public class PluginForWorkersTest implements Plugin {
             }
         });
 
+        graph.actionRegistry().getOrCreateDeclaration(PARENT_TASK_LAUNCHER)
+                .setFactory(params -> new Action() {
+                    @Override
+                    public void eval(TaskContext ctx) {
+                        Task subTask = Tasks.newTask().action(INTERMEDIATE_TASK_LAUNCHED);
+                        subTask.executeFrom(ctx, ctx.result(), SchedulerAffinity.ANY_LOCAL_THREAD, ctx::continueWith);
+                    }
+
+                    @Override
+                    public void serialize(Buffer buffer) {
+                    }
+
+                    @Override
+                    public String name() {
+                        return PARENT_TASK_LAUNCHER;
+                    }
+                });
+
+        graph.actionRegistry().getOrCreateDeclaration(INTERMEDIATE_TASK_LAUNCHED)
+                .setFactory(params -> new Action() {
+                    @Override
+                    public void eval(TaskContext ctx) {
+                        Task subTask = Tasks.newTask().action(CHILD_TASK_LAUNCHED);
+                        TaskContext subCtx = subTask.prepare(ctx.graph(), null, null);
+                        subCtx.setVariable("workerRef", "subTask");
+
+                        Task subTask2 = Tasks.newTask().action(CHILD_TASK_LAUNCHED);
+                        TaskContext subCtx2 = subTask2.prepare(ctx.graph(), null, null);
+                        subCtx2.setVariable("workerRef", "subTask2");
+
+                        Task subTask3 = Tasks.newTask().action(CHILD_TASK_LAUNCHED);
+                        TaskContext subCtx3 = subTask3.prepare(ctx.graph(), null, null);
+                        subCtx3.setVariable("workerRef", "subTask3");
+
+                        ctx.continueWhenAllFinished(
+                                Arrays.asList(subTask, subTask2, subTask3),
+                                Arrays.asList(subCtx, subCtx2, subCtx3),
+                                Arrays.asList("subTask", "subTask2", "subTask3")
+                        );
+                    }
+
+                    @Override
+                    public void serialize(Buffer buffer) {
+                    }
+
+                    @Override
+                    public String name() {
+                        return PARENT_TASK_LAUNCHER;
+                    }
+                });
+
+        graph.actionRegistry().getOrCreateDeclaration(CHILD_TASK_LAUNCHED).setFactory(params -> new Action() {
+            @Override
+            public void eval(TaskContext ctx) {
+                Task internalSubTask = newTask()
+                        .inject(0)
+                        .setAsVar("iteration")
+                        .doWhile(newTask()
+                                        .thenDo(taskContext -> {
+                                            int iteration = (int) taskContext.variable("iteration").get(0);
+                                            try {
+                                                System.out.println(taskContext.template("{{workerRef}}:waiting("+iteration+")..."));
+                                                Thread.sleep(500);
+                                            } catch (InterruptedException e) {
+                                                e.printStackTrace();
+                                            }
+                                            taskContext.setVariable("iteration", iteration + 1);
+                                            taskContext.continueTask();
+
+                                        })
+                                , doCtx -> ((int)doCtx.variable("iteration").get(0))!=10)
+
+                        .thenDo(taskContext -> {
+                            System.out.println(taskContext.template("{{workerRef}}:done with waiting"));
+                            taskContext.continueWith(taskContext.newResult().add("5"));
+                        });
+                internalSubTask.executeFrom(ctx, ctx.result(), SchedulerAffinity.ANY_LOCAL_THREAD, ctx::continueWith);
+            }
+
+            @Override
+            public void serialize(Buffer builder) {
+            }
+
+            @Override
+            public String name() {
+                return CHILD_TASK_LAUNCHED;
+            }
+        });
 
     }
 

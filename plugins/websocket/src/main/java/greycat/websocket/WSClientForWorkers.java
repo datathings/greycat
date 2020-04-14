@@ -139,9 +139,16 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
 
     @Override
     public final void taskStop(Integer id, Callback<Boolean> callback) {
+       callback.on(false);
+    }
+
+    @Override
+    public final void workerTaskStop(String workerRef, Integer id, Callback<String> callback) {
         Buffer buf = this._graph.newBuffer();
+        Base64.encodeStringToBuffer(workerRef, buf);
+        buf.write(greycat.Constants.BUFFER_SEP);
         Base64.encodeIntToBuffer(id, buf);
-        send_rpc_req(StorageMessageType.REQ_TASK_STATS, buf, callback);
+        send_rpc_req(StorageMessageType.REQ_TASK_STOP, buf, callback);
         buf.free();
     }
 
@@ -333,8 +340,12 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
         buffer.write(Constants.BUFFER_SEP);
         int onResultCallback = registerCallback(onResult);
         Base64.encodeIntToBuffer(onResultCallback, buffer);
-        //Payload
         buffer.write(Constants.BUFFER_SEP);
+        if(prepared != null && prepared.getTaskScopeName() != null) {
+            Base64.encodeStringToBuffer(prepared.getTaskScopeName(), buffer);
+        }
+        buffer.write(Constants.BUFFER_SEP);
+        //Payload
         task.saveToBuffer(buffer);
 
         if (prepared != null) {
@@ -497,6 +508,7 @@ public class WSClientForWorkers implements Storage, TaskExecutor {
                     resolvedCallback.on(newBuf);
                 }
                     break;
+                case StorageMessageType.RESP_TASK_STOP:
                 case StorageMessageType.RESP_TASK_STATS:
                 case StorageMessageType.NOTIFY_PRINT: {
                     final Buffer contentView = it.next();
