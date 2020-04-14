@@ -6,9 +6,16 @@ import greycat.ml.regression.PolynomialNode;
 import greycat.scheduler.NoopScheduler;
 import org.junit.Assert;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.nio.channels.FileChannel;
 import java.util.Random;
 
 public class TestPolynomialImportExport {
+    /**
+     * @ignore ts
+     */
     public static void main(String[] args) {
 
         final Graph graph = new GraphBuilder().withPlugin(new MLPlugin()).withScheduler(new NoopScheduler()).build();
@@ -79,19 +86,31 @@ public class TestPolynomialImportExport {
 
                 Assert.assertTrue(res[0] <= precision);
                 Assert.assertTrue(res[2] < size);
-                polynomialNode.exportNodeToCSV(result1 -> {
-                    System.out.println(result1);
-                    PolynomialNode.createNodeFromCSV(graph,0,result1,result2 -> {
-                        polynomialNode.travelInTime(Constants.END_OF_TIME,result3->{
-                            ((PolynomialNode)result3).derivate(result4 -> {
-                                System.out.println(result4);
+                try {
+                    FileChannel fc = new FileOutputStream("data.txt").getChannel();
+                    polynomialNode.saveToBinary(fc,result1 -> {
+                        System.out.println(result1);
+                        try {
+                            FileChannel fi= new FileInputStream("data.txt").getChannel();
+                            PolynomialNode.loadFromBinary(fi,graph,0,result2 -> {
+                                polynomialNode.travelInTime(Constants.END_OF_TIME,result3->{
+                                    ((PolynomialNode)result3).derivate(result4 -> {
+                                        System.out.println(result4);
+                                    });
+                                });
+                                result2.derivate(result3 -> {
+                                    System.out.println(result3);
+                                });
                             });
-                        });
-                        result2.derivate(result3 -> {
-                            System.out.println(result3);
-                        });
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
                     });
-                });
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
             }
         });
 
