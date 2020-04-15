@@ -23,6 +23,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -174,7 +175,7 @@ public class GraphWorkerPool {
                 if (Log.LOG_LEVEL >= TRACE) {
                     ArrayList<GraphWorker> localWorkers = new ArrayList<>(workersById.values());
                     localWorkers.add(rootGraphWorker);
-                    localWorkers.stream().map(graphWorker -> graphWorker.getName() + " cacheSize: " + graphWorker.workingGraphInstance.space().capacity() + " " + ((graphWorker.workingGraphInstance.space().cacheSize() * 100) / graphWorker.workingGraphInstance.space().capacity()) + "% used.").forEach(v -> logger.trace(v));
+                    localWorkers.stream().map(graphWorker -> graphWorker.getRef() + " cacheSize: " + graphWorker.workingGraphInstance.space().capacity() + " " + ((graphWorker.workingGraphInstance.space().cacheSize() * 100) / graphWorker.workingGraphInstance.space().capacity()) + "% used.").forEach(v -> logger.trace(v));
                     logger.trace("Memory Heap: init:{}, used:{}, committed:{}, max:{}", formatBytes(heapUsage.getInit(), 3), formatBytes(heapUsage.getUsed(), 3), formatBytes(heapUsage.getCommitted(), 3), formatBytes(heapUsage.getMax(), 3));
                 }
                 if ((heapUsage.getUsed() * 1. / heapUsage.getMax()) >= cleanThreshold) {
@@ -270,7 +271,7 @@ public class GraphWorkerPool {
         logger.info("Halting done.");
     }
 
-    public GraphWorker createWorker(byte workerKind, String ref, Map<String, String> properties) {
+    public GraphWorker createWorker(byte workerKind, String name, Map<String, String> properties) {
 
         if(!ready.get()) {
             return null;
@@ -298,13 +299,13 @@ public class GraphWorkerPool {
         }
 
         GraphWorker worker = workerBuilderFactoryToUse.newBuilder()
-                .withName(ref)
+                .withName(name)
                 .withKind(workerKind)
                 .withProperties(properties)
                 .build();
 
         workersById.put(worker.getId(), worker);
-        workersByRef.put(worker.getName(), worker);
+        workersByRef.put(worker.getRef(), worker);
         if(workerKind == WorkerAffinity.GENERAL_PURPOSE_WORKER) {
             gpWorkers.add(worker);
         }
@@ -312,12 +313,12 @@ public class GraphWorkerPool {
         if (workerKind == WorkerAffinity.TASK_WORKER) {
             taskWorkerPool.execute(worker);
         } else {
-            Thread workerThread = new Thread(workersThreadGroup, worker, worker.getName());
+            Thread workerThread = new Thread(workersThreadGroup, worker, worker.getRef());
             workerThread.setUncaughtExceptionHandler(exceptionHandler);
             workerThread.start();
             threads.put(worker.getId(), workerThread);
         }
-        logger.debug("Worker " + worker.getName() + "(" + worker.getId() + ") created.");
+        logger.debug("Worker " + worker.getRef() + "(" + worker.getId() + ") created.");
 
         return worker;
     }
@@ -326,7 +327,7 @@ public class GraphWorkerPool {
 
         GraphWorker worker = workersById.get(id);
         if (worker != null) {
-            workersByRef.remove(worker.getName());
+            workersByRef.remove(worker.getRef());
             workersById.remove(worker.getId());
             gpWorkers.remove(worker);
             worker.halt();
@@ -336,7 +337,7 @@ public class GraphWorkerPool {
                 try {
                     //workerThread.interrupt();
                     workerThread.join();
-                    logger.debug("Worker " + worker.getName() + "(" + worker.getId() + ") destroyed.");
+                    logger.debug("Worker " + worker.getRef() + "(" + worker.getId() + ") destroyed.");
                 } catch (InterruptedException e) {
                     //e.printStackTrace();
                 }
@@ -361,9 +362,13 @@ public class GraphWorkerPool {
         return workersByRef.get(ref);
     }
 
+    public Collection<String> getRegisteredWorkers() {
+        return workersByRef.keySet();
+    }
+
     public boolean removeTaskWorker(GraphWorker worker) {
         boolean result = taskWorkerPool.remove(worker);
-        workersByRef.remove(worker.getName());
+        workersByRef.remove(worker.getRef());
         workersById.remove(worker.getId());
         taskWorkerPool.purge();
         return result;
@@ -399,14 +404,24 @@ public class GraphWorkerPool {
     public String tasksStats() {
         StringBuilder sb = new StringBuilder();
         final AtomicBoolean first = new AtomicBoolean(true);
-        sb.append("{");
+        sb.append("[");
         workersByRef.values().forEach(worker -> {
             if (!first.get()) {
                 sb.append(",");
             } else {
                 first.set(false);
             }
-            sb.append("\"" + worker.getName() + "\":");
+            sb.append("{");
+            sb.append("\"ref\":\"" + worker.getRef() + "\",");
+            sb.append("\"name\":\"" + worker.getWorkerName() + "\",");
+            sb.append("\"id\":\"" + worker.getId() + "\",");
+            sb.append("\"group\":");
+            if(worker.getWorkerGroup() != null) {
+                sb.append("\""+worker.getWorkerGroup()+"\",");
+            } else {
+                sb.append("null,");
+            }
+            sb.append("\"tasks\":");
             if (worker.isRunning()) {
                 if (worker.workingGraphInstance.taskContextRegistry() != null) {
                     sb.append(worker.workingGraphInstance.taskContextRegistry().stats());
@@ -443,8 +458,9 @@ public class GraphWorkerPool {
                 sb.append('}');
                 sb.append(']');
             }
+            sb.append("}");
         });
-        sb.append("}");
+        sb.append("]");
         return sb.toString();
     }
 

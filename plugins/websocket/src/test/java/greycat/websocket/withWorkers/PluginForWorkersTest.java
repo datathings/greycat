@@ -159,7 +159,17 @@ public class PluginForWorkersTest implements Plugin {
                 .setFactory(params -> new Action() {
                     @Override
                     public void eval(TaskContext ctx) {
-                        Task subTask = Tasks.newTask().action(INTERMEDIATE_TASK_LAUNCHED);
+                        Task subTask = Tasks.newTask()
+                                .thenDo(taskContext -> {
+                                    taskContext.setProgressAutoReport(true);
+                                    taskContext.continueTask();
+                                })
+                                .action(INTERMEDIATE_TASK_LAUNCHED)
+                                .thenDo(taskContext -> {
+                                    taskContext.setProgressAutoReport(false);
+                                    taskContext.continueTask();
+                                })
+                                ;
                         subTask.executeFrom(ctx, ctx.result(), SchedulerAffinity.ANY_LOCAL_THREAD, ctx::continueWith);
                     }
 
@@ -177,6 +187,9 @@ public class PluginForWorkersTest implements Plugin {
                 .setFactory(params -> new Action() {
                     @Override
                     public void eval(TaskContext ctx) {
+
+
+
                         Task subTask = Tasks.newTask().action(CHILD_TASK_LAUNCHED);
                         TaskContext subCtx = subTask.prepare(ctx.graph(), null, null);
                         subCtx.setVariable("workerRef", "subTask");

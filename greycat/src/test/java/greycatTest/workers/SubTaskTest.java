@@ -9,6 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 
 import static greycat.Tasks.newTask;
@@ -88,7 +89,7 @@ public class SubTaskTest {
                                                 .thenDo(taskContext -> {
                                                     int iteration = (int) taskContext.variable("iteration").get(0);
                                                     try {
-                                                        System.out.println(taskContext.template("{{workerRef}}:waiting("+iteration+")..."));
+                                                        System.out.println(taskContext.template("{{workerRef}}:waiting(" + iteration + ")..."));
                                                         Thread.sleep(200);
                                                     } catch (InterruptedException e) {
                                                         e.printStackTrace();
@@ -97,7 +98,7 @@ public class SubTaskTest {
                                                     taskContext.continueTask();
 
                                                 })
-                                        , doCtx -> ((int)doCtx.variable("iteration").get(0))!=5)
+                                        , doCtx -> ((int) doCtx.variable("iteration").get(0)) != 5)
 
                                 .thenDo(taskContext -> {
                                     System.out.println(taskContext.template("{{workerRef}}:done with waiting"));
@@ -184,20 +185,34 @@ public class SubTaskTest {
             latch.countDown();
         });
 
-        try {
-            Thread.sleep(400);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        GraphWorkerPool.getInstance().getWorkerByRef("subTask3").terminateTasks();
-
 
         try {
             Thread.sleep(400);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        GraphWorkerPool.getInstance().getWorkerByRef("subTask2").terminateTasks();
+        /*
+        String stats = GraphWorkerPool.getInstance().tasksStats();
+        System.out.println(stats);
+        */
+
+        Collection<String> workersRefs = GraphWorkerPool.getInstance().getRegisteredWorkers();
+        workersRefs.forEach(ref -> {
+            if(ref.contains("subTask3")) {
+                GraphWorkerPool.getInstance().getWorkerByRef(ref).terminateTasks();
+            }
+        });
+
+        try {
+            Thread.sleep(400);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        workersRefs.forEach(ref -> {
+            if(ref.contains("subTask2")) {
+                GraphWorkerPool.getInstance().getWorkerByRef(ref).terminateTasks();
+            }
+        });
 
         try {
             latch.await();
@@ -224,7 +239,46 @@ public class SubTaskTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        GraphWorkerPool.getInstance().getWorkerByRef("rootWorker").terminateTasks();
+        GraphWorkerPool.getInstance().getWorkerByRef(rootWorker.getRef()).terminateTasks();
+
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void preparedRootTaskKillTest() {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        String groupName = "RootTaskScope";
+
+        final GraphWorker rootWorker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, groupName, null);
+        rootWorker.setWorkerGroup(groupName);
+        Task rootTask = newTask().action(ROOT_ACTION);
+        TaskContext rootTaskContext = rootTask.prepare(null, null, result -> {
+            System.out.println("rootTask finished");
+            if (result.exception() != null && !(result.exception() instanceof InterruptedException)) {
+                result.exception().printStackTrace();
+            }
+            latch.countDown();
+        });
+        rootTaskContext.setTaskScopeName(groupName);
+        rootWorker.submitPreparedTask(rootTask, rootTaskContext);
+
+        try {
+            Thread.sleep(800);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        String stats = GraphWorkerPool.getInstance().tasksStats();
+        System.out.println(stats);
+
+
+        GraphWorkerPool.getInstance().getWorkerByRef(rootWorker.getRef()).terminateTasks();
 
 
         try {
