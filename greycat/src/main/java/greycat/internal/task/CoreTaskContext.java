@@ -594,11 +594,17 @@ class CoreTaskContext implements TaskContext {
             CoreTaskContext subctx = (CoreTaskContext) contexts.get(i);
             int finalI = i;
             subctx._callback = result -> {
+
                 if (result != null) {
                     results[finalI] = result.toString();
                 }
                 childWorkers.remove(worker.getRef());
                 counter.count();
+
+                if(_taskProgressAutoReporting) {
+                    this.reportProgress((1.*counter.getCount())/results.length, workerName);
+                }
+
             };
 
             Task subtask = tasks.get(i);

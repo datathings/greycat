@@ -170,6 +170,8 @@ public class KillTasksTest {
 
                     latch.countDown();
                 });
+            });taskContext.setProgressHook(report->{
+                System.out.println(report);
             });
             taskContext.setWorkerAffinity(WorkerAffinity.TASK_WORKER);
             taskContext.setTaskScopeName("RootTaskWorker");
