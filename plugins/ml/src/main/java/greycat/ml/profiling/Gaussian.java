@@ -23,6 +23,10 @@ import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
 import greycat.struct.matrix.RandomInterface;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
 public class Gaussian {
     public static final String NULL = "nullValues";
     public static final String REJECTED = "rejectedValues";
@@ -197,6 +201,71 @@ public class Gaussian {
         return hist_center.get(count);
     }
 
+    public static void serializeHistogramToBinary(FileChannel fileChannel, EStructArray hostnode) {
+        EStruct host = getRoot(hostnode);
+
+        DoubleArray hist_center = host.getDoubleArray(HISTOGRAM_CENTERS);
+        DoubleArray hist_values = host.getDoubleArray(HISTOGRAM_VALUES);
+        Long total = (Long) host.get(TOTAL);
+        ByteBuffer buffer = ByteBuffer.allocate(8
+                + 4
+                + 4
+                + hist_center.size() *8
+                + hist_values.size() *8
+        );
+
+        buffer.putLong(total);
+        buffer.putInt(hist_center.size());
+        buffer.putInt(hist_values.size());
+        for(int i=0;i<hist_center.size();i++){
+            buffer.putDouble(hist_center.get(i));
+        }
+        for(int i=0;i<hist_values.size();i++){
+            buffer.putDouble(hist_values.get(i));
+        }
+        buffer.flip();
+        try {
+            fileChannel.write(buffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void deserializeHistogramFromBinary(FileChannel fileChannel, EStructArray hostnode) {
+        EStruct host = getRoot(hostnode);
+
+        DoubleArray hist_center = host.getDoubleArray(HISTOGRAM_CENTERS);
+        DoubleArray hist_values = host.getDoubleArray(HISTOGRAM_VALUES);
+
+        ByteBuffer buffer = ByteBuffer.allocate(8
+                + 4
+                + 4
+        );
+
+        try {
+            fileChannel.read(buffer);
+            buffer.flip();
+            long total =buffer.getLong();
+            int histC_Size = buffer.getInt();
+            int histV_Size = buffer.getInt();
+            buffer = ByteBuffer.allocate(8*histC_Size);
+            fileChannel.read(buffer);
+            buffer.flip();
+            for(int i=0;i<histC_Size;i++){
+                hist_center.addElement(buffer.getDouble());
+            }
+            buffer = ByteBuffer.allocate(8*histV_Size);
+            fileChannel.read(buffer);
+            buffer.flip();
+            for(int i=0;i<histV_Size;i++){
+                hist_values.addElement(buffer.getDouble());
+            }
+            host.set(TOTAL, Type.LONG, total);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void normaliseMatrix(DMatrix input, double[] avg, double[] std) {
         for (int i = 0; i < input.columns(); i++) {

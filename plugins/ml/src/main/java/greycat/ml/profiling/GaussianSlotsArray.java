@@ -275,7 +275,7 @@ public class GaussianSlotsArray {
     /**
      * @ignore ts
      */
-    public void deserializeToBinary(FileChannel fileChannel){
+    public void deserializeFromBinary(FileChannel fileChannel){
         ByteBuffer buffer = ByteBuffer.allocate(8);
         try {
             fileChannel.read(buffer);
