@@ -201,6 +201,9 @@ public class Gaussian {
         return hist_center.get(count);
     }
 
+    /**
+     * @ignore ts
+     */
     public static void serializeHistogramToBinary(FileChannel fileChannel, EStructArray hostnode) {
         EStruct host = getRoot(hostnode);
 
@@ -231,7 +234,9 @@ public class Gaussian {
         }
 
     }
-
+    /**
+     * @ignore ts
+     */
     public static void deserializeHistogramFromBinary(FileChannel fileChannel, EStructArray hostnode) {
         EStruct host = getRoot(hostnode);
 
