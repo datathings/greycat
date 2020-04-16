@@ -534,7 +534,7 @@ public class GaussianWrapper {
             long total = buffer.getLong();
             backend.set(Gaussian.TOTAL, Type.LONG, total);
             int sizeDoublearray = buffer.getInt();
-            buffer = ByteBuffer.allocate(3 * 8 * sizeDoublearray);
+            buffer = ByteBuffer.allocate(4 * 8 * sizeDoublearray);
 
             DoubleArray sum = (DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY);
             DoubleArray min = (DoubleArray) backend.getOrCreate(Gaussian.MIN, Type.DOUBLE_ARRAY);
