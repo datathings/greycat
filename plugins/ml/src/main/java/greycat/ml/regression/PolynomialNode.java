@@ -857,7 +857,14 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
                     fileChannel.write((ByteBuffer) ByteBuffer.allocate(4).putInt(0).flip());
                     done.on(true);
                 } else {
-                    fileChannel.write((ByteBuffer) ByteBuffer.allocate(4).putInt(polynomes.length).flip());
+                    int counter =0;
+                    for (int i = 0; i < polynomes.length; i++) {
+                        PolynomialNode node = (PolynomialNode) polynomes[i];
+                        if (node.getDoubleArray(INTERNAL_WEIGHT_KEY) != null) {
+                            counter ++;
+                        }
+                    }
+                    fileChannel.write((ByteBuffer) ByteBuffer.allocate(4).putInt(counter).flip());
                     for (int i = 0; i < polynomes.length; i++) {
                         PolynomialNode node = (PolynomialNode) polynomes[i];
                         if (node.getDoubleArray(INTERNAL_WEIGHT_KEY) != null) {
@@ -880,10 +887,10 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
                                     byteBuffer.putDouble(0);
                                 }
                             }
+                            byteBuffer.flip();
+                            fileChannel.write(byteBuffer);
+                            byteBuffer.clear();
                         }
-                        byteBuffer.flip();
-                        fileChannel.write(byteBuffer);
-                        byteBuffer.clear();
                     }
                     long lasttime = polynomes[polynomes.length - 1].time() + 1;
                     graph().freeNodes(polynomes);
