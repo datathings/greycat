@@ -240,8 +240,8 @@ public class Gaussian {
     public static void deserializeHistogramFromBinary(FileChannel fileChannel, EStructArray hostnode) {
         EStruct host = getRoot(hostnode);
 
-        DoubleArray hist_center = host.getDoubleArray(HISTOGRAM_CENTERS);
-        DoubleArray hist_values = host.getDoubleArray(HISTOGRAM_VALUES);
+        DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTERS,Type.DOUBLE_ARRAY);
+        DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES,Type.DOUBLE_ARRAY);
 
         ByteBuffer buffer = ByteBuffer.allocate(8
                 + 4
