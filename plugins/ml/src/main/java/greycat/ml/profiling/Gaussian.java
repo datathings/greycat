@@ -207,24 +207,32 @@ public class Gaussian {
     public static void serializeHistogramToBinary(FileChannel fileChannel, EStructArray hostnode) {
         EStruct host = getRoot(hostnode);
 
-        DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTERS,Type.DOUBLE_ARRAY);
-        DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES,Type.DOUBLE_ARRAY);
+        DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTERS, Type.DOUBLE_ARRAY);
+        DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY);
         Long total = (Long) host.get(TOTAL);
-        ByteBuffer buffer = ByteBuffer.allocate(8
-                + 4
-                + 4
-                + hist_center.size() *8
-                + hist_values.size() *8
-        );
+        ByteBuffer buffer;
+        if (total == null) {
+            buffer = ByteBuffer.allocate(16);
+            buffer.putLong(0);
+            buffer.putInt(0);
+            buffer.putInt(0);
+        } else {
+            buffer = ByteBuffer.allocate(8
+                    + 4
+                    + 4
+                    + hist_center.size() * 8
+                    + hist_values.size() * 8
+            );
 
-        buffer.putLong(total);
-        buffer.putInt(hist_center.size());
-        buffer.putInt(hist_values.size());
-        for(int i=0;i<hist_center.size();i++){
-            buffer.putDouble(hist_center.get(i));
-        }
-        for(int i=0;i<hist_values.size();i++){
-            buffer.putDouble(hist_values.get(i));
+            buffer.putLong(total);
+            buffer.putInt(hist_center.size());
+            buffer.putInt(hist_values.size());
+            for (int i = 0; i < hist_center.size(); i++) {
+                buffer.putDouble(hist_center.get(i));
+            }
+            for (int i = 0; i < hist_values.size(); i++) {
+                buffer.putDouble(hist_values.get(i));
+            }
         }
         buffer.flip();
         try {
@@ -234,14 +242,15 @@ public class Gaussian {
         }
 
     }
+
     /**
      * @ignore ts
      */
     public static void deserializeHistogramFromBinary(FileChannel fileChannel, EStructArray hostnode) {
         EStruct host = getRoot(hostnode);
 
-        DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTERS,Type.DOUBLE_ARRAY);
-        DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES,Type.DOUBLE_ARRAY);
+        DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTERS, Type.DOUBLE_ARRAY);
+        DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY);
 
         ByteBuffer buffer = ByteBuffer.allocate(8
                 + 4
@@ -251,19 +260,19 @@ public class Gaussian {
         try {
             fileChannel.read(buffer);
             buffer.flip();
-            long total =buffer.getLong();
+            long total = buffer.getLong();
             int histC_Size = buffer.getInt();
             int histV_Size = buffer.getInt();
-            buffer = ByteBuffer.allocate(8*histC_Size);
+            buffer = ByteBuffer.allocate(8 * histC_Size);
             fileChannel.read(buffer);
             buffer.flip();
-            for(int i=0;i<histC_Size;i++){
+            for (int i = 0; i < histC_Size; i++) {
                 hist_center.addElement(buffer.getDouble());
             }
-            buffer = ByteBuffer.allocate(8*histV_Size);
+            buffer = ByteBuffer.allocate(8 * histV_Size);
             fileChannel.read(buffer);
             buffer.flip();
-            for(int i=0;i<histV_Size;i++){
+            for (int i = 0; i < histV_Size; i++) {
                 hist_values.addElement(buffer.getDouble());
             }
             host.set(TOTAL, Type.LONG, total);
