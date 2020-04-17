@@ -263,17 +263,19 @@ public class Gaussian {
             long total = buffer.getLong();
             int histC_Size = buffer.getInt();
             int histV_Size = buffer.getInt();
-            buffer = ByteBuffer.allocate(8 * histC_Size);
-            fileChannel.read(buffer);
-            buffer.flip();
-            for (int i = 0; i < histC_Size; i++) {
-                hist_center.addElement(buffer.getDouble());
-            }
-            buffer = ByteBuffer.allocate(8 * histV_Size);
-            fileChannel.read(buffer);
-            buffer.flip();
-            for (int i = 0; i < histV_Size; i++) {
-                hist_values.addElement(buffer.getDouble());
+            if (total != 0) {
+                buffer = ByteBuffer.allocate(8 * histC_Size);
+                fileChannel.read(buffer);
+                buffer.flip();
+                for (int i = 0; i < histC_Size; i++) {
+                    hist_center.addElement(buffer.getDouble());
+                }
+                buffer = ByteBuffer.allocate(8 * histV_Size);
+                fileChannel.read(buffer);
+                buffer.flip();
+                for (int i = 0; i < histV_Size; i++) {
+                    hist_values.addElement(buffer.getDouble());
+                }
             }
             host.set(TOTAL, Type.LONG, total);
         } catch (IOException e) {
