@@ -857,44 +857,49 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
                     fileChannel.write((ByteBuffer) ByteBuffer.allocate(4).putInt(0).flip());
                     done.on(true);
                 } else {
-                    int counter =0;
+                    int counter = 0;
                     for (int i = 0; i < polynomes.length; i++) {
                         PolynomialNode node = (PolynomialNode) polynomes[i];
                         if (node.getDoubleArray(INTERNAL_WEIGHT_KEY) != null) {
-                            counter ++;
+                            counter++;
                         }
                     }
-                    fileChannel.write((ByteBuffer) ByteBuffer.allocate(4).putInt(counter).flip());
-                    for (int i = 0; i < polynomes.length; i++) {
-                        PolynomialNode node = (PolynomialNode) polynomes[i];
-                        if (node.getDoubleArray(INTERNAL_WEIGHT_KEY) != null) {
-                            double[] weight = node.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
-                            byteBuffer.putLong(node.time());
-                            if (node.getWithDefault(FUTURE_PREDICTION,FUTURE_PREDICTION_DEF)) {
-                                byteBuffer.put((byte) 1);
-                            } else {
-                                byteBuffer.put((byte) 0);
-                            }
-                            byteBuffer.putLong((long) node.get(INTERNAL_LAST_TIME_KEY));
-                            byteBuffer.putInt((int) node.get(INTERNAL_NB_PAST_KEY));
-                            byteBuffer.putLong(node.getWithDefault(INTERNAL_STEP_KEY, 1L));
-                            byteBuffer.putInt(weight.length);
-                            for (int j = 0; j < weight.length; j++) {
-                                byteBuffer.putDouble(weight[j]);
-                            }
-                            if (degree > weight.length) {
-                                for (int j = 0; j < degree - weight.length; j++) {
-                                    byteBuffer.putDouble(0);
+                    if (counter == 0) {
+                        fileChannel.write((ByteBuffer) ByteBuffer.allocate(4).putInt(0).flip());
+                        done.on(true);
+                    } else {
+                        fileChannel.write((ByteBuffer) ByteBuffer.allocate(4).putInt(counter).flip());
+                        for (int i = 0; i < polynomes.length; i++) {
+                            PolynomialNode node = (PolynomialNode) polynomes[i];
+                            if (node.getDoubleArray(INTERNAL_WEIGHT_KEY) != null) {
+                                double[] weight = node.getDoubleArray(INTERNAL_WEIGHT_KEY).extract();
+                                byteBuffer.putLong(node.time());
+                                if (node.getWithDefault(FUTURE_PREDICTION, FUTURE_PREDICTION_DEF)) {
+                                    byteBuffer.put((byte) 1);
+                                } else {
+                                    byteBuffer.put((byte) 0);
                                 }
+                                byteBuffer.putLong((long) node.get(INTERNAL_LAST_TIME_KEY));
+                                byteBuffer.putInt((int) node.get(INTERNAL_NB_PAST_KEY));
+                                byteBuffer.putLong(node.getWithDefault(INTERNAL_STEP_KEY, 1L));
+                                byteBuffer.putInt(weight.length);
+                                for (int j = 0; j < weight.length; j++) {
+                                    byteBuffer.putDouble(weight[j]);
+                                }
+                                if (degree > weight.length) {
+                                    for (int j = 0; j < degree - weight.length; j++) {
+                                        byteBuffer.putDouble(0);
+                                    }
+                                }
+                                byteBuffer.flip();
+                                fileChannel.write(byteBuffer);
+                                byteBuffer.clear();
                             }
-                            byteBuffer.flip();
-                            fileChannel.write(byteBuffer);
-                            byteBuffer.clear();
                         }
+                        long lasttime = polynomes[polynomes.length - 1].time() + 1;
+                        graph().freeNodes(polynomes);
+                        saveToBinary(fileChannel, lasttime, degree, byteBuffer, done);
                     }
-                    long lasttime = polynomes[polynomes.length - 1].time() + 1;
-                    graph().freeNodes(polynomes);
-                    saveToBinary(fileChannel, lasttime, degree, byteBuffer, done);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -961,7 +966,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
                     fileChannel.read(timepoint);
                     timepoint.flip();
                     times[i] = timepoint.getLong();
-                    futures[i] = timepoint.get() == (byte)1;
+                    futures[i] = timepoint.get() == (byte) 1;
                     lasttime[i] = timepoint.getLong();
                     pastKeys[i] = timepoint.getInt();
                     stepKeys[i] = timepoint.getLong();
