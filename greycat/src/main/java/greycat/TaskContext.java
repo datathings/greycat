@@ -133,7 +133,7 @@ public interface TaskContext {
 
     void track(Node ptr);
 
-    Callback<TaskResult> getResultCallback();
+    //Callback<TaskResult> getResultCallback();
 
     byte getWorkerAffinity();
 

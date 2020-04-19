@@ -179,10 +179,12 @@ class CoreTaskContext implements TaskContext {
         return this;
     }
 
-    @Override
+    //@Override
+    /*
     public Callback<TaskResult> getResultCallback() {
         return _callback;
     }
+     */
 
     @Override
     public byte getWorkerAffinity() {
@@ -699,7 +701,6 @@ class CoreTaskContext implements TaskContext {
             }
             _result = preFinalResult;
         }
-        final TaskHook[] globalHooks = this._graph.taskHooks();
         /* Clean */
         if (_end_hook != null) {
             _end_hook.on(this);
@@ -735,12 +736,15 @@ class CoreTaskContext implements TaskContext {
                 }
             }
         }
-        if (globalHooks != null) {
-            for (int i = 0; i < globalHooks.length; i++) {
-                if (this._parent == null) {
-                    globalHooks[i].end(this);
-                } else {
-                    globalHooks[i].afterTask(this);
+        if(this._graph != null) {//Can happen when using workers
+            final TaskHook[] globalHooks = this._graph.taskHooks();
+            if (globalHooks != null) {
+                for (int i = 0; i < globalHooks.length; i++) {
+                    if (this._parent == null) {
+                        globalHooks[i].end(this);
+                    } else {
+                        globalHooks[i].afterTask(this);
+                    }
                 }
             }
         }
