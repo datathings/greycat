@@ -21,6 +21,10 @@ import greycat.struct.EStruct;
 import greycat.struct.EStructArray;
 import greycat.struct.IntArray;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
 public class GaussianSlotsArray {
 
     public static final String NUMBER_OF_SLOTS = "numberOfSlots"; //Number of slots to create in the profile, default is 1
@@ -237,5 +241,65 @@ public class GaussianSlotsArray {
         }
     }
 
+    /**
+     * @ignore ts
+     */
+    public void serializeToBinary(FileChannel fileChannel) {
+
+        IntArray dim = (IntArray) root.getOrCreate(DIMENSIONS, Type.INT_ARRAY);
+
+        int numberOfSlots = (int) root.get(NUMBER_OF_SLOTS);
+
+        ByteBuffer buffer = ByteBuffer.allocate(4 // size dim array
+                + dim.size()*4
+                + 4//number of Slots
+        );
+
+        buffer.putInt(numberOfSlots);
+        buffer.putInt(dim.size());
+        for(int i=0;i<dim.size();i++){
+            buffer.putInt(dim.get(i));
+        }
+        buffer.flip();
+        try {
+            fileChannel.write(buffer);
+            genericSlot.serializeToBinary(fileChannel);
+            for (GaussianWrapper s : slots) {
+                s.serializeToBinary(fileChannel);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @ignore ts
+     */
+    public void deserializeFromBinary(FileChannel fileChannel){
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        try {
+            fileChannel.read(buffer);
+            buffer.flip();
+            int numberslots = buffer.getInt();
+            int dimsize = buffer.getInt();
+            IntArray dim = (IntArray) root.getOrCreate(DIMENSIONS, Type.INT_ARRAY);
+            buffer = ByteBuffer.allocate(4*dimsize);
+            fileChannel.read(buffer);
+            buffer.flip();
+            for(int i=0;i<dimsize;i++){
+                dim.addElement(buffer.getInt());
+            }
+            this.setNumberOfSlots(numberslots);
+            genericSlot.deserializeFromBinary(fileChannel);
+            for (int i = 0; i <numberslots; i++) {
+                slots[i].deserializeFromBinary(fileChannel);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
+    }
 
 }

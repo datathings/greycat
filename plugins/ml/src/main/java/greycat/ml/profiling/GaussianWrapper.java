@@ -25,6 +25,10 @@ import greycat.struct.matrix.RandomInterface;
 import greycat.struct.matrix.SVDDecompose;
 import greycat.struct.matrix.VolatileDMatrix;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
 public class GaussianWrapper {
     //Getters and setters
     public final static String NAME = "GaussianENode";
@@ -480,6 +484,81 @@ public class GaussianWrapper {
         for (int i = 0; i < numbers.length; i++) {
             da.addElement(Double.parseDouble(numbers[i]));
         }
+    }
+
+    /**
+     * @ignore ts
+     */
+    public void serializeToBinary(FileChannel fileChannel) {
+        long total = backend.getWithDefault(Gaussian.TOTAL, 0l);
+        DoubleArray sum = (DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY);
+        DoubleArray min = (DoubleArray) backend.getOrCreate(Gaussian.MIN, Type.DOUBLE_ARRAY);
+        DoubleArray max = (DoubleArray) backend.getOrCreate(Gaussian.MAX, Type.DOUBLE_ARRAY);
+        DoubleArray sumSquares = (DoubleArray) backend.getOrCreate(Gaussian.SUMSQ, Type.DOUBLE_ARRAY);
+        ByteBuffer buffer = ByteBuffer.allocate(8 //total
+                + 4//size of sum, min,max array
+                + sum.size() * 8
+                + min.size() * 8
+                + max.size() * 8
+                + sumSquares.size() * 8
+        );
+        buffer.putLong(total);
+        buffer.putInt(sum.size());
+        for (int i = 0; i < sum.size(); i++) {
+            buffer.putDouble(sum.get(i));
+        }
+        for (int i = 0; i < min.size(); i++) {
+            buffer.putDouble(min.get(i));
+        }
+        for (int i = 0; i < max.size(); i++) {
+            buffer.putDouble(max.get(i));
+        }
+        for (int i = 0; i < sumSquares.size(); i++) {
+            buffer.putDouble(sumSquares.get(i));
+        }
+        try {
+            fileChannel.write((ByteBuffer) buffer.flip());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @ignore ts
+     */
+    public void deserializeFromBinary(FileChannel fileChannel) {
+        ByteBuffer buffer = ByteBuffer.allocate(12);
+        try {
+            fileChannel.read(buffer);
+            buffer.flip();
+            long total = buffer.getLong();
+            backend.set(Gaussian.TOTAL, Type.LONG, total);
+            int sizeDoublearray = buffer.getInt();
+            buffer = ByteBuffer.allocate(4 * 8 * sizeDoublearray);
+            fileChannel.read(buffer);
+            buffer.flip();
+            DoubleArray sum = (DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY);
+            DoubleArray min = (DoubleArray) backend.getOrCreate(Gaussian.MIN, Type.DOUBLE_ARRAY);
+            DoubleArray max = (DoubleArray) backend.getOrCreate(Gaussian.MAX, Type.DOUBLE_ARRAY);
+            DoubleArray sumSquares = (DoubleArray) backend.getOrCreate(Gaussian.SUMSQ, Type.DOUBLE_ARRAY);
+
+            for (int i = 0; i < sizeDoublearray; i++) {
+                sum.addElement(buffer.getDouble());
+            }
+            for (int i = 0; i < sizeDoublearray; i++) {
+                min.addElement(buffer.getDouble());
+            }
+            for (int i = 0; i < sizeDoublearray; i++) {
+                max.addElement(buffer.getDouble());
+            }
+            for (int i = 0; i < sizeDoublearray; i++) {
+                sumSquares.addElement(buffer.getDouble());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 }

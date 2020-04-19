@@ -602,7 +602,7 @@ class CoreTaskContext implements TaskContext {
                 counter.count();
 
                 if(_taskProgressAutoReporting) {
-                    this.reportProgress((1.*counter.getCount())/results.length, workerName);
+                    this.reportProgress((100.*counter.getCount())/results.length, workerName);
                 }
 
             };
