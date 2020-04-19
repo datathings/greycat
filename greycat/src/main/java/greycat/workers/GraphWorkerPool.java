@@ -396,7 +396,7 @@ public class GraphWorkerPool {
         if(gpWorkers.size() < 1) {
             throw new RuntimeException("No GeneralPurpose worker available. Please create at least one.");
         } else {
-            gpWorkers.get(0).submitPreparedTask(task, context);
+            gpWorkers.get((int)(gpWorkers.size()*Math.random())).submitPreparedTask(task, context);
         }
     }
 
