@@ -37,6 +37,8 @@ public class WSWithWorkersTest {
 
     @BeforeClass
     public static void setUp() {
+        CountDownLatch latch = new CountDownLatch(1);
+
         GraphBuilder graphBuilder = GraphBuilder.newBuilder().withPlugin(new PluginForWorkersTest());
         WorkerBuilderFactory defaultFactory = () -> DefaultWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
         WorkerBuilderFactory defaultRootFactory = () -> DefaultRootWorkerBuilder.newBuilder().withGraphBuilder(graphBuilder);
@@ -44,7 +46,18 @@ public class WSWithWorkersTest {
         GraphWorkerPool workersPool = GraphWorkerPool.getInstance()
                 .withRootWorkerBuilderFactory(defaultRootFactory)
                 .withDefaultWorkerBuilderFactory(defaultFactory);
+        workersPool.setOnPoolReady((worker, allSet) -> {
+            allSet.run();
+            latch.countDown();
+            });
         workersPool.initialize();
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         workersPool.createWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER, "GeneralPurposeWorker_0", null);
         wsServer = new WSServerWithWorkers(1234);
         wsServer.start();

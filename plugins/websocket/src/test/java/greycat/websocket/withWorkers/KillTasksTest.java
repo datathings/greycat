@@ -40,13 +40,14 @@ public class KillTasksTest {
         });
         workersPool.initialize();
 
-        GraphWorkerPool.getInstance().createWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER, "GP1", null);
-
         try {
             latch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        GraphWorkerPool.getInstance().createWorker(WorkerAffinity.GENERAL_PURPOSE_WORKER, "GP1", null);
+
         wsServer = new WSServerWithWorkers(3003);
         wsServer.start();
     }
