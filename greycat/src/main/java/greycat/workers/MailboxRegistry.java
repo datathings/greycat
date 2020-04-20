@@ -15,8 +15,7 @@
  */
 package greycat.workers;
 
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -82,7 +81,9 @@ public class MailboxRegistry {
     public static final byte[] VOID_TASK_NOTIFY = new byte[0];
 
     public void notifyMailboxes() {
-        mailboxMap.values().forEach(new Consumer<WorkerMailbox>() {
+        List<WorkerMailbox> valuesList = new ArrayList<>(mailboxMap.values());
+        Collections.shuffle( valuesList );
+        valuesList.forEach(new Consumer<WorkerMailbox>() {
             @Override
             public void accept(WorkerMailbox mailbox) {
                 if (mailbox.canProcessGeneralTaskQueue()) {

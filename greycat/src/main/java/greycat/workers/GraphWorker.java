@@ -532,10 +532,11 @@ public class GraphWorker implements Runnable {
                                     Tuple<String, TaskResult> var = finisedTaskContext.variables()[i];
                                     var.right().free();
                                 }
-                                if (Log.LOG_LEVEL > Log.DEBUG) {
-                                    System.out.println();
+                                /*
+                                if (Log.LOG_LEVEL >= Log.TRACE) {
                                     workingGraphInstance.space().printMarked();
                                 }
+                                */
                                 contextRef.set(null);
                             }
                             taskBuffer.free();
@@ -926,7 +927,7 @@ public class GraphWorker implements Runnable {
                     @Override
                     public void on(Boolean result) {
                         buffer.free();
-                        requestedTaskContext.getResultCallback().on(baseTaskResult);
+                        requestedTaskContext.endTask(baseTaskResult, baseTaskResult.exception());
                     }
                 });
             }
@@ -963,12 +964,13 @@ public class GraphWorker implements Runnable {
             requestedTaskContext.saveToBuffer(taskBuffer);
         }
 
+        /*
         if (mailbox.canProcessGeneralTaskQueue()) {//If general purpose worker, we submit the task to the pool, not to self
             MailboxRegistry.getInstance().getDefaultMailbox().submit(taskBuffer.data());
             MailboxRegistry.getInstance().notifyMailboxes();
         } else {
-            mailbox.submit(taskBuffer.data());
-        }
+        }*/
+        mailbox.submit(taskBuffer.data());
     }
 
     public boolean isRunning() {

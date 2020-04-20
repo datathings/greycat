@@ -157,7 +157,7 @@ public class TestGraphWorker extends GraphWorker {
                     @Override
                     public void on(Boolean result) {
                         buffer.free();
-                        requestedTaskContext.getResultCallback().on(baseTaskResult);
+                        requestedTaskContext.endTask(baseTaskResult, baseTaskResult.exception());
                     }
                 });
             }
