@@ -497,6 +497,9 @@ public class GaussianWrapper {
         DoubleArray sumSquares = (DoubleArray) backend.getOrCreate(Gaussian.SUMSQ, Type.DOUBLE_ARRAY);
         ByteBuffer buffer = ByteBuffer.allocate(8 //total
                 + 4//size of sum, min,max array
+                + 4
+                + 4
+                + 4
                 + sum.size() * 8
                 + min.size() * 8
                 + max.size() * 8
@@ -507,12 +510,15 @@ public class GaussianWrapper {
         for (int i = 0; i < sum.size(); i++) {
             buffer.putDouble(sum.get(i));
         }
+        buffer.putInt(min.size());
         for (int i = 0; i < min.size(); i++) {
             buffer.putDouble(min.get(i));
         }
+        buffer.putInt(max.size());
         for (int i = 0; i < max.size(); i++) {
             buffer.putDouble(max.get(i));
         }
+        buffer.putInt(sumSquares.size());
         for (int i = 0; i < sumSquares.size(); i++) {
             buffer.putDouble(sumSquares.get(i));
         }
@@ -533,24 +539,37 @@ public class GaussianWrapper {
             buffer.flip();
             long total = buffer.getLong();
             backend.set(Gaussian.TOTAL, Type.LONG, total);
-            int sizeDoublearray = buffer.getInt();
-            buffer = ByteBuffer.allocate(4 * 8 * sizeDoublearray);
-            fileChannel.read(buffer);
-            buffer.flip();
+
             DoubleArray sum = (DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY);
             DoubleArray min = (DoubleArray) backend.getOrCreate(Gaussian.MIN, Type.DOUBLE_ARRAY);
             DoubleArray max = (DoubleArray) backend.getOrCreate(Gaussian.MAX, Type.DOUBLE_ARRAY);
             DoubleArray sumSquares = (DoubleArray) backend.getOrCreate(Gaussian.SUMSQ, Type.DOUBLE_ARRAY);
 
+            int sizeDoublearray = buffer.getInt();
+            buffer = ByteBuffer.allocate(8 * sizeDoublearray + 4);
+            fileChannel.read(buffer);
+            buffer.flip();
             for (int i = 0; i < sizeDoublearray; i++) {
                 sum.addElement(buffer.getDouble());
             }
+            sizeDoublearray = buffer.getInt();
+            buffer = ByteBuffer.allocate(8 * sizeDoublearray + 4);
+            fileChannel.read(buffer);
+            buffer.flip();
             for (int i = 0; i < sizeDoublearray; i++) {
                 min.addElement(buffer.getDouble());
             }
+            sizeDoublearray = buffer.getInt();
+            buffer = ByteBuffer.allocate(8 * sizeDoublearray + 4);
+            fileChannel.read(buffer);
+            buffer.flip();
             for (int i = 0; i < sizeDoublearray; i++) {
                 max.addElement(buffer.getDouble());
             }
+            sizeDoublearray = buffer.getInt();
+            buffer = ByteBuffer.allocate(8 * sizeDoublearray);
+            fileChannel.read(buffer);
+            buffer.flip();
             for (int i = 0; i < sizeDoublearray; i++) {
                 sumSquares.addElement(buffer.getDouble());
             }
