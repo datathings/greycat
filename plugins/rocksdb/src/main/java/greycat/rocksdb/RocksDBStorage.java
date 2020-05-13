@@ -28,7 +28,6 @@ import org.rocksdb.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class RocksDBStorage implements Storage {
 
@@ -173,6 +172,7 @@ public class RocksDBStorage implements Storage {
         options.setSync(false);
         try {
             _db.write(options, batch);
+            batch.close();
             for (int i = 0; i < updates.size(); i++) {
                 final Callback<Buffer> explicit = updates.get(i);
                 explicit.on(result);
@@ -216,6 +216,7 @@ public class RocksDBStorage implements Storage {
         options.setSync(false);
         try {
             _db.write(options, batch);
+            batch.close();
             for (int i = 0; i < updates.size(); i++) {
                 final Callback<Buffer> explicit = updates.get(i);
                 explicit.on(result);
