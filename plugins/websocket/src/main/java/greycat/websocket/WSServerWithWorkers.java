@@ -15,7 +15,6 @@
  */
 package greycat.websocket;
 
-import com.sun.corba.se.spi.activation.ActivatorHelper;
 import greycat.*;
 import greycat.internal.CoreGraphLog;
 import greycat.utility.Base64;
