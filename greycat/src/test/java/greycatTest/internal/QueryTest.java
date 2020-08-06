@@ -27,6 +27,8 @@ import greycat.utility.Tuple;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
+
 
 public class QueryTest implements Resolver, Graph {
 
@@ -102,6 +104,11 @@ public class QueryTest implements Resolver, Graph {
 
     @Override
     public Object getProperty(String key) {
+        return null;
+    }
+
+    @Override
+    public HashMap<String, Object> getProperties() {
         return null;
     }
 

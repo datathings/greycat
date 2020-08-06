@@ -164,6 +164,11 @@ public class CoreGraph implements Graph {
     }
 
     @Override
+    public HashMap<String, Object> getProperties() {
+        return _properties;
+    }
+
+    @Override
     public final Node newNode(long world, long time) {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);

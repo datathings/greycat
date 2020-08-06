@@ -19,6 +19,8 @@ import greycat.plugin.*;
 import greycat.struct.Buffer;
 import greycat.chunk.ChunkSpace;
 
+import java.util.HashMap;
+
 /**
  * Graph is the main structure of GreyCat.
  * Use the {@link GraphBuilder} to get an instance.
@@ -28,6 +30,8 @@ public interface Graph {
     Graph setProperty(String key, Object value);
 
     Object getProperty(String key);
+
+    HashMap<String, Object> getProperties();
 
     /**
      * Creates a new (generic) {@link Node Node} in the Graph and returns the new Node.

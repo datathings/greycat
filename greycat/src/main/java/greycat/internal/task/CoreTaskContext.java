@@ -582,9 +582,17 @@ class CoreTaskContext implements TaskContext {
         final DeferCounter counter = new CoreDeferCounter(contexts.size());
         counter.then(() -> GraphWorker.wakeups(ids, results));
 
+        final HashMap<String, String> properties = new HashMap<>();
+        for(String key : _graph.getProperties().keySet()) {
+            final Object property = _graph.getProperties().get(key);
+            if(property instanceof String) {
+                properties.put(key, (String) property);
+            }
+        }
+
         for (int i = 0; i < contexts.size(); i++) {
             String workerName = names.get(i);
-            final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, workerName, null);
+            final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, workerName, properties);
             worker.setName(workerName);
             if(this._taskScopeName != null) {
                 worker.setWorkerGroup(this._taskScopeName);
