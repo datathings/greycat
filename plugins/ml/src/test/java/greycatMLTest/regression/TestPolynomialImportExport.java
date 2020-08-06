@@ -23,7 +23,7 @@ public class TestPolynomialImportExport {
             @Override
             public void on(Boolean result) {
                 double precision = 0.00001;
-                int size = 1000;
+                int size = 10000;
 
                 long seed = 1545436547678348l;
                 //Random random = new Random(seed);
@@ -89,18 +89,18 @@ public class TestPolynomialImportExport {
                 try {
                     FileChannel fc = new FileOutputStream("data.txt").getChannel();
                     polynomialNode.saveToBinary(fc,result1 -> {
-                        System.out.println(result1);
                         try {
                             FileChannel fi= new FileInputStream("data.txt").getChannel();
                             PolynomialNode.loadFromBinary(fi,graph,0,result2 -> {
                                 polynomialNode.travelInTime(Constants.END_OF_TIME,result3->{
-                                    ((PolynomialNode)result3).derivate(result4 -> {
-                                        System.out.println(result4);
-                                    });
-                                });
-                                result2.derivate(result3 -> {
                                     System.out.println(result3);
+                                    System.out.println(result3.get("value"));
+
+                                    System.out.println("-----");
+                                    System.out.println(result2);
+                                    System.out.println(result2.get("value"));
                                 });
+
                             });
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();

@@ -19,27 +19,31 @@ import greycat.TaskContext;
 import greycat.TaskContextRegistry;
 import greycat.TaskProgressReport;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class CoreTaskContextRegistry implements TaskContextRegistry {
 
-    private int counter = 0;
+    private int nextId = 0;
+    private final LinkedList<Integer> availableIds = new LinkedList<>();
+    private final Map<Integer, TaskContextRecord> contexts = new HashMap<Integer, TaskContextRecord>();
 
     private final class TaskContextRecord {
         TaskContext ctx;
         long start_timestamp;
         long progress_timestamp;
         TaskProgressReport lastReport;
-    }
 
-    private final Map<Integer, TaskContextRecord> contexts = new HashMap<Integer, TaskContextRecord>();
+    }
 
     @Override
     public synchronized final void register(final TaskContext taskContext) {
         CoreTaskContext casted = (CoreTaskContext) taskContext;
-        casted.in_registry_id = counter;
-        counter++;
+        Integer id = availableIds.pollFirst();
+        if(id == null) {
+            id = nextId;
+            nextId++;
+        }
+        casted.in_registry_id = id;
 
         TaskContextRecord rec = new TaskContextRecord();
         rec.ctx = casted;
@@ -49,6 +53,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
         contexts.put(casted.in_registry_id, rec);
     }
 
+    /*
     @Override
     public synchronized final int registerWith(final TaskContext taskContext, int id) {
         CoreTaskContext casted = (CoreTaskContext) taskContext;
@@ -67,6 +72,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
             return registerWith(taskContext, id + 1);
         }
     }
+    */
 
     @Override
     public String statsOf(int id) {
@@ -157,6 +163,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
 
     public final void unregister(final int task_id) {
         contexts.remove(task_id);
+        availableIds.addLast(task_id);
     }
 
     public final void reportProgress(final Integer ctx_id, final CoreProgressReport report) {

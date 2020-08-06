@@ -182,7 +182,7 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
 
                 try {
                     logger.debug("WSServer\tMailbox reaper ready for peer (" + localMailboxId + ")");
-                    while (true && channel.isOpen()) {
+                    while (channel.isOpen()) {
                         byte[] newMessage = localMailbox.take();
                         /*
                         Buffer jobBuffer = new HeapBuffer();
@@ -195,7 +195,9 @@ public class WSServerWithWorkers implements WebSocketConnectionCallback, Callbac
                         */
 
                         //logger.trace("WSServer\tForwarding response type " + StorageMessageType.byteToString(newMessage[0]) + " to peer " + localMailboxId);
-                        WebSockets.sendBinary(ByteBuffer.wrap(newMessage), channel, wsCallback);
+                        if(channel.isOpen()) {
+                            WebSockets.sendBinary(ByteBuffer.wrap(newMessage), channel, wsCallback);
+                        }
                     }
                 } catch (InterruptedException e) {
                     //e.printStackTrace();
