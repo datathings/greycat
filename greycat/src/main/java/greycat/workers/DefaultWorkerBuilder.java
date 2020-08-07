@@ -28,7 +28,7 @@ public class DefaultWorkerBuilder implements WorkerBuilder {
     protected GraphBuilder graphBuilder;
     protected String name;
     protected byte kind;
-    protected Map<String, String> properties;
+    protected Map<String, Object> properties;
 
     protected String logPath, logMaxSize;
 
@@ -89,7 +89,7 @@ public class DefaultWorkerBuilder implements WorkerBuilder {
     }
 
     @Override
-    public WorkerBuilder withProperties(Map<String, String> properties) {
+    public WorkerBuilder withProperties(Map<String, Object> properties) {
         this.properties = properties;
         return this;
     }

@@ -27,5 +27,5 @@ public interface WorkerBuilder {
 
     WorkerBuilder withKind(byte workerKind);
 
-    WorkerBuilder withProperties(Map<String, String> properties);
+    WorkerBuilder withProperties(Map<String, Object> properties);
 }

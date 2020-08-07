@@ -83,7 +83,7 @@ public class GraphWorkerPool {
     private WorkerBuilderFactory gpWorkerBuilder;
     private WorkerBuilderFactory sessionWorkerBuilder;
 
-    private Map<String, String> rootGraphProperties;
+    private Map<String, Object> rootGraphProperties;
     private PoolReadyCallback onPoolReady;
     private ScheduledExecutorService scheduledExecutor;
 
@@ -107,7 +107,7 @@ public class GraphWorkerPool {
         return this;
     }
 
-    public GraphWorkerPool withRootGraphProperties(Map<String, String> rootGraphProperties) {
+    public GraphWorkerPool withRootGraphProperties(Map<String, Object> rootGraphProperties) {
         this.rootGraphProperties = rootGraphProperties;
         return this;
     }
@@ -271,7 +271,7 @@ public class GraphWorkerPool {
         logger.info("Halting done.");
     }
 
-    public GraphWorker createWorker(byte workerKind, String name, Map<String, String> properties) {
+    public GraphWorker createWorker(byte workerKind, String name, Map<String, Object> properties) {
 
         if(!ready.get()) {
             return null;
