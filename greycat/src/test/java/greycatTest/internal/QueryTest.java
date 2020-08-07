@@ -84,7 +84,6 @@ public class QueryTest implements Resolver, Graph {
 
     @Override
     public void freeNode(Node node) {
-
     }
 
     @Override
@@ -94,7 +93,6 @@ public class QueryTest implements Resolver, Graph {
 
     @Override
     public void end(Node node) {
-
     }
 
     @Override
