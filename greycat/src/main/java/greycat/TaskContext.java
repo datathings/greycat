@@ -20,6 +20,7 @@ import greycat.utility.LMap;
 import greycat.utility.Tuple;
 
 import java.util.List;
+import java.util.Map;
 
 public interface TaskContext {
 
@@ -141,5 +142,7 @@ public interface TaskContext {
 
     void setTaskScopeName(String name);
     String getTaskScopeName();
+
+    Map<String, String> properties();
 
 }

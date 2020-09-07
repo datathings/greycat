@@ -441,20 +441,19 @@ public class GraphWorkerPool {
 
                 sb.append(",\"last_report\":");
                 sb.append("{");
-
                 sb.append("\"actionPath\":");
                 sb.append("\"\"");
-
                 sb.append(",\"actionSumPath\":");
                 sb.append("\"1\"");
-
                 sb.append(",\"progress\":");
                 sb.append("0");
-
                 sb.append(",\"comment\":");
                 sb.append("\"waiting to be executed\"");
-
                 sb.append('}');
+
+                sb.append(",\"properties\":");
+                sb.append("[]");
+
                 sb.append('}');
                 sb.append(']');
             }

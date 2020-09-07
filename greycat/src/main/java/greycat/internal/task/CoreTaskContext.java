@@ -62,6 +62,7 @@ class CoreTaskContext implements TaskContext {
     private LMap _transactionTracker = null;
     private byte _workerAffinity = WorkerAffinity.GENERAL_PURPOSE_WORKER;
     private String _taskScopeName;
+    private Map<String, String> _properties = null;
 
     /**
      * {@ignore ts}
@@ -85,6 +86,7 @@ class CoreTaskContext implements TaskContext {
      *         this._silent = null;
      *         this._transactionTracker = null;
      *         this.ext_stop = new java.util.concurrent.atomic.AtomicBoolean(false);
+     *         this._properties = new java.util.ConcurrentHashMap<string, string>();
      *      } else {
      *         let castedParentContext: greycat.internal.task.CoreTaskContext = <greycat.internal.task.CoreTaskContext>parentContext;
      *         this._time = castedParentContext.time();
@@ -93,6 +95,7 @@ class CoreTaskContext implements TaskContext {
      *         this._silent = castedParentContext._silent;
      *         this._transactionTracker = castedParentContext._transactionTracker;
      *         this.ext_stop = castedParentContext.ext_stop;
+     *         this._properties = castedParentContext._properties;
      *      }
      *      this._result = initial;
      *      this._callback = p_callback;
@@ -114,6 +117,7 @@ class CoreTaskContext implements TaskContext {
             this._transactionTracker = null;
             this.ext_stop = new AtomicBoolean(false);
             this.childWorkers = new HashMap<>();
+            this._properties = new ConcurrentHashMap<>();
         } else {
             CoreTaskContext castedParentContext = (CoreTaskContext) parentContext;
             this._time = castedParentContext.time();
@@ -124,6 +128,7 @@ class CoreTaskContext implements TaskContext {
             this.ext_stop = castedParentContext.ext_stop;
             this.childWorkers = castedParentContext.childWorkers;
             this._taskScopeName = castedParentContext._taskScopeName;
+            this._properties = castedParentContext._properties;
         }
         this._result = initial;
         this._callback = p_callback;
@@ -198,6 +203,11 @@ class CoreTaskContext implements TaskContext {
 
     public String getTaskScopeName() {
         return _taskScopeName;
+    }
+
+    @Override
+    public Map<String, String> properties() {
+        return _properties;
     }
 
     public void setTaskScopeName(String _taskScopeName) {

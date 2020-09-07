@@ -39,7 +39,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
     public synchronized final void register(final TaskContext taskContext) {
         CoreTaskContext casted = (CoreTaskContext) taskContext;
         Integer id = availableIds.pollFirst();
-        if(id == null) {
+        if (id == null) {
             id = nextId;
             nextId++;
         }
@@ -97,6 +97,22 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
                 builder.append("null");
             }
 
+            builder.append(",\"properties\":");
+            builder.append('[');
+            boolean isFirst = true;
+            for (String key : registry.ctx.properties().keySet()) {
+                if (isFirst) {
+                    isFirst = false;
+                } else {
+                    builder.append(',');
+                }
+                builder.append('{');
+                builder.append("\"" + key + "\":");
+                builder.append("\"" + registry.ctx.properties().get(key) + "\"");
+                builder.append('}');
+            }
+            builder.append(']');
+
             builder.append('}');
         }
         return builder.toString();
@@ -106,40 +122,20 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
     public synchronized final String stats() {
         StringBuilder builder = new StringBuilder();
         builder.append('[');
-        boolean is_first = true;
+        boolean isFirst = true;
 
         Integer[] ids = this.contexts.keySet().toArray(new Integer[this.contexts.size()]);
         for (int i = 0; i < ids.length; i++) {
             Integer key = ids[i];
-            TaskContextRecord rec = this.contexts.get(key);
-
-            if (is_first) {
-                is_first = false;
+            if (isFirst) {
+                isFirst = false;
             } else {
                 builder.append(',');
             }
-            builder.append("{");
-
-            builder.append("\"id\":");
-            builder.append(String.valueOf(key));
-
-            builder.append(",\"start_timestamp\":");
-            builder.append(String.valueOf(rec.start_timestamp));
-
-            builder.append(",\"progress_timestamp\":");
-            builder.append(String.valueOf(rec.progress_timestamp));
-
-            builder.append(",\"last_report\":");
-            if (rec.lastReport != null) {
-                rec.lastReport.toJson(builder);
-            } else {
-                builder.append("null");
-            }
-
-            builder.append('}');
+            builder.append(statsOf(key));
         }
-
         builder.append(']');
+
         return builder.toString();
     }
 
@@ -147,7 +143,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
     public final void forceStop(final Integer taskContextID) {
         TaskContextRecord rec = this.contexts.get(taskContextID);
         if (rec != null) {
-           rec.ctx.terminateTask();
+            rec.ctx.terminateTask();
         }
     }
 
