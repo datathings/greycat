@@ -276,6 +276,7 @@ public class GraphWorkerPool {
         if(!ready.get()) {
             return null;
         }
+        
         WorkerBuilderFactory workerBuilderFactoryToUse = this.defaultWorkerBuilder;
         switch (workerKind) {
             case WorkerAffinity.GENERAL_PURPOSE_WORKER: {
