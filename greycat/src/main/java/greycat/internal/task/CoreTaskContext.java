@@ -1057,9 +1057,12 @@ class CoreTaskContext implements TaskContext {
         _properties = new ConcurrentHashMap<>();
         if (json != null && json.equals("{}") == false) {
             json = json.substring(2, json.length() - 2);
-            String[] entries = json.split("\":\"|\",\"");
-            for (int i = 0; i < entries.length; i += 2) {
-                _properties.put(entries[i], entries[i + 1]);
+            String[] entries = json.split("\",\"");
+            for (int i = 0; i < entries.length; i++) {
+                String[] kv = entries[i].split("\":\"");
+                String key = kv[0];
+                String val = kv[1];
+                _properties.put(key, val);
             }
         }
 
