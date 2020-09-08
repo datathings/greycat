@@ -62,6 +62,8 @@ public class BaseTaskResultTest {
 
             CoreTask task = new CoreTask();
             TaskContext ctx = task.prepare(graph, result, null);
+            ctx.properties().put("prop1", "val1");
+            ctx.properties().put("prop2", "val2");
 
             Buffer buffer = graph.newBuffer();
             ctx.saveToBuffer(buffer);
@@ -73,6 +75,9 @@ public class BaseTaskResultTest {
                     TaskResult<Node> resultBack = ctx2.resultAsNodes();
                     Assert.assertEquals(result.size(), resultBack.size());
                     Assert.assertEquals(result.get(0).id(), resultBack.get(0).id());
+                    Assert.assertEquals(ctx2.properties().size(), ctx.properties().size());
+                    Assert.assertEquals(ctx2.properties().get("prop1"), ctx.properties().get("prop1"));
+                    Assert.assertEquals(ctx2.properties().get("prop2"), ctx.properties().get("prop2"));
                 }
             });
 

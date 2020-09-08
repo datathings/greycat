@@ -74,31 +74,31 @@ class CoreTaskContext implements TaskContext {
 
     /**
      * {@native ts
-     *      this.in_registry_id = -1;
-     *      this._origin = origin;
-     *      this._hooks = p_hooks;
-     *      this._graph = p_graph;
-     *      this._parent = parentContext;
-     *      if (parentContext == null) {
-     *         this._world = 0;
-     *         this._time = greycat.Constants.BEGINNING_OF_TIME;
-     *         this._globalVariables = new java.util.ConcurrentHashMap<string, greycat.TaskResult<any>>();
-     *         this._silent = null;
-     *         this._transactionTracker = null;
-     *         this.ext_stop = new java.util.concurrent.atomic.AtomicBoolean(false);
-     *         this._properties = new java.util.ConcurrentHashMap<string, string>();
-     *      } else {
-     *         let castedParentContext: greycat.internal.task.CoreTaskContext = <greycat.internal.task.CoreTaskContext>parentContext;
-     *         this._time = castedParentContext.time();
-     *         this._world = castedParentContext.world();
-     *         this._globalVariables = castedParentContext.globalVariables();
-     *         this._silent = castedParentContext._silent;
-     *         this._transactionTracker = castedParentContext._transactionTracker;
-     *         this.ext_stop = castedParentContext.ext_stop;
-     *         this._properties = castedParentContext._properties;
-     *      }
-     *      this._result = initial;
-     *      this._callback = p_callback;
+     * this.in_registry_id = -1;
+     * this._origin = origin;
+     * this._hooks = p_hooks;
+     * this._graph = p_graph;
+     * this._parent = parentContext;
+     * if (parentContext == null) {
+     * this._world = 0;
+     * this._time = greycat.Constants.BEGINNING_OF_TIME;
+     * this._globalVariables = new java.util.ConcurrentHashMap<string, greycat.TaskResult<any>>();
+     * this._silent = null;
+     * this._transactionTracker = null;
+     * this.ext_stop = new java.util.concurrent.atomic.AtomicBoolean(false);
+     * this._properties = new java.util.ConcurrentHashMap<string, string>();
+     * } else {
+     * let castedParentContext: greycat.internal.task.CoreTaskContext = <greycat.internal.task.CoreTaskContext>parentContext;
+     * this._time = castedParentContext.time();
+     * this._world = castedParentContext.world();
+     * this._globalVariables = castedParentContext.globalVariables();
+     * this._silent = castedParentContext._silent;
+     * this._transactionTracker = castedParentContext._transactionTracker;
+     * this.ext_stop = castedParentContext.ext_stop;
+     * this._properties = castedParentContext._properties;
+     * }
+     * this._result = initial;
+     * this._callback = p_callback;
      * }
      */
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
@@ -598,7 +598,7 @@ class CoreTaskContext implements TaskContext {
             String workerName = names.get(i);
             final GraphWorker worker = GraphWorkerPool.getInstance().createWorker(WorkerAffinity.TASK_WORKER, workerName, _graph.getProperties());
             worker.setName(workerName);
-            if(this._taskScopeName != null) {
+            if (this._taskScopeName != null) {
                 worker.setWorkerGroup(this._taskScopeName);
             }
             childWorkers.put(worker.getRef(), worker);
@@ -613,8 +613,8 @@ class CoreTaskContext implements TaskContext {
                 childWorkers.remove(worker.getRef());
                 counter.count();
 
-                if(_taskProgressAutoReporting) {
-                    this.reportProgress((100.*counter.getCount())/results.length, workerName);
+                if (_taskProgressAutoReporting) {
+                    this.reportProgress((100. * counter.getCount()) / results.length, workerName);
                 }
 
             };
@@ -746,7 +746,7 @@ class CoreTaskContext implements TaskContext {
                 }
             }
         }
-        if(this._graph != null) {//Can happen when using workers
+        if (this._graph != null) {//Can happen when using workers
             final TaskHook[] globalHooks = this._graph.taskHooks();
             if (globalHooks != null) {
                 for (int i = 0; i < globalHooks.length; i++) {
@@ -999,6 +999,21 @@ class CoreTaskContext implements TaskContext {
         buffer.write(CoreConstants.CHUNK_SEP);
         Base64.encodeIntToBuffer((_taskProgressAutoReporting ? 1 : 0), buffer);
         buffer.write(CoreConstants.CHUNK_SEP);
+        // properties map
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        int j = 0;
+        for (String key : _properties.keySet()) {
+            sb.append("\"" + key + "\":");
+            sb.append("\"" + _properties.get(key) + "\"");
+            if (j < _properties.size() - 1) {
+                sb.append(",");
+            }
+            j++;
+        }
+        sb.append("}");
+        Base64.encodeStringToBuffer(sb.toString(), buffer);
+        buffer.write(CoreConstants.CHUNK_SEP);
         if (_result != null) {
             _result.saveToBuffer(buffer);
         }
@@ -1009,7 +1024,7 @@ class CoreTaskContext implements TaskContext {
         }
     }
 
-    private int readInt(final Buffer buffer, final int begin) {
+    private int readTaskProgressAutoReporting(final Buffer buffer, final int begin) {
         int cursor = begin;
         while (cursor < buffer.length()) {
             byte current = buffer.read(cursor);
@@ -1025,7 +1040,33 @@ class CoreTaskContext implements TaskContext {
         return cursor;
     }
 
-    private int readLong(final Buffer buffer, final int begin, final boolean world) {
+    private int readProperties(final Buffer buffer, final int begin) {
+        String json = null;
+        int cursor = begin;
+        while (cursor < buffer.length()) {
+            byte current = buffer.read(cursor);
+            if (current == Constants.CHUNK_SEP) {
+                if (begin != cursor) {
+                    json = Base64.decodeToStringWithBounds(buffer, begin, cursor);
+                    break;
+                }
+            } else {
+                cursor++;
+            }
+        }
+        _properties = new ConcurrentHashMap<>();
+        if (json != null && json.equals("{}") == false) {
+            json = json.substring(2, json.length() - 2);
+            String[] entries = json.split("\":\"|\",\"");
+            for (int i = 0; i < entries.length; i += 2) {
+                _properties.put(entries[i], entries[i + 1]);
+            }
+        }
+
+        return cursor;
+    }
+
+    private int readTimeOrWorld(final Buffer buffer, final int begin, final boolean world) {
         int cursor = begin;
         while (cursor < buffer.length()) {
             byte current = buffer.read(cursor);
@@ -1079,11 +1120,13 @@ class CoreTaskContext implements TaskContext {
     public final void loadFromBuffer(Buffer buffer, Callback<Boolean> loaded) {
         L3GMap<List<Tuple<Object[], Integer>>> collector = new L3GMap<List<Tuple<Object[], Integer>>>(true);
         int cursor = 0;
-        cursor = readLong(buffer, cursor, true);
+        cursor = readTimeOrWorld(buffer, cursor, true);
         cursor++;
-        cursor = readLong(buffer, cursor, false);
+        cursor = readTimeOrWorld(buffer, cursor, false);
         cursor++;
-        cursor = readInt(buffer, cursor);
+        cursor = readTaskProgressAutoReporting(buffer, cursor);
+        cursor++;
+        cursor = readProperties(buffer, cursor);
         cursor++;
         while (cursor < buffer.length()) {
             cursor = readResult(buffer, cursor, collector);
