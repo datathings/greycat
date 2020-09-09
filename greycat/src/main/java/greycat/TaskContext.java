@@ -142,7 +142,4 @@ public interface TaskContext {
 
     void setTaskScopeName(String name);
     String getTaskScopeName();
-
-    Map<String, String> properties();
-
 }

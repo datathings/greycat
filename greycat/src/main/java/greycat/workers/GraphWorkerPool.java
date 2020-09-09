@@ -36,6 +36,7 @@ import static greycat.Log.TRACE;
  * @ignore ts
  */
 public class GraphWorkerPool {
+    public static final String GRAPH_PROPERTIES_USER_KEY = "gc-user-key";
 
     private final static Log logger = new CoreGraphLog();
     public static int NUMBER_OF_TASK_WORKER = 1;
@@ -273,10 +274,10 @@ public class GraphWorkerPool {
 
     public GraphWorker createWorker(byte workerKind, String name, Map<String, Object> properties) {
 
-        if(!ready.get()) {
+        if (!ready.get()) {
             return null;
         }
-        
+
         WorkerBuilderFactory workerBuilderFactoryToUse = this.defaultWorkerBuilder;
         switch (workerKind) {
             case WorkerAffinity.GENERAL_PURPOSE_WORKER: {
@@ -307,7 +308,7 @@ public class GraphWorkerPool {
 
         workersById.put(worker.getId(), worker);
         workersByRef.put(worker.getRef(), worker);
-        if(workerKind == WorkerAffinity.GENERAL_PURPOSE_WORKER) {
+        if (workerKind == WorkerAffinity.GENERAL_PURPOSE_WORKER) {
             gpWorkers.add(worker);
         }
 
@@ -386,7 +387,7 @@ public class GraphWorkerPool {
     }
 
     public void submitTaskToGeneralPurposeWorker(Task task, Callback<TaskResult> callback) {
-        if(gpWorkers.size() < 1) {
+        if (gpWorkers.size() < 1) {
             throw new RuntimeException("No GeneralPurpose worker available. Please create at least one.");
         } else {
             gpWorkers.get(0).submitTask(task, callback);
@@ -394,10 +395,10 @@ public class GraphWorkerPool {
     }
 
     public void submitPreparedTaskToGeneralPurposeWorker(Task task, TaskContext context) {
-        if(gpWorkers.size() < 1) {
+        if (gpWorkers.size() < 1) {
             throw new RuntimeException("No GeneralPurpose worker available. Please create at least one.");
         } else {
-            gpWorkers.get((int)(gpWorkers.size()*Math.random())).submitPreparedTask(task, context);
+            gpWorkers.get((int) (gpWorkers.size() * Math.random())).submitPreparedTask(task, context);
         }
     }
 
@@ -416,9 +417,13 @@ public class GraphWorkerPool {
             sb.append("\"ref\":\"" + worker.getRef() + "\",");
             sb.append("\"name\":\"" + worker.getWorkerName() + "\",");
             sb.append("\"id\":\"" + worker.getId() + "\",");
+            Object userProperty = worker.workingGraphInstance.getProperties().get(GRAPH_PROPERTIES_USER_KEY);
+            if (userProperty != null) {
+                sb.append("\"" + GRAPH_PROPERTIES_USER_KEY + "\":\"" + userProperty + "\",");
+            }
             sb.append("\"group\":");
-            if(worker.getWorkerGroup() != null) {
-                sb.append("\""+worker.getWorkerGroup()+"\",");
+            if (worker.getWorkerGroup() != null) {
+                sb.append("\"" + worker.getWorkerGroup() + "\",");
             } else {
                 sb.append("null,");
             }
@@ -451,9 +456,6 @@ public class GraphWorkerPool {
                 sb.append(",\"comment\":");
                 sb.append("\"waiting to be executed\"");
                 sb.append('}');
-
-                sb.append(",");
-                sb.append(worker.workingGraphInstance.taskContextRegistry().propertiesStats());
 
                 sb.append('}');
                 sb.append(']');

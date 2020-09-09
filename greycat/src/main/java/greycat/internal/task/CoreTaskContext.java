@@ -62,7 +62,6 @@ class CoreTaskContext implements TaskContext {
     private LMap _transactionTracker = null;
     private byte _workerAffinity = WorkerAffinity.GENERAL_PURPOSE_WORKER;
     private String _taskScopeName;
-    private Map<String, String> _properties = null;
 
     /**
      * {@ignore ts}
@@ -86,7 +85,6 @@ class CoreTaskContext implements TaskContext {
      * this._silent = null;
      * this._transactionTracker = null;
      * this.ext_stop = new java.util.concurrent.atomic.AtomicBoolean(false);
-     * this._properties = new java.util.ConcurrentHashMap<string, string>();
      * } else {
      * let castedParentContext: greycat.internal.task.CoreTaskContext = <greycat.internal.task.CoreTaskContext>parentContext;
      * this._time = castedParentContext.time();
@@ -95,7 +93,6 @@ class CoreTaskContext implements TaskContext {
      * this._silent = castedParentContext._silent;
      * this._transactionTracker = castedParentContext._transactionTracker;
      * this.ext_stop = castedParentContext.ext_stop;
-     * this._properties = castedParentContext._properties;
      * }
      * this._result = initial;
      * this._callback = p_callback;
@@ -117,7 +114,6 @@ class CoreTaskContext implements TaskContext {
             this._transactionTracker = null;
             this.ext_stop = new AtomicBoolean(false);
             this.childWorkers = new HashMap<>();
-            this._properties = new ConcurrentHashMap<>();
         } else {
             CoreTaskContext castedParentContext = (CoreTaskContext) parentContext;
             this._time = castedParentContext.time();
@@ -128,7 +124,6 @@ class CoreTaskContext implements TaskContext {
             this.ext_stop = castedParentContext.ext_stop;
             this.childWorkers = castedParentContext.childWorkers;
             this._taskScopeName = castedParentContext._taskScopeName;
-            this._properties = castedParentContext._properties;
         }
         this._result = initial;
         this._callback = p_callback;
@@ -203,11 +198,6 @@ class CoreTaskContext implements TaskContext {
 
     public String getTaskScopeName() {
         return _taskScopeName;
-    }
-
-    @Override
-    public Map<String, String> properties() {
-        return _properties;
     }
 
     public void setTaskScopeName(String _taskScopeName) {
@@ -999,21 +989,6 @@ class CoreTaskContext implements TaskContext {
         buffer.write(CoreConstants.CHUNK_SEP);
         Base64.encodeIntToBuffer((_taskProgressAutoReporting ? 1 : 0), buffer);
         buffer.write(CoreConstants.CHUNK_SEP);
-        // properties map
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        int j = 0;
-        for (String key : _properties.keySet()) {
-            sb.append("\"" + key + "\":");
-            sb.append("\"" + _properties.get(key) + "\"");
-            if (j < _properties.size() - 1) {
-                sb.append(",");
-            }
-            j++;
-        }
-        sb.append("}");
-        Base64.encodeStringToBuffer(sb.toString(), buffer);
-        buffer.write(CoreConstants.CHUNK_SEP);
         if (_result != null) {
             _result.saveToBuffer(buffer);
         }
@@ -1037,35 +1012,6 @@ class CoreTaskContext implements TaskContext {
                 cursor++;
             }
         }
-        return cursor;
-    }
-
-    private int readProperties(final Buffer buffer, final int begin) {
-        String json = null;
-        int cursor = begin;
-        while (cursor < buffer.length()) {
-            byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_SEP) {
-                if (begin != cursor) {
-                    json = Base64.decodeToStringWithBounds(buffer, begin, cursor);
-                    break;
-                }
-            } else {
-                cursor++;
-            }
-        }
-        _properties = new ConcurrentHashMap<>();
-        if (json != null && json.equals("{}") == false) {
-            json = json.substring(2, json.length() - 2);
-            String[] entries = json.split("\",\"");
-            for (int i = 0; i < entries.length; i++) {
-                String[] kv = entries[i].split("\":\"");
-                String key = kv[0];
-                String val = kv[1];
-                _properties.put(key, val);
-            }
-        }
-
         return cursor;
     }
 
@@ -1128,8 +1074,6 @@ class CoreTaskContext implements TaskContext {
         cursor = readTimeOrWorld(buffer, cursor, false);
         cursor++;
         cursor = readTaskProgressAutoReporting(buffer, cursor);
-        cursor++;
-        cursor = readProperties(buffer, cursor);
         cursor++;
         while (cursor < buffer.length()) {
             cursor = readResult(buffer, cursor, collector);

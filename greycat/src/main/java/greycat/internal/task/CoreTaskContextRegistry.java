@@ -97,22 +97,6 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
                 builder.append("null");
             }
 
-            builder.append(",\"properties\":");
-            builder.append('[');
-            boolean isFirst = true;
-            for (String key : registry.ctx.properties().keySet()) {
-                if (isFirst) {
-                    isFirst = false;
-                } else {
-                    builder.append(',');
-                }
-                builder.append('{');
-                builder.append("\"" + key + "\":");
-                builder.append("\"" + registry.ctx.properties().get(key) + "\"");
-                builder.append('}');
-            }
-            builder.append(']');
-
             builder.append('}');
         }
         return builder.toString();
@@ -133,43 +117,6 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
                 builder.append(',');
             }
             builder.append(statsOf(key));
-        }
-        builder.append(']');
-
-        return builder.toString();
-    }
-
-    @Override
-    public synchronized final String propertiesStats() {
-        StringBuilder builder = new StringBuilder();
-
-        builder.append("\"properties\":");
-        builder.append('[');
-
-        boolean isFirstCtx = true;
-        Integer[] ids = this.contexts.keySet().toArray(new Integer[this.contexts.size()]);
-        for (int i = 0; i < ids.length; i++) {
-            Integer ctxKey = ids[i];
-            if (isFirstCtx) {
-                isFirstCtx = false;
-            } else {
-                builder.append(',');
-            }
-            if (contexts.containsKey(ctxKey)) {
-                TaskContextRecord registry = contexts.get(ctxKey);
-                boolean isFirstProp = true;
-                for (String propKey : registry.ctx.properties().keySet()) {
-                    if (isFirstProp) {
-                        isFirstProp = false;
-                    } else {
-                        builder.append(',');
-                    }
-                    builder.append('{');
-                    builder.append("\"" + propKey + "\":");
-                    builder.append("\"" + registry.ctx.properties().get(propKey) + "\"");
-                    builder.append('}');
-                }
-            }
         }
         builder.append(']');
 

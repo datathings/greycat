@@ -21,8 +21,6 @@ public interface TaskContextRegistry {
 
     String stats();
 
-    String propertiesStats();
-
     void forceStop(Integer taskContextID);
 
     //int registerWith(TaskContext task,int id);
