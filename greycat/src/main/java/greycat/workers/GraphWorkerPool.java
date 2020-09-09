@@ -452,8 +452,8 @@ public class GraphWorkerPool {
                 sb.append("\"waiting to be executed\"");
                 sb.append('}');
 
-                sb.append(",\"properties\":");
-                sb.append("[]");
+                sb.append(",");
+                sb.append(worker.workingGraphInstance.taskContextRegistry().propertiesStats());
 
                 sb.append('}');
                 sb.append(']');

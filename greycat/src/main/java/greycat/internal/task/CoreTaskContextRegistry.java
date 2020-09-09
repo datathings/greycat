@@ -140,6 +140,43 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
     }
 
     @Override
+    public synchronized final String propertiesStats() {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("\"properties\":");
+        builder.append('[');
+
+        boolean isFirstCtx = true;
+        Integer[] ids = this.contexts.keySet().toArray(new Integer[this.contexts.size()]);
+        for (int i = 0; i < ids.length; i++) {
+            Integer ctxKey = ids[i];
+            if (isFirstCtx) {
+                isFirstCtx = false;
+            } else {
+                builder.append(',');
+            }
+            if (contexts.containsKey(ctxKey)) {
+                TaskContextRecord registry = contexts.get(ctxKey);
+                boolean isFirstProp = true;
+                for (String propKey : registry.ctx.properties().keySet()) {
+                    if (isFirstProp) {
+                        isFirstProp = false;
+                    } else {
+                        builder.append(',');
+                    }
+                    builder.append('{');
+                    builder.append("\"" + propKey + "\":");
+                    builder.append("\"" + registry.ctx.properties().get(propKey) + "\"");
+                    builder.append('}');
+                }
+            }
+        }
+        builder.append(']');
+
+        return builder.toString();
+    }
+
+    @Override
     public final void forceStop(final Integer taskContextID) {
         TaskContextRecord rec = this.contexts.get(taskContextID);
         if (rec != null) {
