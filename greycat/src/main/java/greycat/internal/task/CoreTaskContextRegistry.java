@@ -74,15 +74,19 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
     }
     */
 
-    @Override
-    public String statsOf(int id) {
+    private String statsOf(int ctxId, String runnerId) {
         StringBuilder builder = new StringBuilder();
-        if (contexts.containsKey(id)) {
-            TaskContextRecord registry = contexts.get(id);
+        if (contexts.containsKey(ctxId)) {
+            TaskContextRecord registry = contexts.get(ctxId);
             builder.append("{");
 
             builder.append("\"id\":");
-            builder.append(String.valueOf(id));
+            builder.append(String.valueOf(ctxId));
+
+            if (runnerId != null) {
+                builder.append(",\"runner_id\":");
+                builder.append(String.valueOf(runnerId));
+            }
 
             builder.append(",\"start_timestamp\":");
             builder.append(String.valueOf(registry.start_timestamp));
@@ -103,7 +107,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
     }
 
     @Override
-    public synchronized final String stats() {
+    public synchronized final String stats(String runnerId) {
         StringBuilder builder = new StringBuilder();
         builder.append('[');
         boolean isFirst = true;
@@ -116,7 +120,7 @@ public class CoreTaskContextRegistry implements TaskContextRegistry {
             } else {
                 builder.append(',');
             }
-            builder.append(statsOf(key));
+            builder.append(statsOf(key, runnerId));
         }
         builder.append(']');
 

@@ -19,13 +19,11 @@ public interface TaskContextRegistry {
 
     void register(TaskContext task);
 
-    String stats();
+    String stats(String runnerId);
 
     void forceStop(Integer taskContextID);
 
     //int registerWith(TaskContext task,int id);
-
-    String statsOf(int id);
 
     void forceStopAll();
 }

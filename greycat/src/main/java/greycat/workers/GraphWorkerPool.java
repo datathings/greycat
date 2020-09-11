@@ -430,7 +430,7 @@ public class GraphWorkerPool {
             sb.append("\"tasks\":");
             if (worker.isRunning()) {
                 if (worker.workingGraphInstance.taskContextRegistry() != null) {
-                    sb.append(worker.workingGraphInstance.taskContextRegistry().stats());
+                    sb.append(worker.workingGraphInstance.taskContextRegistry().stats(String.valueOf(worker.getId())));
                 }
             } else {
                 sb.append("[");
