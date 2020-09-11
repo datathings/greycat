@@ -439,6 +439,9 @@ public class GraphWorkerPool {
                 sb.append("\"id\":");
                 sb.append(String.valueOf(0));
 
+                sb.append(",\"runner_id\":");
+                sb.append(String.valueOf(worker.getId()));
+
                 sb.append(",\"start_timestamp\":");
                 sb.append(String.valueOf(System.currentTimeMillis()));
 
