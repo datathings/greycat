@@ -179,6 +179,7 @@ public class GraphWorkerPool {
                     localWorkers.stream().map(graphWorker -> graphWorker.getRef() + " cacheSize: " + graphWorker.workingGraphInstance.space().capacity() + " " + ((graphWorker.workingGraphInstance.space().cacheSize() * 100) / graphWorker.workingGraphInstance.space().capacity()) + "% used.").forEach(v -> logger.trace(v));
                     logger.trace("Memory Heap: init:{}, used:{}, committed:{}, max:{}", formatBytes(heapUsage.getInit(), 3), formatBytes(heapUsage.getUsed(), 3), formatBytes(heapUsage.getCommitted(), 3), formatBytes(heapUsage.getMax(), 3));
                 }
+                
                 if ((heapUsage.getUsed() * 1. / heapUsage.getMax()) >= cleanThreshold) {
                     logger.warn("Memory under pressure! Cleaning caches.");
                     ArrayList<GraphWorker> localWorkers = new ArrayList<>(workersById.values());
