@@ -195,7 +195,7 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                     task_stats_buf.write(Constants.BUFFER_SEP);
                     task_stats_buf.writeAll(callbackCodeView.data());
                     task_stats_buf.write(Constants.BUFFER_SEP);
-                    Base64.encodeStringToBuffer(graph.taskContextRegistry().stats(null), task_stats_buf);
+                    Base64.encodeStringToBuffer(graph.taskContextRegistry().stats(), task_stats_buf);
                     payload.free();
                     WSServer.this.send_resp(task_stats_buf, channel);
                     break;

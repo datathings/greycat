@@ -186,7 +186,7 @@ public class WSSharedServer implements WebSocketConnectionCallback, Callback<Buf
                     task_stats_buf.write(Constants.BUFFER_SEP);
                     task_stats_buf.writeAll(callbackCodeView.data());
                     task_stats_buf.write(Constants.BUFFER_SEP);
-                    Base64.encodeStringToBuffer(graph.taskContextRegistry().stats(null), task_stats_buf);
+                    Base64.encodeStringToBuffer(graph.taskContextRegistry().stats(), task_stats_buf);
                     payload.free();
                     WSSharedServer.this.send_resp(task_stats_buf, channel);
                     break;
