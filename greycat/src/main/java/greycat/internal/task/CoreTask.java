@@ -577,79 +577,86 @@ public class CoreTask implements Task {
             final String[] varargs = params;//J2TS tricks
             return new ActionNamed(actionName, varargs);
         } else {
+
             final ActionFactory factory = declaration.factory();
             final int[] declaredParams = declaration.params();
-            if (declaredParams != null && params != null) {
-                int resultSize = declaredParams.length;
-                Object[] parsedParams = new Object[resultSize];
+
+            if(declaredParams != null && declaredParams.length > 0) {
+                int declaredParametersSize = declaredParams.length;
+                Object[] parsedParams = new Object[declaredParametersSize];
+
                 int varargs_index = 0;
-                for (int i = 0; i < params.length; i++) {
-                    int correspondingType;
-                    if (i < resultSize) {
-                        correspondingType = declaredParams[i];
-                    } else {
-                        correspondingType = declaredParams[resultSize - 1]; // varargs
-                    }
-                    switch (correspondingType) {
-                        case Type.STRING:
-                            parsedParams[i] = params[i];
-                            break;
-                        case Type.INT:
-                            parsedParams[i] = Integer.parseInt(params[i]);
-                            break;
-                        case Type.LONG:
-                            parsedParams[i] = Long.parseLong(params[i]);
-                            break;
-                        case Type.DOUBLE:
-                            parsedParams[i] = Double.parseDouble(params[i]);
-                            break;
-                        case Type.TASK:
-                            parsedParams[i] = getOrCreate(contextTasks, params[i]);
-                            break;
-                        case Type.STRING_ARRAY:
-                            if (varargs_index == 0) {
-                                final String[] parsedSubParam = new String[params.length - i];
-                                parsedSubParam[varargs_index] = params[i];
-                                varargs_index = 1;
-                                parsedParams[i] = parsedSubParam;
-                            } else {
-                                ((String[]) parsedParams[resultSize - 1])[varargs_index] = params[i];
-                                varargs_index++;
-                            }
-                            break;
-                        case Type.DOUBLE_ARRAY:
-                            if (varargs_index == 0) {
-                                final double[] parsedSubParam = new double[resultSize - i];
-                                parsedSubParam[varargs_index] = Double.parseDouble(params[i]);
-                                varargs_index = 1;
-                                parsedParams[i] = parsedSubParam;
-                            } else {
-                                ((double[]) parsedParams[resultSize - 1])[varargs_index] = Double.parseDouble(params[i]);
-                                varargs_index++;
-                            }
-                            break;
-                        case Type.TASK_ARRAY:
-                            if (varargs_index == 0) {
-                                final Task[] parsedSubParamTask = new Task[params.length - i];
-                                parsedSubParamTask[varargs_index] = getOrCreate(contextTasks, params[i]);
-                                varargs_index = 1;
-                                parsedParams[i] = parsedSubParamTask;
-                            } else {
-                                ((Task[]) parsedParams[resultSize - 1])[varargs_index] = getOrCreate(contextTasks, params[i]);
-                                varargs_index++;
-                            }
-                            break;
-                        default:
-                            throw new RuntimeException("Type: " + correspondingType + " not implemented!");
+                int i = 0;
+                if(params != null) {
+                    for (; i < params.length; i++) {
+                        int correspondingType;
+                        if (i < declaredParametersSize) {
+                            correspondingType = declaredParams[i];
+                        } else {
+                            correspondingType = declaredParams[declaredParametersSize - 1]; // varargs
+                        }
+                        switch (correspondingType) {
+                            case Type.STRING:
+                                parsedParams[i] = params[i];
+                                break;
+                            case Type.INT:
+                                parsedParams[i] = Integer.parseInt(params[i]);
+                                break;
+                            case Type.LONG:
+                                parsedParams[i] = Long.parseLong(params[i]);
+                                break;
+                            case Type.DOUBLE:
+                                parsedParams[i] = Double.parseDouble(params[i]);
+                                break;
+                            case Type.TASK:
+                                parsedParams[i] = getOrCreate(contextTasks, params[i]);
+                                break;
+                            case Type.STRING_ARRAY:
+                                if (varargs_index == 0) {
+                                    final String[] parsedSubParam = new String[params.length - i];
+                                    parsedSubParam[varargs_index] = params[i];
+                                    varargs_index = 1;
+                                    parsedParams[i] = parsedSubParam;
+                                } else {
+                                    ((String[]) parsedParams[declaredParametersSize - 1])[varargs_index] = params[i];
+                                    varargs_index++;
+                                }
+                                break;
+                            case Type.DOUBLE_ARRAY:
+                                if (varargs_index == 0) {
+                                    final double[] parsedSubParam = new double[declaredParametersSize - i];
+                                    parsedSubParam[varargs_index] = Double.parseDouble(params[i]);
+                                    varargs_index = 1;
+                                    parsedParams[i] = parsedSubParam;
+                                } else {
+                                    ((double[]) parsedParams[declaredParametersSize - 1])[varargs_index] = Double.parseDouble(params[i]);
+                                    varargs_index++;
+                                }
+                                break;
+                            case Type.TASK_ARRAY:
+                                if (varargs_index == 0) {
+                                    final Task[] parsedSubParamTask = new Task[params.length - i];
+                                    parsedSubParamTask[varargs_index] = getOrCreate(contextTasks, params[i]);
+                                    varargs_index = 1;
+                                    parsedParams[i] = parsedSubParamTask;
+                                } else {
+                                    ((Task[]) parsedParams[declaredParametersSize - 1])[varargs_index] = getOrCreate(contextTasks, params[i]);
+                                    varargs_index++;
+                                }
+                                break;
+                            default:
+                                throw new RuntimeException("Type: " + correspondingType + " not implemented!");
+                        }
                     }
                 }
-                if (resultSize > params.length) {
-                    for (int i = params.length; i < resultSize; i++) {
+                if (i < declaredParametersSize) {
+                    for (; i < declaredParametersSize; i++) {
                         parsedParams[i] = null;
                     }
                 }
                 return factory.create(parsedParams);
-            } else {
+
+            } else { // no parameters declared on the action.
                 return factory.create(new Object[0]);
             }
         }
