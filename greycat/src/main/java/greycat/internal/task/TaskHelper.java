@@ -15,21 +15,24 @@
  */
 package greycat.internal.task;
 
+import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 import greycat.Constants;
 import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
 import greycat.struct.Buffer;
+import org.graalvm.polyglot.Context;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 
 public class TaskHelper {
 
     /**
      * @ignore ts
      */
-    static final ScriptEngine SCRIPT_ENGINE = new ScriptEngineManager().getEngineByName("JavaScript");
+    static final ScriptEngine SCRIPT_ENGINE = GraalJSScriptEngine.create(null,
+            Context.newBuilder("js").allowAllAccess(true).allowExperimentalOptions(true).option("js.nashorn-compat", "true"));
+
 
     /**
      * Return an array with all nodes contains in the input.
