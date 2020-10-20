@@ -27,7 +27,7 @@
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings</groupId>
         <version>0.0.0-SNAPSHOT</version>
-        <relativePath>...</relativePath>
+        <relativePath>..</relativePath>
     </parent>
 
     <properties>
